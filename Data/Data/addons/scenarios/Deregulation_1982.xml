@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<scenario name="Deregulation, 1982" startYear="1982" startCash="9000000" difficulty="Hard" endYear="1990">
+  <intro
+    text="The Bus Regulatory Reform Act has just passed. For fifty years the route you ran and the fare you charged were the government's business; from this year they are yours. Anybody can open a route, anybody can undercut you, and the thin country runs you were obliged to keep are yours to drop. Your carrier is small, your coaches are old, and the two national lines are about to find out what competition feels like. Build something that is still standing in 1990." />
+  <success
+    text="You came through deregulation with your carrier intact and your books in order, which is more than Greyhound and Trailways between them managed." />
+  <start carrier="BT" homeBase="OMA" debt="3000000">
+    <routes>
+      <route departure="OMA" destination="CHI" coach="MCI MC-9 Crusader II" quantity="2" />
+      <route departure="OMA" destination="DEN" coach="MCI MC-9 Crusader II" quantity="2" />
+      <route departure="OMA" destination="KCY" coach="Prevost Le Normand" quantity="1" />
+      <route departure="OMA" destination="MSP" coach="MCI MC-9 Crusader II" quantity="1" />
+      <route departure="OMA" destination="STL" coach="Prevost Le Normand" quantity="1" />
+    </routes>
+    <AI>
+      <carrier name="GH" homeBase="DAL">
+        <route departure="DAL" destination="HOU" coach="MCI MC-9 Crusader II" quantity="4" />
+        <route departure="DAL" destination="OKC" coach="MCI MC-9 Crusader II" quantity="2" />
+        <route departure="DAL" destination="SAT" coach="MCI MC-9 Crusader II" quantity="3" />
+        <route departure="DAL" destination="MEM" coach="MCI MC-9 Crusader II" quantity="2" />
+        <route departure="DAL" destination="ELP" coach="MCI MC-9 Crusader II" quantity="2" />
+      </carrier>
+      <carrier name="TW" homeBase="WAS">
+        <route departure="WAS" destination="NYC" coach="MCI MC-9 Crusader II" quantity="4" />
+        <route departure="WAS" destination="PHL" coach="MCI MC-9 Crusader II" quantity="3" />
+        <route departure="WAS" destination="RIC" coach="Prevost Le Normand" quantity="2" />
+        <route departure="WAS" destination="PIT" coach="MCI MC-9 Crusader II" quantity="2" />
+      </carrier>
+      <carrier name="IT" homeBase="DET">
+        <route departure="DET" destination="CHI" coach="MCI MC-9 Crusader II" quantity="2" />
+        <route departure="DET" destination="CLE" coach="Prevost Le Normand" quantity="2" />
+      </carrier>
+    </AI>
+  </start>
+  <modifiers>
+  </modifiers>
+  <parameters>
+    <failure id="1" type="Cash" value="0" for="0.25"
+             text="Three months in the red. The bank has called in the loan and the coaches are being sold." />
+    <failure id="2" type="Debt" value="0" for="1"
+             text="A year carrying more debt than the carrier is worth. The receivers have it now." />
+  </parameters>
+</scenario>

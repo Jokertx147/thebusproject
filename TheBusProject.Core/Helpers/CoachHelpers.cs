@@ -51,6 +51,10 @@ namespace TheBusProject.Helpers
             List<CoachType> types =
                 CoachTypes.GetTypes(t => t.Produced.From.Year < year && t.Produced.To.Year > year);
 
+            // nothing was in production that year: the nearest thing that was
+            if (types.Count == 0) types = CoachTypes.GetTypes(t => t.Produced.From.Year <= year);
+            if (types.Count == 0) types = CoachTypes.GetAllTypes();
+
             int typeNumber = Rnd.Next(types.Count);
             CoachType type = types[typeNumber];
 
@@ -381,15 +385,23 @@ namespace TheBusProject.Helpers
                     t => t.Range >= minRange && t.Produced.From.Year < GameObject.GetInstance().GameTime.AddYears(-5).Year
                          && t.Produced.To > GameObject.GetInstance().GameTime.AddYears(-35));
 
+            // early in the game's span there may be nothing five years old yet: take whatever is built by now
+            if (types.Count == 0)
+            {
+                types = CoachTypes.GetTypes(t => t.Range >= minRange && t.Produced.From <= GameObject.GetInstance().GameTime);
+            }
+            if (types.Count == 0) types = CoachTypes.GetTypes(t => t.Range >= minRange);
+            if (types.Count == 0) types = CoachTypes.GetAllTypes();
+
             int typeNumber = Rnd.Next(types.Count);
             CoachType type = types[typeNumber];
 
             int countryNumber = Rnd.Next(Countries.GetCountries().Count() - 1);
             Country country = Countries.GetCountries()[countryNumber];
 
-            int builtYear = Rnd.Next(
-                Math.Max(type.Produced.From.Year, GameObject.GetInstance().GameTime.Year - 35),
-                Math.Min(GameObject.GetInstance().GameTime.Year - 5, type.Produced.To.Year));
+            int fromYear = Math.Max(type.Produced.From.Year, GameObject.GetInstance().GameTime.Year - 35);
+            int toYear = Math.Min(GameObject.GetInstance().GameTime.Year - 5, type.Produced.To.Year);
+            int builtYear = toYear > fromYear ? Rnd.Next(fromYear, toYear) : Math.Min(fromYear, GameObject.GetInstance().GameTime.Year);
 
             var coach = new Coach(
                 id.ToString(),

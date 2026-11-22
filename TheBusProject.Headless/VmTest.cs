@@ -4627,6 +4627,18 @@ static class VmTest
             Console.WriteLine(string.Format("  {0:MMMM yyyy}: {1:0}% full, tickets {2}, the trips cost {3}, the route made {4}; the fleet cost {5} to keep; cash {6}",
                                             done, TheBusProject.Helpers.ConnectionService.MonthLoad(route)*100,
                                             M(tickets), M(onroad), M(profit), M(own), M(me.Money)));
+            Console.WriteLine(string.Format("    drivers {0}, one costs {1} a month; facilities {2} costing {3} a month; {4} station contract(s)",
+                                            me.Drivers.Count,
+                                            M(me.Drivers.Count == 0 ? 0 : TheBusProject.Helpers.CarrierHelpers.GetDriverSalary(me, me.Drivers[0])),
+                                            me.Facilities.Count, M(me.Facilities.Sum(f => f.MonthlyCost)),
+                                            TheBusProject.Models.Stations.Stations.GetAllStations().Sum(st => st.GetCarrierContracts(me).Count)));
+            // where the carrier's money actually went this month, by kind
+            foreach (TheBusProject.Models.General.Finances.Invoice.InvoiceType kind in
+                     Enum.GetValues(typeof(TheBusProject.Models.General.Finances.Invoice.InvoiceType)))
+            {
+                double v = me.GetInvoicesAmountMonth(done.Year, done.Month, kind);
+                if (Math.Abs(v) >= 1) Console.WriteLine(string.Format("    {0,-16} {1,12}", kind, M(v)));
+            }
         }
         Console.WriteLine("MILESTONE TEST OK");
         Environment.Exit(0);

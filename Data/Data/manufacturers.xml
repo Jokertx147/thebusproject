@@ -6,4 +6,7 @@
   <manufacturer name="Van Hool" shortname="Van Hool" country="107" />
   <manufacturer name="Temsa" shortname="Temsa" country="161" />
   <manufacturer name="Mercedes-Benz" shortname="Mercedes-Benz" country="163" />
+  <manufacturer name="General Motors" shortname="GM" country="122" />
+  <manufacturer name="Flxible" shortname="Flxible" country="122" />
+  <manufacturer name="Eagle Bus Manufacturing" shortname="Eagle" country="122" />
 </manufacturers>

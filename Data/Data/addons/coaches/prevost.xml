@@ -29,4 +29,11 @@
     <capacity passengers="56" drivers="1" attendants="0" maxclasses="2" />
     <produced from="2000" to="2199" rate="40" />
   </coach>
+  <coach manufacturer="Prevost" name="Prevost Le Normand" image="Prevost Le Normand" price="49505">
+    <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
+    <specs wingspan="2.6" length="12.2" range="1300" speed="97" fuelcapacity="620" consumption="0.0108"
+           runwaylengthrequired="0" />
+    <capacity passengers="43" drivers="1" attendants="0" maxclasses="2" />
+    <produced from="1975" to="1985" rate="50" />
+  </coach>
 </coaches>

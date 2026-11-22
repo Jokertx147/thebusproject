@@ -57,4 +57,25 @@
     <capacity drivers="1" cargo="42" />
     <produced from="2008" to="2199" rate="12" />
   </coach>
+  <coach manufacturer="MCI" name="MCI MC-5A" image="MCI MC-5A" price="47755">
+    <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
+    <specs wingspan="2.6" length="10.7" range="1200" speed="95" fuelcapacity="520" consumption="0.0124"
+           runwaylengthrequired="0" />
+    <capacity passengers="38" drivers="1" attendants="0" maxclasses="2" />
+    <produced from="1964" to="1978" rate="50" />
+  </coach>
+  <coach manufacturer="MCI" name="MCI MC-7 Challenger" image="MCI MC-7 Challenger" price="55272">
+    <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
+    <specs wingspan="2.6" length="12.2" range="1300" speed="97" fuelcapacity="600" consumption="0.0116"
+           runwaylengthrequired="0" />
+    <capacity passengers="43" drivers="1" attendants="0" maxclasses="2" />
+    <produced from="1968" to="1973" rate="50" />
+  </coach>
+  <coach manufacturer="MCI" name="MCI MC-8" image="MCI MC-8" price="56667">
+    <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
+    <specs wingspan="2.6" length="12.2" range="1350" speed="100" fuelcapacity="640" consumption="0.0106"
+           runwaylengthrequired="0" />
+    <capacity passengers="45" drivers="1" attendants="0" maxclasses="2" />
+    <produced from="1973" to="1978" rate="50" />
+  </coach>
 </coaches>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<scenario name="The Curbside Boom" startYear="2008" startCash="16000000" difficulty="Normal" endYear="2014">
+  <intro
+    text="Diesel is at four dollars, the airlines are cutting regional flights, and students who would never have set foot in a bus station are booking a seat on their phones for a dollar. The new lines pick passengers up at the kerb, skip the terminal rents altogether and put double-deckers on the city pairs that pay. You have a handful of coaches and six years to build a network out of this before the boom ends." />
+  <success
+    text="You built a real carrier out of the curbside years, and it is making money without a terminal to its name." />
+  <start carrier="MB" homeBase="CHI" debt="2000000">
+    <routes>
+      <route departure="CHI" destination="MKE" coach="Van Hool TD925 Astromega" quantity="2" />
+      <route departure="CHI" destination="MSP" coach="Van Hool TD925 Astromega" quantity="1" />
+      <route departure="CHI" destination="IND" coach="Van Hool T945" quantity="1" />
+      <route departure="CHI" destination="STL" coach="Van Hool TD925 Astromega" quantity="1" />
+      <route departure="CHI" destination="DET" coach="Van Hool T945" quantity="1" />
+    </routes>
+    <AI>
+      <carrier name="GH" homeBase="DAL">
+        <route departure="DAL" destination="HOU" coach="MCI D4500 CT" quantity="4" />
+        <route departure="DAL" destination="SAT" coach="MCI D4505" quantity="3" />
+        <route departure="DAL" destination="OKC" coach="MCI 102DL3" quantity="2" />
+        <route departure="DAL" destination="MEM" coach="MCI 102DL3" quantity="2" />
+      </carrier>
+      <carrier name="PP" homeBase="BOS">
+        <route departure="BOS" destination="NYC" coach="Van Hool CX45" quantity="4" />
+        <route departure="BOS" destination="PHL" coach="Van Hool T945" quantity="2" />
+      </carrier>
+      <carrier name="JL" homeBase="MSP">
+        <route departure="MSP" destination="OMA" coach="MCI D4500 CT" quantity="2" />
+        <route departure="MSP" destination="KCY" coach="MCI 102DL3" quantity="1" />
+      </carrier>
+    </AI>
+  </start>
+  <modifiers>
+  </modifiers>
+  <parameters>
+    <failure id="1" type="Cash" value="0" for="0.25"
+             text="Three months in the red. The investors have pulled out and the routes are gone." />
+  </parameters>
+</scenario>

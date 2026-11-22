@@ -1,367 +1,607 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configurations>
-  <configuration coach="MCI 102DL3" name="MCI 102DL3, line service" yearfrom="1992" yearto="2000" id="401">
+  <configuration coach="Eagle Model 05" name="Eagle Model 05, line service" yearfrom="1968" yearto="1974" id="401">
+    <classes>
+      <class type="EconomyClass" seating="43" Audio="100" Video="111" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Eagle Model 05" name="Eagle Model 05, express" yearfrom="1968" yearto="1974" id="402">
+    <classes>
+      <class type="EconomyClass" seating="34" Audio="102" Video="114" Seat="109"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Eagle Model 05" name="Eagle Model 05, two classes" yearfrom="1968" yearto="1974" id="403">
+    <classes>
+      <class type="BusinessClass" seating="10" Audio="103" Video="114" Seat="110"></class>
+      <class type="EconomyClass" seating="23" Audio="102" Video="114" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Eagle Model 10" name="Eagle Model 10, line service" yearfrom="1974" yearto="1980" id="404">
+    <classes>
+      <class type="EconomyClass" seating="47" Audio="100" Video="111" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Eagle Model 10" name="Eagle Model 10, express" yearfrom="1974" yearto="1980" id="405">
+    <classes>
+      <class type="EconomyClass" seating="37" Audio="102" Video="114" Seat="109"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Eagle Model 10" name="Eagle Model 10, two classes" yearfrom="1974" yearto="1980" id="406">
+    <classes>
+      <class type="BusinessClass" seating="11" Audio="103" Video="114" Seat="110"></class>
+      <class type="EconomyClass" seating="25" Audio="102" Video="114" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Eagle Model 15" name="Eagle Model 15, line service" yearfrom="1980" yearto="1987" id="407">
+    <classes>
+      <class type="EconomyClass" seating="47" Audio="100" Video="111" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Eagle Model 15" name="Eagle Model 15, express" yearfrom="1980" yearto="1987" id="408">
+    <classes>
+      <class type="EconomyClass" seating="37" Audio="102" Video="114" Seat="109"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Eagle Model 15" name="Eagle Model 15, two classes" yearfrom="1980" yearto="1987" id="409">
+    <classes>
+      <class type="BusinessClass" seating="11" Audio="103" Video="114" Seat="110"></class>
+      <class type="EconomyClass" seating="25" Audio="102" Video="114" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Eagle Model 20" name="Eagle Model 20, line service" yearfrom="1987" yearto="1993" id="410">
+    <classes>
+      <class type="EconomyClass" seating="49" Audio="100" Video="111" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Eagle Model 20" name="Eagle Model 20, express" yearfrom="1987" yearto="1993" id="411">
+    <classes>
+      <class type="EconomyClass" seating="39" Audio="102" Video="114" Seat="109"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Eagle Model 20" name="Eagle Model 20, two classes" yearfrom="1987" yearto="1993" id="412">
+    <classes>
+      <class type="BusinessClass" seating="12" Audio="103" Video="114" Seat="110"></class>
+      <class type="EconomyClass" seating="25" Audio="102" Video="114" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Flxible Clipper" name="Flxible Clipper, line service" yearfrom="1950" yearto="1958" id="413">
+    <classes>
+      <class type="EconomyClass" seating="29" Audio="100" Video="111" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Flxible Clipper" name="Flxible Clipper, express" yearfrom="1950" yearto="1958" id="414">
+    <classes>
+      <class type="EconomyClass" seating="23" Audio="102" Video="114" Seat="109"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Flxible VistaLiner" name="Flxible VistaLiner, line service" yearfrom="1955" yearto="1963" id="415">
+    <classes>
+      <class type="EconomyClass" seating="37" Audio="100" Video="111" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Flxible VistaLiner" name="Flxible VistaLiner, express" yearfrom="1955" yearto="1963" id="416">
+    <classes>
+      <class type="EconomyClass" seating="29" Audio="102" Video="114" Seat="109"></class>
+    </classes>
+  </configuration>
+  <configuration coach="GM PD-4104" name="GM PD-4104, line service" yearfrom="1953" yearto="1960" id="417">
+    <classes>
+      <class type="EconomyClass" seating="41" Audio="100" Video="111" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="GM PD-4104" name="GM PD-4104, express" yearfrom="1953" yearto="1960" id="418">
+    <classes>
+      <class type="EconomyClass" seating="32" Audio="102" Video="114" Seat="109"></class>
+    </classes>
+  </configuration>
+  <configuration coach="GM PD-4104" name="GM PD-4104, two classes" yearfrom="1953" yearto="1960" id="419">
+    <classes>
+      <class type="BusinessClass" seating="10" Audio="103" Video="114" Seat="110"></class>
+      <class type="EconomyClass" seating="21" Audio="102" Video="114" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="GM PD-4106" name="GM PD-4106, line service" yearfrom="1961" yearto="1965" id="420">
+    <classes>
+      <class type="EconomyClass" seating="43" Audio="100" Video="111" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="GM PD-4106" name="GM PD-4106, express" yearfrom="1961" yearto="1965" id="421">
+    <classes>
+      <class type="EconomyClass" seating="34" Audio="102" Video="114" Seat="109"></class>
+    </classes>
+  </configuration>
+  <configuration coach="GM PD-4106" name="GM PD-4106, two classes" yearfrom="1961" yearto="1965" id="422">
+    <classes>
+      <class type="BusinessClass" seating="10" Audio="103" Video="114" Seat="110"></class>
+      <class type="EconomyClass" seating="23" Audio="102" Video="114" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="GM PD-4107 Buffalo" name="GM PD-4107 Buffalo, line service" yearfrom="1966" yearto="1968" id="423">
+    <classes>
+      <class type="EconomyClass" seating="43" Audio="100" Video="111" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="GM PD-4107 Buffalo" name="GM PD-4107 Buffalo, express" yearfrom="1966" yearto="1968" id="424">
+    <classes>
+      <class type="EconomyClass" seating="34" Audio="102" Video="114" Seat="109"></class>
+    </classes>
+  </configuration>
+  <configuration coach="GM PD-4107 Buffalo" name="GM PD-4107 Buffalo, two classes" yearfrom="1966" yearto="1968" id="425">
+    <classes>
+      <class type="BusinessClass" seating="10" Audio="103" Video="114" Seat="110"></class>
+      <class type="EconomyClass" seating="23" Audio="102" Video="114" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="GM PD-4903 Buffalo" name="GM PD-4903 Buffalo, line service" yearfrom="1968" yearto="1980" id="426">
+    <classes>
+      <class type="EconomyClass" seating="47" Audio="100" Video="111" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="GM PD-4903 Buffalo" name="GM PD-4903 Buffalo, express" yearfrom="1968" yearto="1980" id="427">
+    <classes>
+      <class type="EconomyClass" seating="37" Audio="102" Video="114" Seat="109"></class>
+    </classes>
+  </configuration>
+  <configuration coach="GM PD-4903 Buffalo" name="GM PD-4903 Buffalo, two classes" yearfrom="1968" yearto="1980" id="428">
+    <classes>
+      <class type="BusinessClass" seating="11" Audio="103" Video="114" Seat="110"></class>
+      <class type="EconomyClass" seating="25" Audio="102" Video="114" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="MCI 102DL3" name="MCI 102DL3, line service" yearfrom="1992" yearto="2000" id="429">
     <classes>
       <class type="EconomyClass" seating="55" Audio="100" Video="111" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="MCI 102DL3" name="MCI 102DL3, express" yearfrom="1995" yearto="2000" id="402">
+  <configuration coach="MCI 102DL3" name="MCI 102DL3, express" yearfrom="1995" yearto="2000" id="430">
     <classes>
       <class type="EconomyClass" seating="44" Audio="102" Video="114" Seat="109"></class>
     </classes>
   </configuration>
-  <configuration coach="MCI 102DL3" name="MCI 102DL3, two classes" yearfrom="1995" yearto="2000" id="403">
+  <configuration coach="MCI 102DL3" name="MCI 102DL3, two classes" yearfrom="1995" yearto="2000" id="431">
     <classes>
       <class type="BusinessClass" seating="13" Audio="103" Video="114" Seat="110"></class>
       <class type="EconomyClass" seating="29" Audio="102" Video="114" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="MCI D4500 CT" name="MCI D4500 CT, line service" yearfrom="2002" yearto="2199" id="404">
+  <configuration coach="MCI D4500 CT" name="MCI D4500 CT, line service" yearfrom="2002" yearto="2199" id="432">
     <classes>
       <class type="EconomyClass" seating="57" Audio="100" Video="111" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="MCI D4500 CT" name="MCI D4500 CT, express" yearfrom="2002" yearto="2199" id="405">
+  <configuration coach="MCI D4500 CT" name="MCI D4500 CT, express" yearfrom="2002" yearto="2199" id="433">
     <classes>
       <class type="EconomyClass" seating="45" Audio="102" Video="114" Seat="109"></class>
     </classes>
   </configuration>
-  <configuration coach="MCI D4500 CT" name="MCI D4500 CT, two classes" yearfrom="2002" yearto="2199" id="406">
+  <configuration coach="MCI D4500 CT" name="MCI D4500 CT, two classes" yearfrom="2002" yearto="2199" id="434">
     <classes>
       <class type="BusinessClass" seating="14" Audio="103" Video="114" Seat="110"></class>
       <class type="EconomyClass" seating="29" Audio="102" Video="114" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="MCI D4505" name="MCI D4505, line service" yearfrom="2008" yearto="2199" id="407">
+  <configuration coach="MCI D4505" name="MCI D4505, line service" yearfrom="2008" yearto="2199" id="435">
     <classes>
       <class type="EconomyClass" seating="56" Audio="100" Video="111" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="MCI D4505" name="MCI D4505, express" yearfrom="2008" yearto="2199" id="408">
+  <configuration coach="MCI D4505" name="MCI D4505, express" yearfrom="2008" yearto="2199" id="436">
     <classes>
       <class type="EconomyClass" seating="44" Audio="102" Video="114" Seat="109"></class>
     </classes>
   </configuration>
-  <configuration coach="MCI D4505" name="MCI D4505, two classes" yearfrom="2008" yearto="2199" id="409">
+  <configuration coach="MCI D4505" name="MCI D4505, two classes" yearfrom="2008" yearto="2199" id="437">
     <classes>
       <class type="BusinessClass" seating="14" Audio="103" Video="114" Seat="110"></class>
       <class type="EconomyClass" seating="28" Audio="102" Video="114" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="MCI E4500" name="MCI E4500, line service" yearfrom="1998" yearto="2008" id="410">
+  <configuration coach="MCI E4500" name="MCI E4500, line service" yearfrom="1998" yearto="2008" id="438">
     <classes>
       <class type="EconomyClass" seating="55" Audio="100" Video="111" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="MCI E4500" name="MCI E4500, express" yearfrom="1998" yearto="2008" id="411">
+  <configuration coach="MCI E4500" name="MCI E4500, express" yearfrom="1998" yearto="2008" id="439">
     <classes>
       <class type="EconomyClass" seating="44" Audio="102" Video="114" Seat="109"></class>
     </classes>
   </configuration>
-  <configuration coach="MCI E4500" name="MCI E4500, two classes" yearfrom="1998" yearto="2008" id="412">
+  <configuration coach="MCI E4500" name="MCI E4500, two classes" yearfrom="1998" yearto="2008" id="440">
     <classes>
       <class type="BusinessClass" seating="13" Audio="103" Video="114" Seat="110"></class>
       <class type="EconomyClass" seating="29" Audio="102" Video="114" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="MCI J4500" name="MCI J4500, line service" yearfrom="2001" yearto="2199" id="413">
+  <configuration coach="MCI J4500" name="MCI J4500, line service" yearfrom="2001" yearto="2199" id="441">
     <classes>
       <class type="EconomyClass" seating="56" Audio="100" Video="111" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="MCI J4500" name="MCI J4500, express" yearfrom="2001" yearto="2199" id="414">
+  <configuration coach="MCI J4500" name="MCI J4500, express" yearfrom="2001" yearto="2199" id="442">
     <classes>
       <class type="EconomyClass" seating="44" Audio="102" Video="114" Seat="109"></class>
     </classes>
   </configuration>
-  <configuration coach="MCI J4500" name="MCI J4500, two classes" yearfrom="2001" yearto="2199" id="415">
+  <configuration coach="MCI J4500" name="MCI J4500, two classes" yearfrom="2001" yearto="2199" id="443">
     <classes>
       <class type="BusinessClass" seating="14" Audio="103" Video="114" Seat="110"></class>
       <class type="EconomyClass" seating="28" Audio="102" Video="114" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="MCI MC-9 Crusader II" name="MCI MC-9 Crusader II, line service" yearfrom="1978" yearto="1990" id="416">
+  <configuration coach="MCI MC-5A" name="MCI MC-5A, line service" yearfrom="1964" yearto="1978" id="444">
     <classes>
-      <class type="EconomyClass" seating="47" Audio="100" Video="111" Seat="107"></class>
+      <class type="EconomyClass" seating="38" Audio="100" Video="111" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="MCI MC-9 Crusader II" name="MCI MC-9 Crusader II, express" yearfrom="1995" yearto="1990" id="417">
+  <configuration coach="MCI MC-5A" name="MCI MC-5A, express" yearfrom="1964" yearto="1978" id="445">
     <classes>
-      <class type="EconomyClass" seating="37" Audio="102" Video="114" Seat="109"></class>
+      <class type="EconomyClass" seating="30" Audio="102" Video="114" Seat="109"></class>
     </classes>
   </configuration>
-  <configuration coach="MCI MC-9 Crusader II" name="MCI MC-9 Crusader II, two classes" yearfrom="1995" yearto="1990" id="418">
+  <configuration coach="MCI MC-5A" name="MCI MC-5A, two classes" yearfrom="1964" yearto="1978" id="446">
     <classes>
-      <class type="BusinessClass" seating="11" Audio="103" Video="114" Seat="110"></class>
-      <class type="EconomyClass" seating="25" Audio="102" Video="114" Seat="107"></class>
+      <class type="BusinessClass" seating="9" Audio="103" Video="114" Seat="110"></class>
+      <class type="EconomyClass" seating="20" Audio="102" Video="114" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="Prevost H3-45" name="Prevost H3-45, line service" yearfrom="1994" yearto="2199" id="419">
+  <configuration coach="MCI MC-7 Challenger" name="MCI MC-7 Challenger, line service" yearfrom="1968" yearto="1973" id="447">
     <classes>
-      <class type="EconomyClass" seating="56" Audio="100" Video="111" Seat="107"></class>
+      <class type="EconomyClass" seating="43" Audio="100" Video="111" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="Prevost H3-45" name="Prevost H3-45, express" yearfrom="1995" yearto="2199" id="420">
+  <configuration coach="MCI MC-7 Challenger" name="MCI MC-7 Challenger, express" yearfrom="1968" yearto="1973" id="448">
     <classes>
-      <class type="EconomyClass" seating="44" Audio="102" Video="114" Seat="109"></class>
+      <class type="EconomyClass" seating="34" Audio="102" Video="114" Seat="109"></class>
     </classes>
   </configuration>
-  <configuration coach="Prevost H3-45" name="Prevost H3-45, two classes" yearfrom="1995" yearto="2199" id="421">
+  <configuration coach="MCI MC-7 Challenger" name="MCI MC-7 Challenger, two classes" yearfrom="1968" yearto="1973" id="449">
     <classes>
-      <class type="BusinessClass" seating="14" Audio="103" Video="114" Seat="110"></class>
-      <class type="EconomyClass" seating="28" Audio="102" Video="114" Seat="107"></class>
+      <class type="BusinessClass" seating="10" Audio="103" Video="114" Seat="110"></class>
+      <class type="EconomyClass" seating="23" Audio="102" Video="114" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="Prevost Le Mirage XL" name="Prevost Le Mirage XL, line service" yearfrom="1985" yearto="1995" id="422">
+  <configuration coach="MCI MC-8" name="MCI MC-8, line service" yearfrom="1973" yearto="1978" id="450">
     <classes>
-      <class type="EconomyClass" seating="47" Audio="100" Video="111" Seat="107"></class>
+      <class type="EconomyClass" seating="45" Audio="100" Video="111" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="Prevost Le Mirage XL" name="Prevost Le Mirage XL, express" yearfrom="1995" yearto="1995" id="423">
-    <classes>
-      <class type="EconomyClass" seating="37" Audio="102" Video="114" Seat="109"></class>
-    </classes>
-  </configuration>
-  <configuration coach="Prevost Le Mirage XL" name="Prevost Le Mirage XL, two classes" yearfrom="1995" yearto="1995" id="424">
-    <classes>
-      <class type="BusinessClass" seating="11" Audio="103" Video="114" Seat="110"></class>
-      <class type="EconomyClass" seating="25" Audio="102" Video="114" Seat="107"></class>
-    </classes>
-  </configuration>
-  <configuration coach="Prevost Le Mirage XLII" name="Prevost Le Mirage XLII, line service" yearfrom="1995" yearto="2008" id="425">
-    <classes>
-      <class type="EconomyClass" seating="55" Audio="100" Video="111" Seat="107"></class>
-    </classes>
-  </configuration>
-  <configuration coach="Prevost Le Mirage XLII" name="Prevost Le Mirage XLII, express" yearfrom="1995" yearto="2008" id="426">
-    <classes>
-      <class type="EconomyClass" seating="44" Audio="102" Video="114" Seat="109"></class>
-    </classes>
-  </configuration>
-  <configuration coach="Prevost Le Mirage XLII" name="Prevost Le Mirage XLII, two classes" yearfrom="1995" yearto="2008" id="427">
-    <classes>
-      <class type="BusinessClass" seating="13" Audio="103" Video="114" Seat="110"></class>
-      <class type="EconomyClass" seating="29" Audio="102" Video="114" Seat="107"></class>
-    </classes>
-  </configuration>
-  <configuration coach="Prevost X3-45" name="Prevost X3-45, line service" yearfrom="2000" yearto="2199" id="428">
-    <classes>
-      <class type="EconomyClass" seating="56" Audio="100" Video="111" Seat="107"></class>
-    </classes>
-  </configuration>
-  <configuration coach="Prevost X3-45" name="Prevost X3-45, express" yearfrom="2000" yearto="2199" id="429">
-    <classes>
-      <class type="EconomyClass" seating="44" Audio="102" Video="114" Seat="109"></class>
-    </classes>
-  </configuration>
-  <configuration coach="Prevost X3-45" name="Prevost X3-45, two classes" yearfrom="2000" yearto="2199" id="430">
-    <classes>
-      <class type="BusinessClass" seating="14" Audio="103" Video="114" Seat="110"></class>
-      <class type="EconomyClass" seating="28" Audio="102" Video="114" Seat="107"></class>
-    </classes>
-  </configuration>
-  <configuration coach="Setra S 215 HD" name="Setra S 215 HD, line service" yearfrom="1980" yearto="1994" id="431">
-    <classes>
-      <class type="EconomyClass" seating="49" Audio="100" Video="111" Seat="107"></class>
-    </classes>
-  </configuration>
-  <configuration coach="Setra S 215 HD" name="Setra S 215 HD, express" yearfrom="1995" yearto="1994" id="432">
-    <classes>
-      <class type="EconomyClass" seating="39" Audio="102" Video="114" Seat="109"></class>
-    </classes>
-  </configuration>
-  <configuration coach="Setra S 215 HD" name="Setra S 215 HD, two classes" yearfrom="1995" yearto="1994" id="433">
-    <classes>
-      <class type="BusinessClass" seating="12" Audio="103" Video="114" Seat="110"></class>
-      <class type="EconomyClass" seating="25" Audio="102" Video="114" Seat="107"></class>
-    </classes>
-  </configuration>
-  <configuration coach="Setra S 315 HD" name="Setra S 315 HD, line service" yearfrom="1994" yearto="2003" id="434">
-    <classes>
-      <class type="EconomyClass" seating="49" Audio="100" Video="111" Seat="107"></class>
-    </classes>
-  </configuration>
-  <configuration coach="Setra S 315 HD" name="Setra S 315 HD, express" yearfrom="1995" yearto="2003" id="435">
-    <classes>
-      <class type="EconomyClass" seating="39" Audio="102" Video="114" Seat="109"></class>
-    </classes>
-  </configuration>
-  <configuration coach="Setra S 315 HD" name="Setra S 315 HD, two classes" yearfrom="1995" yearto="2003" id="436">
-    <classes>
-      <class type="BusinessClass" seating="12" Audio="103" Video="114" Seat="110"></class>
-      <class type="EconomyClass" seating="25" Audio="102" Video="114" Seat="107"></class>
-    </classes>
-  </configuration>
-  <configuration coach="Setra S 407 HDH" name="Setra S 407 HDH, line service" yearfrom="2003" yearto="2015" id="437">
-    <classes>
-      <class type="EconomyClass" seating="46" Audio="100" Video="111" Seat="107"></class>
-    </classes>
-  </configuration>
-  <configuration coach="Setra S 407 HDH" name="Setra S 407 HDH, express" yearfrom="2003" yearto="2015" id="438">
+  <configuration coach="MCI MC-8" name="MCI MC-8, express" yearfrom="1973" yearto="1978" id="451">
     <classes>
       <class type="EconomyClass" seating="36" Audio="102" Video="114" Seat="109"></class>
     </classes>
   </configuration>
-  <configuration coach="Setra S 407 HDH" name="Setra S 407 HDH, two classes" yearfrom="2003" yearto="2015" id="439">
+  <configuration coach="MCI MC-8" name="MCI MC-8, two classes" yearfrom="1973" yearto="1978" id="452">
+    <classes>
+      <class type="BusinessClass" seating="11" Audio="103" Video="114" Seat="110"></class>
+      <class type="EconomyClass" seating="23" Audio="102" Video="114" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="MCI MC-9 Crusader II" name="MCI MC-9 Crusader II, line service" yearfrom="1978" yearto="1990" id="453">
+    <classes>
+      <class type="EconomyClass" seating="47" Audio="100" Video="111" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="MCI MC-9 Crusader II" name="MCI MC-9 Crusader II, express" yearfrom="1978" yearto="1990" id="454">
+    <classes>
+      <class type="EconomyClass" seating="37" Audio="102" Video="114" Seat="109"></class>
+    </classes>
+  </configuration>
+  <configuration coach="MCI MC-9 Crusader II" name="MCI MC-9 Crusader II, two classes" yearfrom="1978" yearto="1990" id="455">
+    <classes>
+      <class type="BusinessClass" seating="11" Audio="103" Video="114" Seat="110"></class>
+      <class type="EconomyClass" seating="25" Audio="102" Video="114" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Prevost H3-45" name="Prevost H3-45, line service" yearfrom="1994" yearto="2199" id="456">
+    <classes>
+      <class type="EconomyClass" seating="56" Audio="100" Video="111" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Prevost H3-45" name="Prevost H3-45, express" yearfrom="1995" yearto="2199" id="457">
+    <classes>
+      <class type="EconomyClass" seating="44" Audio="102" Video="114" Seat="109"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Prevost H3-45" name="Prevost H3-45, two classes" yearfrom="1995" yearto="2199" id="458">
+    <classes>
+      <class type="BusinessClass" seating="14" Audio="103" Video="114" Seat="110"></class>
+      <class type="EconomyClass" seating="28" Audio="102" Video="114" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Prevost Le Mirage XL" name="Prevost Le Mirage XL, line service" yearfrom="1985" yearto="1995" id="459">
+    <classes>
+      <class type="EconomyClass" seating="47" Audio="100" Video="111" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Prevost Le Mirage XL" name="Prevost Le Mirage XL, express" yearfrom="1985" yearto="1995" id="460">
+    <classes>
+      <class type="EconomyClass" seating="37" Audio="102" Video="114" Seat="109"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Prevost Le Mirage XL" name="Prevost Le Mirage XL, two classes" yearfrom="1985" yearto="1995" id="461">
+    <classes>
+      <class type="BusinessClass" seating="11" Audio="103" Video="114" Seat="110"></class>
+      <class type="EconomyClass" seating="25" Audio="102" Video="114" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Prevost Le Mirage XLII" name="Prevost Le Mirage XLII, line service" yearfrom="1995" yearto="2008" id="462">
+    <classes>
+      <class type="EconomyClass" seating="55" Audio="100" Video="111" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Prevost Le Mirage XLII" name="Prevost Le Mirage XLII, express" yearfrom="1995" yearto="2008" id="463">
+    <classes>
+      <class type="EconomyClass" seating="44" Audio="102" Video="114" Seat="109"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Prevost Le Mirage XLII" name="Prevost Le Mirage XLII, two classes" yearfrom="1995" yearto="2008" id="464">
+    <classes>
+      <class type="BusinessClass" seating="13" Audio="103" Video="114" Seat="110"></class>
+      <class type="EconomyClass" seating="29" Audio="102" Video="114" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Prevost Le Normand" name="Prevost Le Normand, line service" yearfrom="1975" yearto="1985" id="465">
+    <classes>
+      <class type="EconomyClass" seating="43" Audio="100" Video="111" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Prevost Le Normand" name="Prevost Le Normand, express" yearfrom="1975" yearto="1985" id="466">
+    <classes>
+      <class type="EconomyClass" seating="34" Audio="102" Video="114" Seat="109"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Prevost Le Normand" name="Prevost Le Normand, two classes" yearfrom="1975" yearto="1985" id="467">
+    <classes>
+      <class type="BusinessClass" seating="10" Audio="103" Video="114" Seat="110"></class>
+      <class type="EconomyClass" seating="23" Audio="102" Video="114" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Prevost X3-45" name="Prevost X3-45, line service" yearfrom="2000" yearto="2199" id="468">
+    <classes>
+      <class type="EconomyClass" seating="56" Audio="100" Video="111" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Prevost X3-45" name="Prevost X3-45, express" yearfrom="2000" yearto="2199" id="469">
+    <classes>
+      <class type="EconomyClass" seating="44" Audio="102" Video="114" Seat="109"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Prevost X3-45" name="Prevost X3-45, two classes" yearfrom="2000" yearto="2199" id="470">
+    <classes>
+      <class type="BusinessClass" seating="14" Audio="103" Video="114" Seat="110"></class>
+      <class type="EconomyClass" seating="28" Audio="102" Video="114" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Setra S 215 HD" name="Setra S 215 HD, line service" yearfrom="1980" yearto="1994" id="471">
+    <classes>
+      <class type="EconomyClass" seating="49" Audio="100" Video="111" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Setra S 215 HD" name="Setra S 215 HD, express" yearfrom="1980" yearto="1994" id="472">
+    <classes>
+      <class type="EconomyClass" seating="39" Audio="102" Video="114" Seat="109"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Setra S 215 HD" name="Setra S 215 HD, two classes" yearfrom="1980" yearto="1994" id="473">
+    <classes>
+      <class type="BusinessClass" seating="12" Audio="103" Video="114" Seat="110"></class>
+      <class type="EconomyClass" seating="25" Audio="102" Video="114" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Setra S 315 HD" name="Setra S 315 HD, line service" yearfrom="1994" yearto="2003" id="474">
+    <classes>
+      <class type="EconomyClass" seating="49" Audio="100" Video="111" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Setra S 315 HD" name="Setra S 315 HD, express" yearfrom="1995" yearto="2003" id="475">
+    <classes>
+      <class type="EconomyClass" seating="39" Audio="102" Video="114" Seat="109"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Setra S 315 HD" name="Setra S 315 HD, two classes" yearfrom="1995" yearto="2003" id="476">
+    <classes>
+      <class type="BusinessClass" seating="12" Audio="103" Video="114" Seat="110"></class>
+      <class type="EconomyClass" seating="25" Audio="102" Video="114" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Setra S 407 HDH" name="Setra S 407 HDH, line service" yearfrom="2003" yearto="2015" id="477">
+    <classes>
+      <class type="EconomyClass" seating="46" Audio="100" Video="111" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Setra S 407 HDH" name="Setra S 407 HDH, express" yearfrom="2003" yearto="2015" id="478">
+    <classes>
+      <class type="EconomyClass" seating="36" Audio="102" Video="114" Seat="109"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Setra S 407 HDH" name="Setra S 407 HDH, two classes" yearfrom="2003" yearto="2015" id="479">
     <classes>
       <class type="BusinessClass" seating="11" Audio="103" Video="114" Seat="110"></class>
       <class type="EconomyClass" seating="24" Audio="102" Video="114" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="Setra S 417 HDH" name="Setra S 417 HDH, line service" yearfrom="2003" yearto="2199" id="440">
+  <configuration coach="Setra S 417 HDH" name="Setra S 417 HDH, line service" yearfrom="2003" yearto="2199" id="480">
     <classes>
       <class type="EconomyClass" seating="55" Audio="100" Video="111" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="Setra S 417 HDH" name="Setra S 417 HDH, express" yearfrom="2003" yearto="2199" id="441">
+  <configuration coach="Setra S 417 HDH" name="Setra S 417 HDH, express" yearfrom="2003" yearto="2199" id="481">
     <classes>
       <class type="EconomyClass" seating="44" Audio="102" Video="114" Seat="109"></class>
     </classes>
   </configuration>
-  <configuration coach="Setra S 417 HDH" name="Setra S 417 HDH, two classes" yearfrom="2003" yearto="2199" id="442">
+  <configuration coach="Setra S 417 HDH" name="Setra S 417 HDH, two classes" yearfrom="2003" yearto="2199" id="482">
     <classes>
       <class type="BusinessClass" seating="13" Audio="103" Video="114" Seat="110"></class>
       <class type="EconomyClass" seating="29" Audio="102" Video="114" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="Temsa TS 30" name="Temsa TS 30, line service" yearfrom="2009" yearto="2199" id="443">
+  <configuration coach="Temsa TS 30" name="Temsa TS 30, line service" yearfrom="2009" yearto="2199" id="483">
     <classes>
       <class type="EconomyClass" seating="31" Audio="100" Video="111" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="Temsa TS 30" name="Temsa TS 30, express" yearfrom="2009" yearto="2199" id="444">
+  <configuration coach="Temsa TS 30" name="Temsa TS 30, express" yearfrom="2009" yearto="2199" id="484">
     <classes>
       <class type="EconomyClass" seating="24" Audio="102" Video="114" Seat="109"></class>
     </classes>
   </configuration>
-  <configuration coach="Temsa TS 35" name="Temsa TS 35, line service" yearfrom="2008" yearto="2199" id="445">
+  <configuration coach="Temsa TS 35" name="Temsa TS 35, line service" yearfrom="2008" yearto="2199" id="485">
     <classes>
       <class type="EconomyClass" seating="40" Audio="100" Video="111" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="Temsa TS 35" name="Temsa TS 35, express" yearfrom="2008" yearto="2199" id="446">
+  <configuration coach="Temsa TS 35" name="Temsa TS 35, express" yearfrom="2008" yearto="2199" id="486">
     <classes>
       <class type="EconomyClass" seating="32" Audio="102" Video="114" Seat="109"></class>
     </classes>
   </configuration>
-  <configuration coach="Temsa TS 45" name="Temsa TS 45, line service" yearfrom="2014" yearto="2199" id="447">
+  <configuration coach="Temsa TS 35" name="Temsa TS 35, two classes" yearfrom="2008" yearto="2199" id="487">
+    <classes>
+      <class type="BusinessClass" seating="10" Audio="103" Video="114" Seat="110"></class>
+      <class type="EconomyClass" seating="20" Audio="102" Video="114" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Temsa TS 45" name="Temsa TS 45, line service" yearfrom="2014" yearto="2199" id="488">
     <classes>
       <class type="EconomyClass" seating="57" Audio="100" Video="111" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="Temsa TS 45" name="Temsa TS 45, express" yearfrom="2014" yearto="2199" id="448">
+  <configuration coach="Temsa TS 45" name="Temsa TS 45, express" yearfrom="2014" yearto="2199" id="489">
     <classes>
       <class type="EconomyClass" seating="45" Audio="102" Video="114" Seat="109"></class>
     </classes>
   </configuration>
-  <configuration coach="Temsa TS 45" name="Temsa TS 45, two classes" yearfrom="2014" yearto="2199" id="449">
+  <configuration coach="Temsa TS 45" name="Temsa TS 45, two classes" yearfrom="2014" yearto="2199" id="490">
     <classes>
       <class type="BusinessClass" seating="14" Audio="103" Video="114" Seat="110"></class>
       <class type="EconomyClass" seating="29" Audio="102" Video="114" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="Van Hool CX35" name="Van Hool CX35, line service" yearfrom="2013" yearto="2199" id="450">
+  <configuration coach="Van Hool CX35" name="Van Hool CX35, line service" yearfrom="2013" yearto="2199" id="491">
     <classes>
       <class type="EconomyClass" seating="38" Audio="100" Video="111" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="Van Hool CX35" name="Van Hool CX35, express" yearfrom="2013" yearto="2199" id="451">
+  <configuration coach="Van Hool CX35" name="Van Hool CX35, express" yearfrom="2013" yearto="2199" id="492">
     <classes>
       <class type="EconomyClass" seating="30" Audio="102" Video="114" Seat="109"></class>
     </classes>
   </configuration>
-  <configuration coach="Van Hool CX45" name="Van Hool CX45, line service" yearfrom="2013" yearto="2199" id="452">
+  <configuration coach="Van Hool CX35" name="Van Hool CX35, two classes" yearfrom="2013" yearto="2199" id="493">
+    <classes>
+      <class type="BusinessClass" seating="9" Audio="103" Video="114" Seat="110"></class>
+      <class type="EconomyClass" seating="20" Audio="102" Video="114" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Van Hool CX45" name="Van Hool CX45, line service" yearfrom="2013" yearto="2199" id="494">
     <classes>
       <class type="EconomyClass" seating="56" Audio="100" Video="111" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="Van Hool CX45" name="Van Hool CX45, express" yearfrom="2013" yearto="2199" id="453">
+  <configuration coach="Van Hool CX45" name="Van Hool CX45, express" yearfrom="2013" yearto="2199" id="495">
     <classes>
       <class type="EconomyClass" seating="44" Audio="102" Video="114" Seat="109"></class>
     </classes>
   </configuration>
-  <configuration coach="Van Hool CX45" name="Van Hool CX45, two classes" yearfrom="2013" yearto="2199" id="454">
+  <configuration coach="Van Hool CX45" name="Van Hool CX45, two classes" yearfrom="2013" yearto="2199" id="496">
     <classes>
       <class type="BusinessClass" seating="14" Audio="103" Video="114" Seat="110"></class>
       <class type="EconomyClass" seating="28" Audio="102" Video="114" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="Van Hool T2145" name="Van Hool T2145, line service" yearfrom="1991" yearto="2003" id="455">
+  <configuration coach="Van Hool T2145" name="Van Hool T2145, line service" yearfrom="1991" yearto="2003" id="497">
     <classes>
       <class type="EconomyClass" seating="55" Audio="100" Video="111" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="Van Hool T2145" name="Van Hool T2145, express" yearfrom="1995" yearto="2003" id="456">
+  <configuration coach="Van Hool T2145" name="Van Hool T2145, express" yearfrom="1995" yearto="2003" id="498">
     <classes>
       <class type="EconomyClass" seating="44" Audio="102" Video="114" Seat="109"></class>
     </classes>
   </configuration>
-  <configuration coach="Van Hool T2145" name="Van Hool T2145, two classes" yearfrom="1995" yearto="2003" id="457">
+  <configuration coach="Van Hool T2145" name="Van Hool T2145, two classes" yearfrom="1995" yearto="2003" id="499">
     <classes>
       <class type="BusinessClass" seating="13" Audio="103" Video="114" Seat="110"></class>
       <class type="EconomyClass" seating="29" Audio="102" Video="114" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="Van Hool T945" name="Van Hool T945, line service" yearfrom="1998" yearto="2012" id="458">
+  <configuration coach="Van Hool T815 Alizee" name="Van Hool T815 Alizee, line service" yearfrom="1983" yearto="1991" id="500">
+    <classes>
+      <class type="EconomyClass" seating="49" Audio="100" Video="111" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Van Hool T815 Alizee" name="Van Hool T815 Alizee, express" yearfrom="1983" yearto="1991" id="501">
+    <classes>
+      <class type="EconomyClass" seating="39" Audio="102" Video="114" Seat="109"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Van Hool T815 Alizee" name="Van Hool T815 Alizee, two classes" yearfrom="1983" yearto="1991" id="502">
+    <classes>
+      <class type="BusinessClass" seating="12" Audio="103" Video="114" Seat="110"></class>
+      <class type="EconomyClass" seating="25" Audio="102" Video="114" Seat="107"></class>
+    </classes>
+  </configuration>
+  <configuration coach="Van Hool T945" name="Van Hool T945, line service" yearfrom="1998" yearto="2012" id="503">
     <classes>
       <class type="EconomyClass" seating="55" Audio="100" Video="111" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="Van Hool T945" name="Van Hool T945, express" yearfrom="1998" yearto="2012" id="459">
+  <configuration coach="Van Hool T945" name="Van Hool T945, express" yearfrom="1998" yearto="2012" id="504">
     <classes>
       <class type="EconomyClass" seating="44" Audio="102" Video="114" Seat="109"></class>
     </classes>
   </configuration>
-  <configuration coach="Van Hool T945" name="Van Hool T945, two classes" yearfrom="1998" yearto="2012" id="460">
+  <configuration coach="Van Hool T945" name="Van Hool T945, two classes" yearfrom="1998" yearto="2012" id="505">
     <classes>
       <class type="BusinessClass" seating="13" Audio="103" Video="114" Seat="110"></class>
       <class type="EconomyClass" seating="29" Audio="102" Video="114" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="Van Hool TD925 Astromega" name="Van Hool TD925 Astromega, line service" yearfrom="1996" yearto="2012" id="461">
+  <configuration coach="Van Hool TD925 Astromega" name="Van Hool TD925 Astromega, line service" yearfrom="1996" yearto="2012" id="506">
     <classes>
       <class type="EconomyClass" seating="79" Audio="100" Video="111" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="Van Hool TD925 Astromega" name="Van Hool TD925 Astromega, express" yearfrom="1996" yearto="2012" id="462">
+  <configuration coach="Van Hool TD925 Astromega" name="Van Hool TD925 Astromega, express" yearfrom="1996" yearto="2012" id="507">
     <classes>
       <class type="EconomyClass" seating="63" Audio="102" Video="114" Seat="109"></class>
     </classes>
   </configuration>
-  <configuration coach="Van Hool TD925 Astromega" name="Van Hool TD925 Astromega, two classes" yearfrom="1996" yearto="2012" id="463">
+  <configuration coach="Van Hool TD925 Astromega" name="Van Hool TD925 Astromega, two classes" yearfrom="1996" yearto="2012" id="508">
     <classes>
       <class type="BusinessClass" seating="19" Audio="103" Video="114" Seat="110"></class>
       <class type="EconomyClass" seating="41" Audio="102" Video="114" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="Van Hool TDX25 Astromega" name="Van Hool TDX25 Astromega, line service" yearfrom="2015" yearto="2199" id="464">
+  <configuration coach="Van Hool TDX25 Astromega" name="Van Hool TDX25 Astromega, line service" yearfrom="2015" yearto="2199" id="509">
     <classes>
       <class type="EconomyClass" seating="81" Audio="100" Video="111" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="Van Hool TDX25 Astromega" name="Van Hool TDX25 Astromega, express" yearfrom="2015" yearto="2199" id="465">
+  <configuration coach="Van Hool TDX25 Astromega" name="Van Hool TDX25 Astromega, express" yearfrom="2015" yearto="2199" id="510">
     <classes>
       <class type="EconomyClass" seating="64" Audio="102" Video="114" Seat="109"></class>
     </classes>
   </configuration>
-  <configuration coach="Van Hool TDX25 Astromega" name="Van Hool TDX25 Astromega, two classes" yearfrom="2015" yearto="2199" id="466">
+  <configuration coach="Van Hool TDX25 Astromega" name="Van Hool TDX25 Astromega, two classes" yearfrom="2015" yearto="2199" id="511">
     <classes>
       <class type="BusinessClass" seating="20" Audio="103" Video="114" Seat="110"></class>
       <class type="EconomyClass" seating="41" Audio="102" Video="114" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="Van Hool TX45" name="Van Hool TX45, line service" yearfrom="2012" yearto="2199" id="467">
+  <configuration coach="Van Hool TX45" name="Van Hool TX45, line service" yearfrom="2012" yearto="2199" id="512">
     <classes>
       <class type="EconomyClass" seating="56" Audio="100" Video="111" Seat="107"></class>
     </classes>
   </configuration>
-  <configuration coach="Van Hool TX45" name="Van Hool TX45, express" yearfrom="2012" yearto="2199" id="468">
+  <configuration coach="Van Hool TX45" name="Van Hool TX45, express" yearfrom="2012" yearto="2199" id="513">
     <classes>
       <class type="EconomyClass" seating="44" Audio="102" Video="114" Seat="109"></class>
     </classes>
   </configuration>
-  <configuration coach="Van Hool TX45" name="Van Hool TX45, two classes" yearfrom="2012" yearto="2199" id="469">
+  <configuration coach="Van Hool TX45" name="Van Hool TX45, two classes" yearfrom="2012" yearto="2199" id="514">
     <classes>
       <class type="BusinessClass" seating="14" Audio="103" Video="114" Seat="110"></class>
       <class type="EconomyClass" seating="28" Audio="102" Video="114" Seat="107"></class>

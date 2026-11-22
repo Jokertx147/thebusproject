@@ -64,4 +64,11 @@
     <capacity drivers="1" cargo="42" />
     <produced from="2013" to="2199" rate="12" />
   </coach>
+  <coach manufacturer="Van Hool" name="Van Hool T815 Alizee" image="Van Hool T815 Alizee" price="59435">
+    <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
+    <specs wingspan="2.6" length="12.0" range="1450" speed="100" fuelcapacity="660" consumption="0.0094"
+           runwaylengthrequired="0" />
+    <capacity passengers="49" drivers="1" attendants="0" maxclasses="2" />
+    <produced from="1983" to="1991" rate="50" />
+  </coach>
 </coaches>

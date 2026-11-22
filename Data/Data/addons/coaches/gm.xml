@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<coaches>
+  <coach manufacturer="General Motors" name="GM PD-4104" image="GM PD-4104" price="45000">
+    <type body="NarrowBody" rangetype="ShortRange" engine="Diesel" />
+    <specs wingspan="2.6" length="12.0" range="1200" speed="95" fuelcapacity="560" consumption="0.0130"
+           runwaylengthrequired="0" />
+    <capacity passengers="41" drivers="1" attendants="0" maxclasses="2" />
+    <produced from="1953" to="1960" rate="60" />
+  </coach>
+  <coach manufacturer="General Motors" name="GM PD-4106" image="GM PD-4106" price="54455">
+    <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
+    <specs wingspan="2.6" length="12.0" range="1250" speed="95" fuelcapacity="560" consumption="0.0124"
+           runwaylengthrequired="0" />
+    <capacity passengers="43" drivers="1" attendants="0" maxclasses="2" />
+    <produced from="1961" to="1965" rate="60" />
+  </coach>
+  <coach manufacturer="General Motors" name="GM PD-4107 Buffalo" image="GM PD-4107 Buffalo" price="56621">
+    <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
+    <specs wingspan="2.6" length="12.0" range="1300" speed="97" fuelcapacity="580" consumption="0.0120"
+           runwaylengthrequired="0" />
+    <capacity passengers="43" drivers="1" attendants="0" maxclasses="2" />
+    <produced from="1966" to="1968" rate="60" />
+  </coach>
+  <coach manufacturer="General Motors" name="GM PD-4903 Buffalo" image="GM PD-4903 Buffalo" price="59524">
+    <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
+    <specs wingspan="2.6" length="12.2" range="1350" speed="97" fuelcapacity="600" consumption="0.0112"
+           runwaylengthrequired="0" />
+    <capacity passengers="47" drivers="1" attendants="0" maxclasses="2" />
+    <produced from="1968" to="1980" rate="60" />
+  </coach>
+</coaches>
