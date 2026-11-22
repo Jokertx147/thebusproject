@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <!--For each type there must be one with typelevel == 0 -->
 <stationfacilities>
@@ -77,159 +77,109 @@
       <es-ES name="Ninguna" />
     </translations>
   </stationfacility>
-  <stationfacility uid="105" shortname="Basic ServiceCenter" type="Service" typelevel="1" price="140000"
+  <stationfacility uid="105" shortname="Service bay" type="Service" typelevel="1" price="18000"
                    buildingdays="45">
     <level service="30" luxury="0">
     </level>
-    <employees type="Maintenance" numberofemployees="20">
+    <employees type="Maintenance" numberofemployees="2">
     </employees>
     <translations>
-      <en-US name="Basic Service Center" />
-      <de-DE name="Einfacher Informationsschalter" />
-      <en-GB name="Basic Service Centre" />
-      <nl-NL name="Eenvoudige informatiebalie" />
-      <zh-CN name="简陋服务中心" />
-      <da-DK name="Basis ServiceCenter" />
-      <es-ES name="Centro de Servicio Básico" />
+      <en-US name="Service bay" />
+      <en-GB name="Service bay" />
     </translations>
   </stationfacility>
-  <stationfacility uid="106" shortname="ServiceCenter" type="Service" typelevel="2" price="325000" buildingdays="60">
+  <stationfacility uid="106" shortname="Garage" type="Service" typelevel="2" price="45000" buildingdays="60">
     <level service="100" luxury="0">
     </level>
-    <employees type="Maintenance" numberofemployees="30">
+    <employees type="Maintenance" numberofemployees="4">
     </employees>
     <translations>
-      <en-US name="Service Center" />
-      <de-DE name="Informationsschalter" />
-      <en-GB name="Service Centre" />
-      <nl-NL name="Servicecentrum" />
-      <zh-CN name="服务中心" />
-      <da-DK name="ServiceCenter" />
-      <es-ES name="Centro de Servicio" />
+      <en-US name="Garage" />
+      <en-GB name="Garage" />
     </translations>
   </stationfacility>
-  <stationfacility uid="107" shortname="Large ServiceCenter" type="Service" typelevel="3" price="600000"
+  <stationfacility uid="107" shortname="Full garage" type="Service" typelevel="3" price="90000"
                    buildingdays="120">
     <level service="200" luxury="0">
     </level>
-    <employees type="Maintenance" numberofemployees="55">
+    <employees type="Maintenance" numberofemployees="7">
     </employees>
     <translations>
-      <en-US name="Large Service Center" />
-      <de-DE name="Großer Informationsschalter" />
-      <en-GB name="Large Service Centre" />
-      <nl-NL name="Uitgebreid servicecentrum" />
-      <zh-CN name="大型服务中心" />
-      <da-DK name="Større ServiceCenter" />
-      <es-ES name="Centro de Servicio Grande" />
+      <en-US name="Full garage" />
+      <en-GB name="Full garage" />
     </translations>
   </stationfacility>
-  <stationfacility uid="108" shortname="Business Lounge" type="Lounge" typelevel="1" price="100000" buildingdays="40">
+  <stationfacility uid="108" shortname="Lounge" type="Lounge" typelevel="1" price="15000" buildingdays="40">
     <level service="0" luxury="15">
     </level>
-    <employees type="Support" numberofemployees="6">
+    <employees type="Support" numberofemployees="1">
     </employees>
     <translations>
-      <en-US name="Business Lounge" />
-      <de-DE name="Business Aufenthaltsbereich" />
-      <en-GB name="Business Lounge" />
-      <nl-NL name="Business Lounge" />
-      <zh-CN name="商务休息室" />
-      <da-DK name="Business Lunge" />
-      <es-ES name="Salón Ejecutivo" />
+      <en-US name="Waiting lounge" />
+      <en-GB name="Waiting lounge" />
     </translations>
   </stationfacility>
-  <stationfacility uid="109" shortname="FirstClass Lounge" type="Lounge" typelevel="2" price="175000" buildingdays="60">
+  <stationfacility uid="109" shortname="First lounge" type="Lounge" typelevel="2" price="28000" buildingdays="60">
     <level service="0" luxury="30">
     </level>
-    <employees type="Support" numberofemployees="12">
+    <employees type="Support" numberofemployees="1">
     </employees>
     <translations>
-      <en-US name="First Class Lounge" />
-      <de-DE name="First Class Aufenthaltsbereich" />
-      <en-GB name="First Class Lounge" />
-      <nl-NL name="First Class Lounge" />
-      <zh-CN name="贵宾休息室" />
-      <da-DK name="First Class Lounge" />
-      <es-ES name="Salón de Primera Clase" />
+      <en-US name="First class lounge" />
+      <en-GB name="First class lounge" />
     </translations>
   </stationfacility>
-  <stationfacility uid="110" shortname="CheckIn" type="CheckIn" typelevel="1" price="7500" buildingdays="0">
+  <stationfacility uid="110" shortname="Counters" type="CheckIn" typelevel="1" price="1500" buildingdays="0">
     <level service="0" luxury="5">
     </level>
-    <employees type="Support" numberofemployees="15">
+    <employees type="Support" numberofemployees="2">
     </employees>
     <translations>
-      <en-US name="Check In Desks" />
-      <de-DE name="Missing" />
-      <en-GB name="Check In Desks" />
-      <nl-NL name="Incheckbalies" />
-      <zh-CN name="登机手续办理台" />
-      <da-DK name="Check-in desks" />
-      <es-ES name="Mostradores de Facturación" />
+      <en-US name="Ticket counters" />
+      <en-GB name="Ticket counters" />
     </translations>
   </stationfacility>
-  <stationfacility uid="111" shortname="Self CheckIn" type="SelfCheck" typelevel="1" price="330" buildingdays="5">
+  <stationfacility uid="111" shortname="Machines" type="SelfCheck" typelevel="1" price="300" buildingdays="5">
     <level service="0" luxury="9">
     </level>
     <employees type="Support" numberofemployees="0">
     </employees>
     <translations>
-      <en-US name="Self Check In" />
-      <de-DE name="Missing" />
-      <en-GB name="Self Check In" />
-      <nl-NL name="Self check-in" />
-      <zh-CN name="自助值机" />
-      <da-DK name="Selvbetjeningscheckin" />
-      <es-ES name="Autofacturación" />
+      <en-US name="Ticket machines" />
+      <en-GB name="Ticket machines" />
     </translations>
   </stationfacility>
-  <stationfacility uid="112" shortname="Small Ticket Office" type="TicketOffice" typelevel="1" price="12500"
+  <stationfacility uid="112" shortname="Small office" type="TicketOffice" typelevel="1" price="2500"
                    buildingdays="10">
     <level service="1" luxury="15">
     </level>
-    <employees type="Support" numberofemployees="4">
+    <employees type="Support" numberofemployees="1">
     </employees>
     <translations>
-      <en-US name="Small Airport Ticket Office" />
-      <de-DE name="Missing" />
-      <en-GB name="Small Airport Ticket Office" />
-      <nl-NL name="Ticketkantoor in de luchthaven" />
-      <zh-CN name="机场售票处" />
-      <da-DK name="Lille lufthavnsbilletkontor" />
-      <es-ES name="Oficina de Billetes" />
+      <en-US name="Small ticket office" />
+      <en-GB name="Small ticket office" />
     </translations>
   </stationfacility>
-  <stationfacility uid="113" shortname="Large Ticket Office" type="TicketOffice" typelevel="2" price="25000"
+  <stationfacility uid="113" shortname="Large office" type="TicketOffice" typelevel="2" price="6000"
                    buildingdays="10">
     <level service="2" luxury="15">
     </level>
-    <employees type="Support" numberofemployees="8">
+    <employees type="Support" numberofemployees="2">
     </employees>
     <translations>
-      <en-US name="Large Airport Ticket Office" />
-      <de-DE name="Missing" />
-      <en-GB name="Large Airport Ticket Office" />
-      <nl-NL name="Ticketkantoor in de luchthaven" />
-      <zh-CN name="机场售票处" />
-      <da-DK name="Stor lufthavnsbilletkontor" />
-      <es-ES name="Oficina de Billetes" />
+      <en-US name="Large ticket office" />
+      <en-GB name="Large ticket office" />
     </translations>
   </stationfacility>
-  <stationfacility uid="114" shortname="Mega ServiceCenter" type="Service" typelevel="4" price="725000"
+  <stationfacility uid="114" shortname="Workshop" type="Service" typelevel="4" price="140000"
                    buildingdays="150">
     <level service="500" luxury="0">
     </level>
-    <employees type="Maintenance" numberofemployees="75">
+    <employees type="Maintenance" numberofemployees="10">
     </employees>
     <translations>
-      <en-US name="Mega Service Center" />
-      <de-DE name="Mega Service Center" />
-      <en-GB name="Mega Service Centre" />
-      <nl-NL name="Mega Service Center" />
-      <zh-CN name="Mega Service Center" />
-      <da-DK name="Størst ServiceCenter" />
-      <es-ES name="Mega Service Center" />
+      <en-US name="Regional workshop" />
+      <en-GB name="Regional workshop" />
     </translations>
   </stationfacility>
   <stationfacility uid="200" shortname="Cargo None" type="Cargo" typelevel="0" price="0" buildingdays="0">
@@ -247,34 +197,24 @@
       <es-ES name="Ninguna" />
     </translations>
   </stationfacility>
-  <stationfacility uid="201" shortname="Cargo Handling Center" type="Cargo" typelevel="1" price="125000" buildingdays="30">
+  <stationfacility uid="201" shortname="Parcel room" type="Cargo" typelevel="1" price="18000" buildingdays="30">
     <level service="75" luxury="15">
+    </level>
+    <employees type="Support" numberofemployees="2">
+    </employees>
+    <translations>
+      <en-US name="Parcel room" />
+      <en-GB name="Parcel room" />
+    </translations>
+  </stationfacility>
+  <stationfacility uid="202" shortname="Parcel depot" type="Cargo" typelevel="2" price="40000" buildingdays="45">
+    <level service="100" luxury="15">
     </level>
     <employees type="Support" numberofemployees="4">
     </employees>
     <translations>
-      <en-US name="Cargo Handling Center" />
-      <de-DE name="Missing" />
-      <en-GB name="Cargo Handling Center" />
-      <nl-NL name="Missing" />
-      <zh-CN name="Missing" />
-      <da-DK name="Fragthåndteringscenter" />
-      <es-ES name="Missing" />
-    </translations>
-  </stationfacility>
-  <stationfacility uid="202" shortname="Cargo Handling Center Large" type="Cargo" typelevel="2" price="250000" buildingdays="45">
-    <level service="100" luxury="15">
-    </level>
-    <employees type="Support" numberofemployees="8">
-    </employees>
-    <translations>
-      <en-US name="Large Cargo Handling Center" />
-      <de-DE name="Missing" />
-      <en-GB name="Large Cargo Handling Center" />
-      <nl-NL name="Missing" />
-      <zh-CN name="Missing" />
-      <da-DK name="Stort fragthåndteringscenter" />
-      <es-ES name="Missing" />
+      <en-US name="Large parcel depot" />
+      <en-GB name="Large parcel depot" />
     </translations>
   </stationfacility>
 
@@ -288,24 +228,18 @@
       <zh-CN name="国际出境" />
     </translations>
   </stationfacility>
-  <stationfacility uid="114" shortname="Security and Customs" type="IntlService" typelevel="2" price="500000" buildingdays="20">
+  <stationfacility uid="114" shortname="Customs" type="IntlService" typelevel="2" price="60000" buildingdays="20">
     <level service="0" luxury="10"></level>
     <translations>
-      <en-US name="Security and Customs" />
-      <de-DE name="Sicherheit und Zoll" />
-      <en-GB name="Security and Customs" />
-      <nl-NL name="Veiligheid en Douane" />
-      <zh-CN name="安全和海关" />
+      <en-US name="Customs and inspection" />
+      <en-GB name="Customs and inspection" />
     </translations>
   </stationfacility>
-  <stationfacility uid="115" shortname="International Full Service" type="IntlService" typelevel="3" price="1000000" buildingdays="30">
+  <stationfacility uid="115" shortname="Full border" type="IntlService" typelevel="3" price="120000" buildingdays="30">
     <level service="0" luxury="20"></level>
     <translations>
-      <en-US name="International Full Service" />
-      <de-DE name="Internationalen Kompletten Bedienung" />
-      <en-GB name="International Full Service" />
-      <nl-NL name="Missing" />
-      <zh-CN name="国际化的全方位服务" />
+      <en-US name="Full border service" />
+      <en-GB name="Full border service" />
     </translations>
   </stationfacility> -->
 </stationfacilities>

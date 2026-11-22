@@ -1428,7 +1428,7 @@ namespace TheBusProject.Infrastructure
             FeeTypes.AddType(new FeeType(FeeType.EFeeType.Wage, "Support Wage", 2.65, 1, 3, 100));
             FeeTypes.AddType(new FeeType(FeeType.EFeeType.Wage, "Cabin Wage", 1.9, 1, 4, 100));
             FeeTypes.AddType(new FeeType(FeeType.EFeeType.Wage, "Instructor Base Salary", 267.00, 200, 300, 100));
-            FeeTypes.AddType(new FeeType(FeeType.EFeeType.Wage, "Driver Base Salary", 133.53, 100, 150, 100));
+            FeeTypes.AddType(new FeeType(FeeType.EFeeType.Wage, "Driver Base Salary", 80.0, 60, 95, 100));
 
             //food and drinks
             FeeTypes.AddType(new FeeType(FeeType.EFeeType.FoodDrinks, "Alcholic Drinks", 0.75, 0.5, 1.1, 75));

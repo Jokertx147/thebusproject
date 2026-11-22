@@ -48,7 +48,7 @@ jobs:
 
       - name: Scenario test (two scenarios from the main menu, a lost one, save and load)
         run: |
-          TAP_SCEN="Jet,New Man" timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm scenario 2>&1 | tee scenariotest.log
+          TAP_SCEN="Deregulation,The Curbside" timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm scenario 2>&1 | tee scenariotest.log
           grep -q "SCENARIO TEST OK" scenariotest.log || { grep -m8 -iE "FAILED|timeout|exception|   at " scenariotest.log | sed 's/^/::error::/'; exit 1; }
 
       - name: Game area test (an old save with the whole world, cleaned up from Options)
