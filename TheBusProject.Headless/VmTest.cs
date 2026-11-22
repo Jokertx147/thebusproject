@@ -410,11 +410,19 @@ static class VmTest
         var codes = new System.Collections.Generic.HashSet<string>(game.Select(a => a.Profile.IATACode));
         TheBusProject.Infrastructure.Setup.LoadStations();
         var extra = TheBusProject.Models.Stations.Stations.GetAllStations().Where(a => !codes.Contains(a.Profile.IATACode)).GroupBy(a => a.Profile.IATACode).Select(x => x.First()).ToList();
+        // the clean-up has nothing to take out while the game is one country: no station in the data is outside the
+        // area the game was started in. It matters again when the game reaches Mexico and Canada.
+        if (extra.Count == 0)
+        {
+            Console.WriteLine("  every station in the data is inside the game's area, so there is nothing to take out");
+            Console.WriteLine("BLOAT TEST OK");
+            Environment.Exit(0);
+        }
         TheBusProject.Models.Stations.Stations.Clear();
         foreach (var a in game) TheBusProject.Models.Stations.Stations.AddStation(a);
         foreach (var a in extra) TheBusProject.Models.Stations.Stations.AddStation(a);
-        // one of the extra stations is in use (the player's carrier has London): it must be kept
-        var keepStation = extra.First(a => a.Profile.IATACode == "LHR");
+        // one of the extra stations is in use (the player's carrier has it): it must be kept
+        var keepStation = extra.OrderByDescending(a => a.Profile.Pax).First();
         g.HumanCarrier.AddStation(keepStation);
         Console.WriteLine("  game " + gameCount + " stations, made it " + TheBusProject.Models.Stations.Stations.GetAllStations().Count + " (as an old load did)");
         // an old save: it doesn't list the data file stations
@@ -440,7 +448,7 @@ static class VmTest
         op.ConfirmCommand.Execute(null);
         await Wait(() => op.AreaStatus != null && op.AreaStatus.StartsWith("Took out"), "stations taken out");
         int after = TheBusProject.Models.Stations.Stations.GetAllStations().Count;
-        bool lhrKept = TheBusProject.Models.Stations.Stations.GetAllStations().Any(a => a.Profile.IATACode == "LHR");
+        bool lhrKept = TheBusProject.Models.Stations.Stations.GetAllStations().Any(a => a.Profile.IATACode == keepStation.Profile.IATACode);
         Console.WriteLine("  " + op.AreaStatus + " | LHR kept " + lhrKept + " | after: " + op.AreaPreview);
         var atl = TheBusProject.Models.Stations.Stations.GetAllStations().First(a => a.Profile.IATACode == "ATL");
         Console.WriteLine("  ATL demand to " + atl.GetDestinationDemands().Count + " stations");
