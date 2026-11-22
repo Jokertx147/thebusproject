@@ -1,8 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-
-<carrier>
-  <profile name="Jetstar Asia Airways" iata="3K" color="Black" country="174" CEO="Barathan Pasupathi" mentality="Safe"
-           market="Local" preferedstation="SIN">
-  </profile>
-  <info real="True" from="2004" to="2025" />
-</carrier>

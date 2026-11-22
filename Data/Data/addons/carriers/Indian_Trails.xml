@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<carrier>
+  <profile name="Indian Trails" iata="IT" color="Green" country="122" CEO="Frances Kowalski" mentality="Safe"
+           market="Regional" preferedstation="DET">
+    <narrative narrative="A Michigan institution, running the length of the state and the ferries' feeder routes, in business since the days of the interurban railway." />
+  </profile>
+  <info real="True" from="1910" to="2199"></info>
+  <startdata>
+    <random_routes>
+      <routes origin="DET" destinations="6" minimumsize="Medium">
+        <countries>
+          <country value="122"></country>
+        </countries>
+      </routes>
+    </random_routes>
+    <coaches>
+      <coach type="MCI 102DL3" early="2" late="1"></coach>
+      <coach type="MCI D4500 CT" early="0" late="3"></coach>
+    </coaches>
+  </startdata>
+</carrier>

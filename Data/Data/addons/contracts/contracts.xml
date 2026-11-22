@@ -1,30 +1,37 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <contracts>
-  <contract name="Summer Olympics 1996" text="The Summer Olympics are coming up! This year, they will be hosted in Atlanta, Georgia. You have been offered the chance to provide airline transportation for officials, athletes, and serious fans. The contract will last 2 months, and you must maintain daily flights from Atlanta to London, Amsterdam, Paris, Moscow, Cairo, Tokyo, Beijing, Sao Paulo, and Dubai. If you successfully complete this contract by serving all the destinations through the whole period, you will receive a $25,000,000 bonus!">
-    <information from="07.01.1996" to="09.01.1996" payment="25000000" bonus="True" penalty="20000000"></information>
-     <routes>
-        <route departure="ATL" destination="LHR" bothways="True" passengers="8000" type="Passenger"/><!--route from ATL to LHR with 8000 pax extra per day-->
-        <route departure="ATL" destination="CDG" bothways="True" passengers="8000"/>
-        <route departure="ATL" destination="AMS" bothways="True" passengers="8000"/>
-        <route departure="ATL" destination="HND" bothways="True" passengers="8000"/>
-        <route departure="ATL" destination="DME" bothways="True" passengers="8000"/>
-        <route departure="ATL" destination="BEJ" bothways="True" passengers="8000"/>
-        <route departure="ATL" destination="DXB" bothways="True" passengers="8000"/>
-        <route departure="ATL" destination="CAI" bothways="True" passengers="8000"/>
-      </routes>
-      <parameters>
-        <parameter departure="ATL" destination="any"></parameter><!--Not served through the whole period-->
-      </parameters>
+  <contract name="Super Bowl week" text="The Super Bowl is in Dallas this year and the host committee needs coaches. They want daily service into Dallas from Houston, San Antonio, Austin, Oklahoma City and Memphis for the fortnight around the game. Hold every one of those routes for the whole period and the committee pays a $1,200,000 bonus.">
+    <information from="01.25.2011" to="02.08.2011" payment="1200000" bonus="True" penalty="900000"></information>
+    <routes>
+      <route departure="DAL" destination="HOU" bothways="True" passengers="900" type="Passenger"/>
+      <route departure="DAL" destination="SAT" bothways="True" passengers="700"/>
+      <route departure="DAL" destination="AUS" bothways="True" passengers="700"/>
+      <route departure="DAL" destination="OKC" bothways="True" passengers="500"/>
+      <route departure="DAL" destination="MEM" bothways="True" passengers="400"/>
+    </routes>
+    <parameters>
+      <parameter departure="DAL" destination="any"></parameter><!--not served through the whole period-->
+    </parameters>
   </contract>
-  <contract name="Movie Production Charter" text="A major international film producer would like to charter a one-time flight to their filming destination. They will be flying 300 personnel from Hollywood to Sao Paulo. They have requested a dedicated flight so that they can all travel together.">
-    <information frequency="1" payment="7000000" bonus="True" penalty="5000000"></information>
-      <routes>
-        <route departure="LAX" destination="CGH" bothways="False" passengers="300"/>
-      </routes>
-      <parameters>
-        <parameter classtype="BusinessClass" minseats="48"></parameter><!--minimum 48 business class seats-->
-        <parameter classtype="FirstClass" minseats="22"></parameter>
-      </parameters>
+  <contract name="Film crew charter" text="A studio is shooting in the desert and wants one coach to take the crew from Los Angeles to Las Vegas and keep them together. They are paying well for a dedicated run, and they want the good seats.">
+    <information frequency="1" payment="90000" bonus="True" penalty="60000"></information>
+    <routes>
+      <route departure="LAX" destination="LAS" bothways="False" passengers="50"/>
+    </routes>
+    <parameters>
+      <parameter classtype="BusinessClass" minseats="12"></parameter>
+    </parameters>
   </contract>
-  
+  <contract name="State fair shuttle" text="The state fair in Minneapolis runs for twelve days and the fair board wants coaches from Milwaukee, Chicago, Omaha and Kansas City for all of it. Keep every route running and the board pays a $450,000 bonus.">
+    <information from="08.24.2008" to="09.05.2008" payment="450000" bonus="True" penalty="300000"></information>
+    <routes>
+      <route departure="MSP" destination="MKE" bothways="True" passengers="400" type="Passenger"/>
+      <route departure="MSP" destination="CHI" bothways="True" passengers="600"/>
+      <route departure="MSP" destination="OMA" bothways="True" passengers="300"/>
+      <route departure="MSP" destination="KCY" bothways="True" passengers="300"/>
+    </routes>
+    <parameters>
+      <parameter departure="MSP" destination="any"></parameter>
+    </parameters>
+  </contract>
 </contracts>

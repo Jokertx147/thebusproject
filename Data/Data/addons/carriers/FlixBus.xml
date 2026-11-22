@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<carrier>
+  <profile name="FlixBus" iata="FX" color="Purple" country="122" CEO="Lena Hartwig" mentality="Aggressive"
+           market="Domestic" preferedstation="LAX">
+    <narrative narrative="A European newcomer that sells the tickets and lets local operators drive the buses. It moves fast, prices low, and drops a route as readily as it opens one." />
+  </profile>
+  <info real="True" from="2018" to="2199"></info>
+  <startdata>
+    <random_routes>
+      <routes origin="LAX" destinations="12" minimumsize="Medium">
+        <countries>
+          <country value="122"></country>
+        </countries>
+      </routes>
+    </random_routes>
+    <coaches>
+      <coach type="Setra S 417 HDH" early="0" late="5"></coach>
+      <coach type="Van Hool CX45" early="0" late="4"></coach>
+      <coach type="Temsa TS 45" early="0" late="3"></coach>
+    </coaches>
+  </startdata>
+</carrier>

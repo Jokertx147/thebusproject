@@ -101,7 +101,9 @@ namespace TheBusProject.Models.Coaches
         {
             Jet,
 
-            Turboprop
+            Turboprop,
+
+            Diesel
         }
 
         public enum TypeRange

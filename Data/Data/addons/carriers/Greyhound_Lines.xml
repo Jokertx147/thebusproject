@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<carrier>
+  <profile name="Greyhound Lines" iata="GH" color="DarkBlue" country="122" CEO="Dean Whitlock" mentality="Moderate"
+           market="Domestic" preferedstation="DAL">
+    <narrative narrative="The oldest and largest intercity bus company in the country, running a network that reaches almost every city of any size. It carries more passengers on more routes than anyone else, and it has the oldest fleet to show for it." />
+  </profile>
+  <info real="True" from="1914" to="2199"></info>
+  <startdata>
+    <random_routes>
+      <routes origin="DAL" destinations="22" minimumsize="Medium">
+        <countries>
+          <country value="122"></country>
+        </countries>
+      </routes>
+    </random_routes>
+    <coaches>
+      <coach type="MCI MC-9 Crusader II" early="8" late="0"></coach>
+      <coach type="MCI 102DL3" early="6" late="4"></coach>
+      <coach type="MCI D4500 CT" early="0" late="8"></coach>
+      <coach type="MCI J4500" early="0" late="4"></coach>
+    </coaches>
+  </startdata>
+</carrier>

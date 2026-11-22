@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<carrier>
+  <profile name="Jefferson Lines" iata="JL" color="Orange" country="122" CEO="Clara Nystrom" mentality="Safe"
+           market="Regional" preferedstation="MSP">
+    <narrative narrative="The midwest carrier, running the long thin routes across the plains that nobody else wants, with a loyal following in the small towns along them." />
+  </profile>
+  <info real="True" from="1919" to="2199"></info>
+  <startdata>
+    <random_routes>
+      <routes origin="MSP" destinations="10" minimumsize="Medium">
+        <countries>
+          <country value="122"></country>
+        </countries>
+      </routes>
+    </random_routes>
+    <coaches>
+      <coach type="MCI 102DL3" early="3" late="1"></coach>
+      <coach type="MCI D4500 CT" early="1" late="4"></coach>
+      <coach type="Temsa TS 35" early="0" late="2"></coach>
+    </coaches>
+  </startdata>
+</carrier>

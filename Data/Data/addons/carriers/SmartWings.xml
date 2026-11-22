@@ -1,8 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-
-<carrier>
-  <profile name="SmartWings" iata="QS" color="Black" country="166" CEO="A. Xhelo" mentality="Safe" market="Global"
-           preferedstation="PRG">
-  </profile>
-  <info real="True" from="2004" to="2199" />
-</carrier>

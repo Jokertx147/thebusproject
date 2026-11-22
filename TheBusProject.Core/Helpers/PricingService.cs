@@ -29,11 +29,12 @@ namespace TheBusProject.Helpers
                 double minimum = GeneralHelpers.GetInflationPrice(18);
                 return price < minimum ? minimum + price/4 : price;
             }
-            double baseYear = 11
-                              + 0.0105*Math.Min(km, 1000)
-                              + 0.007*Math.Max(0, Math.Min(km, 3000) - 1000)
-                              + 0.006*Math.Max(0, Math.Min(km, 7000) - 3000)
-                              + 0.005*Math.Max(0, km - 7000);
+            // a coach fare, in base-year dollars: about $18 for 100 km in 2007 money, $40 for 364 (Atlanta to
+            // Charlotte), $85 for 1,200, and the rate per km falls the further you go
+            double baseYear = 1.3
+                              + 0.012*Math.Min(km, 400)
+                              + 0.0075*Math.Max(0, Math.Min(km, 1200) - 400)
+                              + 0.0045*Math.Max(0, km - 1200);
             return GeneralHelpers.GetInflationPrice(baseYear);
         }
 

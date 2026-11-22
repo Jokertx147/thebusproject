@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<coaches>
+  <coach manufacturer="Prevost" name="Prevost Le Mirage XL" image="Prevost Le Mirage XL" price="71527">
+    <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
+    <specs wingspan="2.6" length="12.2" range="1500" speed="100" fuelcapacity="680" consumption="0.0094"
+           runwaylengthrequired="0" />
+    <capacity passengers="47" cockpitcrew="1" cabincrew="0" maxclasses="2" />
+    <produced from="1985" to="1995" rate="40" />
+  </coach>
+  <coach manufacturer="Prevost" name="Prevost Le Mirage XLII" image="Prevost Le Mirage XLII" price="87396">
+    <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
+    <specs wingspan="2.6" length="13.7" range="1700" speed="105" fuelcapacity="710" consumption="0.0080"
+           runwaylengthrequired="0" />
+    <capacity passengers="55" cockpitcrew="1" cabincrew="0" maxclasses="2" />
+    <produced from="1995" to="2008" rate="40" />
+  </coach>
+  <coach manufacturer="Prevost" name="Prevost H3-45" image="Prevost H3-45" price="149790">
+    <type body="NarrowBody" rangetype="LongRange" engine="Diesel" />
+    <specs wingspan="2.6" length="13.7" range="1900" speed="110" fuelcapacity="710" consumption="0.0071"
+           runwaylengthrequired="0" />
+    <capacity passengers="56" cockpitcrew="1" cabincrew="0" maxclasses="2" />
+    <produced from="1994" to="2199" rate="40" />
+  </coach>
+  <coach manufacturer="Prevost" name="Prevost X3-45" image="Prevost X3-45" price="120316">
+    <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
+    <specs wingspan="2.6" length="13.7" range="1850" speed="110" fuelcapacity="710" consumption="0.0073"
+           runwaylengthrequired="0" />
+    <capacity passengers="56" cockpitcrew="1" cabincrew="0" maxclasses="2" />
+    <produced from="2000" to="2199" rate="40" />
+  </coach>
+</coaches>

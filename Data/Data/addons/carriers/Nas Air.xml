@@ -1,8 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-
-<carrier>
-  <profile name="Nas Air" iata="XY" color="Black" country="136" CEO="Sulaiman Bin Abdullah Al-Hamdan" mentality="Safe"
-           market="Global" preferedstation="JED">
-  </profile>
-  <info real="True" from="2007" to="2199" />
-</carrier>

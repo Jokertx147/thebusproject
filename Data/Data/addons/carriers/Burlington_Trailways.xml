@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<carrier>
+  <profile name="Burlington Trailways" iata="BT" color="Blue" country="122" CEO="Gordon Reinhart" mentality="Safe"
+           market="Regional" preferedstation="OMA">
+    <narrative narrative="An Iowa family operation on the Chicago-to-Denver run, known for clean coaches and drivers who have been with the firm for decades." />
+  </profile>
+  <info real="True" from="1933" to="2199"></info>
+  <startdata>
+    <random_routes>
+      <routes origin="OMA" destinations="7" minimumsize="Medium">
+        <countries>
+          <country value="122"></country>
+        </countries>
+      </routes>
+    </random_routes>
+    <coaches>
+      <coach type="MCI 102DL3" early="3" late="1"></coach>
+      <coach type="MCI D4505" early="0" late="4"></coach>
+    </coaches>
+  </startdata>
+</carrier>

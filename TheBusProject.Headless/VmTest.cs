@@ -271,7 +271,7 @@ static class VmTest
         var me = g.HumanCarrier;
         var atl = TheBusProject.Models.Stations.Stations.GetAllStations().First(x => x.Profile.IATACode == "ATL");
         Console.WriteLine("year " + g.GameTime.Year + " fuel " + g.FuelPrice.ToString("0.000") + " inflation x" + TheBusProject.Helpers.GeneralHelpers.GetInflationPrice(1).ToString("0.00") + " cost level " + g.CostLevel);
-        string[] names = { "Beechcraft 1900D", "Saab 340B", "ATR 72-500", "Bombardier CRJ200", "Embraer ERJ 145", "Boeing 717-200", "Airbus A319-100", "Boeing 737-800", "Airbus A320-200", "Boeing 757-200", "Boeing 767-300ER", "Airbus A330-300", "Boeing 777-200ER", "Boeing 747-400" };
+        string[] names = { "Beechcraft 1900D", "Temsa TS 30", "Temsa TS 30", "Temsa TS 30", "Temsa TS 30", "Temsa TS 35", "Temsa TS 45", "MCI D4505", "MCI J4500", "Van Hool CX45", "Prevost H3-45", "Prevost X3-45", "Van Hool TDX25 Astromega", "Van Hool TD925 Astromega" };
         foreach (string n in names)
         {
             var t = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().FirstOrDefault(x => x.Name == n) as TheBusProject.Models.Coaches.CoachPassengerType;
@@ -1471,7 +1471,7 @@ static class VmTest
             {
                 var std = TheBusProject.Models.Coaches.EngineTypes.GetStandardEngineType(t, y);
                 if (std == null) { Console.WriteLine("  no engine for " + t.Name + " in " + y); gaps++; break; }
-                if ((std.ConsumptationModifier != 1 || std.RangeModifier != 1 || std.RunwayModifier != 1) && !t.Name.StartsWith("Boeing 767") && t.Manufacturer.ShortName != "Airbus" && t.Manufacturer.ShortName != "Aerospatiale")
+                if ((std.ConsumptationModifier != 1 || std.RangeModifier != 1 || std.RunwayModifier != 1) && !t.Name.StartsWith("Prevost H3-45") && t.Manufacturer.ShortName != "Airbus" && t.Manufacturer.ShortName != "Aerospatiale")
                 { Console.WriteLine("  the standard engine changes " + t.Name + " in " + y + ": " + std.Model); changed++; break; }
             }
         }
@@ -1483,7 +1483,7 @@ static class VmTest
         var na = av.NewCoach;
         na.Reload();
         na.Manufacturer = na.Manufacturers.First(m => m.Name == "The Boeing Company");
-        var item = na.Types.FirstOrDefault(t => t.Name == "Boeing 777-200");
+        var item = na.Types.FirstOrDefault(t => t.Name == "Van Hool TDX25 Astromega");
         if (item == null) fail("no 777-200 in " + g.GameTime.Year);
         na.Selected = item;
         Console.WriteLine("  777-200 engines: " + string.Join(" | ", na.Engines.Select(e => e.Text)));
@@ -1544,7 +1544,7 @@ static class VmTest
             if (should != na.Types.Any(x => x.Type == t)) fail(t.Name + (should ? " is missing" : " shouldn't be listed"));
         }
         // the 777-200 (first deliveries 1995); in later games the first 777 on sale
-        var item = na.Types.FirstOrDefault(t => t.Name == "Boeing 777-200") ?? na.Types.FirstOrDefault(t => t.Name.StartsWith("Boeing 777"));
+        var item = na.Types.FirstOrDefault(t => t.Name == "Van Hool TDX25 Astromega") ?? na.Types.FirstOrDefault(t => t.Name.StartsWith("Van Hool TDX25 Astromega"));
         if (item == null) fail("no 777 is listed");
         Console.WriteLine("  " + item.Name + " | " + item.Details);
         bool ahead = item.Type.Produced.From > now;
@@ -2261,7 +2261,7 @@ static class VmTest
 
         // a few coach on a few routes, then a month of flying to earn something
         var home = me.Stations.First();
-        var type = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().First(x => x.Name == "Airbus A320-200");
+        var type = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().First(x => x.Name == "MCI J4500");
         var targets = TheBusProject.Models.Stations.Stations.GetAllStations()
             .Where(x => x != home && x.Profile.Town != null
                         && TheBusProject.Helpers.MathHelpers.GetDistance(home, x) > 400
@@ -2387,8 +2387,8 @@ static class VmTest
         Console.WriteLine("  coach                        seats  max  trip  ground  earliest return after landing");
         int checked2 = 0;
 
-        string[] want = { "Bombardier Dash 8-100", "Embraer ERJ-145", "Boeing 737-800", "Airbus A320-200", "Boeing 757-200",
-                          "Boeing 767-300ER", "Boeing 777-300", "Boeing 747-400", "Airbus A380-800", "Sikorsky S-92" };
+        string[] want = { "Temsa TS 30", "Temsa TS 30", "MCI D4505", "MCI J4500", "Van Hool CX45",
+                          "Prevost H3-45", "Van Hool TDX25 Astromega", "Van Hool TD925 Astromega", "Van Hool TDX25 Astromega", "Sikorsky S-92" };
         foreach (string name in want)
         {
             var type = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().FirstOrDefault(t => t.Name == name);
@@ -2520,7 +2520,7 @@ static class VmTest
         var me = g.HumanCarrier;
         var home = me.Stations.First();
 
-        var type = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().First(x => x.Name == "Airbus A320-200");
+        var type = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().First(x => x.Name == "MCI J4500");
         var al = new TheBusProject.Models.Coaches.Coach("be", type, "N-BE1", g.GameTime.AddYears(-1)) { Carrier = me };
         TheBusProject.Models.Coaches.Coaches.AddCoach(al);
         var f = TheBusProject.Helpers.CarrierHelpers.AddCoach(me, al, home, false);
@@ -2593,7 +2593,7 @@ static class VmTest
         var home = me.Stations.First();
 
         // an coach, and a route it has the range and the runways for
-        var type = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().First(x => x.Name == "Airbus A320-200");
+        var type = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().First(x => x.Name == "MCI J4500");
         var al = new TheBusProject.Models.Coaches.Coach("sch", type, "N-SCH", g.GameTime.AddYears(-1)) { Carrier = me };
         TheBusProject.Models.Coaches.Coaches.AddCoach(al);
         var f = TheBusProject.Helpers.CarrierHelpers.AddCoach(me, al, home, false);
@@ -3353,7 +3353,7 @@ static class VmTest
         Action<string> fail = m => { Console.WriteLine("  FAILED " + m); Environment.Exit(1); };
         var g = TheBusProject.Models.General.GameObject.GetInstance();
         var me = g.HumanCarrier;
-        var t320 = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().First(x => x.Name == "Airbus A320-200");
+        var t320 = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().First(x => x.Name == "MCI J4500");
         var mine = new System.Collections.Generic.List<TheBusProject.Models.Coaches.FleetCoach>();
         for (int i = 0; i < 3; i++)
         {
@@ -3908,7 +3908,7 @@ static class VmTest
         if (TheBusProject.Helpers.AIRouteChoice.IdleRoutes == 0) fail0("no route for an idle coach");
         {
             var seller = ai.Where(a => a.Stations.Count > 0).OrderBy(a => a.Fleet.Count).First();
-            var t320 = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().First(x => x.Name == "Airbus A320-200");
+            var t320 = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().First(x => x.Name == "MCI J4500");
             var spare = new System.Collections.Generic.List<TheBusProject.Models.Coaches.Coach>();
             int extra = TheBusProject.Helpers.OwnershipService.Reserve(seller) + 6;
             for (int i = 0; i < extra; i++)
@@ -4195,7 +4195,7 @@ static class VmTest
         Console.WriteLine("RUNWAY TEST");
         var g = TheBusProject.Models.General.GameObject.GetInstance();
         var h = g.HumanCarrier;
-        var type = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().First(t => t.Name == "Airbus A350-900");
+        var type = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().First(t => t.Name == "Setra S 417 HDH");
         var a350 = TheBusProject.Helpers.CarrierHelpers.CreateCoach(h, type);
         h.AddCoach(a350);
         a350.Coach.EngineType = null;
@@ -4709,7 +4709,10 @@ static class VmTest
         {
             var st = av.StationStats;
             var mgr = av.StationManager;
-            var atl3 = TheBusProject.Models.Stations.Stations.GetAllStations().First(x => x.Profile.IATACode == "ATL");
+            // a station somebody actually runs to: which ones those are depends on where the carriers are based
+            var atl3 = TheBusProject.Models.Carriers.Carriers.GetAllCarriers()
+                           .SelectMany(x => x.Routes).Select(r => r.Destination1).FirstOrDefault()
+                       ?? TheBusProject.Models.Stations.Stations.GetAllStations().First(x => x.Profile.IATACode == "ATL");
             mgr.SelectStation(atl3);
             var sw = System.Diagnostics.Stopwatch.StartNew();
             mgr.ShowStatsCommand.Execute(null);
@@ -4756,12 +4759,12 @@ static class VmTest
 
             var ct = av.CompareTypes;
             var nav = av.NewCoach;
-            nav.Selected = nav.Types.FirstOrDefault(t => t.Type.Name.Contains("737")) ?? nav.Types.FirstOrDefault();
+            nav.Selected = nav.Types.FirstOrDefault(t => t.Type.Name.Contains("J4500")) ?? nav.Types.FirstOrDefault();
             nav.CompareCommand.Execute(null);
             Console.WriteLine("  compare from new coach: tab " + av.CoachesTab + " columns " + ct.Columns.Count);
-            ct.Search = "A320"; ct.SelectedChoice = ct.Choices.FirstOrDefault(); ct.AddCommand.Execute(null);
-            ct.Search = "747"; ct.SelectedChoice = ct.Choices.FirstOrDefault(); ct.AddCommand.Execute(null);
-            ct.Route = "ATL-LAX";
+            ct.Search = "CX45"; ct.SelectedChoice = ct.Choices.FirstOrDefault(); ct.AddCommand.Execute(null);
+            ct.Search = "Setra"; ct.SelectedChoice = ct.Choices.FirstOrDefault(); ct.AddCommand.Execute(null);
+            ct.Route = "ATL-CLT";
             Console.WriteLine("  " + ct.DistanceText);
             for (int i = 0; i < ct.Labels.Count; i++) Console.WriteLine("  " + ct.Labels[i].PadRight(22) + string.Join(" | ", ct.Columns.Select(c => c.Values[i].PadRight(24))));
             if (ct.Columns.Count < 2) { Console.WriteLine("  FAILED compare"); Environment.Exit(1); }
@@ -4800,7 +4803,8 @@ static class VmTest
             av.Stations.Create.CancelCommand.Execute(null); av.RoutesTab = 0;
             // a feeder with no coach doesn't count yet
             var lgaK = meK.Routes[0].Destination1; // the feeder starts at one end of the route
-            var ordK = TheBusProject.Models.Stations.Stations.GetAllStations().First(x => x.Profile.IATACode == "ORD");
+            var ordK = TheBusProject.Models.Stations.Stations.GetAllStations()
+                           .First(x => x != lgaK && x != meK.Routes[0].Destination2);
             var idle = new TheBusProject.Models.Routes.PassengerRoute("idleK", lgaK, ordK, TheBusProject.Models.General.GameObject.GetInstance().GameTime, 100);
             meK.AddRoute(idle);
             cv.Reload(); cv.Selected = cv.Rows.First(x => x.Route == meK.Routes[0]);
@@ -5032,7 +5036,7 @@ static class VmTest
         {
             var g9 = TheBusProject.Models.General.GameObject.GetInstance();
             var me9 = g9.HumanCarrier;
-            var t9 = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().First(x => x.Name == "Airbus A320-200");
+            var t9 = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().First(x => x.Name == "MCI J4500");
             var a9 = new TheBusProject.Models.Coaches.Coach("t9", t9, "N-T9", g9.GameTime) { Carrier = me9 };
             var opt = av.Options;
             double tickets = 180 * 0.8 * TheBusProject.Helpers.TripCosts.UsualFare(1200);
@@ -5058,9 +5062,9 @@ static class VmTest
             var gC = TheBusProject.Models.General.GameObject.GetInstance();
             var meC = gC.HumanCarrier;
             var types = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().OfType<TheBusProject.Models.Coaches.CoachPassengerType>().ToList();
-            var a320 = types.First(x => x.Name == "Airbus A320-200");
-            var big = types.Where(x => x.MaxCoachClasses >= 2 && x.MaxSeatingCapacity > 250).OrderBy(x => x.MaxSeatingCapacity).First();
-            var small = types.Where(x => x.MaxSeatingCapacity < 30).OrderBy(x => x.MaxSeatingCapacity).First();
+            var a320 = types.First(x => x.Name == "MCI J4500");
+            var big = types.Where(x => x.MaxCoachClasses >= 2 && x.MaxSeatingCapacity >= 70).OrderBy(x => x.MaxSeatingCapacity).First();
+            var small = types.Where(x => x.MaxSeatingCapacity < 35).OrderBy(x => x.MaxSeatingCapacity).First();
             var ed = new CabinEditorViewModel(a320);
             ed.AddCommand.Execute(null); ed.Classes.Last().Seats = 12;
             ed.SaveName = "x"; ed.SaveCommand.Execute(null); Console.WriteLine("  short name: " + ed.LayoutStatus);
@@ -5179,7 +5183,7 @@ static class VmTest
 
             // a computer carrier sells idle coach beyond its reserve
             var aiO = TheBusProject.Models.Carriers.Carriers.GetAllCarriers().Where(a => !a.IsHuman && a.Fleet.Count > 0 && a.Stations.Count > 0).OrderBy(a => a.Fleet.Count).First();
-            var t320 = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().First(x => x.Name == "Airbus A320-200");
+            var t320 = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().First(x => x.Name == "MCI J4500");
             var mineO = new System.Collections.Generic.List<TheBusProject.Models.Coaches.Coach>();
             for (int i = 0; i < 6; i++)
             {
@@ -5222,7 +5226,7 @@ static class VmTest
             var meT = TheBusProject.Models.General.GameObject.GetInstance().HumanCarrier;
             var cargoAl = TheBusProject.Models.Carriers.Carriers.GetAllCarriers().First(a => a.CarrierRouteFocus == TheBusProject.Models.Routes.Route.RouteType.Cargo);
             var freighter = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().First(t => t is TheBusProject.Models.Coaches.CoachCargoType);
-            var a320T = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().First(t => t.Name == "Airbus A320-200");
+            var a320T = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().First(t => t.Name == "MCI J4500");
             Console.WriteLine("  " + meT.Profile.Name + ": " + TheBusProject.Helpers.CarrierTypeRules.Kind(meT) + " | " + cargoAl.Profile.Name + ": " + TheBusProject.Helpers.CarrierTypeRules.Kind(cargoAl));
             Console.WriteLine("  cargo route: " + TheBusProject.Helpers.CarrierTypeRules.RouteBlocker(meT, TheBusProject.Models.Routes.Route.RouteType.Cargo));
             Console.WriteLine("  freighter: " + TheBusProject.Helpers.CarrierTypeRules.TypeBlocker(meT, freighter));
@@ -5312,9 +5316,14 @@ static class VmTest
             adv.StartCommand.Execute(null); adv.ConfirmCommand.Execute(null);
             Console.WriteLine("  start: " + adv.Status + " | running " + adv.Campaigns.Count);
             var atl2 = TheBusProject.Models.Stations.Stations.GetAllStations().First(x => x.Profile.IATACode == "ATL");
-            // an station outside the United States that is in this game (London when the game has it)
-            var lhr2 = TheBusProject.Models.Stations.Stations.GetAllStations().FirstOrDefault(x => x.Profile.IATACode == "LHR")
-                       ?? TheBusProject.Models.Stations.Stations.GetAllStations().Where(x => x.Profile.Country != atl2.Profile.Country && x.Profile.IATACode?.Length == 3).OrderByDescending(x => x.Profile.Pax).First();
+            // a second station to aim a campaign at: one abroad if the game has any, otherwise the biggest one
+            // that isn't the first (the game is the United States alone for now)
+            var lhr2 = TheBusProject.Models.Stations.Stations.GetAllStations()
+                           .Where(x => x.Profile.Country != atl2.Profile.Country && x.Profile.IATACode?.Length == 3)
+                           .OrderByDescending(x => x.Profile.Pax).FirstOrDefault()
+                       ?? TheBusProject.Models.Stations.Stations.GetAllStations()
+                              .Where(x => x != atl2 && x.Profile.IATACode?.Length == 3)
+                              .OrderByDescending(x => x.Profile.Pax).First();
             Console.WriteLine("  other station: " + lhr2.Profile.IATACode + " " + lhr2.Profile.Name);
             Console.WriteLine("  factor ATL " + TheBusProject.Helpers.AdvertisingService.StationFactor(me5, atl2).ToString("0.000") + " | LHR " + TheBusProject.Helpers.AdvertisingService.StationFactor(me5, lhr2).ToString("0.000"));
             if (TheBusProject.Helpers.AdvertisingService.CampaignFactor(me5, atl2) < 1.3) { Console.WriteLine("  FAILED campaign"); Environment.Exit(1); }
@@ -5355,11 +5364,17 @@ static class VmTest
             Console.WriteLine("continents: " + string.Join(", ", ng.Continents.Select(c => c.Name)));
             ng.SelectedContinent = ng.Continents.First(c => c.Name == "North America");
             Console.WriteLine("NA regions: " + string.Join(", ", ng.Regions.Select(r => r.Name)) + " -> carriers " + ng.Carriers.Count);
-            ng.SelectedRegion = ng.Regions[1];
-            Console.WriteLine("region " + ng.SelectedRegion.Name + " -> carriers " + ng.Carriers.Count + " e.g. " + ng.Carriers.First().Profile.Name);
+            for (int i = 1; i < ng.Regions.Count; i++)
+            {
+                ng.SelectedRegion = ng.Regions[i];
+                Console.WriteLine("region " + ng.SelectedRegion.Name + " -> carriers " + ng.Carriers.Count
+                                  + (ng.Carriers.Count == 0 ? "" : " e.g. " + ng.Carriers.First().Profile.Name));
+            }
             ng.SelectedRegion = ng.Regions[0];
             Console.WriteLine("all -> carriers " + ng.Carriers.Count);
-            ng.SelectedCarrier = ng.Carriers.First(a => a.Profile.IATACode == "DL") ;
+            // TAP_IATA picks the carrier you play; Greyhound by default (the big one, the oldest fleet)
+            string want = Environment.GetEnvironmentVariable("TAP_IATA2") ?? "GH";
+            ng.SelectedCarrier = ng.Carriers.FirstOrDefault(a => a.Profile.IATACode == want) ?? ng.Carriers.First();
             // tests keep the small world they were written for; TAP_OPPONENTS sets more for the economy probes
             int opp; ng.Opponents = int.TryParse(Environment.GetEnvironmentVariable("TAP_OPPONENTS"), out opp) ? opp : 5;
             Console.WriteLine("opponents: " + ng.SelectedOpponentOption.Name + " | " + ng.OpponentsText);

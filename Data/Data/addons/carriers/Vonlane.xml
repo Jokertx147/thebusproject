@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<carrier>
+  <profile name="Vonlane" iata="VL" color="LightBlue" country="122" CEO="Adelaide Prewitt" mentality="Safe"
+           market="Local" preferedstation="DAL">
+    <narrative narrative="A premium Texas operator: 22 leather seats where 56 would fit, an attendant on board, and a fare that competes with a short flight rather than with a bus." />
+  </profile>
+  <info real="True" from="2014" to="2199"></info>
+  <startdata>
+    <random_routes>
+      <routes origin="DAL" destinations="5" minimumsize="Medium">
+        <countries>
+          <country value="122"></country>
+        </countries>
+      </routes>
+    </random_routes>
+    <coaches>
+      <coach type="Prevost H3-45" early="0" late="5"></coach>
+    </coaches>
+  </startdata>
+</carrier>

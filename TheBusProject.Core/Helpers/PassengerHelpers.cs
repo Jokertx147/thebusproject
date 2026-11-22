@@ -340,9 +340,15 @@ namespace TheBusProject.Helpers
         private static readonly System.Collections.Concurrent.ConcurrentDictionary<GeneralHelpers.Size, string> SizeNames =
             new System.Collections.Concurrent.ConcurrentDictionary<GeneralHelpers.Size, string>();
 
+        // the demand table below was written when the sizes were spelled Very_large and Very_small; the enum lost the
+        // underscore in the port, which left both those sizes falling through every switch and earning no demand at all
         private static string SizeName(GeneralHelpers.Size size)
         {
-            return SizeNames.GetOrAdd(size, s => s.ToString());
+            return SizeNames.GetOrAdd(
+                size,
+                s => s == GeneralHelpers.Size.VeryLarge ? "Very_large"
+                     : s == GeneralHelpers.Size.VerySmall ? "Very_small"
+                     : s.ToString());
         }
 
         public static void CreateDestinationPassengers(Station station, Station dStation)
@@ -2906,7 +2912,8 @@ namespace TheBusProject.Helpers
 
             #endregion
 
-            double value = estimatedPassengerLevel*GetDemandYearFactor(GameObject.GetInstance().GameTime.Year);
+            double value = estimatedPassengerLevel*GetDemandYearFactor(GameObject.GetInstance().GameTime.Year)
+                           *BusDistanceFactor(dist);
 
             var rate = (ushort) value;
 
@@ -2915,6 +2922,33 @@ namespace TheBusProject.Helpers
                 station.AddDestinationPassengersRate(new DestinationDemand(dStation.Profile.IATACode, rate));
                 //DatabaseObject.GetInstance().addToTransaction(station, dStation, classType, rate);
             }
+        }
+
+        /// <summary>
+        ///     How much of a city pair's travel goes by coach, by the length of the trip. The coach owns the middle
+        ///     distances: too short and people drive or take the city bus, too long and they fly or stay at home. The
+        ///     curve peaks between about 200 and 450 km (a half day's ride, no airport worth the trouble) and is all
+        ///     but gone past 2,000.
+        /// </summary>
+        public static double BusDistanceFactor(double km)
+        {
+            if (km <= 0) return 0;
+
+            // the short end: a 30 km hop is a city bus's job, not an intercity coach's
+            double near = km >= 150 ? 1 : Math.Max(0.05, 0.15 + 0.85*Math.Max(0, km - 40)/110.0);
+
+            // the sweet spot: the corridor runs people drive today and would rather not
+            double bonus = 1;
+            if (km > 120 && km < 800)
+            {
+                double ramp = km < 200 ? (km - 120)/80.0 : km <= 450 ? 1 : (800 - km)/350.0;
+                bonus = 1 + 0.8*Math.Max(0, Math.Min(1, ramp));
+            }
+
+            // the long end: every 600 km past 450 cuts what is left by about a third
+            double far = km <= 450 ? 1 : Math.Exp(-(km - 450)/600.0);
+
+            return near*bonus*far;
         }
 
         public static double GetCargoPrice(Station dest1, Station dest2)

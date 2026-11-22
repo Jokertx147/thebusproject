@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<carrier>
+  <profile name="Gulf Coast Parcel Express" iata="GP" color="Yellow" country="122" CEO="Dorothy Vickers" mentality="Moderate"
+           market="Regional" preferedstation="HOU" routefocus="Cargo">
+    <narrative narrative="A parcel line rather than a bus line: the seats come out, the bays go in, and the overnight runs carry freight between the Gulf cities for shippers who want it there by morning." />
+  </profile>
+  <info real="True" from="1988" to="2199"></info>
+  <startdata>
+    <random_routes>
+      <routes origin="HOU" destinations="8" minimumsize="Smallest">
+        <countries>
+          <country value="122"></country>
+        </countries>
+      </routes>
+    </random_routes>
+    <coaches>
+      <coach type="MCI 102DL3 Courier" early="3" late="2"></coach>
+      <coach type="MCI D4505 Express Parcel" early="0" late="4"></coach>
+    </coaches>
+  </startdata>
+</carrier>

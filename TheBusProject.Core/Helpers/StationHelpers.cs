@@ -257,7 +257,7 @@ namespace TheBusProject.Helpers
         }
 
         private static readonly Dictionary<int, double> YearCoeffs =
-            new Dictionary<int, double> {{1960, 1.3}, {1970, 1.2}, {1980, 1.15}, {1990, 1.10}, {2000, 1.0658}, {2010, 1}};
+            new Dictionary<int, double> {{1960, 1.5}, {1970, 1.4}, {1980, 1.2}, {1990, 1.0}, {2000, 1.0658}, {2010, 1.05}, {2020, 1.1}};
 
         public static GeneralHelpers.Size ConvertStationPaxToSize(double size)
         {
@@ -274,27 +274,27 @@ namespace TheBusProject.Helpers
 
             double coeffPax = coeff*size;
 
-            if (coeffPax > 32000)
+            if (coeffPax > 9000)
             {
                 return GeneralHelpers.Size.Largest;
             }
-            if (coeffPax > 16000)
+            if (coeffPax > 4000)
             {
                 return GeneralHelpers.Size.VeryLarge;
             }
-            if (coeffPax > 9000)
+            if (coeffPax > 1800)
             {
                 return GeneralHelpers.Size.Large;
             }
-            if (coeffPax > 3000)
+            if (coeffPax > 700)
             {
                 return GeneralHelpers.Size.Medium;
             }
-            if (coeffPax > 535)
+            if (coeffPax > 250)
             {
                 return GeneralHelpers.Size.Small;
             }
-            if (coeffPax > 160)
+            if (coeffPax > 80)
             {
                 return GeneralHelpers.Size.VerySmall;
             }

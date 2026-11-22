@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<carrier>
+  <profile name="RedCoach" iata="RC" color="Red" country="122" CEO="Mateus Carvalho" mentality="Moderate"
+           market="Local" preferedstation="ORL">
+    <narrative narrative="Florida's own, running first-class and business seating between the university towns and the coasts." />
+  </profile>
+  <info real="True" from="2010" to="2199"></info>
+  <startdata>
+    <random_routes>
+      <routes origin="ORL" destinations="5" minimumsize="Medium">
+        <countries>
+          <country value="122"></country>
+        </countries>
+      </routes>
+    </random_routes>
+    <coaches>
+      <coach type="Setra S 417 HDH" early="0" late="3"></coach>
+      <coach type="Van Hool CX45" early="0" late="2"></coach>
+    </coaches>
+  </startdata>
+</carrier>

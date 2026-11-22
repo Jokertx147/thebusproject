@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<alliance name="Trailways Interline" logo="trailways_interline" type="Full" formation="01.01.1936 00:00:00" headquarter="WAS">
+  <members>
+    <member carrier="TW" joined="01.01.1936 00:00:00"></member>
+    <member carrier="BT" joined="01.01.1948 00:00:00"></member>
+    <member carrier="IT" joined="01.01.1952 00:00:00"></member>
+    <member carrier="BB" joined="06.01.1999 00:00:00"></member>
+    <member carrier="PP" joined="03.01.1989 00:00:00"></member>
+  </members>
+</alliance>

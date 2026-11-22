@@ -1,8 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-
-<carrier>
-  <profile name="Volotea" iata="V7" color="Black" country="123" CEO="Lazaro Ros" mentality="Safe" market="Global"
-           preferedstation="VCE">
-  </profile>
-  <info real="True" from="2011" to="2199" />
-</carrier>

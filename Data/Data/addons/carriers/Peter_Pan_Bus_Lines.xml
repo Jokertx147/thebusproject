@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<carrier>
+  <profile name="Peter Pan Bus Lines" iata="PP" color="Green" country="122" CEO="Harold Dunbar" mentality="Safe"
+           market="Regional" preferedstation="BOS">
+    <narrative narrative="A family firm out of New England that runs the busy corridor between Boston, New York and Washington, and holds its schedules to the minute." />
+  </profile>
+  <info real="True" from="1933" to="2199"></info>
+  <startdata>
+    <random_routes>
+      <routes origin="BOS" destinations="8" minimumsize="Medium">
+        <countries>
+          <country value="122"></country>
+        </countries>
+      </routes>
+    </random_routes>
+    <coaches>
+      <coach type="Van Hool T2145" early="4" late="0"></coach>
+      <coach type="Van Hool T945" early="2" late="3"></coach>
+      <coach type="Van Hool CX45" early="0" late="4"></coach>
+      <coach type="MCI J4500" early="0" late="2"></coach>
+    </coaches>
+  </startdata>
+</carrier>

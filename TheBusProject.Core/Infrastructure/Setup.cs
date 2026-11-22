@@ -324,6 +324,7 @@ namespace TheBusProject.Infrastructure
             try
             {
                 var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/addons/stations");
+                if (!dir.Exists) { StartupLog.Write("Data note: no stations folder; that data is skipped."); return; }
 
                 // "north america MX.xml" is an older copy of many of the stations in "north america.xml":
                 // it is loaded last so the newer definitions are the ones that are kept
@@ -2044,6 +2045,7 @@ namespace TheBusProject.Infrastructure
             try
             {
                 var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/addons/coaches/configurations");
+                if (!dir.Exists) { StartupLog.Write("Data note: no configurations folder; that data is skipped."); return; }
 
                 foreach (FileInfo file in dir.GetFiles("*.xml"))
                 {
@@ -2067,6 +2069,7 @@ namespace TheBusProject.Infrastructure
             try
             {
                 var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/addons/coaches");
+                if (!dir.Exists) { StartupLog.Write("Data note: no coaches folder; that data is skipped."); return; }
 
                 foreach (FileInfo file in dir.GetFiles("*.xml"))
                 {
@@ -2325,6 +2328,7 @@ namespace TheBusProject.Infrastructure
             try
             {
                 var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/addons/carriers");
+                if (!dir.Exists) { StartupLog.Write("Data note: no carriers folder; that data is skipped."); return; }
 
                 foreach (FileInfo file in dir.GetFiles("*.xml"))
                 {
@@ -2419,6 +2423,7 @@ namespace TheBusProject.Infrastructure
         private static void LoadStationLogos()
         {
             var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/graphics/stationlogos");
+            if (!dir.Exists) { StartupLog.Write("Data note: no stationlogos folder; that data is skipped."); return; }
 
             foreach (FileInfo file in dir.GetFiles("*.png"))
             {
@@ -2439,6 +2444,7 @@ namespace TheBusProject.Infrastructure
         private static void LoadStationMaps()
         {
             var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/graphics/stationmaps");
+            if (!dir.Exists) { StartupLog.Write("Data note: no stationmaps folder; that data is skipped."); return; }
 
             foreach (FileInfo file in dir.GetFiles("*.png"))
             {
@@ -2918,6 +2924,7 @@ namespace TheBusProject.Infrastructure
         private static void LoadAlliances()
         {
             var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/addons/alliances");
+            if (!dir.Exists) { StartupLog.Write("Data note: no alliances folder; that data is skipped."); return; }
 
             foreach (FileInfo file in dir.GetFiles("*.xml"))
             {
@@ -3095,6 +3102,7 @@ namespace TheBusProject.Infrastructure
         private static void LoadEngineTypes()
         {
             var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/addons/engines");
+            if (!dir.Exists) { StartupLog.Write("Data note: no engines folder; that data is skipped."); return; }
 
             foreach (FileInfo file in dir.GetFiles("*.xml"))
             {
@@ -3277,6 +3285,7 @@ namespace TheBusProject.Infrastructure
         private static void LoadHistoricEvents()
         {
             var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/addons/historicevents");
+            if (!dir.Exists) { StartupLog.Write("Data note: no historicevents folder; that data is skipped."); return; }
 
             foreach (FileInfo file in dir.GetFiles("*.xml"))
             {
@@ -3434,6 +3443,7 @@ namespace TheBusProject.Infrastructure
             try
             {
                 var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/addons/stations/majordestinations");
+                if (!dir.Exists) { StartupLog.Write("Data note: no majordestinations folder; that data is skipped."); return; }
 
                 foreach (FileInfo file in dir.GetFiles("*.xml"))
                 {
@@ -3503,6 +3513,7 @@ namespace TheBusProject.Infrastructure
         private static void LoadManufacturerLogos()
         {
             var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/graphics/manufacturerlogos");
+            if (!dir.Exists) { StartupLog.Write("Data note: no manufacturerlogos folder; that data is skipped."); return; }
 
             foreach (FileInfo file in dir.GetFiles("*.png"))
             {
@@ -3546,6 +3557,7 @@ namespace TheBusProject.Infrastructure
         public static void LoadSpecialContracts()
         {
             var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/addons/contracts");
+            if (!dir.Exists) { StartupLog.Write("Data note: no contracts folder; that data is skipped."); return; }
 
             foreach (FileInfo file in dir.GetFiles("*.xml"))
             {
@@ -4051,6 +4063,7 @@ namespace TheBusProject.Infrastructure
         private static void LoadScenarios()
         {
             var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/addons/scenarios");
+            if (!dir.Exists) { StartupLog.Write("Data note: no scenarios folder; that data is skipped."); return; }
 
             foreach (FileInfo file in dir.GetFiles("*.xml"))
             {
@@ -4296,6 +4309,7 @@ namespace TheBusProject.Infrastructure
         private static void LoadWeatherAverages()
         {
             var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/addons/weather");
+            if (!dir.Exists) { StartupLog.Write("Data note: no weather folder; that data is skipped."); return; }
 
             foreach (FileInfo file in dir.GetFiles("*.xml"))
             {

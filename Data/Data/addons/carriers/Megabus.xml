@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<carrier>
+  <profile name="Megabus" iata="MB" color="Yellow" country="122" CEO="Ravi Chandrasekhar" mentality="Aggressive"
+           market="Domestic" preferedstation="CHI">
+    <narrative narrative="The curbside upstart: no terminals, cheap fares that rise as the bus fills, and double-deckers on the busiest city pairs. It opens a route wherever it thinks it can undercut the incumbent." />
+  </profile>
+  <info real="True" from="2006" to="2199"></info>
+  <startdata>
+    <random_routes>
+      <routes origin="CHI" destinations="12" minimumsize="Medium">
+        <countries>
+          <country value="122"></country>
+        </countries>
+      </routes>
+    </random_routes>
+    <coaches>
+      <coach type="Van Hool TD925 Astromega" early="0" late="6"></coach>
+      <coach type="Van Hool TDX25 Astromega" early="0" late="4"></coach>
+      <coach type="Van Hool CX45" early="0" late="2"></coach>
+    </coaches>
+  </startdata>
+</carrier>

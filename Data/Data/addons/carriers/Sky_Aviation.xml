@@ -1,8 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-
-<carrier>
-  <profile name="Sky Aviation (Indonesia)" iata="SS" color="Blue" country="162" CEO="Krisman Tarigan" mentality="Safe"
-           market="Domestic" preferedstation="BTH">
-  </profile>
-  <info real="True" from="2010" to="2199" />
-</carrier>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<carrier>
+  <profile name="Tornado Bus Company" iata="TB" color="Orange" country="122" CEO="Rosalba Jimenez" mentality="Moderate"
+           market="Regional" preferedstation="HOU">
+    <narrative narrative="A Texas carrier serving the Mexican-American communities, with routes that run south to the border and east along the Gulf, and buses that leave when they are full." />
+  </profile>
+  <info real="True" from="1997" to="2199"></info>
+  <startdata>
+    <random_routes>
+      <routes origin="HOU" destinations="9" minimumsize="Medium">
+        <countries>
+          <country value="122"></country>
+        </countries>
+      </routes>
+    </random_routes>
+    <coaches>
+      <coach type="MCI MC-9 Crusader II" early="4" late="0"></coach>
+      <coach type="MCI 102DL3" early="2" late="3"></coach>
+      <coach type="Temsa TS 45" early="0" late="3"></coach>
+    </coaches>
+  </startdata>
+</carrier>

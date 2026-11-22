@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<carrier>
+  <profile name="Trailways" iata="TW" color="Red" country="122" CEO="Marguerite Olsen" mentality="Moderate"
+           market="Domestic" preferedstation="WAS">
+    <narrative narrative="A federation of independent carriers that sell tickets under one name. Between them they cover the east and the midwest, and they trade passengers with each other at the big terminals." />
+  </profile>
+  <info real="True" from="1936" to="2199"></info>
+  <startdata>
+    <random_routes>
+      <routes origin="WAS" destinations="16" minimumsize="Medium">
+        <countries>
+          <country value="122"></country>
+        </countries>
+      </routes>
+    </random_routes>
+    <coaches>
+      <coach type="MCI 102DL3" early="5" late="2"></coach>
+      <coach type="Van Hool T2145" early="3" late="2"></coach>
+      <coach type="MCI D4505" early="0" late="5"></coach>
+      <coach type="Prevost X3-45" early="0" late="3"></coach>
+    </coaches>
+  </startdata>
+</carrier>

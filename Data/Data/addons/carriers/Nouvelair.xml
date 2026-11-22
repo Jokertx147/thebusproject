@@ -1,8 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-
-<carrier>
-  <profile name="Nouvelair" iata="BJ" color="Black" country="144" CEO="Aziz Milad" mentality="Safe" market="Global"
-           preferedstation="MIR">
-  </profile>
-  <info real="True" from="1989" to="2199" />
-</carrier>

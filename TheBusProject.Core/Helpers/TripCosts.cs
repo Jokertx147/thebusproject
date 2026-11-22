@@ -37,9 +37,9 @@ namespace TheBusProject.Helpers
         {
             switch (level)
             {
-                case 0: return "Original: trips pay only fuel, landing fees, passenger taxes, catering and cabin crew. Almost every route makes money.";
+                case 0: return "Original: trips pay only fuel, station fees, passenger taxes and refreshments. Almost every route makes money.";
                 case 2: return "Tough: like Realistic, but the added costs are 40% higher. Only well-run routes make money.";
-                default: return "Realistic: trips also pay ground handling, maintenance per trip hour, en-route charges, crew time, ticket sales (5 to 8%) and overhead (7%), and owned coach cost 0.5% of their value a month whether they run or not. Short busy routes still earn well, long thin ones can lose.";
+                default: return "Realistic: trips also pay the station's departure fee, maintenance per hour on the road, tolls and road tax per km, the driver's time, ticket sales (5 to 8%) and overhead (7%), and owned coaches cost 0.5% of their value a month whether they run or not. Short busy routes still earn well, long thin ones can lose.";
             }
         }
 
@@ -69,15 +69,16 @@ namespace TheBusProject.Helpers
             if (!Enabled || coach == null) return p;
             double cap = Capacity(coach);
             hours = Math.Max(0.3, hours);
-            // base-year amounts (about 1/7 of 2007 dollars): a 150 seat jet pays about $1,050 handling in 2007
-            p.Ground = GeneralHelpers.GetInflationPrice(10 + 1.1*cap);
-            // line maintenance: a part per trip hour plus a part that grows with the coach's price
-            p.Maintenance = hours*(GeneralHelpers.GetInflationPrice(4 + 0.75*cap) + 0.000008*coach.Type.Price);
-            // en-route charges per km, more for bigger coach
-            p.EnRoute = km*GeneralHelpers.GetInflationPrice(0.012 + 0.00045*cap);
-            // the extra crews needed to keep the coach flying (the hired pilots are paid separately)
+            // base-year amounts (about 1/7 of 2007 dollars): a 56 seat coach pays about $20 a departure in 2007
+            p.Ground = GeneralHelpers.GetInflationPrice(1.5 + 0.03*cap);
+            // the garage: a part per hour on the road plus a part that grows with the coach's price (about $25 an
+            // hour for a 56 seat coach in 2007, which is roughly 25 cents a mile)
+            p.Maintenance = hours*(GeneralHelpers.GetInflationPrice(1.2 + 0.045*cap) + 0.000004*coach.Type.Price);
+            // tolls, road tax and tyres per km, more for a heavier coach (about 3 cents a km in 2007)
+            p.EnRoute = km*GeneralHelpers.GetInflationPrice(0.002 + 0.00004*cap);
+            // the driver's time (the drivers you hire by name are paid separately)
             int crew = Math.Max(1, coach.Type.CockpitCrew) + (coach.Type is CoachPassengerType pt ? pt.CabinCrew : 0);
-            p.Crew = hours*crew*GeneralHelpers.GetInflationPrice(18);
+            p.Crew = hours*crew*GeneralHelpers.GetInflationPrice(4.0);
             p.Distribution = Math.Max(0, tickets)*DistributionShare(coach.Carrier);
             // offices, IT, marketing and everything else that isn't a trip
             p.Overhead = Math.Max(0, tickets)*0.07;

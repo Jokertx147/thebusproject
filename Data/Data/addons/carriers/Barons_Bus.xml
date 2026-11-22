@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<carrier>
+  <profile name="Barons Bus" iata="BB" color="Black" country="122" CEO="Tyrell Moss" mentality="Moderate"
+           market="Regional" preferedstation="CLE">
+    <narrative narrative="An Ohio carrier that grew out of charter work and now runs scheduled service across the Great Lakes and down into Appalachia." />
+  </profile>
+  <info real="True" from="1997" to="2199"></info>
+  <startdata>
+    <random_routes>
+      <routes origin="CLE" destinations="7" minimumsize="Medium">
+        <countries>
+          <country value="122"></country>
+        </countries>
+      </routes>
+    </random_routes>
+    <coaches>
+      <coach type="MCI 102DL3" early="2" late="1"></coach>
+      <coach type="Prevost Le Mirage XLII" early="2" late="2"></coach>
+      <coach type="MCI J4500" early="0" late="3"></coach>
+    </coaches>
+  </startdata>
+</carrier>

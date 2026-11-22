@@ -1,8 +1,0 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
-
-<carrier>
-  <profile name="Hokkaido International Airlines" iata="HD" color="blueviolet" country="171" CEO="Sadao Saito"
-           mentality="Aggressive" market="Local" preferedstation="HND">
-  </profile>
-  <info real="True" from="1996" to="1998" />
-</carrier>
