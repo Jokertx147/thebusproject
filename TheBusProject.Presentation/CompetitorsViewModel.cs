@@ -4,8 +4,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 using TheBusProject.Helpers;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.Routes;
 
@@ -29,13 +29,13 @@ namespace TheBusProject.Presentation
         public Func<List<string>> Detail { get; set; }
     }
 
-    /// <summary>Airlines > Competitors: who flies the player's routes and airports, their fares and loads, and their recent moves.</summary>
+    /// <summary>Carriers > Competitors: who flies the player's routes and stations, their fares and loads, and their recent moves.</summary>
     public class CompetitorsViewModel : ObservableObject
     {
-        public const string ByAirline = "Rival airlines", ByRoute = "My routes", ByAirport = "My airports", ByMove = "Recent moves";
+        public const string ByCarrier = "Rival carriers", ByRoute = "My routes", ByStation = "My stations", ByMove = "Recent moves";
 
         private readonly Action<Route> _open;
-        private string _show = ByAirline, _filter, _summary, _detailTitle;
+        private string _show = ByCarrier, _filter, _summary, _detailTitle;
         private CompetitorRow _selected;
 
         public CompetitorsViewModel(Action<Route> open)
@@ -46,7 +46,7 @@ namespace TheBusProject.Presentation
             RefreshCommand = new RelayCommand(Reload);
         }
 
-        public List<string> ShowChoices { get; } = new List<string> {ByAirline, ByRoute, ByAirport, ByMove};
+        public List<string> ShowChoices { get; } = new List<string> {ByCarrier, ByRoute, ByStation, ByMove};
 
         public ObservableCollection<string> FilterChoices { get; } = new ObservableCollection<string> {"All"};
         public ObservableCollection<CompetitorRow> Rows { get; } = new ObservableCollection<CompetitorRow>();
@@ -95,7 +95,7 @@ namespace TheBusProject.Presentation
             }
         }
 
-        /// <summary>Shows "My routes" with the player's route on that airport pair selected (from a rival alert in the news). False when the player no longer flies it.</summary>
+        /// <summary>Shows "My routes" with the player's route on that station pair selected (from a rival alert in the news). False when the player no longer flies it.</summary>
         public bool ShowRoute(string a, string b, bool cargo)
         {
             if (_show != ByRoute)
@@ -116,12 +116,12 @@ namespace TheBusProject.Presentation
             return row != null;
         }
 
-        /// <summary>Shows "Rival airlines" with that airline selected (from the monthly report).</summary>
-        public bool ShowAirline(Airline airline)
+        /// <summary>Shows "Rival carriers" with that carrier selected (from the monthly report).</summary>
+        public bool ShowCarrier(Carrier carrier)
         {
-            if (_show != ByAirline)
+            if (_show != ByCarrier)
             {
-                _show = ByAirline;
+                _show = ByCarrier;
                 OnPropertyChanged(nameof(Show));
                 LoadFilters();
             }
@@ -131,7 +131,7 @@ namespace TheBusProject.Presentation
                 OnPropertyChanged(nameof(Filter));
             }
             Reload();
-            CompetitorRow row = Rows.FirstOrDefault(r => r.Title == Name(airline));
+            CompetitorRow row = Rows.FirstOrDefault(r => r.Title == Name(carrier));
             Selected = row;
             return row != null;
         }
@@ -147,13 +147,13 @@ namespace TheBusProject.Presentation
             FilterChoices.Clear();
             switch (_show)
             {
-                case ByAirline:
-                    foreach (var f in new[] {"All", "On my routes", "At my airports only"}) FilterChoices.Add(f);
+                case ByCarrier:
+                    foreach (var f in new[] {"All", "On my routes", "At my stations only"}) FilterChoices.Add(f);
                     break;
                 case ByRoute:
                     foreach (var f in new[] {"All", "With rivals", "A rival is cheaper", "No rivals"}) FilterChoices.Add(f);
                     break;
-                case ByAirport:
+                case ByStation:
                     FilterChoices.Add("All");
                     break;
                 default:
@@ -179,7 +179,7 @@ namespace TheBusProject.Presentation
             return (v*100).ToString("0") + "%";
         }
 
-        private static string Code(Airport a)
+        private static string Code(Station a)
         {
             return a?.Profile.IATACode ?? "?";
         }
@@ -189,12 +189,12 @@ namespace TheBusProject.Presentation
             return Code(r.Destination1) + " - " + Code(r.Destination2);
         }
 
-        private static string Pair(Airport a, Airport b)
+        private static string Pair(Station a, Station b)
         {
             return Code(a) + " - " + Code(b);
         }
 
-        private static string Name(Airline a)
+        private static string Name(Carrier a)
         {
             return a == null ? "?" : a.Profile.IATACode + " " + a.Profile.Name;
         }
@@ -211,7 +211,7 @@ namespace TheBusProject.Presentation
 
         public void Reload()
         {
-            var me = GameObject.GetInstance()?.HumanAirline;
+            var me = GameObject.GetInstance()?.HumanCarrier;
             if (me == null) return;
             var keep = _selected?.Title;
             Rows.Clear();
@@ -219,9 +219,9 @@ namespace TheBusProject.Presentation
             {
                 switch (_show)
                 {
-                    case ByAirline: LoadAirlines(me); break;
+                    case ByCarrier: LoadCarriers(me); break;
                     case ByRoute: LoadRoutes(me); break;
-                    case ByAirport: LoadAirports(me); break;
+                    case ByStation: LoadStations(me); break;
                     default: LoadMoves(me); break;
                 }
             }
@@ -234,17 +234,17 @@ namespace TheBusProject.Presentation
             OnPropertyChanged(nameof(Selected));
         }
 
-        // ---- rival airlines
+        // ---- rival carriers
 
-        private void LoadAirlines(Airline me)
+        private void LoadCarriers(Carrier me)
         {
-            List<RivalAirline> rivals = CompetitorService.Rivals(me);
+            List<RivalCarrier> rivals = CompetitorService.Rivals(me);
             if (_filter == "On my routes") rivals = rivals.Where(r => r.SharedRoutes.Count > 0).ToList();
-            if (_filter == "At my airports only") rivals = rivals.Where(r => r.SharedRoutes.Count == 0).ToList();
-            foreach (RivalAirline r in rivals)
+            if (_filter == "At my stations only") rivals = rivals.Where(r => r.SharedRoutes.Count == 0).ToList();
+            foreach (RivalCarrier r in rivals)
             {
-                RivalAirline rival = r;
-                string meet = (r.SharedRoutes.Count > 0 ? r.SharedRoutes.Count + " of your routes, " : "") + r.SharedAirports.Count + " of your airports";
+                RivalCarrier rival = r;
+                string meet = (r.SharedRoutes.Count > 0 ? r.SharedRoutes.Count + " of your routes, " : "") + r.SharedStations.Count + " of your stations";
                 var line2 = new List<string>();
                 if (r.FareLevel > 0) line2.Add("fares " + r.FareLevel.ToString("0.00") + " of the market");
                 if (r.FareAgainstMine > 0) line2.Add(r.FareAgainstMine < 1 ? Pct(1 - r.FareAgainstMine) + " cheaper than you where you meet" : Pct(r.FareAgainstMine - 1) + " dearer than you where you meet");
@@ -252,55 +252,55 @@ namespace TheBusProject.Presentation
                 if (r.LastMonthIncome > 0) line2.Add("last month " + Money(r.LastMonthResult) + " (" + Pct(r.LastMonthResult/r.LastMonthIncome) + " margin)");
                 Rows.Add(new CompetitorRow
                 {
-                    Title = Name(r.Airline),
-                    Line1 = meet + "  |  " + r.Fleet + " aircraft, " + N(r.Routes, "route") + ", " + r.Airline.Mentality.ToString().ToLowerInvariant() + " style",
+                    Title = Name(r.Carrier),
+                    Line1 = meet + "  |  " + r.Fleet + " coach, " + N(r.Routes, "route") + ", " + r.Carrier.Mentality.ToString().ToLowerInvariant() + " style",
                     Line2 = string.Join("  |  ", line2),
                     Badge = r.FareAgainstMine > 0 && r.FareAgainstMine < 0.97 ? "CHEAPER" : null,
                     IsWarning = true,
-                    Detail = () => AirlineDetail(me, rival)
+                    Detail = () => CarrierDetail(me, rival)
                 });
             }
             int onRoutes = rivals.Count(r => r.SharedRoutes.Count > 0);
             Summary = rivals.Count == 0
-                ? "No other airline flies your routes or from your airports."
-                : string.Format("{0} from your airports; {1} of them also {2} your routes.", rivals.Count == 1 ? "1 airline flies" : rivals.Count + " airlines fly", onRoutes, onRoutes == 1 ? "flies" : "fly");
+                ? "No other carrier runs your routes or from your stations."
+                : string.Format("{0} from your stations; {1} of them also {2} your routes.", rivals.Count == 1 ? "1 carrier runs" : rivals.Count + " carriers run", onRoutes, onRoutes == 1 ? "runs" : "run");
         }
 
-        private List<string> AirlineDetail(Airline me, RivalAirline r)
+        private List<string> CarrierDetail(Carrier me, RivalCarrier r)
         {
             var lines = new List<string>();
             if (r.SharedRoutes.Count > 0)
             {
-                lines.Add("Your routes they fly too:");
+                lines.Add("Your routes they run too:");
                 foreach (RouteRivals s in r.SharedRoutes.OrderBy(x => Pair(x.Mine)))
                 {
-                    foreach (RivalOnRoute x in s.Rivals.Where(x => x.Airline == r.Airline))
+                    foreach (RivalOnRoute x in s.Rivals.Where(x => x.Carrier == r.Carrier))
                     {
                         lines.Add(string.Format("  {0}: them {1} ({2}, {3} a week, {4})  |  you {5} ({6}, {7} a week)",
-                            Pair(s.Mine), Money(x.Fare), Load(x.Load), x.WeeklyFlights, x.Aircraft, Money(s.MyFare), Load(s.MyLoad), s.MyWeeklyFlights));
+                            Pair(s.Mine), Money(x.Fare), Load(x.Load), x.WeeklyTrips, x.Coach, Money(s.MyFare), Load(s.MyLoad), s.MyWeeklyTrips));
                     }
                 }
             }
-            if (r.SharedAirports.Count > 0)
+            if (r.SharedStations.Count > 0)
             {
-                lines.Add("Your airports they fly from:");
-                foreach (Airport ap in r.SharedAirports.OrderBy(Code))
+                lines.Add("Your stations they run from:");
+                foreach (Station ap in r.SharedStations.OrderBy(Code))
                 {
-                    int routes = RouteIndex.At(ap).Count(x => x.Airline == r.Airline && x.HasAirliner);
+                    int routes = RouteIndex.At(ap).Count(x => x.Carrier == r.Carrier && x.HasCoach);
                     int gates = 0;
-                    try { gates = ap.GetAirlineContracts(r.Airline).Sum(c => c.NumberOfGates); } catch (Exception) { }
+                    try { gates = ap.GetCarrierContracts(r.Carrier).Sum(c => c.NumberOfGates); } catch (Exception) { }
                     lines.Add(string.Format("  {0} {1}: {2}, {3}", Code(ap), ap.Profile.Town?.Name, N(routes, "route"), N(gates, "gate")));
                 }
             }
-            var moves = CompetitorService.Moves(me, 180).Where(m => m.Airline == r.Airline).Take(30).ToList();
-            lines.Add(moves.Count == 0 ? "No moves at your airports in the last 180 days." : "Their moves at your airports:");
+            var moves = CompetitorService.Moves(me, 180).Where(m => m.Carrier == r.Carrier).Take(30).ToList();
+            lines.Add(moves.Count == 0 ? "No moves at your stations in the last 180 days." : "Their moves at your stations:");
             lines.AddRange(moves.Select(m => "  " + MoveText(m, me)));
             return lines;
         }
 
         // ---- my routes
 
-        private void LoadRoutes(Airline me)
+        private void LoadRoutes(Carrier me)
         {
             List<RouteRivals> all = CompetitorService.ForRoutes(me);
             IEnumerable<RouteRivals> shown = all;
@@ -318,9 +318,9 @@ namespace TheBusProject.Presentation
                 {
                     Title = Pair(r.Mine) + (r.Mine.Type == Route.RouteType.Cargo ? "  (cargo)" : ""),
                     Line1 = r.Rivals.Count == 0
-                        ? "No rival flies it"
-                        : r.Rivals.Count + (r.Rivals.Count == 1 ? " rival: " : " rivals: ") + string.Join(", ", r.Rivals.Take(4).Select(x => x.Airline.Profile.IATACode + " " + Money(x.Fare) + " (" + (x.Load > 0 ? Pct(x.Load) : "?") + ")")) + (r.Rivals.Count > 4 ? " ..." : ""),
-                    Line2 = "you " + Money(r.MyFare) + " " + word + " (" + Load(r.MyLoad) + ", " + N(r.MyWeeklyFlights, "flight") + " a week)" + (r.MarketFare > 0 ? "  |  market " + Money(r.MarketFare) : ""),
+                        ? "No rival runs it"
+                        : r.Rivals.Count + (r.Rivals.Count == 1 ? " rival: " : " rivals: ") + string.Join(", ", r.Rivals.Take(4).Select(x => x.Carrier.Profile.IATACode + " " + Money(x.Fare) + " (" + (x.Load > 0 ? Pct(x.Load) : "?") + ")")) + (r.Rivals.Count > 4 ? " ..." : ""),
+                    Line2 = "you " + Money(r.MyFare) + " " + word + " (" + Load(r.MyLoad) + ", " + N(r.MyWeeklyTrips, "trip") + " a week)" + (r.MarketFare > 0 ? "  |  market " + Money(r.MarketFare) : ""),
                     Badge = Undercut(r) ? "CHEAPER RIVAL" : r.Rivals.Count == 0 ? "ALONE" : null,
                     IsWarning = Undercut(r),
                     MyRoute = r.Mine,
@@ -330,7 +330,7 @@ namespace TheBusProject.Presentation
             int with = all.Count(r => r.Rivals.Count > 0), under = all.Count(Undercut);
             Summary = all.Count == 0
                 ? "You have no routes yet."
-                : string.Format("{0}: {1} with rivals, {2} where a rival is cheaper than you, {3} you fly alone.", N(all.Count, "route"), with, under, all.Count - with);
+                : string.Format("{0}: {1} with rivals, {2} where a rival is cheaper than you, {3} you run alone.", N(all.Count, "route"), with, under, all.Count - with);
         }
 
         private static bool Undercut(RouteRivals r)
@@ -338,22 +338,22 @@ namespace TheBusProject.Presentation
             return r.MyFare > 0 && r.Rivals.Any(x => x.Fare > 0 && x.Fare < r.MyFare*0.97);
         }
 
-        private List<string> RouteDetail(Airline me, RouteRivals r)
+        private List<string> RouteDetail(Carrier me, RouteRivals r)
         {
             string word = FareWord(r.Mine);
             var lines = new List<string>
             {
-                string.Format("You: {0} {1}, {2}, {3} a week ({4})", Money(r.MyFare), word, Load(r.MyLoad), N(r.MyWeeklyFlights, "flight"), r.Mine.GetAirliners().Count == 0 ? "no aircraft yet" : string.Join(", ", r.Mine.GetAirliners().Select(a => a.Airliner.Type.Name).Distinct()))
+                string.Format("You: {0} {1}, {2}, {3} a week ({4})", Money(r.MyFare), word, Load(r.MyLoad), N(r.MyWeeklyTrips, "trip"), r.Mine.GetCoaches().Count == 0 ? "no coach yet" : string.Join(", ", r.Mine.GetCoaches().Select(a => a.Coach.Type.Name).Distinct()))
             };
             if (r.MarketFare > 0) lines.Add("Market fare: " + Money(r.MarketFare));
-            if (r.Rivals.Count == 0) lines.Add("No other airline flies this pair.");
+            if (r.Rivals.Count == 0) lines.Add("No other carrier runs this pair.");
             foreach (RivalOnRoute x in r.Rivals)
             {
                 string against = r.MyFare > 0 && x.Fare > 0 ? (x.Fare < r.MyFare ? ", " + Pct(1 - x.Fare/r.MyFare) + " cheaper than you" : x.Fare > r.MyFare ? ", " + Pct(x.Fare/r.MyFare - 1) + " dearer than you" : ", the same as you") : "";
-                lines.Add(string.Format("{0}: {1} {2}{3}, {4}, {5} a week ({6})", Name(x.Airline), Money(x.Fare), word, against, Load(x.Load), N(x.WeeklyFlights, "flight"), x.Aircraft));
+                lines.Add(string.Format("{0}: {1} {2}{3}, {4}, {5} a week ({6})", Name(x.Carrier), Money(x.Fare), word, against, Load(x.Load), N(x.WeeklyTrips, "trip"), x.Coach));
             }
-            int total = r.MyWeeklyFlights + r.Rivals.Sum(x => x.WeeklyFlights);
-            if (r.Rivals.Count > 0 && total > 0) lines.Add("Your share of the flights on the pair: " + Pct((double) r.MyWeeklyFlights/total));
+            int total = r.MyWeeklyTrips + r.Rivals.Sum(x => x.WeeklyTrips);
+            if (r.Rivals.Count > 0 && total > 0) lines.Add("Your share of the trips on the pair: " + Pct((double) r.MyWeeklyTrips/total));
             var moves = CompetitorService.Moves(me, 180).Where(m => SamePair(m, r.Mine)).ToList();
             if (moves.Count > 0)
             {
@@ -368,41 +368,41 @@ namespace TheBusProject.Presentation
             return (m.A == r.Destination1 && m.B == r.Destination2) || (m.A == r.Destination2 && m.B == r.Destination1);
         }
 
-        // ---- my airports
+        // ---- my stations
 
-        private void LoadAirports(Airline me)
+        private void LoadStations(Carrier me)
         {
-            List<AirportRivals> all = CompetitorService.ForAirports(me).OrderByDescending(a => a.Airlines.Count).ThenBy(a => Code(a.Airport)).ToList();
-            foreach (AirportRivals a in all)
+            List<StationRivals> all = CompetitorService.ForStations(me).OrderByDescending(a => a.Carriers.Count).ThenBy(a => Code(a.Station)).ToList();
+            foreach (StationRivals a in all)
             {
-                AirportRivals ar = a;
-                int routes = a.Airlines.Sum(x => x.Item2);
+                StationRivals ar = a;
+                int routes = a.Carriers.Sum(x => x.Item2);
                 Rows.Add(new CompetitorRow
                 {
-                    Title = Code(a.Airport) + "  " + a.Airport.Profile.Name,
-                    Line1 = string.Format("you: {0}, {1}  |  {2} with {3}  |  {4}, {5} free", N(a.MyRoutes, "route"), N(a.MyGates, "gate"), N(a.Airlines.Count, "other airline"), N(routes, "route"), N(a.Gates, "gate"), a.FreeGates),
-                    Line2 = a.Airlines.Count == 0 ? "No other airline flies from here" : "biggest: " + string.Join(", ", a.Airlines.Take(4).Select(x => x.Item1.Profile.IATACode + " " + N(x.Item2, "route"))),
-                    Badge = a.Airlines.Count == 0 ? "ALONE" : a.FreeGates == 0 ? "NO FREE GATES" : null,
-                    IsWarning = a.FreeGates == 0 && a.Airlines.Count > 0,
-                    Detail = () => AirportDetail(me, ar)
+                    Title = Code(a.Station) + "  " + a.Station.Profile.Name,
+                    Line1 = string.Format("you: {0}, {1}  |  {2} with {3}  |  {4}, {5} free", N(a.MyRoutes, "route"), N(a.MyGates, "gate"), N(a.Carriers.Count, "other carrier"), N(routes, "route"), N(a.Gates, "gate"), a.FreeGates),
+                    Line2 = a.Carriers.Count == 0 ? "No other carrier runs from here" : "biggest: " + string.Join(", ", a.Carriers.Take(4).Select(x => x.Item1.Profile.IATACode + " " + N(x.Item2, "route"))),
+                    Badge = a.Carriers.Count == 0 ? "ALONE" : a.FreeGates == 0 ? "NO FREE GATES" : null,
+                    IsWarning = a.FreeGates == 0 && a.Carriers.Count > 0,
+                    Detail = () => StationDetail(me, ar)
                 });
             }
             Summary = all.Count == 0
-                ? "You fly from no airport yet."
-                : string.Format("{0}: {1} where other airlines fly too, {2} with no free gates left.", N(all.Count, "airport"), all.Count(a => a.Airlines.Count > 0), all.Count(a => a.FreeGates == 0));
+                ? "You run from no station yet."
+                : string.Format("{0}: {1} where other carriers run too, {2} with no free gates left.", N(all.Count, "station"), all.Count(a => a.Carriers.Count > 0), all.Count(a => a.FreeGates == 0));
         }
 
-        private List<string> AirportDetail(Airline me, AirportRivals a)
+        private List<string> StationDetail(Carrier me, StationRivals a)
         {
             var lines = new List<string>
             {
-                a.Airport.Profile.Name + ", " + a.Airport.Profile.Town?.Name + ", " + a.Airport.Profile.Country?.Name,
-                string.Format("You: {0}, {1}. Gates at the airport: {2} ({3} free).", N(a.MyRoutes, "route"), N(a.MyGates, "gate"), a.Gates, a.FreeGates)
+                a.Station.Profile.Name + ", " + a.Station.Profile.Town?.Name + ", " + a.Station.Profile.Country?.Name,
+                string.Format("You: {0}, {1}. Gates at the station: {2} ({3} free).", N(a.MyRoutes, "route"), N(a.MyGates, "gate"), a.Gates, a.FreeGates)
             };
-            if (a.Airlines.Count == 0) lines.Add("No other airline flies from here.");
-            else lines.Add("Other airlines here:");
-            foreach (var x in a.Airlines) lines.Add(string.Format("  {0}: {1}, {2}", Name(x.Item1), N(x.Item2, "route"), N(x.Item3, "gate")));
-            var moves = CompetitorService.Moves(me, 180).Where(m => m.A == a.Airport || m.B == a.Airport).Take(30).ToList();
+            if (a.Carriers.Count == 0) lines.Add("No other carrier runs from here.");
+            else lines.Add("Other carriers here:");
+            foreach (var x in a.Carriers) lines.Add(string.Format("  {0}: {1}, {2}", Name(x.Item1), N(x.Item2, "route"), N(x.Item3, "gate")));
+            var moves = CompetitorService.Moves(me, 180).Where(m => m.A == a.Station || m.B == a.Station).Take(30).ToList();
             if (moves.Count > 0)
             {
                 lines.Add("Rivals' moves here:");
@@ -413,12 +413,12 @@ namespace TheBusProject.Presentation
 
         // ---- recent moves
 
-        private void LoadMoves(Airline me)
+        private void LoadMoves(Carrier me)
         {
             int days = _filter == "Last 30 days" ? 30 : _filter == "Last 90 days" ? 90 : 180;
             var myPairs = new HashSet<string>(me.Routes.ToList().Select(r => Key(r.Destination1, r.Destination2)));
             List<RivalMove> moves = CompetitorService.Moves(me, days);
-            var myAirports = new HashSet<Airport>(CompetitorService.MyAirports(me));
+            var myStations = new HashSet<Station>(CompetitorService.MyStations(me));
             if (_filter == "On my routes only") moves = moves.Where(m => myPairs.Contains(Key(m.A, m.B))).ToList();
             foreach (RivalMove m in moves.Take(500))
             {
@@ -427,27 +427,27 @@ namespace TheBusProject.Presentation
                 Rows.Add(new CompetitorRow
                 {
                     Title = DateFormatter.Date(m.Date) + "  " + MoveText(m, me, false),
-                    Line1 = onMine ? "You fly " + Pair(m.A, m.B) + " too" : "At your airport " + string.Join(" and ", new[] {m.A, m.B}.Where(myAirports.Contains).Select(Code)),
+                    Line1 = onMine ? "You run " + Pair(m.A, m.B) + " too" : "At your station " + string.Join(" and ", new[] {m.A, m.B}.Where(myStations.Contains).Select(Code)),
                     Badge = onMine ? "YOUR ROUTE" : null,
                     IsWarning = onMine && (m.Kind == RivalMoveKind.Opened || m.Kind == RivalMoveKind.FareCut),
                     MyRoute = onMine ? me.Routes.ToList().FirstOrDefault(r => Key(r.Destination1, r.Destination2) == Key(m.A, m.B) && r.IsCargoRoute == m.IsCargo) : null,
                     Detail = () => MoveDetail(me, move)
                 });
             }
-            Summary = string.Format("{0} by rivals at your airports in the last {1} days: {2} routes opened, {3} given up, {4} fare cuts, {5} fare rises. (Routes given up and fare changes are counted from when the game was started or loaded.)",
+            Summary = string.Format("{0} by rivals at your stations in the last {1} days: {2} routes opened, {3} given up, {4} fare cuts, {5} fare rises. (Routes given up and fare changes are counted from when the game was started or loaded.)",
                 N(moves.Count, "move"), days, moves.Count(m => m.Kind == RivalMoveKind.Opened), moves.Count(m => m.Kind == RivalMoveKind.Dropped),
                 moves.Count(m => m.Kind == RivalMoveKind.FareCut), moves.Count(m => m.Kind == RivalMoveKind.FareRise));
         }
 
-        private static string Key(Airport a, Airport b)
+        private static string Key(Station a, Station b)
         {
             string x = Code(a), y = Code(b);
             return string.CompareOrdinal(x, y) < 0 ? x + y : y + x;
         }
 
-        private string MoveText(RivalMove m, Airline me, bool withDate = true)
+        private string MoveText(RivalMove m, Carrier me, bool withDate = true)
         {
-            string who = m.Airline?.Profile.IATACode ?? "?";
+            string who = m.Carrier?.Profile.IATACode ?? "?";
             string pair = Pair(m.A, m.B) + (m.IsCargo ? " (cargo)" : "");
             string what;
             switch (m.Kind)
@@ -460,9 +460,9 @@ namespace TheBusProject.Presentation
             return withDate ? DateFormatter.Date(m.Date) + ": " + what : what;
         }
 
-        private List<string> MoveDetail(Airline me, RivalMove m)
+        private List<string> MoveDetail(Carrier me, RivalMove m)
         {
-            var lines = new List<string> {MoveText(m, me), Name(m.Airline)};
+            var lines = new List<string> {MoveText(m, me), Name(m.Carrier)};
             Route mine = me.Routes.ToList().FirstOrDefault(r => Key(r.Destination1, r.Destination2) == Key(m.A, m.B) && r.IsCargoRoute == m.IsCargo);
             if (mine != null)
             {
@@ -471,12 +471,12 @@ namespace TheBusProject.Presentation
             }
             else
             {
-                Route theirs = RouteIndex.Direct(m.A, m.B).FirstOrDefault(r => r.Airline == m.Airline);
+                Route theirs = RouteIndex.Direct(m.A, m.B).FirstOrDefault(r => r.Carrier == m.Carrier);
                 if (theirs != null)
                 {
-                    lines.Add(string.Format("They fly it {0} times a week ({1}) at {2}.", theirs.TimeTable.Entries.Count, string.Join(", ", theirs.GetAirliners().Select(a => a.Airliner.Type.Name).Distinct()), Money(theirs is CargoRoute c ? c.PricePerUnit : theirs is PassengerRoute p ? AIPricingService.EconomyFare(p) : 0)));
+                    lines.Add(string.Format("They run it {0} times a week ({1}) at {2}.", theirs.TimeTable.Entries.Count, string.Join(", ", theirs.GetCoaches().Select(a => a.Coach.Type.Name).Distinct()), Money(theirs is CargoRoute c ? c.PricePerUnit : theirs is PassengerRoute p ? AIPricingService.EconomyFare(p) : 0)));
                 }
-                lines.Add("You don't fly this pair.");
+                lines.Add("You don't run this pair.");
             }
             return lines;
         }

@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.Runtime.Serialization;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airlines;
+using TheBusProject.Models.Carriers;
 
 namespace TheBusProject.Models.Pilots
 {
     //the facility for pilot training
     [Serializable]
-    public class PilotTrainingFacility : AirlineFacility
+    public class PilotTrainingFacility : CarrierFacility
     {
         #region Constructors and Destructors
 
@@ -19,10 +19,10 @@ namespace TheBusProject.Models.Pilots
             int fromYear,
             int serviceLevel,
             int luxuryLevel,
-            string airlinerfamily)
+            string coachfamily)
             : base(section, uid, price, monthlyCost, fromYear, serviceLevel, luxuryLevel)
         {
-            AirlinerFamily = airlinerfamily;
+            CoachFamily = coachfamily;
         }
 
         private PilotTrainingFacility(SerializationInfo info, StreamingContext ctxt)
@@ -35,11 +35,11 @@ namespace TheBusProject.Models.Pilots
         #region Public Properties
 
         [Versioning("family")]
-        public string AirlinerFamily { get; set; }
+        public string CoachFamily { get; set; }
 
-        public override string Name => AirlinerFamily;
+        public override string Name => CoachFamily;
 
-        public override string Shortname => AirlinerFamily;
+        public override string Shortname => CoachFamily;
 
         #endregion
 

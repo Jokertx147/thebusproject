@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TheBusProject.Infrastructure.Enums;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Environment;
 using TheBusProject.Models.General.Holidays;
@@ -23,58 +23,58 @@ namespace TheBusProject.Helpers
         private static readonly Dictionary<GeneralHelpers.Size, double> CargoFactors =
             new Dictionary<GeneralHelpers.Size, double>();
 
-        private static readonly Dictionary<Airline, double> HappinessPercent = new Dictionary<Airline, double>();
+        private static readonly Dictionary<Carrier, double> HappinessPercent = new Dictionary<Carrier, double>();
 
-        // Random.Shared is safe to use from the parallel airline threads (a shared new Random() is not)
+        // Random.Shared is safe to use from the parallel carrier threads (a shared new Random() is not)
         private static Random Rnd => Random.Shared;
 
         #endregion
 
         #region Public Methods and Operators
 
-        public static void AddPassengerHappiness(Airline airline)
+        public static void AddPassengerHappiness(Carrier carrier)
         {
             /*
             lock (HappinessPercent)
             {
-                if (HappinessPercent.ContainsKey(airline))
-                    HappinessPercent[airline] += 1;
+                if (HappinessPercent.ContainsKey(carrier))
+                    HappinessPercent[carrier] += 1;
                 else
-                    HappinessPercent.Add(airline, 1);
+                    HappinessPercent.Add(carrier, 1);
             }
              * */
         }
 
         public static void ChangePaxDemand(double factor)
         {
-            ChangePaxDemand(Airports.GetAllActiveAirports(), factor);
+            ChangePaxDemand(Stations.GetAllActiveStations(), factor);
         }
 
-        //changes the demand for a list of airports with a factor
-        public static void ChangePaxDemand(List<Airport> airports, double factor)
+        //changes the demand for a list of stations with a factor
+        public static void ChangePaxDemand(List<Station> stations, double factor)
         {
-            //increases the passenger demand between airports with 5%
-            //Parallel.ForEach(airports, airport => { ChangePaxDemand(airport, factor); });
+            //increases the passenger demand between stations with 5%
+            //Parallel.ForEach(stations, station => { ChangePaxDemand(station, factor); });
 
-            foreach (Airport airport in airports)
+            foreach (Station station in stations)
             {
-                ChangePaxDemand(airport, factor);
+                ChangePaxDemand(station, factor);
             }
         }
 
-        //changes the demand for all airports belonging to an airline with a factor
-        public static void ChangePaxDemand(Airline airline, double factor)
+        //changes the demand for all stations belonging to an carrier with a factor
+        public static void ChangePaxDemand(Carrier carrier, double factor)
         {
-            foreach (Airport a in airline.Airports)
+            foreach (Station a in carrier.Stations)
             {
                 ChangePaxDemand(a, factor);
             }
         }
 
-        //changes the demand between two airports
-        public static void ChangePaxDemand(Airport airport1, Airport airport2, int value)
+        //changes the demand between two stations
+        public static void ChangePaxDemand(Station station1, Station station2, int value)
         {
-            DestinationDemand destPax = airport1.GetDestinationPassengersObject(airport2);
+            DestinationDemand destPax = station1.GetDestinationPassengersObject(station2);
 
             if (destPax != null && value > 0)
             {
@@ -84,17 +84,17 @@ namespace TheBusProject.Helpers
             {
                 if (value > 0)
                 {
-                    airport1.AddDestinationPassengersRate(airport2, Convert.ToUInt16(value));
+                    station1.AddDestinationPassengersRate(station2, Convert.ToUInt16(value));
                 }
             }
         }
 
-        //changes the demand for an airport with a factor
-        public static void ChangePaxDemand(Airport airport, double factor)
+        //changes the demand for an station with a factor
+        public static void ChangePaxDemand(Station station, double factor)
         {
             double value = (100 + factor)/100;
             //factor 0.5 - 2;
-            foreach (DestinationDemand destPax in airport.GetDestinationsPassengers())
+            foreach (DestinationDemand destPax in station.GetDestinationsPassengers())
             {
                 if (destPax.Rate > 0)
                 {
@@ -116,9 +116,9 @@ namespace TheBusProject.Helpers
             }
         }
 
-        public static void CreateAirlineDestinationDemand()
+        public static void CreateCarrierDestinationDemand()
         {
-            Airports.CountSizes();
+            Stations.CountSizes();
             //sets up the factors if they are not already setted up
 
             if (CargoFactors.Count == 0)
@@ -132,67 +132,67 @@ namespace TheBusProject.Helpers
                 CargoFactors.Add(GeneralHelpers.Size.Smallest, 0.23);
             }
 
-            IEnumerable<Airport> airports = Airlines.GetAllAirlines().SelectMany(a => a.Airports);
+            IEnumerable<Station> stations = Carriers.GetAllCarriers().SelectMany(a => a.Stations);
 
-            foreach (Airport airport in airports)
+            foreach (Station station in stations)
             {
                 //Parallel.ForEach(
-                //    Airports.GetAllAirports(),
-                //    dAirport =>
-                foreach (Airport dAirport in Airports.GetAllAirports())
+                //    Stations.GetAllStations(),
+                //    dStation =>
+                foreach (Station dStation in Stations.GetAllStations())
                 {
-                    airport.Statics.AddDistance(dAirport, MathHelpers.GetDistance(airport, dAirport));
+                    station.Statics.AddDistance(dStation, MathHelpers.GetDistance(station, dStation));
 
-                    if (airport != dAirport && airport.Profile.Town != dAirport.Profile.Town
-                        && MathHelpers.GetDistance(airport, dAirport) > 50)
+                    if (station != dStation && station.Profile.Town != dStation.Profile.Town
+                        && MathHelpers.GetDistance(station, dStation) > 50)
                     {
-                        CreateDestinationPassengers(airport, dAirport);
+                        CreateDestinationPassengers(station, dStation);
 
-                        CreateDestinationCargo(airport, dAirport);
+                        CreateDestinationCargo(station, dStation);
                     }
                 } //);
-                if (airport.Statics.GetDestinationPassengersSum() == 0)
+                if (station.Statics.GetDestinationPassengersSum() == 0)
                 {
-                    Airport airport1 = airport;
-                    List<Airport> subAirports =
-                        Airports.GetAllAirports(a => a.Profile.Country == airport1.Profile.Country)
+                    Station station1 = station;
+                    List<Station> subStations =
+                        Stations.GetAllStations(a => a.Profile.Country == station1.Profile.Country)
                                 .DefaultIfEmpty()
                                 .ToList();
-                    subAirports.RemoveAll(a => a == null);
+                    subStations.RemoveAll(a => a == null);
 
-                    if (subAirports.Any())
+                    if (subStations.Any())
                     {
-                        CreateDestinationPassengers(airport, subAirports);
+                        CreateDestinationPassengers(station, subStations);
                     }
                     else
                     {
-                        Airport airport2 = airport;
-                        subAirports =
-                            Airports.GetAllAirports(a => a.Profile.Country.Region == airport2.Profile.Country.Region)
+                        Station station2 = station;
+                        subStations =
+                            Stations.GetAllStations(a => a.Profile.Country.Region == station2.Profile.Country.Region)
                                     .ToList();
-                        CreateDestinationPassengers(airport, subAirports);
+                        CreateDestinationPassengers(station, subStations);
                     }
                 }
             }
         }
 
-        public static void CreateDestinationCargo(Airport airport, Airport dAirport)
+        public static void CreateDestinationCargo(Station station, Station dStation)
         {
-            //origin airport out
-            double originMassPerDay = GetAirportCargoMass(airport)/2;
-            double originDemand = (originMassPerDay*CargoFactors[dAirport.Profile.Cargo])
-                                  /Airports.CargoAirportsSizes[dAirport.Profile.Cargo];
-            //destination airport in
-            double destinationMassPerDay = GetAirportCargoMass(dAirport)/2;
-            double destinationDemand = (destinationMassPerDay*CargoFactors[airport.Profile.Cargo])
-                                       /Airports.CargoAirportsSizes[airport.Profile.Cargo];
+            //origin station out
+            double originMassPerDay = GetStationCargoMass(station)/2;
+            double originDemand = (originMassPerDay*CargoFactors[dStation.Profile.Cargo])
+                                  /Stations.CargoStationsSizes[dStation.Profile.Cargo];
+            //destination station in
+            double destinationMassPerDay = GetStationCargoMass(dStation)/2;
+            double destinationDemand = (destinationMassPerDay*CargoFactors[station.Profile.Cargo])
+                                       /Stations.CargoStationsSizes[station.Profile.Cargo];
 
-            double distance = MathHelpers.GetDistance(airport, dAirport);
+            double distance = MathHelpers.GetDistance(station, dStation);
 
             double distanceFactor = distance > 5000 ? 1 : 0.5;
-            double sameCountryFactor = airport.Profile.Country == dAirport.Profile.Country ? 0.75 : 1;
+            double sameCountryFactor = station.Profile.Country == dStation.Profile.Country ? 0.75 : 1;
             double sameRegionFactor = sameCountryFactor.Equals(1)
-                                      && airport.Profile.Country.Region == dAirport.Profile.Country.Region
+                                      && station.Profile.Country.Region == dStation.Profile.Country.Region
                                           ? 0.5
                                           : 1;
 
@@ -206,19 +206,19 @@ namespace TheBusProject.Helpers
 
             if (volume >= 1)
             {
-                airport.AddDestinationCargoRate(new DestinationDemand(dAirport.Profile.IATACode, (ushort) volume));
+                station.AddDestinationCargoRate(new DestinationDemand(dStation.Profile.IATACode, (ushort) volume));
             }
         }
 
         /// <summary>
-        ///     Makes every airport's demand again (as loading a game does): on a new year, so the year's growth is the same
+        ///     Makes every station's demand again (as loading a game does): on a new year, so the year's growth is the same
         ///     whether the game is played on or saved and loaded. The player's edits to the demand are kept.
         /// </summary>
         public static void RebuildDemand()
         {
-            foreach (Airport airport in Airports.GetAllAirports())
+            foreach (Station station in Stations.GetAllStations())
             {
-                airport.Statics = new AirportStatics(airport);
+                station.Statics = new StationStatics(station);
             }
             CreateDestinationDemand();
             DemandOverrides.Apply();
@@ -226,7 +226,7 @@ namespace TheBusProject.Helpers
 
         public static void CreateDestinationDemand()
         {
-            Airports.CountSizes();
+            Stations.CountSizes();
             if (CargoFactors.Count == 0)
             {
                 CargoFactors.Add(GeneralHelpers.Size.Largest, 0.23);
@@ -238,18 +238,18 @@ namespace TheBusProject.Helpers
                 CargoFactors.Add(GeneralHelpers.Size.Smallest, 0.23);
             }
 
-            List<Airport> airports = Airports.GetAllAirports(a => a.Statics.GetDestinationPassengersSum() == 0);
-            int count = airports.Count;
-            // the airports whose demand was made before (the airlines' airports, at the start of a game): they have
-            // their demand to every airport, but the others' demand to them is made here, or nobody would travel to
+            List<Station> stations = Stations.GetAllStations(a => a.Statics.GetDestinationPassengersSum() == 0);
+            int count = stations.Count;
+            // the stations whose demand was made before (the carriers' stations, at the start of a game): they have
+            // their demand to every station, but the others' demand to them is made here, or nobody would travel to
             // them (a new game had no passengers from Charlotte, Orlando or Chicago to Atlanta)
-            var built = new HashSet<Airport>(airports);
-            List<Airport> before = Airports.GetAllAirports(a => !built.Contains(a));
+            var built = new HashSet<Station>(stations);
+            List<Station> before = Stations.GetAllStations(a => !built.Contains(a));
             var beforePoints = before.Select(a => a.Profile.Coordinates.ConvertToGeoCoordinate()).ToArray();
-            // each airport's position once, instead of converting it for every pair
-            var points = airports.Select(a => a.Profile.Coordinates.ConvertToGeoCoordinate()).ToArray();
+            // each station's position once, instead of converting it for every pair
+            var points = stations.Select(a => a.Profile.Coordinates.ConvertToGeoCoordinate()).ToArray();
 
-            //var airports = Airports.GetAirports(a => a != airport && a.Profile.Town != airport.Profile.Town && MathHelpers.GetDistance(a.Profile.Coordinates, airport.Profile.Coordinates) > 50);
+            //var stations = Stations.GetStations(a => a != station && a.Profile.Town != station.Profile.Town && MathHelpers.GetDistance(a.Profile.Coordinates, station.Profile.Coordinates) > 50);
 
             Parallel.For(
                 0,
@@ -258,85 +258,85 @@ namespace TheBusProject.Helpers
                     {
                         for (int k = 0; k < before.Count; k++)
                         {
-                            if (airports[i].Profile.Town == before[k].Profile.Town) continue;
+                            if (stations[i].Profile.Town == before[k].Profile.Town) continue;
                             double km = points[i].GetDistanceTo(beforePoints[k])/1000;
                             if (km > 50)
                             {
-                                CreateDestinationPassengers(airports[i], before[k]);
-                                CreateDestinationCargo(airports[i], before[k]);
+                                CreateDestinationPassengers(stations[i], before[k]);
+                                CreateDestinationCargo(stations[i], before[k]);
                             }
                         }
 
-                        // the pairs of one airport in a plain loop: the outer loop already uses every processor,
-                        // and starting a parallel loop for each airport cost more than the work in it
+                        // the pairs of one station in a plain loop: the outer loop already uses every processor,
+                        // and starting a parallel loop for each station cost more than the work in it
                         for (int j = i + 1; j < count; j++)
                                 {
-                                    if (airports[i].Profile.Town == airports[j].Profile.Town) continue;
+                                    if (stations[i].Profile.Town == stations[j].Profile.Town) continue;
                                     double distance = points[i].GetDistanceTo(points[j])/1000;
                                     if (distance > 50)
                                     {
-                                        airports[j].Statics.AddDistance(airports[i], distance);
+                                        stations[j].Statics.AddDistance(stations[i], distance);
 
-                                        CreateDestinationPassengers(airports[j], airports[i]);
-                                        CreateDestinationPassengers(airports[i], airports[j]);
+                                        CreateDestinationPassengers(stations[j], stations[i]);
+                                        CreateDestinationPassengers(stations[i], stations[j]);
 
-                                        CreateDestinationCargo(airports[j], airports[i]);
-                                        CreateDestinationCargo(airports[i], airports[j]);
+                                        CreateDestinationCargo(stations[j], stations[i]);
+                                        CreateDestinationCargo(stations[i], stations[j]);
                                     }
                                 }
 
                     });
 
-            // an airport left without any demand gets a little to the country's (or region's) biggest airports: only
+            // an station left without any demand gets a little to the country's (or region's) biggest stations: only
             // now that every pair is made (checked inside the parallel loop, another thread could still be adding the
-            // airport's pairs, and the made-up demand came first: Altoona to Washington Dulles had 1 a day for 28)
-            // (to any of the game's airports: the airlines' airports, made earlier in a new game, too)
-            List<Airport> all = Airports.GetAllActiveAirports();
+            // station's pairs, and the made-up demand came first: Altoona to Washington Dulles had 1 a day for 28)
+            // (to any of the game's stations: the carriers' stations, made earlier in a new game, too)
+            List<Station> all = Stations.GetAllActiveStations();
             for (int i = 0; i < count; i++)
             {
-                if (airports[i].Statics.GetDestinationPassengersSum() != 0) continue; // (the built demand only, not the extra from events)
-                List<Airport> subAirports = all.FindAll(a => a != airports[i] && a.Profile.Country == airports[i].Profile.Country);
-                if (!subAirports.Any())
+                if (stations[i].Statics.GetDestinationPassengersSum() != 0) continue; // (the built demand only, not the extra from events)
+                List<Station> subStations = all.FindAll(a => a != stations[i] && a.Profile.Country == stations[i].Profile.Country);
+                if (!subStations.Any())
                 {
-                    subAirports = all.FindAll(a => a != airports[i] && a.Profile.Country.Region == airports[i].Profile.Country.Region);
+                    subStations = all.FindAll(a => a != stations[i] && a.Profile.Country.Region == stations[i].Profile.Country.Region);
                 }
-                if (subAirports.Any()) CreateDestinationPassengers(airports[i], subAirports);
+                if (subStations.Any()) CreateDestinationPassengers(stations[i], subStations);
             }
         }
 
-        public static void CreateDestinationPassengers(Airport airport)
+        public static void CreateDestinationPassengers(Station station)
         {
-            List<Airport> airports =
-                Airports.GetAirports(
+            List<Station> stations =
+                Stations.GetStations(
                     a =>
-                    a != airport && a.Profile.Town != airport.Profile.Town
+                    a != station && a.Profile.Town != station.Profile.Town
                     && MathHelpers.GetDistance(
                         a.Profile.Coordinates.ConvertToGeoCoordinate(),
-                        airport.Profile.Coordinates.ConvertToGeoCoordinate()) > 50);
-            //Parallel.ForEach(airports, dAirport =>
-            foreach (Airport dAirport in airports)
+                        station.Profile.Coordinates.ConvertToGeoCoordinate()) > 50);
+            //Parallel.ForEach(stations, dStation =>
+            foreach (Station dStation in stations)
             {
-                CreateDestinationPassengers(airport, dAirport);
+                CreateDestinationPassengers(station, dStation);
             } //);
-            if (airport.GetDestinationsPassengers().Sum(d => d.Rate) == 0)
+            if (station.GetDestinationsPassengers().Sum(d => d.Rate) == 0)
             {
-                List<Airport> subAirports =
-                    airports.FindAll(a => a.Profile.Country == airport.Profile.Country).DefaultIfEmpty().ToList();
-                subAirports.RemoveAll(a => a == null);
-                if (subAirports.Any())
+                List<Station> subStations =
+                    stations.FindAll(a => a.Profile.Country == station.Profile.Country).DefaultIfEmpty().ToList();
+                subStations.RemoveAll(a => a == null);
+                if (subStations.Any())
                 {
-                    CreateDestinationPassengers(airport, subAirports);
+                    CreateDestinationPassengers(station, subStations);
                 }
                 else
                 {
-                    subAirports =
-                        airports.FindAll(a => a.Profile.Country.Region == airport.Profile.Country.Region).ToList();
-                    CreateDestinationPassengers(airport, subAirports);
+                    subStations =
+                        stations.FindAll(a => a.Profile.Country.Region == station.Profile.Country.Region).ToList();
+                    CreateDestinationPassengers(station, subStations);
                 }
             }
         }
 
-        // airport size names for the demand table (an enum's name was asked for twice per airport pair)
+        // station size names for the demand table (an enum's name was asked for twice per station pair)
         private static readonly System.Collections.Concurrent.ConcurrentDictionary<GeneralHelpers.Size, string> SizeNames =
             new System.Collections.Concurrent.ConcurrentDictionary<GeneralHelpers.Size, string>();
 
@@ -345,147 +345,147 @@ namespace TheBusProject.Helpers
             return SizeNames.GetOrAdd(size, s => s.ToString());
         }
 
-        public static void CreateDestinationPassengers(Airport airport, Airport dAirport)
+        public static void CreateDestinationPassengers(Station station, Station dStation)
         {
             // the same pair gets the same numbers every time the demand is built
-            using (MathHelpers.SeedFor(airport.Profile.IATACode + ">" + dAirport.Profile.IATACode))
-                CreateDestinationPassengersSeeded(airport, dAirport);
+            using (MathHelpers.SeedFor(station.Profile.IATACode + ">" + dStation.Profile.IATACode))
+                CreateDestinationPassengersSeeded(station, dStation);
         }
 
-        private static void CreateDestinationPassengersSeeded(Airport airport, Airport dAirport)
+        private static void CreateDestinationPassengersSeeded(Station station, Station dStation)
         {
             //short_haul, long_haul, demand both ways
             double estimatedPassengerLevel = 0;
-            bool isSameCountry = airport.Profile.Country == dAirport.Profile.Country;
-            bool isSameContinent = airport.Profile.Country.Region == dAirport.Profile.Country.Region
+            bool isSameCountry = station.Profile.Country == dStation.Profile.Country;
+            bool isSameContinent = station.Profile.Country.Region == dStation.Profile.Country.Region
                                       && !isSameCountry;
 
-            String dAirportSize = SizeName(dAirport.Profile.Size);
-            String airportSize = SizeName(airport.Profile.Size);
-            double dist = MathHelpers.GetDistance(dAirport, airport);
+            String dStationSize = SizeName(dStation.Profile.Size);
+            String stationSize = SizeName(station.Profile.Size);
+            double dist = MathHelpers.GetDistance(dStation, station);
 
-            if (airport.Profile.MajorDestionations.Keys.Contains(dAirport.Profile.IATACode))
+            if (station.Profile.MajorDestionations.Keys.Contains(dStation.Profile.IATACode))
             {
                 estimatedPassengerLevel =
-                    (Convert.ToDouble(airport.Profile.MajorDestionations[dAirport.Profile.IATACode])*1000)/365;
+                    (Convert.ToDouble(station.Profile.MajorDestionations[dStation.Profile.IATACode])*1000)/365;
                 estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
             }
             else
             {
-                switch (airportSize)
+                switch (stationSize)
                 {
                         #region Origin"Largest" switches
 
                     case "Largest":
-                        switch (dAirportSize)
+                        switch (dStationSize)
                         {
                             case "Largest":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxLargest = airport.Profile.Pax*0.21/Airports.LargestAirports;
+                                    double paxLargest = station.Profile.Pax*0.21/Stations.LargestStations;
                                     paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                                     estimatedPassengerLevel = (paxLargest*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxLargest = 40000*0.21/Airports.LargestAirports;
+                                    double paxLargest = 40000*0.21/Stations.LargestStations;
                                     paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                                     estimatedPassengerLevel = (paxLargest*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 break;
                             case "Very_large":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxVeryLarge = airport.Profile.Pax*0.24/Airports.VeryLargeAirports;
+                                    double paxVeryLarge = station.Profile.Pax*0.24/Stations.VeryLargeStations;
                                     paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                                     estimatedPassengerLevel = paxVeryLarge*1000/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxVeryLarge = 40000*0.24/Airports.VeryLargeAirports;
+                                    double paxVeryLarge = 40000*0.24/Stations.VeryLargeStations;
                                     paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                                     estimatedPassengerLevel = (paxVeryLarge*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 break;
                             case "Large":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxLarge = airport.Profile.Pax*0.24/Airports.LargeAirports;
+                                    double paxLarge = station.Profile.Pax*0.24/Stations.LargeStations;
                                     paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                                     estimatedPassengerLevel = (paxLarge*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxLarge = 40000*0.24/Airports.LargeAirports;
+                                    double paxLarge = 40000*0.24/Stations.LargeStations;
                                     paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                                     estimatedPassengerLevel = (paxLarge*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 break;
                             case "Medium":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxMedium = airport.Profile.Pax*0.15/Airports.MediumAirports;
+                                    double paxMedium = station.Profile.Pax*0.15/Stations.MediumStations;
                                     paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                                     estimatedPassengerLevel = (paxMedium*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxMedium = 40000*0.15/Airports.MediumAirports;
+                                    double paxMedium = 40000*0.15/Stations.MediumStations;
                                     paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                                     estimatedPassengerLevel = (paxMedium*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 break;
                             case "Small":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxSmall = airport.Profile.Pax*0.10/Airports.SmallAirports;
+                                    double paxSmall = station.Profile.Pax*0.10/Stations.SmallStations;
                                     paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                                     estimatedPassengerLevel = (paxSmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxSmall = 40000*0.10/Airports.SmallAirports;
+                                    double paxSmall = 40000*0.10/Stations.SmallStations;
                                     paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                                     estimatedPassengerLevel = (paxSmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 break;
                             case "Very_small":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxVerySmall = airport.Profile.Pax*0.04/Airports.VerySmallAirports;
+                                    double paxVerySmall = station.Profile.Pax*0.04/Stations.VerySmallStations;
                                     paxVerySmall *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                                     estimatedPassengerLevel = (paxVerySmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxVery_small = 40000*0.04/Airports.VerySmallAirports;
+                                    double paxVery_small = 40000*0.04/Stations.VerySmallStations;
                                     paxVery_small *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                                     estimatedPassengerLevel = (paxVery_small*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 break;
                             case "Smallest":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxSmallest = airport.Profile.Pax*0.02/Airports.SmallestAirports;
+                                    double paxSmallest = station.Profile.Pax*0.02/Stations.SmallestStations;
                                     paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                                     estimatedPassengerLevel = (paxSmallest*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxSmallest = 40000*0.02/Airports.SmallestAirports;
+                                    double paxSmallest = 40000*0.02/Stations.SmallestStations;
                                     paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                                     estimatedPassengerLevel = (paxSmallest*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -499,19 +499,19 @@ namespace TheBusProject.Helpers
                         #region Origin "Very_large" switches
 
                     case "Very_large":
-                        switch (dAirportSize)
+                        switch (dStationSize)
                         {
                             case "Largest":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxLargest = airport.Profile.Pax*0.21/Airports.LargestAirports;
+                                    double paxLargest = station.Profile.Pax*0.21/Stations.LargestStations;
                                     paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                                     estimatedPassengerLevel = paxLargest*1000/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxLargest = 20000*0.21/Airports.LargestAirports;
+                                    double paxLargest = 20000*0.21/Stations.LargestStations;
                                     paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                                     estimatedPassengerLevel = (paxLargest*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -519,16 +519,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Very_large":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxVeryLarge = airport.Profile.Pax*0.24/Airports.VeryLargeAirports;
+                                    double paxVeryLarge = station.Profile.Pax*0.24/Stations.VeryLargeStations;
                                     paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                                     estimatedPassengerLevel = paxVeryLarge*1000/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxVeryLarge = 20000*0.24/Airports.VeryLargeAirports;
+                                    double paxVeryLarge = 20000*0.24/Stations.VeryLargeStations;
                                     paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                                     estimatedPassengerLevel = (paxVeryLarge*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -536,16 +536,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Large":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxLarge = airport.Profile.Pax*0.24/Airports.LargeAirports;
+                                    double paxLarge = station.Profile.Pax*0.24/Stations.LargeStations;
                                     paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                                     estimatedPassengerLevel = (paxLarge*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxLarge = 20000*0.24/Airports.LargeAirports;
+                                    double paxLarge = 20000*0.24/Stations.LargeStations;
                                     paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                                     estimatedPassengerLevel = (paxLarge*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -553,16 +553,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Medium":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxMedium = airport.Profile.Pax*0.15/Airports.MediumAirports;
+                                    double paxMedium = station.Profile.Pax*0.15/Stations.MediumStations;
                                     paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                                     estimatedPassengerLevel = (paxMedium*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxMedium = 20000*0.15/Airports.MediumAirports;
+                                    double paxMedium = 20000*0.15/Stations.MediumStations;
                                     paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                                     estimatedPassengerLevel = (paxMedium*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -570,16 +570,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Small":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxSmall = airport.Profile.Pax*0.10/Airports.SmallAirports;
+                                    double paxSmall = station.Profile.Pax*0.10/Stations.SmallStations;
                                     paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                                     estimatedPassengerLevel = (paxSmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxSmall = 20000*0.10/Airports.SmallAirports;
+                                    double paxSmall = 20000*0.10/Stations.SmallStations;
                                     paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                                     estimatedPassengerLevel = (paxSmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -587,16 +587,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Very_small":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxVerySmall = airport.Profile.Pax*0.04/Airports.VerySmallAirports;
+                                    double paxVerySmall = station.Profile.Pax*0.04/Stations.VerySmallStations;
                                     paxVerySmall *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                                     estimatedPassengerLevel = (paxVerySmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxVerySmall = 20000*0.04/Airports.VerySmallAirports;
+                                    double paxVerySmall = 20000*0.04/Stations.VerySmallStations;
                                     paxVerySmall *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                                     estimatedPassengerLevel = (paxVerySmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -605,16 +605,16 @@ namespace TheBusProject.Helpers
 
                             case "Smallest":
 
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxSmallest = airport.Profile.Pax*0.02/Airports.SmallestAirports;
+                                    double paxSmallest = station.Profile.Pax*0.02/Stations.SmallestStations;
                                     paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                                     estimatedPassengerLevel = (paxSmallest*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxSmallest = 20000*0.02/Airports.SmallestAirports;
+                                    double paxSmallest = 20000*0.02/Stations.SmallestStations;
                                     paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                                     estimatedPassengerLevel = (paxSmallest*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -628,19 +628,19 @@ namespace TheBusProject.Helpers
                         #region Origin "Large" switches
 
                     case "Large":
-                        switch (dAirportSize)
+                        switch (dStationSize)
                         {
                             case "Largest":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxLargest = airport.Profile.Pax*0.21/Airports.LargestAirports;
+                                    double paxLargest = station.Profile.Pax*0.21/Stations.LargestStations;
                                     paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                                     estimatedPassengerLevel = paxLargest*1000/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxLargest = 10000*0.21/Airports.LargestAirports;
+                                    double paxLargest = 10000*0.21/Stations.LargestStations;
                                     paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                                     estimatedPassengerLevel = (paxLargest*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -648,16 +648,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Very_large":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxVeryLarge = airport.Profile.Pax*0.24/Airports.VeryLargeAirports;
+                                    double paxVeryLarge = station.Profile.Pax*0.24/Stations.VeryLargeStations;
                                     paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                                     estimatedPassengerLevel = paxVeryLarge*1000/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxVeryLarge = 10000*0.24/Airports.VeryLargeAirports;
+                                    double paxVeryLarge = 10000*0.24/Stations.VeryLargeStations;
                                     paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                                     estimatedPassengerLevel = (paxVeryLarge*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -665,16 +665,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Large":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxLarge = airport.Profile.Pax*0.24/Airports.LargeAirports;
+                                    double paxLarge = station.Profile.Pax*0.24/Stations.LargeStations;
                                     paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                                     estimatedPassengerLevel = (paxLarge*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxLarge = 10000*0.24/Airports.LargeAirports;
+                                    double paxLarge = 10000*0.24/Stations.LargeStations;
                                     paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                                     estimatedPassengerLevel = (paxLarge*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -682,16 +682,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Medium":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxMedium = airport.Profile.Pax*0.15/Airports.MediumAirports;
+                                    double paxMedium = station.Profile.Pax*0.15/Stations.MediumStations;
                                     paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                                     estimatedPassengerLevel = (paxMedium*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxMedium = 10000*0.15/Airports.MediumAirports;
+                                    double paxMedium = 10000*0.15/Stations.MediumStations;
                                     paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                                     estimatedPassengerLevel = (paxMedium*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -699,16 +699,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Small":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxSmall = airport.Profile.Pax*0.10/Airports.SmallAirports;
+                                    double paxSmall = station.Profile.Pax*0.10/Stations.SmallStations;
                                     paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                                     estimatedPassengerLevel = (paxSmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxSmall = 10000*0.10/Airports.SmallAirports;
+                                    double paxSmall = 10000*0.10/Stations.SmallStations;
                                     paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                                     estimatedPassengerLevel = (paxSmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -716,16 +716,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Very_small":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxVerySmall = airport.Profile.Pax*0.04/Airports.VerySmallAirports;
+                                    double paxVerySmall = station.Profile.Pax*0.04/Stations.VerySmallStations;
                                     paxVerySmall *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                                     estimatedPassengerLevel = (paxVerySmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxVerySmall = 10000*0.04/Airports.VerySmallAirports;
+                                    double paxVerySmall = 10000*0.04/Stations.VerySmallStations;
                                     paxVerySmall *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                                     estimatedPassengerLevel = (paxVerySmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -734,16 +734,16 @@ namespace TheBusProject.Helpers
 
                             case "Smallest":
 
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxSmallest = airport.Profile.Pax*0.02/Airports.SmallestAirports;
+                                    double paxSmallest = station.Profile.Pax*0.02/Stations.SmallestStations;
                                     paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                                     estimatedPassengerLevel = (paxSmallest*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxSmallest = 10000*0.02/Airports.SmallestAirports;
+                                    double paxSmallest = 10000*0.02/Stations.SmallestStations;
                                     paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                                     estimatedPassengerLevel = (paxSmallest*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -757,19 +757,19 @@ namespace TheBusProject.Helpers
                         #region Origin "Medium" switches
 
                     case "Medium":
-                        switch (dAirportSize)
+                        switch (dStationSize)
                         {
                             case "Largest":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxLargest = airport.Profile.Pax*0.21/Airports.LargestAirports;
+                                    double paxLargest = station.Profile.Pax*0.21/Stations.LargestStations;
                                     paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                                     estimatedPassengerLevel = paxLargest*1000/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxLargest = 6000*0.21/Airports.LargestAirports;
+                                    double paxLargest = 6000*0.21/Stations.LargestStations;
                                     paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                                     estimatedPassengerLevel = (paxLargest*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -777,16 +777,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Very_large":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxVeryLarge = airport.Profile.Pax*0.24/Airports.VeryLargeAirports;
+                                    double paxVeryLarge = station.Profile.Pax*0.24/Stations.VeryLargeStations;
                                     paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                                     estimatedPassengerLevel = paxVeryLarge*1000/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxVeryLarge = 6000*0.24/Airports.VeryLargeAirports;
+                                    double paxVeryLarge = 6000*0.24/Stations.VeryLargeStations;
                                     paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                                     estimatedPassengerLevel = (paxVeryLarge*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -794,16 +794,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Large":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxLarge = airport.Profile.Pax*0.24/Airports.LargeAirports;
+                                    double paxLarge = station.Profile.Pax*0.24/Stations.LargeStations;
                                     paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                                     estimatedPassengerLevel = (paxLarge*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxLarge = 6000*0.24/Airports.LargeAirports;
+                                    double paxLarge = 6000*0.24/Stations.LargeStations;
                                     paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                                     estimatedPassengerLevel = (paxLarge*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -811,16 +811,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Medium":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxMedium = airport.Profile.Pax*0.15/Airports.MediumAirports;
+                                    double paxMedium = station.Profile.Pax*0.15/Stations.MediumStations;
                                     paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                                     estimatedPassengerLevel = (paxMedium*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxMedium = 6000*0.15/Airports.MediumAirports;
+                                    double paxMedium = 6000*0.15/Stations.MediumStations;
                                     paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                                     estimatedPassengerLevel = (paxMedium*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -828,16 +828,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Small":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxSmall = airport.Profile.Pax*0.10/Airports.SmallAirports;
+                                    double paxSmall = station.Profile.Pax*0.10/Stations.SmallStations;
                                     paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                                     estimatedPassengerLevel = (paxSmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxSmall = 6000*0.10/Airports.SmallAirports;
+                                    double paxSmall = 6000*0.10/Stations.SmallStations;
                                     paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                                     estimatedPassengerLevel = (paxSmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -846,16 +846,16 @@ namespace TheBusProject.Helpers
 
                             case "Very_small":
 
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxVerySmall = airport.Profile.Pax*0.04/Airports.VerySmallAirports;
+                                    double paxVerySmall = station.Profile.Pax*0.04/Stations.VerySmallStations;
                                     paxVerySmall *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                                     estimatedPassengerLevel = (paxVerySmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxVerySmall = 6000*0.04/Airports.VerySmallAirports;
+                                    double paxVerySmall = 6000*0.04/Stations.VerySmallStations;
                                     paxVerySmall *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                                     estimatedPassengerLevel = (paxVerySmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -863,16 +863,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Smallest":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxSmallest = airport.Profile.Pax*0.02/Airports.SmallestAirports;
+                                    double paxSmallest = station.Profile.Pax*0.02/Stations.SmallestStations;
                                     paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                                     estimatedPassengerLevel = (paxSmallest*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxSmallest = 6000*0.02/Airports.SmallestAirports;
+                                    double paxSmallest = 6000*0.02/Stations.SmallestStations;
                                     paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                                     estimatedPassengerLevel = (paxSmallest*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -886,19 +886,19 @@ namespace TheBusProject.Helpers
                         #region Origin "Small" switches
 
                     case "Small":
-                        switch (dAirportSize)
+                        switch (dStationSize)
                         {
                             case "Largest":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxLargest = airport.Profile.Pax*0.21/Airports.LargestAirports;
+                                    double paxLargest = station.Profile.Pax*0.21/Stations.LargestStations;
                                     paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                                     estimatedPassengerLevel = paxLargest*1000/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxLargest = 1250*0.21/Airports.LargestAirports;
+                                    double paxLargest = 1250*0.21/Stations.LargestStations;
                                     paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                                     estimatedPassengerLevel = (paxLargest*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -906,16 +906,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Very_large":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxVeryLarge = airport.Profile.Pax*0.24/Airports.VeryLargeAirports;
+                                    double paxVeryLarge = station.Profile.Pax*0.24/Stations.VeryLargeStations;
                                     paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                                     estimatedPassengerLevel = paxVeryLarge*1000/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxVeryLarge = 1250*0.24/Airports.VeryLargeAirports;
+                                    double paxVeryLarge = 1250*0.24/Stations.VeryLargeStations;
                                     paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                                     estimatedPassengerLevel = (paxVeryLarge*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -923,16 +923,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Large":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxLarge = airport.Profile.Pax*0.24/Airports.LargeAirports;
+                                    double paxLarge = station.Profile.Pax*0.24/Stations.LargeStations;
                                     paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                                     estimatedPassengerLevel = (paxLarge*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxLarge = 1250*0.24/Airports.LargeAirports;
+                                    double paxLarge = 1250*0.24/Stations.LargeStations;
                                     paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                                     estimatedPassengerLevel = (paxLarge*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -940,16 +940,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Medium":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxMedium = airport.Profile.Pax*0.15/Airports.MediumAirports;
+                                    double paxMedium = station.Profile.Pax*0.15/Stations.MediumStations;
                                     paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                                     estimatedPassengerLevel = (paxMedium*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxMedium = 1250*0.15/Airports.MediumAirports;
+                                    double paxMedium = 1250*0.15/Stations.MediumStations;
                                     paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                                     estimatedPassengerLevel = (paxMedium*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -957,16 +957,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Small":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxSmall = airport.Profile.Pax*0.10/Airports.SmallAirports;
+                                    double paxSmall = station.Profile.Pax*0.10/Stations.SmallStations;
                                     paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                                     estimatedPassengerLevel = (paxSmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxSmall = 1250*0.10/Airports.SmallAirports;
+                                    double paxSmall = 1250*0.10/Stations.SmallStations;
                                     paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                                     estimatedPassengerLevel = (paxSmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -974,16 +974,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Very_small":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxVerySmall = airport.Profile.Pax*0.04/Airports.VerySmallAirports;
+                                    double paxVerySmall = station.Profile.Pax*0.04/Stations.VerySmallStations;
                                     paxVerySmall *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                                     estimatedPassengerLevel = (paxVerySmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxVerySmall = 1250*0.04/Airports.VerySmallAirports;
+                                    double paxVerySmall = 1250*0.04/Stations.VerySmallStations;
                                     paxVerySmall *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                                     estimatedPassengerLevel = (paxVerySmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -991,16 +991,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Smallest":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxSmallest = airport.Profile.Pax*0.02/Airports.SmallestAirports;
+                                    double paxSmallest = station.Profile.Pax*0.02/Stations.SmallestStations;
                                     paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                                     estimatedPassengerLevel = (paxSmallest*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxSmallest = 1250*0.02/Airports.SmallestAirports;
+                                    double paxSmallest = 1250*0.02/Stations.SmallestStations;
                                     paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                                     estimatedPassengerLevel = (paxSmallest*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1014,19 +1014,19 @@ namespace TheBusProject.Helpers
                         #region Origin "Very_small" switches
 
                     case "Very_small":
-                        switch (dAirportSize)
+                        switch (dStationSize)
                         {
                             case "Largest":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxLargest = airport.Profile.Pax*0.21/Airports.LargestAirports;
+                                    double paxLargest = station.Profile.Pax*0.21/Stations.LargestStations;
                                     paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                                     estimatedPassengerLevel = paxLargest*1000/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxLargest = 225*0.21/Airports.LargestAirports;
+                                    double paxLargest = 225*0.21/Stations.LargestStations;
                                     paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                                     estimatedPassengerLevel = (paxLargest*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1034,16 +1034,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Very_large":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxVeryLarge = airport.Profile.Pax*0.24/Airports.VeryLargeAirports;
+                                    double paxVeryLarge = station.Profile.Pax*0.24/Stations.VeryLargeStations;
                                     paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                                     estimatedPassengerLevel = paxVeryLarge*1000/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxVeryLarge = 225*0.24/Airports.VeryLargeAirports;
+                                    double paxVeryLarge = 225*0.24/Stations.VeryLargeStations;
                                     paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                                     estimatedPassengerLevel = (paxVeryLarge*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1051,16 +1051,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Large":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxLarge = airport.Profile.Pax*0.24/Airports.LargeAirports;
+                                    double paxLarge = station.Profile.Pax*0.24/Stations.LargeStations;
                                     paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                                     estimatedPassengerLevel = (paxLarge*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxLarge = 225*0.24/Airports.LargeAirports;
+                                    double paxLarge = 225*0.24/Stations.LargeStations;
                                     paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                                     estimatedPassengerLevel = (paxLarge*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1068,16 +1068,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Medium":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxMedium = airport.Profile.Pax*0.15/Airports.MediumAirports;
+                                    double paxMedium = station.Profile.Pax*0.15/Stations.MediumStations;
                                     paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                                     estimatedPassengerLevel = (paxMedium*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxMedium = 225*0.15/Airports.MediumAirports;
+                                    double paxMedium = 225*0.15/Stations.MediumStations;
                                     paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                                     estimatedPassengerLevel = (paxMedium*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1085,16 +1085,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Small":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxSmall = airport.Profile.Pax*0.10/Airports.SmallAirports;
+                                    double paxSmall = station.Profile.Pax*0.10/Stations.SmallStations;
                                     paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                                     estimatedPassengerLevel = (paxSmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxSmall = 225*0.10/Airports.SmallAirports;
+                                    double paxSmall = 225*0.10/Stations.SmallStations;
                                     paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                                     estimatedPassengerLevel = (paxSmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1102,16 +1102,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Very_small":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxVerySmall = airport.Profile.Pax*0.04/Airports.VerySmallAirports;
+                                    double paxVerySmall = station.Profile.Pax*0.04/Stations.VerySmallStations;
                                     paxVerySmall *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                                     estimatedPassengerLevel = (paxVerySmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxVerySmall = 225*0.04/Airports.VerySmallAirports;
+                                    double paxVerySmall = 225*0.04/Stations.VerySmallStations;
                                     paxVerySmall *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                                     estimatedPassengerLevel = (paxVerySmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1119,16 +1119,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Smallest":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxSmallest = airport.Profile.Pax*0.02/Airports.SmallestAirports;
+                                    double paxSmallest = station.Profile.Pax*0.02/Stations.SmallestStations;
                                     paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                                     estimatedPassengerLevel = (paxSmallest*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxSmallest = 225*0.02/Airports.SmallestAirports;
+                                    double paxSmallest = 225*0.02/Stations.SmallestStations;
                                     paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                                     estimatedPassengerLevel = (paxSmallest*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1142,19 +1142,19 @@ namespace TheBusProject.Helpers
                         #region Origin "Smallest" switches
 
                     case "Smallest":
-                        switch (dAirportSize)
+                        switch (dStationSize)
                         {
                             case "Largest":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxLargest = airport.Profile.Pax*0.25/Airports.LargestAirports;
+                                    double paxLargest = station.Profile.Pax*0.25/Stations.LargestStations;
                                     paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                                     estimatedPassengerLevel = paxLargest*1000/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxLargest = 50*0.25/Airports.LargestAirports;
+                                    double paxLargest = 50*0.25/Stations.LargestStations;
                                     paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                                     estimatedPassengerLevel = (paxLargest*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1163,16 +1163,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Very_large":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxVeryLarge = airport.Profile.Pax*0.32/Airports.VeryLargeAirports;
+                                    double paxVeryLarge = station.Profile.Pax*0.32/Stations.VeryLargeStations;
                                     paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                                     estimatedPassengerLevel = paxVeryLarge*1000/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxVeryLarge = 50*0.32/Airports.VeryLargeAirports;
+                                    double paxVeryLarge = 50*0.32/Stations.VeryLargeStations;
                                     paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                                     estimatedPassengerLevel = (paxVeryLarge*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1181,16 +1181,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Large":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxLarge = airport.Profile.Pax*0.32/Airports.LargeAirports;
+                                    double paxLarge = station.Profile.Pax*0.32/Stations.LargeStations;
                                     paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                                     estimatedPassengerLevel = (paxLarge*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxLarge = 50*0.32/Airports.LargeAirports;
+                                    double paxLarge = 50*0.32/Stations.LargeStations;
                                     paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                                     estimatedPassengerLevel = (paxLarge*1000)/365;
 
@@ -1199,9 +1199,9 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Medium":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxMedium = airport.Profile.Pax*0.09/Airports.MediumAirports;
+                                    double paxMedium = station.Profile.Pax*0.09/Stations.MediumStations;
                                     paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                                     estimatedPassengerLevel = (paxMedium*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1209,7 +1209,7 @@ namespace TheBusProject.Helpers
                                 }
                                 else
                                 {
-                                    double paxMedium = 50*0.09/Airports.MediumAirports;
+                                    double paxMedium = 50*0.09/Stations.MediumStations;
                                     paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                                     estimatedPassengerLevel = (paxMedium*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1218,9 +1218,9 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Small":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxSmall = airport.Profile.Pax*0.02/Airports.SmallAirports;
+                                    double paxSmall = station.Profile.Pax*0.02/Stations.SmallStations;
                                     paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                                     estimatedPassengerLevel = (paxSmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1228,7 +1228,7 @@ namespace TheBusProject.Helpers
                                 }
                                 else
                                 {
-                                    double paxSmall = 50*0.02/Airports.SmallAirports;
+                                    double paxSmall = 50*0.02/Stations.SmallStations;
                                     paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                                     estimatedPassengerLevel = (paxSmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1237,16 +1237,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Very_small":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxVerySmall = airport.Profile.Pax*0/Airports.VerySmallAirports;
+                                    double paxVerySmall = station.Profile.Pax*0/Stations.VerySmallStations;
                                     paxVerySmall *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                                     estimatedPassengerLevel = (paxVerySmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxVerySmall = 50*0/Airports.VerySmallAirports;
+                                    double paxVerySmall = 50*0/Stations.VerySmallStations;
                                     paxVerySmall *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                                     estimatedPassengerLevel = (paxVerySmall*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1254,16 +1254,16 @@ namespace TheBusProject.Helpers
                                 break;
 
                             case "Smallest":
-                                if (airport.Profile.Pax > 0)
+                                if (station.Profile.Pax > 0)
                                 {
-                                    double paxSmallest = airport.Profile.Pax*0/Airports.SmallestAirports;
+                                    double paxSmallest = station.Profile.Pax*0/Stations.SmallestStations;
                                     paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                                     estimatedPassengerLevel = (paxSmallest*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
                                 }
                                 else
                                 {
-                                    double paxSmallest = 50*0/Airports.SmallestAirports;
+                                    double paxSmallest = 50*0/Stations.SmallestStations;
                                     paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                                     estimatedPassengerLevel = (paxSmallest*1000)/365;
                                     estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1279,13 +1279,13 @@ namespace TheBusProject.Helpers
             #region Demand with "if" statements
 
             //PLEASE don't change the same country/continent/international values. Most of these were specifically calculated and are not yet calculated 
-            //by the program itself! Based largely on US airport system values.
-            /*     #region largest airports
-                 if (dAirportSize.Equals("Largest") && airportSize.Equals("Largest"))
+            //by the program itself! Based largely on US station system values.
+            /*     #region largest stations
+                 if (dStationSize.Equals("Largest") && stationSize.Equals("Largest"))
                  {
-                     if (airport.Profile.Pax > 0)
+                     if (station.Profile.Pax > 0)
                      {
-                         double paxLargest = airport.Profile.Pax * 0.21 / Airports.LargestAirports;
+                         double paxLargest = station.Profile.Pax * 0.21 / Stations.LargestStations;
                          paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                          estimatedPassengerLevel = (paxLargest * 1000) / 365;
                          estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1298,7 +1298,7 @@ namespace TheBusProject.Helpers
                      }
                      else
                      {
-                         double paxLargest = 40000 * 0.21 / Airports.LargestAirports;
+                         double paxLargest = 40000 * 0.21 / Stations.LargestStations;
                          paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                          estimatedPassengerLevel = (paxLargest * 1000) / 365;
                          estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1311,11 +1311,11 @@ namespace TheBusProject.Helpers
                      }
                  }
 
-                 if (dAirportSize.Equals("Very_large") && airportSize.Equals("Largest"))
+                 if (dStationSize.Equals("Very_large") && stationSize.Equals("Largest"))
                  {
-                     if (airport.Profile.Pax == 0)
+                     if (station.Profile.Pax == 0)
                      {
-                         double paxVeryLarge = 40000 * 0.24 / Airports.VeryLargeAirports;
+                         double paxVeryLarge = 40000 * 0.24 / Stations.VeryLargeStations;
                          paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                          estimatedPassengerLevel = paxVeryLarge * 1000 / 365;
                          estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1328,7 +1328,7 @@ namespace TheBusProject.Helpers
                      }
                      else
                      {
-                         double paxVeryLarge = airport.Profile.Pax * 0.24 / Airports.VeryLargeAirports;
+                         double paxVeryLarge = station.Profile.Pax * 0.24 / Stations.VeryLargeStations;
                          paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                          estimatedPassengerLevel = (paxVeryLarge * 1000) / 365;
                          estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1341,11 +1341,11 @@ namespace TheBusProject.Helpers
                      }
                  }
 
-                 if (dAirportSize.Equals("Large") && airportSize.Equals("Largest"))
+                 if (dStationSize.Equals("Large") && stationSize.Equals("Largest"))
                  {
-                     if (airport.Profile.Pax == 0)
+                     if (station.Profile.Pax == 0)
                      {
-                         double paxLarge = 40000 * 0.24 / Airports.LargeAirports;
+                         double paxLarge = 40000 * 0.24 / Stations.LargeStations;
                          paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                          estimatedPassengerLevel = (paxLarge * 1000) / 365;
                          estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1358,7 +1358,7 @@ namespace TheBusProject.Helpers
                      }
                      else
                      {
-                         double paxLarge = airport.Profile.Pax * 0.24 / Airports.LargeAirports;
+                         double paxLarge = station.Profile.Pax * 0.24 / Stations.LargeStations;
                          paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                          estimatedPassengerLevel = (paxLarge * 1000) / 365;
                          estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1371,11 +1371,11 @@ namespace TheBusProject.Helpers
                      }
                  }
 
-                 if (dAirportSize.Equals("Medium") && airportSize.Equals("Largest"))
+                 if (dStationSize.Equals("Medium") && stationSize.Equals("Largest"))
                  {
-                     if (airport.Profile.Pax == 0)
+                     if (station.Profile.Pax == 0)
                      {
-                         double paxMedium = 40000 * 0.15 / Airports.MediumAirports;
+                         double paxMedium = 40000 * 0.15 / Stations.MediumStations;
                          paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                          estimatedPassengerLevel = (paxMedium * 1000) / 365;
                          estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1388,7 +1388,7 @@ namespace TheBusProject.Helpers
                      }
                      else
                      {
-                         double paxMedium = airport.Profile.Pax * 0.15 / Airports.MediumAirports;
+                         double paxMedium = station.Profile.Pax * 0.15 / Stations.MediumStations;
                          paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                          estimatedPassengerLevel = (paxMedium * 1000) / 365;
                          estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1401,11 +1401,11 @@ namespace TheBusProject.Helpers
                      }
                  }
 
-                 if (dAirportSize.Equals("Small") && airportSize.Equals("Largest"))
+                 if (dStationSize.Equals("Small") && stationSize.Equals("Largest"))
                  {
-                     if (airport.Profile.Pax == 0)
+                     if (station.Profile.Pax == 0)
                      {
-                         double paxSmall = 40000 * 0.10 / Airports.SmallAirports;
+                         double paxSmall = 40000 * 0.10 / Stations.SmallStations;
                          paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                          estimatedPassengerLevel = (paxSmall * 1000) / 365;
                          estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1418,7 +1418,7 @@ namespace TheBusProject.Helpers
                      }
                      else
                      {
-                         double paxSmall = airport.Profile.Pax * 0.10 / Airports.SmallAirports;
+                         double paxSmall = station.Profile.Pax * 0.10 / Stations.SmallStations;
                          paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                          estimatedPassengerLevel = (paxSmall * 1000) / 365;
                          estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1431,11 +1431,11 @@ namespace TheBusProject.Helpers
                      }
                  }
 
-                 if (dAirportSize.Equals("Very_small") && airportSize.Equals("Largest"))
+                 if (dStationSize.Equals("Very_small") && stationSize.Equals("Largest"))
                  {
-                     if (airport.Profile.Pax == 0)
+                     if (station.Profile.Pax == 0)
                      {
-                         double paxVery_small = 40000 * 0.04 / Airports.VerySmallAirports;
+                         double paxVery_small = 40000 * 0.04 / Stations.VerySmallStations;
                          paxVery_small *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                          estimatedPassengerLevel = (paxVery_small * 1000) / 365;
                          estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1448,7 +1448,7 @@ namespace TheBusProject.Helpers
                      }
                      else
                      {
-                         double paxVery_small = airport.Profile.Pax * 0.04 / Airports.VerySmallAirports;
+                         double paxVery_small = station.Profile.Pax * 0.04 / Stations.VerySmallStations;
                          paxVery_small *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                          estimatedPassengerLevel = (paxVery_small * 1000) / 365;
                          estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1461,14 +1461,14 @@ namespace TheBusProject.Helpers
                      }
                  }
 
-                 if (dAirportSize.Equals("Smallest") && airportSize.Equals("Largest"))
+                 if (dStationSize.Equals("Smallest") && stationSize.Equals("Largest"))
                  {
                      if (dist > 1600)
                      { estimatedPassengerLevel = 0; }
 
-                     else if (airport.Profile.Pax == 0)
+                     else if (station.Profile.Pax == 0)
                      {
-                         double paxSmallest = 40000 * 0.02 / Airports.SmallestAirports;
+                         double paxSmallest = 40000 * 0.02 / Stations.SmallestStations;
                          paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                          estimatedPassengerLevel = (paxSmallest * 1000) / 365;
                          estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1481,7 +1481,7 @@ namespace TheBusProject.Helpers
                      }
                      else
                      {
-                         double paxSmallest = 40000 * 0.02 / Airports.SmallestAirports;
+                         double paxSmallest = 40000 * 0.02 / Stations.SmallestStations;
                          paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                          estimatedPassengerLevel = (paxSmallest * 1000) / 365;
                          estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1495,12 +1495,12 @@ namespace TheBusProject.Helpers
                  }
              }
                  #endregion
-             #region very large airports
-             if (dAirportSize.Equals("Largest") && airportSize.Equals("Very_large"))
+             #region very large stations
+             if (dStationSize.Equals("Largest") && stationSize.Equals("Very_large"))
              {
-                 if (airport.Profile.Pax == 0)
+                 if (station.Profile.Pax == 0)
                  {
-                     double paxLargest = 20000 * 0.21 / Airports.LargestAirports;
+                     double paxLargest = 20000 * 0.21 / Stations.LargestStations;
                      paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                      estimatedPassengerLevel = paxLargest * 1000 / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1513,7 +1513,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxLargest = airport.Profile.Pax * 0.21 / Airports.LargestAirports;
+                     double paxLargest = station.Profile.Pax * 0.21 / Stations.LargestStations;
                      paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                      estimatedPassengerLevel = (paxLargest * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel; if (isSameCountry)
@@ -1525,11 +1525,11 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Very_large") && airportSize.Equals("Very_large"))
+             if (dStationSize.Equals("Very_large") && stationSize.Equals("Very_large"))
              {
-                 if (airport.Profile.Pax == 0)
+                 if (station.Profile.Pax == 0)
                  {
-                     double paxVeryLarge = 20000 * 0.24 / Airports.VeryLargeAirports;
+                     double paxVeryLarge = 20000 * 0.24 / Stations.VeryLargeStations;
                      paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                      estimatedPassengerLevel = paxVeryLarge * 1000 / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1542,7 +1542,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxVeryLarge = airport.Profile.Pax * 0.24 / Airports.VeryLargeAirports;
+                     double paxVeryLarge = station.Profile.Pax * 0.24 / Stations.VeryLargeStations;
                      paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                      estimatedPassengerLevel = (paxVeryLarge * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1555,11 +1555,11 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Large") && airportSize.Equals("Very_large"))
+             if (dStationSize.Equals("Large") && stationSize.Equals("Very_large"))
              {
-                 if (airport.Profile.Pax == 0)
+                 if (station.Profile.Pax == 0)
                  {
-                     double paxLarge = 20000 * 0.24 / Airports.LargeAirports;
+                     double paxLarge = 20000 * 0.24 / Stations.LargeStations;
                      paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                      estimatedPassengerLevel = (paxLarge * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1572,7 +1572,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxLarge = airport.Profile.Pax * 0.24 / Airports.LargeAirports;
+                     double paxLarge = station.Profile.Pax * 0.24 / Stations.LargeStations;
                      paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                      estimatedPassengerLevel = (paxLarge * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1585,11 +1585,11 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Medium") && airportSize.Equals("Very_large"))
+             if (dStationSize.Equals("Medium") && stationSize.Equals("Very_large"))
              {
-                 if (airport.Profile.Pax == 0)
+                 if (station.Profile.Pax == 0)
                  {
-                     double paxMedium = 20000 * 0.15 / Airports.MediumAirports;
+                     double paxMedium = 20000 * 0.15 / Stations.MediumStations;
                      paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                      estimatedPassengerLevel = (paxMedium * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1602,7 +1602,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxMedium = airport.Profile.Pax * 0.15 / Airports.MediumAirports;
+                     double paxMedium = station.Profile.Pax * 0.15 / Stations.MediumStations;
                      paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                      estimatedPassengerLevel = (paxMedium * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1615,11 +1615,11 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Small") && airportSize.Equals("Very_large"))
+             if (dStationSize.Equals("Small") && stationSize.Equals("Very_large"))
              {
-                 if (airport.Profile.Pax == 0)
+                 if (station.Profile.Pax == 0)
                  {
-                     double paxSmall = 20000 * 0.10 / Airports.SmallAirports;
+                     double paxSmall = 20000 * 0.10 / Stations.SmallStations;
                      paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                      estimatedPassengerLevel = (paxSmall * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1632,7 +1632,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxSmall = airport.Profile.Pax * 0.10 / Airports.SmallAirports;
+                     double paxSmall = station.Profile.Pax * 0.10 / Stations.SmallStations;
                      paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                      estimatedPassengerLevel = (paxSmall * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1645,11 +1645,11 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Very_small") && airportSize.Equals("Very_large"))
+             if (dStationSize.Equals("Very_small") && stationSize.Equals("Very_large"))
              {
-                 if (airport.Profile.Pax == 0)
+                 if (station.Profile.Pax == 0)
                  {
-                     double paxVery_small = 20000 * 0.04 / Airports.VerySmallAirports;
+                     double paxVery_small = 20000 * 0.04 / Stations.VerySmallStations;
                      paxVery_small *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                      estimatedPassengerLevel = (paxVery_small * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1662,7 +1662,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxVery_small = airport.Profile.Pax * 0.04 / Airports.VerySmallAirports;
+                     double paxVery_small = station.Profile.Pax * 0.04 / Stations.VerySmallStations;
                      paxVery_small *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                      estimatedPassengerLevel = (paxVery_small * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1675,14 +1675,14 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Smallest") && airportSize.Equals("Very_large"))
+             if (dStationSize.Equals("Smallest") && stationSize.Equals("Very_large"))
              {
                  if (dist > 800)
                  { estimatedPassengerLevel = 0; }
 
-                 else if (airport.Profile.Pax == 0)
+                 else if (station.Profile.Pax == 0)
                  {
-                     double paxSmallest = 20000 * 0.02 / Airports.SmallestAirports;
+                     double paxSmallest = 20000 * 0.02 / Stations.SmallestStations;
                      paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                      estimatedPassengerLevel = (paxSmallest * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1695,7 +1695,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxSmallest = 20000 * 0.02 / Airports.SmallestAirports;
+                     double paxSmallest = 20000 * 0.02 / Stations.SmallestStations;
                      paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                      estimatedPassengerLevel = (paxSmallest * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1709,12 +1709,12 @@ namespace TheBusProject.Helpers
              }
 
              #endregion
-             #region large airports
-             if (dAirportSize.Equals("Largest") && airportSize.Equals("Large"))
+             #region large stations
+             if (dStationSize.Equals("Largest") && stationSize.Equals("Large"))
              {
-                 if (airport.Profile.Pax == 0)
+                 if (station.Profile.Pax == 0)
                  {
-                     double paxLargest = 10000 * 0.21 / Airports.LargestAirports;
+                     double paxLargest = 10000 * 0.21 / Stations.LargestStations;
                      paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                      estimatedPassengerLevel = paxLargest * 1000 / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1727,7 +1727,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxLargest = airport.Profile.Pax * 0.21 / Airports.LargestAirports;
+                     double paxLargest = station.Profile.Pax * 0.21 / Stations.LargestStations;
                      paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                      estimatedPassengerLevel = (paxLargest * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel; if (isSameCountry)
@@ -1739,11 +1739,11 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Very_large") && airportSize.Equals("Large"))
+             if (dStationSize.Equals("Very_large") && stationSize.Equals("Large"))
              {
-                 if (airport.Profile.Pax == 0)
+                 if (station.Profile.Pax == 0)
                  {
-                     double paxVeryLarge = 10000 * 0.24 / Airports.VeryLargeAirports;
+                     double paxVeryLarge = 10000 * 0.24 / Stations.VeryLargeStations;
                      paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                      estimatedPassengerLevel = paxVeryLarge * 1000 / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1756,7 +1756,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxVeryLarge = airport.Profile.Pax * 0.24 / Airports.VeryLargeAirports;
+                     double paxVeryLarge = station.Profile.Pax * 0.24 / Stations.VeryLargeStations;
                      paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                      estimatedPassengerLevel = (paxVeryLarge * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1769,11 +1769,11 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Large") && airportSize.Equals("Large"))
+             if (dStationSize.Equals("Large") && stationSize.Equals("Large"))
              {
-                 if (airport.Profile.Pax == 0)
+                 if (station.Profile.Pax == 0)
                  {
-                     double paxLarge = 10000 * 0.24 / Airports.LargeAirports;
+                     double paxLarge = 10000 * 0.24 / Stations.LargeStations;
                      paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                      estimatedPassengerLevel = (paxLarge * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1786,7 +1786,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxLarge = airport.Profile.Pax * 0.24 / Airports.LargeAirports;
+                     double paxLarge = station.Profile.Pax * 0.24 / Stations.LargeStations;
                      paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                      estimatedPassengerLevel = (paxLarge * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1799,11 +1799,11 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Medium") && airportSize.Equals("Large"))
+             if (dStationSize.Equals("Medium") && stationSize.Equals("Large"))
              {
-                 if (airport.Profile.Pax == 0)
+                 if (station.Profile.Pax == 0)
                  {
-                     double paxMedium = 10000 * 0.15 / Airports.MediumAirports;
+                     double paxMedium = 10000 * 0.15 / Stations.MediumStations;
                      paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                      estimatedPassengerLevel = (paxMedium * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1816,7 +1816,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxMedium = airport.Profile.Pax * 0.15 / Airports.MediumAirports;
+                     double paxMedium = station.Profile.Pax * 0.15 / Stations.MediumStations;
                      paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                      estimatedPassengerLevel = (paxMedium * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1829,11 +1829,11 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Small") && airportSize.Equals("Large"))
+             if (dStationSize.Equals("Small") && stationSize.Equals("Large"))
              {
-                 if (airport.Profile.Pax == 0)
+                 if (station.Profile.Pax == 0)
                  {
-                     double paxSmall = 10000 * 0.10 / Airports.SmallAirports;
+                     double paxSmall = 10000 * 0.10 / Stations.SmallStations;
                      paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                      estimatedPassengerLevel = (paxSmall * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1846,7 +1846,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxSmall = airport.Profile.Pax * 0.10 / Airports.SmallAirports;
+                     double paxSmall = station.Profile.Pax * 0.10 / Stations.SmallStations;
                      paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                      estimatedPassengerLevel = (paxSmall * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1859,11 +1859,11 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Very_small") && airportSize.Equals("Large"))
+             if (dStationSize.Equals("Very_small") && stationSize.Equals("Large"))
              {
-                 if (airport.Profile.Pax == 0)
+                 if (station.Profile.Pax == 0)
                  {
-                     double paxVery_small = 10000 * 0.04 / Airports.VerySmallAirports;
+                     double paxVery_small = 10000 * 0.04 / Stations.VerySmallStations;
                      paxVery_small *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                      estimatedPassengerLevel = (paxVery_small * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1876,7 +1876,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxVery_small = airport.Profile.Pax * 0.04 / Airports.VerySmallAirports;
+                     double paxVery_small = station.Profile.Pax * 0.04 / Stations.VerySmallStations;
                      paxVery_small *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                      estimatedPassengerLevel = (paxVery_small * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1889,14 +1889,14 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Smallest") && airportSize.Equals("Large"))
+             if (dStationSize.Equals("Smallest") && stationSize.Equals("Large"))
              {
                  if (dist > 800)
                  { estimatedPassengerLevel = 0; }
 
-                 else if (airport.Profile.Pax == 0)
+                 else if (station.Profile.Pax == 0)
                  {
-                     double paxSmallest = 10000 * 0.02 / Airports.SmallestAirports;
+                     double paxSmallest = 10000 * 0.02 / Stations.SmallestStations;
                      paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                      estimatedPassengerLevel = (paxSmallest * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1909,7 +1909,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxSmallest = 10000 * 0.02 / Airports.SmallestAirports;
+                     double paxSmallest = 10000 * 0.02 / Stations.SmallestStations;
                      paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                      estimatedPassengerLevel = (paxSmallest * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1922,12 +1922,12 @@ namespace TheBusProject.Helpers
                  }
              }
              #endregion
-             #region medium airports
-             if (dAirportSize.Equals("Largest") && airportSize.Equals("Medium"))
+             #region medium stations
+             if (dStationSize.Equals("Largest") && stationSize.Equals("Medium"))
              {
-                 if (airport.Profile.Pax == 0)
+                 if (station.Profile.Pax == 0)
                  {
-                     double paxLargest = 6000 * 0.21 / Airports.LargestAirports;
+                     double paxLargest = 6000 * 0.21 / Stations.LargestStations;
                      paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                      estimatedPassengerLevel = paxLargest * 1000 / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1940,7 +1940,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxLargest = airport.Profile.Pax * 0.21 / Airports.LargestAirports;
+                     double paxLargest = station.Profile.Pax * 0.21 / Stations.LargestStations;
                      paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                      estimatedPassengerLevel = (paxLargest * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel; if (isSameCountry)
@@ -1952,11 +1952,11 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Very_large") && airportSize.Equals("Medium"))
+             if (dStationSize.Equals("Very_large") && stationSize.Equals("Medium"))
              {
-                 if (airport.Profile.Pax == 0)
+                 if (station.Profile.Pax == 0)
                  {
-                     double paxVeryLarge = 6000 * 0.24 / Airports.VeryLargeAirports;
+                     double paxVeryLarge = 6000 * 0.24 / Stations.VeryLargeStations;
                      paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                      estimatedPassengerLevel = paxVeryLarge * 1000 / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1969,7 +1969,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxVeryLarge = airport.Profile.Pax * 0.24 / Airports.VeryLargeAirports;
+                     double paxVeryLarge = station.Profile.Pax * 0.24 / Stations.VeryLargeStations;
                      paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                      estimatedPassengerLevel = (paxVeryLarge * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1982,11 +1982,11 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Large") && airportSize.Equals("Medium"))
+             if (dStationSize.Equals("Large") && stationSize.Equals("Medium"))
              {
-                 if (airport.Profile.Pax == 0)
+                 if (station.Profile.Pax == 0)
                  {
-                     double paxLarge = 6000 * 0.24 / Airports.LargeAirports;
+                     double paxLarge = 6000 * 0.24 / Stations.LargeStations;
                      paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                      estimatedPassengerLevel = (paxLarge * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -1999,7 +1999,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxLarge = airport.Profile.Pax * 0.24 / Airports.LargeAirports;
+                     double paxLarge = station.Profile.Pax * 0.24 / Stations.LargeStations;
                      paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                      estimatedPassengerLevel = (paxLarge * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2012,11 +2012,11 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Medium") && airportSize.Equals("Medium"))
+             if (dStationSize.Equals("Medium") && stationSize.Equals("Medium"))
              {
-                 if (airport.Profile.Pax == 0)
+                 if (station.Profile.Pax == 0)
                  {
-                     double paxMedium = 6000 * 0.15 / Airports.MediumAirports;
+                     double paxMedium = 6000 * 0.15 / Stations.MediumStations;
                      paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                      estimatedPassengerLevel = (paxMedium * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2029,7 +2029,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxMedium = airport.Profile.Pax * 0.15 / Airports.MediumAirports;
+                     double paxMedium = station.Profile.Pax * 0.15 / Stations.MediumStations;
                      paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                      estimatedPassengerLevel = (paxMedium * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2042,11 +2042,11 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Small") && airportSize.Equals("Medium"))
+             if (dStationSize.Equals("Small") && stationSize.Equals("Medium"))
              {
-                 if (airport.Profile.Pax == 0)
+                 if (station.Profile.Pax == 0)
                  {
-                     double paxSmall = 6000 * 0.10 / Airports.SmallAirports;
+                     double paxSmall = 6000 * 0.10 / Stations.SmallStations;
                      paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                      estimatedPassengerLevel = (paxSmall * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2059,7 +2059,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxSmall = airport.Profile.Pax * 0.10 / Airports.SmallAirports;
+                     double paxSmall = station.Profile.Pax * 0.10 / Stations.SmallStations;
                      paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                      estimatedPassengerLevel = (paxSmall * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2072,14 +2072,14 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Very_small") && airportSize.Equals("Medium"))
+             if (dStationSize.Equals("Very_small") && stationSize.Equals("Medium"))
              {
                  if (dist > 800)
                  { estimatedPassengerLevel = 0; }
                 
-                 else if (airport.Profile.Pax == 0)
+                 else if (station.Profile.Pax == 0)
                  {
-                     double paxVery_small = 6000 * 0.04 / Airports.VerySmallAirports;
+                     double paxVery_small = 6000 * 0.04 / Stations.VerySmallStations;
                      paxVery_small *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                      estimatedPassengerLevel = (paxVery_small * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2092,7 +2092,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxVery_small = airport.Profile.Pax * 0.04 / Airports.VerySmallAirports;
+                     double paxVery_small = station.Profile.Pax * 0.04 / Stations.VerySmallStations;
                      paxVery_small *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                      estimatedPassengerLevel = (paxVery_small * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2105,14 +2105,14 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Smallest") && airportSize.Equals("Medium"))
+             if (dStationSize.Equals("Smallest") && stationSize.Equals("Medium"))
              {
                  if (dist > 1200 )
                  { estimatedPassengerLevel = 0; }
 
-                 else if (airport.Profile.Pax == 0)
+                 else if (station.Profile.Pax == 0)
                  {
-                     double paxSmallest = 6000 * 0.02 / Airports.SmallestAirports;
+                     double paxSmallest = 6000 * 0.02 / Stations.SmallestStations;
                      paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                      estimatedPassengerLevel = (paxSmallest * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2125,7 +2125,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxSmallest = 6000 * 0.02 / Airports.SmallestAirports;
+                     double paxSmallest = 6000 * 0.02 / Stations.SmallestStations;
                      paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                      estimatedPassengerLevel = (paxSmallest * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2138,12 +2138,12 @@ namespace TheBusProject.Helpers
                  }
              }
              #endregion
-             #region small airports
-             if (dAirportSize.Equals("Largest") && airportSize.Equals("Small"))
+             #region small stations
+             if (dStationSize.Equals("Largest") && stationSize.Equals("Small"))
              {
-                 if (airport.Profile.Pax == 0)
+                 if (station.Profile.Pax == 0)
                  {
-                     double paxLargest = 1250 * 0.21 / Airports.LargestAirports;
+                     double paxLargest = 1250 * 0.21 / Stations.LargestStations;
                      paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                      estimatedPassengerLevel = paxLargest * 1000 / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2156,7 +2156,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxLargest = airport.Profile.Pax * 0.21 / Airports.LargestAirports;
+                     double paxLargest = station.Profile.Pax * 0.21 / Stations.LargestStations;
                      paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                      estimatedPassengerLevel = (paxLargest * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel; if (isSameCountry)
@@ -2168,11 +2168,11 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Very_large") && airportSize.Equals("Small"))
+             if (dStationSize.Equals("Very_large") && stationSize.Equals("Small"))
              {
-                 if (airport.Profile.Pax == 0)
+                 if (station.Profile.Pax == 0)
                  {
-                     double paxVeryLarge = 1250 * 0.24 / Airports.VeryLargeAirports;
+                     double paxVeryLarge = 1250 * 0.24 / Stations.VeryLargeStations;
                      paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                      estimatedPassengerLevel = paxVeryLarge * 1000 / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2185,7 +2185,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxVeryLarge = airport.Profile.Pax * 0.24 / Airports.VeryLargeAirports;
+                     double paxVeryLarge = station.Profile.Pax * 0.24 / Stations.VeryLargeStations;
                      paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                      estimatedPassengerLevel = (paxVeryLarge * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2198,11 +2198,11 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Large") && airportSize.Equals("Small"))
+             if (dStationSize.Equals("Large") && stationSize.Equals("Small"))
              {
-                 if (airport.Profile.Pax == 0)
+                 if (station.Profile.Pax == 0)
                  {
-                     double paxLarge = 1250 * 0.24 / Airports.LargeAirports;
+                     double paxLarge = 1250 * 0.24 / Stations.LargeStations;
                      paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                      estimatedPassengerLevel = (paxLarge * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2215,7 +2215,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxLarge = airport.Profile.Pax * 0.24 / Airports.LargeAirports;
+                     double paxLarge = station.Profile.Pax * 0.24 / Stations.LargeStations;
                      paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                      estimatedPassengerLevel = (paxLarge * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2228,11 +2228,11 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Medium") && airportSize.Equals("Small"))
+             if (dStationSize.Equals("Medium") && stationSize.Equals("Small"))
              {
-                 if (airport.Profile.Pax == 0)
+                 if (station.Profile.Pax == 0)
                  {
-                     double paxMedium = 1250 * 0.17 / Airports.MediumAirports;
+                     double paxMedium = 1250 * 0.17 / Stations.MediumStations;
                      paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                      estimatedPassengerLevel = (paxMedium * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2245,7 +2245,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxMedium = airport.Profile.Pax * 0.15 / Airports.MediumAirports;
+                     double paxMedium = station.Profile.Pax * 0.15 / Stations.MediumStations;
                      paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                      estimatedPassengerLevel = (paxMedium * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2258,14 +2258,14 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Small") && airportSize.Equals("Small"))
+             if (dStationSize.Equals("Small") && stationSize.Equals("Small"))
              {
                  if (dist > 1600)
                  { estimatedPassengerLevel = 0;}
 
-                 else if (airport.Profile.Pax == 0)
+                 else if (station.Profile.Pax == 0)
                  {
-                     double paxSmall = 1250 / Airports.SmallAirports;
+                     double paxSmall = 1250 / Stations.SmallStations;
                      paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                      estimatedPassengerLevel = (paxSmall * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2278,7 +2278,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxSmall = airport.Profile.Pax * 0.10 / Airports.SmallAirports;
+                     double paxSmall = station.Profile.Pax * 0.10 / Stations.SmallStations;
                      paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                      estimatedPassengerLevel = (paxSmall * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2291,14 +2291,14 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Very_small") && airportSize.Equals("Small"))
+             if (dStationSize.Equals("Very_small") && stationSize.Equals("Small"))
              {
                  if (dist > 1200)
                  {estimatedPassengerLevel = 0;}
 
-                 else if (airport.Profile.Pax == 0)
+                 else if (station.Profile.Pax == 0)
                  {
-                     double paxVery_small = 1250 / Airports.VerySmallAirports;
+                     double paxVery_small = 1250 / Stations.VerySmallStations;
                      paxVery_small *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                      estimatedPassengerLevel = (paxVery_small * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2311,7 +2311,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxVery_small = airport.Profile.Pax * 0.04 / Airports.VerySmallAirports;
+                     double paxVery_small = station.Profile.Pax * 0.04 / Stations.VerySmallStations;
                      paxVery_small *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                      estimatedPassengerLevel = (paxVery_small * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2324,14 +2324,14 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Smallest") && airportSize.Equals("Small"))
+             if (dStationSize.Equals("Smallest") && stationSize.Equals("Small"))
              {
                  if (dist > 800)
                  { estimatedPassengerLevel = 0;}
 
-                 else if (airport.Profile.Pax == 0)
+                 else if (station.Profile.Pax == 0)
                  {
-                     double paxSmallest = 0 * 0.02 / Airports.SmallestAirports;
+                     double paxSmallest = 0 * 0.02 / Stations.SmallestStations;
                      paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                      estimatedPassengerLevel = (paxSmallest * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2344,7 +2344,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxSmallest = airport.Profile.Pax * 0 / Airports.SmallestAirports;
+                     double paxSmallest = station.Profile.Pax * 0 / Stations.SmallestStations;
                      paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                      estimatedPassengerLevel = (paxSmallest * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2357,12 +2357,12 @@ namespace TheBusProject.Helpers
                  }
              }
              #endregion
-             #region very small airports
-             if (dAirportSize.Equals("Largest") && airportSize.Equals("Very_small"))
+             #region very small stations
+             if (dStationSize.Equals("Largest") && stationSize.Equals("Very_small"))
              {
-                 if (airport.Profile.Pax == 0)
+                 if (station.Profile.Pax == 0)
                  {
-                     double paxLargest = 350 * 0.21 / Airports.LargestAirports;
+                     double paxLargest = 350 * 0.21 / Stations.LargestStations;
                      paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                      estimatedPassengerLevel = paxLargest * 1000 / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2375,7 +2375,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxLargest = airport.Profile.Pax * 0.21 / Airports.LargestAirports;
+                     double paxLargest = station.Profile.Pax * 0.21 / Stations.LargestStations;
                      paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                      estimatedPassengerLevel = (paxLargest * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel; if (isSameCountry)
@@ -2387,11 +2387,11 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Very_large") && airportSize.Equals("Very_small"))
+             if (dStationSize.Equals("Very_large") && stationSize.Equals("Very_small"))
              {
-                 if (airport.Profile.Pax == 0)
+                 if (station.Profile.Pax == 0)
                  {
-                     double paxVeryLarge = 350 * 0.27 / Airports.VeryLargeAirports;
+                     double paxVeryLarge = 350 * 0.27 / Stations.VeryLargeStations;
                      paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                      estimatedPassengerLevel = paxVeryLarge * 1000 / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2404,7 +2404,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxVeryLarge = airport.Profile.Pax * 0.24 / Airports.VeryLargeAirports;
+                     double paxVeryLarge = station.Profile.Pax * 0.24 / Stations.VeryLargeStations;
                      paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                      estimatedPassengerLevel = (paxVeryLarge * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2417,11 +2417,11 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Large") && airportSize.Equals("Very_small"))
+             if (dStationSize.Equals("Large") && stationSize.Equals("Very_small"))
              {
-                 if (airport.Profile.Pax == 0)
+                 if (station.Profile.Pax == 0)
                  {
-                     double paxLarge = 350 * 0.27 / Airports.LargeAirports;
+                     double paxLarge = 350 * 0.27 / Stations.LargeStations;
                      paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                      estimatedPassengerLevel = (paxLarge * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2434,7 +2434,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxLarge = airport.Profile.Pax * 0.24 / Airports.LargeAirports;
+                     double paxLarge = station.Profile.Pax * 0.24 / Stations.LargeStations;
                      paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                      estimatedPassengerLevel = (paxLarge * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2447,14 +2447,14 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Medium") && airportSize.Equals("Very_small"))
+             if (dStationSize.Equals("Medium") && stationSize.Equals("Very_small"))
              {
                  if ( dist > 1600)
                  { estimatedPassengerLevel = 0;}
 
-                 else if (airport.Profile.Pax == 0)
+                 else if (station.Profile.Pax == 0)
                  {
-                     double paxMedium = 350 * 0.15 / Airports.MediumAirports;
+                     double paxMedium = 350 * 0.15 / Stations.MediumStations;
                      paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                      estimatedPassengerLevel = (paxMedium * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2467,7 +2467,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxMedium = airport.Profile.Pax * 0.15 / Airports.MediumAirports;
+                     double paxMedium = station.Profile.Pax * 0.15 / Stations.MediumStations;
                      paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                      estimatedPassengerLevel = (paxMedium * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2480,14 +2480,14 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Small") && airportSize.Equals("Very_small"))
+             if (dStationSize.Equals("Small") && stationSize.Equals("Very_small"))
              {
                  if (dist > 1200 )
                  { estimatedPassengerLevel = 0; }
 
-                 else if (airport.Profile.Pax == 0)
+                 else if (station.Profile.Pax == 0)
                  {
-                     double paxSmall = 350 * 0.10 / Airports.SmallAirports;
+                     double paxSmall = 350 * 0.10 / Stations.SmallStations;
                      paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                      estimatedPassengerLevel = (paxSmall * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2500,7 +2500,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxSmall = airport.Profile.Pax * 0.10 / Airports.SmallAirports;
+                     double paxSmall = station.Profile.Pax * 0.10 / Stations.SmallStations;
                      paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                      estimatedPassengerLevel = (paxSmall * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2513,14 +2513,14 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Very_small") && airportSize.Equals("Very_small"))
+             if (dStationSize.Equals("Very_small") && stationSize.Equals("Very_small"))
              {
                  if (dist > 800)
                  { estimatedPassengerLevel = 0;}
 
-                 else if (airport.Profile.Pax == 0)
+                 else if (station.Profile.Pax == 0)
                  {
-                     double paxVery_small = 350 * 0 / Airports.VerySmallAirports;
+                     double paxVery_small = 350 * 0 / Stations.VerySmallStations;
                      paxVery_small *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                      estimatedPassengerLevel = (paxVery_small * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2533,7 +2533,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxVery_small = airport.Profile.Pax * 0 / Airports.VerySmallAirports;
+                     double paxVery_small = station.Profile.Pax * 0 / Stations.VerySmallStations;
                      paxVery_small *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                      estimatedPassengerLevel = (paxVery_small * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2546,14 +2546,14 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Smallest") && airportSize.Equals("Very_small"))
+             if (dStationSize.Equals("Smallest") && stationSize.Equals("Very_small"))
              {
                  if ( dist > 800)
                  {estimatedPassengerLevel = 0;}
 
-                 else if (airport.Profile.Pax == 0)
+                 else if (station.Profile.Pax == 0)
                  {
-                     double paxSmallest = 350 * 0 / Airports.SmallestAirports;
+                     double paxSmallest = 350 * 0 / Stations.SmallestStations;
                      paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                      estimatedPassengerLevel = (paxSmallest * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2566,7 +2566,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxSmallest = 350 * 0 / Airports.SmallestAirports;
+                     double paxSmallest = 350 * 0 / Stations.SmallestStations;
                      paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                      estimatedPassengerLevel = (paxSmallest * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2579,14 +2579,14 @@ namespace TheBusProject.Helpers
                  }
              }
              #endregion
-             #region smallest airports
-             if (dAirportSize.Equals("Largest") && airportSize.Equals("Smallest"))
+             #region smallest stations
+             if (dStationSize.Equals("Largest") && stationSize.Equals("Smallest"))
              {
                  if (dist > 1600)
                  { estimatedPassengerLevel = 0; }
-                 else if (airport.Profile.Pax == 0)
+                 else if (station.Profile.Pax == 0)
                  {
-                     double paxLargest = 50 * 0.25 / Airports.LargestAirports;
+                     double paxLargest = 50 * 0.25 / Stations.LargestStations;
                      paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                      estimatedPassengerLevel = paxLargest * 1000 / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2606,7 +2606,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxLargest = airport.Profile.Pax * 0.25 / Airports.LargestAirports;
+                     double paxLargest = station.Profile.Pax * 0.25 / Stations.LargestStations;
                      paxLargest *= MathHelpers.GetRandomDoubleNumber(0.9, 1.11);
                      estimatedPassengerLevel = (paxLargest * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2632,13 +2632,13 @@ namespace TheBusProject.Helpers
                  { estimatedPassengerLevel = 0; }
              }
 
-             if (dAirportSize.Equals("Very_large") && airportSize.Equals("Smallest"))
+             if (dStationSize.Equals("Very_large") && stationSize.Equals("Smallest"))
              {
                  if (dist > 1600)
                  { estimatedPassengerLevel = 0; }
-                 else if (airport.Profile.Pax == 0)
+                 else if (station.Profile.Pax == 0)
                  {
-                     double paxVeryLarge = 50 * 0.32 / Airports.VeryLargeAirports;
+                     double paxVeryLarge = 50 * 0.32 / Stations.VeryLargeStations;
                      paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                      estimatedPassengerLevel = paxVeryLarge * 1000 / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2658,7 +2658,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxVeryLarge = airport.Profile.Pax * 0.32 / Airports.VeryLargeAirports;
+                     double paxVeryLarge = station.Profile.Pax * 0.32 / Stations.VeryLargeStations;
                      paxVeryLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.12);
                      estimatedPassengerLevel = (paxVeryLarge * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2684,13 +2684,13 @@ namespace TheBusProject.Helpers
                  { estimatedPassengerLevel = 0; }
              }
 
-             if (dAirportSize.Equals("Large") && airportSize.Equals("Smallest"))
+             if (dStationSize.Equals("Large") && stationSize.Equals("Smallest"))
              {
                  if (dist > 1600)
                  { estimatedPassengerLevel = 0; }
-                 else if (airport.Profile.Pax == 0)
+                 else if (station.Profile.Pax == 0)
                  {
-                     double paxLarge = 50 * 0.32 / Airports.LargeAirports;
+                     double paxLarge = 50 * 0.32 / Stations.LargeStations;
                      paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                      estimatedPassengerLevel = (paxLarge * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2710,7 +2710,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxLarge = airport.Profile.Pax * 0.32 / Airports.LargeAirports;
+                     double paxLarge = station.Profile.Pax * 0.32 / Stations.LargeStations;
                      paxLarge *= MathHelpers.GetRandomDoubleNumber(0.9, 1.14);
                      estimatedPassengerLevel = (paxLarge * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2736,14 +2736,14 @@ namespace TheBusProject.Helpers
                  { estimatedPassengerLevel = 0; }
              }
 
-             if (dAirportSize.Equals("Medium") && airportSize.Equals("Smallest"))
+             if (dStationSize.Equals("Medium") && stationSize.Equals("Smallest"))
              {
                  if (dist > 1200)
                  {estimatedPassengerLevel = 0;}
 
-                 else if (airport.Profile.Pax == 0)
+                 else if (station.Profile.Pax == 0)
                  {
-                     double paxMedium = 50 * 0.15 / Airports.MediumAirports;
+                     double paxMedium = 50 * 0.15 / Stations.MediumStations;
                      paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                      estimatedPassengerLevel = (paxMedium * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2764,7 +2764,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxMedium = airport.Profile.Pax * 0.15 / Airports.MediumAirports;
+                     double paxMedium = station.Profile.Pax * 0.15 / Stations.MediumStations;
                      paxMedium *= MathHelpers.GetRandomDoubleNumber(0.9, 1.16);
                      estimatedPassengerLevel = (paxMedium * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2785,14 +2785,14 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Small") && airportSize.Equals("Smallest"))
+             if (dStationSize.Equals("Small") && stationSize.Equals("Smallest"))
              {
                  if (dist > 800)
                  {estimatedPassengerLevel = 0;}
 
-                 else if (airport.Profile.Pax == 0)
+                 else if (station.Profile.Pax == 0)
                  {
-                     double paxSmall = 50 * 0 / Airports.SmallAirports;
+                     double paxSmall = 50 * 0 / Stations.SmallStations;
                      paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                      estimatedPassengerLevel = (paxSmall * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2809,7 +2809,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxSmall = airport.Profile.Pax * 0 / Airports.SmallAirports;
+                     double paxSmall = station.Profile.Pax * 0 / Stations.SmallStations;
                      paxSmall *= MathHelpers.GetRandomDoubleNumber(0.95, 1.10);
                      estimatedPassengerLevel = (paxSmall * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2826,14 +2826,14 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Very_small") && airportSize.Equals("Smallest"))
+             if (dStationSize.Equals("Very_small") && stationSize.Equals("Smallest"))
              {
                  if (dist > 500)
                  {estimatedPassengerLevel = 0;}
 
-                 else if (airport.Profile.Pax == 0)
+                 else if (station.Profile.Pax == 0)
                  {
-                     double paxVery_small = 50 * 0 / Airports.VerySmallAirports;
+                     double paxVery_small = 50 * 0 / Stations.VerySmallStations;
                      paxVery_small *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                      estimatedPassengerLevel = (paxVery_small * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2849,7 +2849,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxVery_small = airport.Profile.Pax * 0 / Airports.VerySmallAirports;
+                     double paxVery_small = station.Profile.Pax * 0 / Stations.VerySmallStations;
                      paxVery_small *= MathHelpers.GetRandomDoubleNumber(0.97, 1.06);
                      estimatedPassengerLevel = (paxVery_small * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2865,14 +2865,14 @@ namespace TheBusProject.Helpers
                  }
              }
 
-             if (dAirportSize.Equals("Smallest") && airportSize.Equals("Smallest"))
+             if (dStationSize.Equals("Smallest") && stationSize.Equals("Smallest"))
              {
                  if (dist > 200)
                  {estimatedPassengerLevel = 0;}
 
-                 else if (airport.Profile.Pax == 0)
+                 else if (station.Profile.Pax == 0)
                  {
-                     double paxSmallest = 50 * 0 / Airports.SmallestAirports;
+                     double paxSmallest = 50 * 0 / Stations.SmallestStations;
                      paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                      estimatedPassengerLevel = (paxSmallest * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2888,7 +2888,7 @@ namespace TheBusProject.Helpers
                  }
                  else
                  {
-                     double paxSmallest = 50 * 0 / Airports.SmallestAirports;
+                     double paxSmallest = 50 * 0 / Stations.SmallestStations;
                      paxSmallest *= MathHelpers.GetRandomDoubleNumber(0.98, 1.04);
                      estimatedPassengerLevel = (paxSmallest * 1000) / 365;
                      estimatedPassengerLevel *= GameObject.GetInstance().Difficulty.PassengersLevel;
@@ -2912,12 +2912,12 @@ namespace TheBusProject.Helpers
 
             if (rate > 0)
             {
-                airport.AddDestinationPassengersRate(new DestinationDemand(dAirport.Profile.IATACode, rate));
-                //DatabaseObject.GetInstance().addToTransaction(airport, dAirport, classType, rate);
+                station.AddDestinationPassengersRate(new DestinationDemand(dStation.Profile.IATACode, rate));
+                //DatabaseObject.GetInstance().addToTransaction(station, dStation, classType, rate);
             }
         }
 
-        public static double GetCargoPrice(Airport dest1, Airport dest2)
+        public static double GetCargoPrice(Station dest1, Station dest2)
         {
             // the market rate per unit (see PricingService)
             return PricingService.CargoMarketRate(dest1, dest2);
@@ -2925,72 +2925,72 @@ namespace TheBusProject.Helpers
 
         // chs, 2011-13-10 added for loading of passenger happiness
 
-        //returns the cargo for a flight
-        public static double GetFlightCargo(FleetAirliner airliner)
+        //returns the cargo for a trip
+        public static double GetTripCargo(FleetCoach coach)
         {
-            Airport airportCurrent = airliner.CurrentFlight.GetDepartureAirport();
-            Airport airportDestination = airliner.CurrentFlight.Entry.Destination.Airport;
+            Station stationCurrent = coach.CurrentTrip.GetDepartureStation();
+            Station stationDestination = coach.CurrentTrip.Entry.Destination.Station;
 
-            return GetFlightCargo(airportCurrent, airportDestination, airliner);
+            return GetTripCargo(stationCurrent, stationDestination, coach);
         }
 
-        public static double GetFlightCargo(Airport airportCurrent, Airport airportDestination, FleetAirliner airliner)
+        public static double GetTripCargo(Station stationCurrent, Station stationDestination, FleetCoach coach)
         {
-            // the flying airline's cargo facility at the destination (the original used the player's for everyone)
+            // the flying carrier's cargo facility at the destination (the original used the player's for everyone)
             double destinationFacilityFactor =
-                airportDestination.GetAirportFacility(
-                    airliner.Airliner.Airline,
-                    AirportFacility.FacilityType.Cargo,
+                stationDestination.GetStationFacility(
+                    coach.Coach.Carrier,
+                    StationFacility.FacilityType.Cargo,
                     true).ServiceLevel;
 
-            double distance = MathHelpers.GetDistance(airportCurrent, airportDestination);
+            double distance = MathHelpers.GetDistance(stationCurrent, stationDestination);
 
             double capacity = 0;
 
-            var type = airliner.Airliner.Type as AirlinerCargoType;
+            var type = coach.Coach.Type as CoachCargoType;
             if (type != null)
                 capacity = type.CargoSize;
-            var combiType = airliner.Airliner.Type as AirlinerCombiType;
+            var combiType = coach.Coach.Type as CoachCombiType;
             if (combiType != null)
                 capacity = combiType.CargoSize;
 
-            double demand = airportCurrent.GetDestinationCargoRate(airportDestination)
+            double demand = stationCurrent.GetDestinationCargoRate(stationDestination)
                             *(destinationFacilityFactor/100);
 
             double cargoDemand = demand*1000;
 
             // with realistic costs shippers react to the rate both ways
-            double basicCargoPrice = GetCargoPrice(airportCurrent, airportDestination);
-            double cargoPrice = airliner.CurrentFlight.GetCargoPrice();
+            double basicCargoPrice = GetCargoPrice(stationCurrent, stationDestination);
+            double cargoPrice = coach.CurrentTrip.GetCargoPrice();
             cargoDemand *= PricingService.CargoDemandFactor(cargoPrice, basicCargoPrice);
 
-            // every airline's flying cargo routes on this pair, nonstop or as a stopover leg
+            // every carrier's flying cargo routes on this pair, nonstop or as a stopover leg
             var routes = new List<Route>();
-            foreach (Route r in RouteIndex.Direct(airportCurrent, airportDestination))
+            foreach (Route r in RouteIndex.Direct(stationCurrent, stationDestination))
             {
-                if ((r.Type == Route.RouteType.Cargo || r.Type == Route.RouteType.Mixed) && r.HasAirliner) routes.Add(r);
+                if ((r.Type == Route.RouteType.Cargo || r.Type == Route.RouteType.Mixed) && r.HasCoach) routes.Add(r);
             }
-            foreach (Route r in RouteIndex.WithLeg(airportCurrent, airportDestination))
+            foreach (Route r in RouteIndex.WithLeg(stationCurrent, stationDestination))
             {
-                if ((r.Type == Route.RouteType.Cargo || r.Type == Route.RouteType.Mixed) && r.HasAirliner) routes.Add(r);
+                if ((r.Type == Route.RouteType.Cargo || r.Type == Route.RouteType.Mixed) && r.HasCoach) routes.Add(r);
             }
 
-            double flightsPerDay = Convert.ToDouble(routes.Sum(r => r.TimeTable.Entries.Count))/7;
+            double tripsPerDay = Convert.ToDouble(routes.Sum(r => r.TimeTable.Entries.Count))/7;
 
-            cargoDemand = cargoDemand/flightsPerDay;
+            cargoDemand = cargoDemand/tripsPerDay;
 
             double totalCapacity;
-            if (routes.Count > 0 && routes.Count(r => r.HasAirliner) > 0)
+            if (routes.Count > 0 && routes.Count(r => r.HasCoach) > 0)
             {
                 totalCapacity =
-                    routes.Where(r => r.HasAirliner)
-                          .Sum(r => r.GetAirliners().Max(a => (a.Airliner.Type as AirlinerCombiType)?.CargoSize ?? ((AirlinerCargoType) a.Airliner.Type).CargoSize));
-                //SelectMany(r => r.Stopovers.Where(s=>s.Legs.Count >0))).Sum(s=>s.;//a => a.Routes.SelectMany(r=>r.Stopovers.SelectMany(s=>s.Legs.Where(l=>r.HasAirliner && (l.Destination1 == airportCurrent || l.Destination1 == airportDestination) && (l.Destination2 == airportDestination || l.Destination2 == airportCurrent))).Sum(r=>r.getAirliners().Max(a=>a.Airliner.getTotalSeatCapacity()));
+                    routes.Where(r => r.HasCoach)
+                          .Sum(r => r.GetCoaches().Max(a => (a.Coach.Type as CoachCombiType)?.CargoSize ?? ((CoachCargoType) a.Coach.Type).CargoSize));
+                //SelectMany(r => r.Stopovers.Where(s=>s.Legs.Count >0))).Sum(s=>s.;//a => a.Routes.SelectMany(r=>r.Stopovers.SelectMany(s=>s.Legs.Where(l=>r.HasCoach && (l.Destination1 == stationCurrent || l.Destination1 == stationDestination) && (l.Destination2 == stationDestination || l.Destination2 == stationCurrent))).Sum(r=>r.getCoaches().Max(a=>a.Coach.getTotalSeatCapacity()));
             }
             else
             {
                 totalCapacity = 0;
-                // routes.Where(r => r.HasAirliner).Sum(r => r.getAirliners().Max(a => a.Airliner.getTotalSeatCapacity()));
+                // routes.Where(r => r.HasCoach).Sum(r => r.getCoaches().Max(a => a.Coach.getTotalSeatCapacity()));
             }
 
             double capacityPercent = cargoDemand > totalCapacity ? 1 : cargoDemand/totalCapacity;
@@ -2999,10 +2999,10 @@ namespace TheBusProject.Helpers
 
             double cargoPriceDiff = priceDiff < 0.75 ? priceDiff : 1;
 
-            Route cargoRoute = airliner.CurrentFlight.Entry?.TimeTable?.Route;
+            Route cargoRoute = coach.CurrentTrip.Entry?.TimeTable?.Route;
             if (PricingService.Realistic)
             {
-                // the rate already acted on demand; on a shared route the cheaper airline gets more
+                // the rate already acted on demand; on a shared route the cheaper carrier gets more
                 cargoPriceDiff = cargoRoute != null ? PricingService.CargoCompetitionFactor(cargoRoute, routes) : 1;
             }
 
@@ -3015,34 +3015,34 @@ namespace TheBusProject.Helpers
             // the month's load of the route
             ConnectionService.Record(cargoRoute, cargo, 0, (int) capacity);
 
-            CargoTrace?.Invoke(new CargoFlightTrace
+            CargoTrace?.Invoke(new CargoTripTrace
             {
-                Airline = airliner.Airliner.Airline, Capacity = capacity, Cargo = cargo, DemandPerFlight = cargoDemand, TotalCapacity = totalCapacity,
+                Carrier = coach.Coach.Carrier, Capacity = capacity, Cargo = cargo, DemandPerTrip = cargoDemand, TotalCapacity = totalCapacity,
                 MarketPrice = basicCargoPrice, Price = cargoPrice, Km = distance, Facility = destinationFacilityFactor
             });
 
             return cargo;
         }
 
-        public static int GetFlightPassengers(
-            Airport airportCurrent,
-            Airport airportDestination,
-            FleetAirliner airliner,
-            AirlinerClass.ClassType type)
+        public static int GetTripPassengers(
+            Station stationCurrent,
+            Station stationDestination,
+            FleetCoach coach,
+            CoachClass.ClassType type)
         {
-            double distance = MathHelpers.GetDistance(airportCurrent, airportDestination);
+            double distance = MathHelpers.GetDistance(stationCurrent, stationDestination);
 
             Route currentRoute =
-                airliner.Routes.Find(
+                coach.Routes.Find(
                     r =>
                     r.Stopovers.SelectMany(s => s.Legs)
                      .ToList()
                      .Exists(
                          l =>
-                         (l.Destination1 == airportCurrent || l.Destination1 == airportDestination)
-                         && (l.Destination2 == airportDestination || l.Destination2 == airportCurrent))
-                    || (r.Destination1 == airportCurrent || r.Destination1 == airportDestination)
-                    && (r.Destination2 == airportDestination || r.Destination2 == airportCurrent));
+                         (l.Destination1 == stationCurrent || l.Destination1 == stationDestination)
+                         && (l.Destination2 == stationDestination || l.Destination2 == stationCurrent))
+                    || (r.Destination1 == stationCurrent || r.Destination1 == stationDestination)
+                    && (r.Destination2 == stationDestination || r.Destination2 == stationCurrent));
 
             if (currentRoute == null)
             {
@@ -3059,21 +3059,21 @@ namespace TheBusProject.Helpers
             double routeScoreFactor = RouteScore(currentRoute)/5;
             Profiler.Stop("pax: route score", pf);
 
-            double demand = airportCurrent.GetDestinationPassengersRate(airportDestination, type);
+            double demand = stationCurrent.GetDestinationPassengersRate(stationDestination, type);
 
-            // passengers changing to or from the airline's (and its partners') other routes
+            // passengers changing to or from the carrier's (and its partners') other routes
             pf = Profiler.Start();
-            double connecting = ConnectionService.FlightDemand(airliner.Airliner.Airline, currentRoute, airportCurrent, airportDestination, type);
+            double connecting = ConnectionService.TripDemand(coach.Coach.Carrier, currentRoute, stationCurrent, stationDestination, type);
             Profiler.Stop("pax: connecting demand", pf);
             pf = Profiler.Start();
-            double nearby = GetNearbyPassengerDemand(airportCurrent, airportDestination, airliner, type);
+            double nearby = GetNearbyPassengerDemand(stationCurrent, stationDestination, coach, type);
             Profiler.Stop("pax: nearby demand", pf);
             double connectingShare = demand + connecting + nearby > 0 ? connecting/(demand + connecting + nearby) : 0;
 
             double traceBase = demand + connecting + nearby;
             double passengerDemand = (demand + connecting + nearby)
-                                     *GetSeasonFactor(airportDestination)*GetHolidayFactor(airportDestination)
-                                     *GetHolidayFactor(airportCurrent);
+                                     *GetSeasonFactor(stationDestination)*GetHolidayFactor(stationDestination)
+                                     *GetHolidayFactor(stationCurrent);
 
             passengerDemand *= GameObject.GetInstance().Difficulty.PassengersLevel;
             passengerDemand *= routeScoreFactor;
@@ -3084,44 +3084,44 @@ namespace TheBusProject.Helpers
                 passengerDemand *= PricingService.DemandFactor(pricedRoute, type);
             }
 
-            if (airliner.Airliner.Airline.MarketFocus == AirlineFocus.Global && distance > 3000
-                && airportCurrent.Profile.Country != airportDestination.Profile.Country)
+            if (coach.Coach.Carrier.MarketFocus == CarrierFocus.Global && distance > 3000
+                && stationCurrent.Profile.Country != stationDestination.Profile.Country)
             {
                 passengerDemand = passengerDemand*1.15;
             }
 
-            if (airliner.Airliner.Airline.MarketFocus == AirlineFocus.Regional && distance < 1500)
+            if (coach.Coach.Carrier.MarketFocus == CarrierFocus.Regional && distance < 1500)
             {
                 passengerDemand = passengerDemand*1.15;
             }
 
-            if (airliner.Airliner.Airline.MarketFocus == AirlineFocus.Domestic && distance < 1500
-                && airportDestination.Profile.Country == airportCurrent.Profile.Country)
+            if (coach.Coach.Carrier.MarketFocus == CarrierFocus.Domestic && distance < 1500
+                && stationDestination.Profile.Country == stationCurrent.Profile.Country)
             {
                 passengerDemand = passengerDemand*1.15;
             }
 
-            if (airliner.Airliner.Airline.MarketFocus == AirlineFocus.Local && distance < 1000)
+            if (coach.Coach.Carrier.MarketFocus == CarrierFocus.Local && distance < 1000)
             {
                 passengerDemand = passengerDemand*1.15;
             }
 
             pf = Profiler.Start();
-            Hub hub = airportDestination.GetHubs().Find(h => h.Airline == airliner.Airliner.Airline);
+            Hub hub = stationDestination.GetHubs().Find(h => h.Carrier == coach.Coach.Carrier);
 
             if (hub != null)
             {
                 switch (hub.Type.Type)
                 {
                     case HubType.TypeOfHub.FocusCity:
-                        if (airportDestination.Profile.Country == airportCurrent.Profile.Country)
+                        if (stationDestination.Profile.Country == stationCurrent.Profile.Country)
                         {
                             passengerDemand = passengerDemand*1.15;
                         }
                         break;
 
                     case HubType.TypeOfHub.RegionalHub:
-                        if (airportDestination.Profile.Country.Region == airportCurrent.Profile.Country.Region)
+                        if (stationDestination.Profile.Country.Region == stationCurrent.Profile.Country.Region)
                         {
                             passengerDemand = passengerDemand*1.20;
                         }
@@ -3137,35 +3137,35 @@ namespace TheBusProject.Helpers
                 }
             }
 
-            // every airline's flying passenger routes on this pair, nonstop or as a stopover leg
+            // every carrier's flying passenger routes on this pair, nonstop or as a stopover leg
             var routes = new List<Route>();
-            foreach (Route r in RouteIndex.Direct(airportCurrent, airportDestination))
+            foreach (Route r in RouteIndex.Direct(stationCurrent, stationDestination))
             {
-                if ((r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed) && r.HasAirliner) routes.Add(r);
+                if ((r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed) && r.HasCoach) routes.Add(r);
             }
-            foreach (Route r in RouteIndex.WithLeg(airportCurrent, airportDestination))
+            foreach (Route r in RouteIndex.WithLeg(stationCurrent, stationDestination))
             {
-                if ((r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed) && r.HasAirliner) routes.Add(r);
+                if ((r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed) && r.HasCoach) routes.Add(r);
             }
 
-            double flightsPerDay = Convert.ToDouble(routes.Sum(r => r.TimeTable.Entries.Count))/7;
+            double tripsPerDay = Convert.ToDouble(routes.Sum(r => r.TimeTable.Entries.Count))/7;
 
             Profiler.Stop("pax: routes on the pair", pf);
             double traceDaily = passengerDemand;
-            passengerDemand = passengerDemand/flightsPerDay;
+            passengerDemand = passengerDemand/tripsPerDay;
 
             double totalCapacity;
-            if (routes.Count > 0 && routes.Count(r => r.HasAirliner) > 0)
+            if (routes.Count > 0 && routes.Count(r => r.HasCoach) > 0)
             {
                 totalCapacity =
-                    routes.Where(r => r.HasAirliner)
-                          .Sum(r => r.GetAirliners().Max(a => a.Airliner.GetTotalSeatCapacity()));
-                //SelectMany(r => r.Stopovers.Where(s=>s.Legs.Count >0))).Sum(s=>s.;//a => a.Routes.SelectMany(r=>r.Stopovers.SelectMany(s=>s.Legs.Where(l=>r.HasAirliner && (l.Destination1 == airportCurrent || l.Destination1 == airportDestination) && (l.Destination2 == airportDestination || l.Destination2 == airportCurrent))).Sum(r=>r.getAirliners().Max(a=>a.Airliner.getTotalSeatCapacity()));
+                    routes.Where(r => r.HasCoach)
+                          .Sum(r => r.GetCoaches().Max(a => a.Coach.GetTotalSeatCapacity()));
+                //SelectMany(r => r.Stopovers.Where(s=>s.Legs.Count >0))).Sum(s=>s.;//a => a.Routes.SelectMany(r=>r.Stopovers.SelectMany(s=>s.Legs.Where(l=>r.HasCoach && (l.Destination1 == stationCurrent || l.Destination1 == stationDestination) && (l.Destination2 == stationDestination || l.Destination2 == stationCurrent))).Sum(r=>r.getCoaches().Max(a=>a.Coach.getTotalSeatCapacity()));
             }
             else
             {
                 totalCapacity = 0;
-                // routes.Where(r => r.HasAirliner).Sum(r => r.getAirliners().Max(a => a.Airliner.getTotalSeatCapacity()));
+                // routes.Where(r => r.HasCoach).Sum(r => r.getCoaches().Max(a => a.Coach.getTotalSeatCapacity()));
             }
 
             double capacityPercent = passengerDemand > totalCapacity ? 1 : passengerDemand/totalCapacity;
@@ -3186,7 +3186,7 @@ namespace TheBusProject.Helpers
 
             if (PricingService.Realistic)
             {
-                // the cheaper, better airline gets more of the passengers on a shared route
+                // the cheaper, better carrier gets more of the passengers on a shared route
                 routeRatioPercent = PricingService.CompetitionFactor(currentRoute, routes, type);
             }
             else if (rations.ContainsKey(currentRoute))
@@ -3195,8 +3195,8 @@ namespace TheBusProject.Helpers
             }
 
             pf = Profiler.Start();
-            double reputation = ReputationScale(airportCurrent, airliner.Airliner.Airline);
-            Profiler.Stop("pax: reputation of all airlines", pf);
+            double reputation = ReputationScale(stationCurrent, coach.Coach.Carrier);
+            Profiler.Stop("pax: reputation of all carriers", pf);
 
             if (reputation < 76)
             {
@@ -3214,8 +3214,8 @@ namespace TheBusProject.Helpers
             var pax =
                 (int)
                 Math.Min(
-                    airliner.Airliner.GetAirlinerClass(type).SeatingCapacity,
-                    (airliner.Airliner.GetAirlinerClass(type).SeatingCapacity*routeRatioPercent
+                    coach.Coach.GetCoachClass(type).SeatingCapacity,
+                    (coach.Coach.GetCoachClass(type).SeatingCapacity*routeRatioPercent
                      *reputationPercent*capacityPercent*routePriceDiff*randomPax));
 
             if (pax < 0)
@@ -3223,78 +3223,78 @@ namespace TheBusProject.Helpers
                 pax = 0;
             }
 
-            ConnectionService.Record(currentRoute, pax, pax*connectingShare, airliner.Airliner.GetAirlinerClass(type).SeatingCapacity);
+            ConnectionService.Record(currentRoute, pax, pax*connectingShare, coach.Coach.GetCoachClass(type).SeatingCapacity);
             Profiler.Stop("pax: whole calculation", pfAll);
 
-            FlightTrace?.Invoke(new FlightPaxTrace
+            TripTrace?.Invoke(new TripPaxTrace
             {
-                Airline = airliner.Airliner.Airline, Route = currentRoute, From = airportCurrent, Type = type, BaseDemand = traceBase, Direct = demand, Connecting = connecting, Nearby = nearby, DailyDemand = traceDaily,
-                FlightsPerDay = flightsPerDay, PerFlight = passengerDemand, TotalCapacity = totalCapacity, CapacityPercent = capacityPercent,
+                Carrier = coach.Coach.Carrier, Route = currentRoute, From = stationCurrent, Type = type, BaseDemand = traceBase, Direct = demand, Connecting = connecting, Nearby = nearby, DailyDemand = traceDaily,
+                TripsPerDay = tripsPerDay, PerTrip = passengerDemand, TotalCapacity = totalCapacity, CapacityPercent = capacityPercent,
                 Competition = routeRatioPercent, Reputation = reputationPercent, Score = routeScoreFactor,
-                Seats = airliner.Airliner.GetAirlinerClass(type).SeatingCapacity, Passengers = pax
+                Seats = coach.Coach.GetCoachClass(type).SeatingCapacity, Passengers = pax
             });
 
             return pax;
         }
 
-        /// <summary>What went into one flight's passengers in one class (for the economy probe; off in normal play).</summary>
-        public class FlightPaxTrace
+        /// <summary>What went into one trip's passengers in one class (for the economy probe; off in normal play).</summary>
+        public class TripPaxTrace
         {
-            public Airline Airline;
+            public Carrier Carrier;
             public Route Route;
-            public Airport From;
-            public AirlinerClass.ClassType Type;
-            public double BaseDemand, Direct, Connecting, Nearby, DailyDemand, FlightsPerDay, PerFlight, TotalCapacity, CapacityPercent, Competition, Reputation, Score;
+            public Station From;
+            public CoachClass.ClassType Type;
+            public double BaseDemand, Direct, Connecting, Nearby, DailyDemand, TripsPerDay, PerTrip, TotalCapacity, CapacityPercent, Competition, Reputation, Score;
             public int Seats, Passengers;
         }
 
-        public static Action<FlightPaxTrace> FlightTrace;
+        public static Action<TripPaxTrace> TripTrace;
 
-        /// <summary>What went into one cargo flight's load (for the economy probe; off in normal play).</summary>
-        public class CargoFlightTrace
+        /// <summary>What went into one cargo trip's load (for the economy probe; off in normal play).</summary>
+        public class CargoTripTrace
         {
-            public Airline Airline;
-            public double Capacity, Cargo, DemandPerFlight, TotalCapacity, MarketPrice, Price, Km, Facility;
+            public Carrier Carrier;
+            public double Capacity, Cargo, DemandPerTrip, TotalCapacity, MarketPrice, Price, Km, Facility;
         }
 
-        public static Action<CargoFlightTrace> CargoTrace;
+        public static Action<CargoTripTrace> CargoTrace;
 
-        //returns the number of passengers for a flight
-        public static int GetFlightPassengers(FleetAirliner airliner, AirlinerClass.ClassType type)
+        //returns the number of passengers for a trip
+        public static int GetTripPassengers(FleetCoach coach, CoachClass.ClassType type)
         {
-            Airport airportCurrent = airliner.CurrentFlight.GetDepartureAirport();
-            Airport airportDestination = airliner.CurrentFlight.Entry.Destination.Airport;
+            Station stationCurrent = coach.CurrentTrip.GetDepartureStation();
+            Station stationDestination = coach.CurrentTrip.Entry.Destination.Station;
 
-            return GetFlightPassengers(airportCurrent, airportDestination, airliner, type);
+            return GetTripPassengers(stationCurrent, stationDestination, coach, type);
         }
 
-        public static double GetHappinessValue(Airline airline)
+        public static double GetHappinessValue(Carrier carrier)
         {
-            if (HappinessPercent.ContainsKey(airline))
+            if (HappinessPercent.ContainsKey(carrier))
             {
-                return HappinessPercent[airline];
+                return HappinessPercent[carrier];
             }
             return 0;
         }
 
-        //returns the holiday factor for an airport
+        //returns the holiday factor for an station
 
         //returns the suggested passenger price for a route
-        public static double GetPassengerPrice(Airport dest1, Airport dest2)
+        public static double GetPassengerPrice(Station dest1, Station dest2)
         {
             // the market fare (see PricingService; the original curve when the original costs are chosen)
             return PricingService.MarketFare(MathHelpers.GetDistance(dest1, dest2));
         }
 
-        public static double GetPassengerPrice(Airport dest1, Airport dest2, AirlinerClass.ClassType type)
+        public static double GetPassengerPrice(Station dest1, Station dest2, CoachClass.ClassType type)
         {
             return GetPassengerPrice(dest1, dest2)*GeneralHelpers.ClassToPriceFactor(type);
         }
 
-        public static double GetPassengersHappiness(Airline airline)
+        public static double GetPassengersHappiness(Carrier carrier)
         {
-            double passengers = airline.Statistics.GetYears().Sum(year => Convert.ToDouble(airline.Statistics.GetStatisticsValue(year, StatisticsTypes.GetStatisticsType("Passengers"))));
-            double value = GetHappinessValue(airline);
+            double passengers = carrier.Statistics.GetYears().Sum(year => Convert.ToDouble(carrier.Statistics.GetStatisticsValue(year, StatisticsTypes.GetStatisticsType("Passengers"))));
+            double value = GetHappinessValue(carrier);
 
             if (passengers.Equals(0))
             {
@@ -3303,10 +3303,10 @@ namespace TheBusProject.Helpers
             return value/passengers*100.0;
         }
 
-        public static double GetStopoverFlightCargo(
-            FleetAirliner airliner,
-            Airport dept,
-            Airport dest,
+        public static double GetStopoverTripCargo(
+            FleetCoach coach,
+            Station dept,
+            Station dest,
             List<Route> routes,
             bool isInbound)
         {
@@ -3322,22 +3322,22 @@ namespace TheBusProject.Helpers
             {
                 if (isInbound)
                 {
-                    cargo += GetFlightCargo(routes[i].Destination2, dest, airliner);
+                    cargo += GetTripCargo(routes[i].Destination2, dest, coach);
                 }
                 else
                 {
-                    cargo += GetFlightCargo(routes[i].Destination1, dest, airliner);
+                    cargo += GetTripCargo(routes[i].Destination1, dest, coach);
                 }
             }
 
-            return Math.Min(airliner.Airliner.GetCargoCapacity(), cargo);
+            return Math.Min(coach.Coach.GetCargoCapacity(), cargo);
         }
 
-        public static int GetStopoverFlightPassengers(
-            FleetAirliner airliner,
-            AirlinerClass.ClassType type,
-            Airport dept,
-            Airport dest,
+        public static int GetStopoverTripPassengers(
+            FleetCoach coach,
+            CoachClass.ClassType type,
+            Station dept,
+            Station dest,
             List<Route> routes,
             bool isInbound)
         {
@@ -3353,11 +3353,11 @@ namespace TheBusProject.Helpers
             {
                 if (isInbound)
                 {
-                    passengers += GetFlightPassengers(routes[i].Destination2, dest, airliner, type);
+                    passengers += GetTripPassengers(routes[i].Destination2, dest, coach, type);
                 }
                 else
                 {
-                    passengers += GetFlightPassengers(routes[i].Destination1, dest, airliner, type);
+                    passengers += GetTripPassengers(routes[i].Destination1, dest, coach, type);
                 }
             }
 
@@ -3366,36 +3366,36 @@ namespace TheBusProject.Helpers
                 passengers = 0;
             }
 
-            return Math.Min(airliner.Airliner.GetAirlinerClass(type).SeatingCapacity, passengers);
+            return Math.Min(coach.Coach.GetCoachClass(type).SeatingCapacity, passengers);
         }
 
-        //returns the number of passengers for a flight on a stopover route
-        public static int GetStopoverFlightPassengers(FleetAirliner airliner, AirlinerClass.ClassType type)
+        //returns the number of passengers for a trip on a stopover route
+        public static int GetStopoverTripPassengers(FleetCoach coach, CoachClass.ClassType type)
         {
-            RouteTimeTableEntry mainEntry = airliner.CurrentFlight.Entry.MainEntry;
-            RouteTimeTableEntry entry = airliner.CurrentFlight.Entry;
+            RouteTimeTableEntry mainEntry = coach.CurrentTrip.Entry.MainEntry;
+            RouteTimeTableEntry entry = coach.CurrentTrip.Entry;
 
             List<Route> legs = mainEntry.TimeTable.Route.Stopovers.SelectMany(s => s.Legs).ToList();
 
-            bool isInbound = mainEntry.DepartureAirport == mainEntry.TimeTable.Route.Destination2;
+            bool isInbound = mainEntry.DepartureStation == mainEntry.TimeTable.Route.Destination2;
 
             int passengers;
             //inboound
             if (isInbound)
             {
                 legs.Reverse();
-                passengers = GetFlightPassengers(
+                passengers = GetTripPassengers(
                     mainEntry.TimeTable.Route.Destination2,
                     mainEntry.TimeTable.Route.Destination1,
-                    airliner,
+                    coach,
                     type);
             }
             else
             {
-                passengers = GetFlightPassengers(
+                passengers = GetTripPassengers(
                     mainEntry.TimeTable.Route.Destination1,
                     mainEntry.TimeTable.Route.Destination2,
-                    airliner,
+                    coach,
                     type);
             }
 
@@ -3405,18 +3405,18 @@ namespace TheBusProject.Helpers
             {
                 if (isInbound)
                 {
-                    passengers += GetFlightPassengers(
+                    passengers += GetTripPassengers(
                         entry.TimeTable.Route.Destination1,
                         legs[i].Destination1,
-                        airliner,
+                        coach,
                         type);
                 }
                 else
                 {
-                    passengers += GetFlightPassengers(
+                    passengers += GetTripPassengers(
                         entry.TimeTable.Route.Destination1,
                         legs[i].Destination2,
-                        airliner,
+                        coach,
                         type);
                 }
             }
@@ -3426,66 +3426,66 @@ namespace TheBusProject.Helpers
                 passengers = 0;
             }
 
-            return Math.Min(airliner.Airliner.GetAirlinerClass(type).SeatingCapacity, passengers);
+            return Math.Min(coach.Coach.GetCoachClass(type).SeatingCapacity, passengers);
         }
 
         public static void SetCargoSize()
         {
-            List<Airport> airports = Airports.GetAllActiveAirports();
+            List<Station> stations = Stations.GetAllActiveStations();
 
-            foreach (Airport airport in airports)
+            foreach (Station station in stations)
             {
-                var volume = (int) airport.Profile.CargoVolume;
+                var volume = (int) station.Profile.CargoVolume;
                 if (volume < 200)
                 {
-                    airport.Profile.Cargo = GeneralHelpers.Size.Smallest;
+                    station.Profile.Cargo = GeneralHelpers.Size.Smallest;
                     break;
                 }
 
                 if (volume < 400)
                 {
-                    airport.Profile.Cargo = GeneralHelpers.Size.VerySmall;
+                    station.Profile.Cargo = GeneralHelpers.Size.VerySmall;
                     break;
                 }
                 if (volume < 750)
                 {
-                    airport.Profile.Cargo = GeneralHelpers.Size.Small;
+                    station.Profile.Cargo = GeneralHelpers.Size.Small;
                     break;
                 }
                 if (volume < 1500)
                 {
-                    airport.Profile.Cargo = GeneralHelpers.Size.Medium;
+                    station.Profile.Cargo = GeneralHelpers.Size.Medium;
                     break;
                 }
 
                 if (volume < 2500)
                 {
-                    airport.Profile.Cargo = GeneralHelpers.Size.Large;
+                    station.Profile.Cargo = GeneralHelpers.Size.Large;
                     break;
                 }
 
                 if (volume > 2500)
                 {
-                    airport.Profile.Cargo = GeneralHelpers.Size.VeryLarge;
+                    station.Profile.Cargo = GeneralHelpers.Size.VeryLarge;
                     break;
                 }
                 if (volume > 4500)
                 {
-                    airport.Profile.Cargo = GeneralHelpers.Size.Largest;
+                    station.Profile.Cargo = GeneralHelpers.Size.Largest;
                     break;
                 }
             }
         }
 
-        public static void SetPassengerHappiness(Airline airline, double value)
+        public static void SetPassengerHappiness(Carrier carrier, double value)
         {
-            if (HappinessPercent.ContainsKey(airline))
+            if (HappinessPercent.ContainsKey(carrier))
             {
-                HappinessPercent[airline] = value;
+                HappinessPercent[carrier] = value;
             }
             else
             {
-                HappinessPercent.Add(airline, value);
+                HappinessPercent.Add(carrier, value);
             }
         }
 
@@ -3493,53 +3493,53 @@ namespace TheBusProject.Helpers
 
         #region Methods
 
-        private static void CreateDestinationPassengers(Airport airport, List<Airport> subAirports)
+        private static void CreateDestinationPassengers(Station station, List<Station> subStations)
         {
-            List<Airport> largestAirports =
-                subAirports.FindAll(
+            List<Station> largestStations =
+                subStations.FindAll(
                     a =>
                     a.Profile.Size == GeneralHelpers.Size.Largest
                     || a.Profile.Size == GeneralHelpers.Size.VeryLarge);
 
-            int maxValue = Math.Max(2, (int) Math.Ceiling(airport.Profile.Pax/2));
+            int maxValue = Math.Max(2, (int) Math.Ceiling(station.Profile.Pax/2));
 
             // the same every time the demand is built
-            using (MathHelpers.SeedFor(airport.Profile.IATACode + ">fallback"))
+            using (MathHelpers.SeedFor(station.Profile.IATACode + ">fallback"))
             {
-                if (largestAirports.Count > 0)
+                if (largestStations.Count > 0)
                 {
-                    foreach (Airport lAirport in largestAirports.OrderBy(a => a.Profile.IATACode))
+                    foreach (Station lStation in largestStations.OrderBy(a => a.Profile.IATACode))
                     {
-                        airport.AddDestinationPassengersRate(
-                            new DestinationDemand(lAirport.Profile.IATACode, (ushort) MathHelpers.GetRandomInt(1, maxValue)));
+                        station.AddDestinationPassengersRate(
+                            new DestinationDemand(lStation.Profile.IATACode, (ushort) MathHelpers.GetRandomInt(1, maxValue)));
                     }
                 }
                 else
                 {
-                    subAirports = subAirports.OrderByDescending(a => a.Profile.Size).ThenBy(a => a.Profile.IATACode).ToList();
-                    airport.AddDestinationPassengersRate(
-                        new DestinationDemand(subAirports[0].Profile.IATACode, (ushort) MathHelpers.GetRandomInt(1, maxValue)));
+                    subStations = subStations.OrderByDescending(a => a.Profile.Size).ThenBy(a => a.Profile.IATACode).ToList();
+                    station.AddDestinationPassengersRate(
+                        new DestinationDemand(subStations[0].Profile.IATACode, (ushort) MathHelpers.GetRandomInt(1, maxValue)));
                 }
             }
         }
 
-        //creates the airport destination passengers a destination
+        //creates the station destination passengers a destination
 
-        //returns the cargo mass per day for an airport
-        private static double GetAirportCargoMass(Airport airport)
+        //returns the cargo mass per day for an station
+        private static double GetStationCargoMass(Station station)
         {
             //density cargo 3000 kg/cu m.
             //1 cu m. vejer 3000 kg. eller 3.0 metric ton
 
             /*--------------------READ THE TWO LINES BELOW --- VERY USEFUL ----------------*/
 
-            //for reference, most commercial aircraft have capacity of about 5.5(5.3-5.8)lb per cu ft
+            //for reference, most commercial coach have capacity of about 5.5(5.3-5.8)lb per cu ft
             //to convert values to cu meters, multiply the cargo cu footage * 35.3 (194lb/m3 and 88kg/m3 at standard density)
 
-            //total cargo volume from/to airport in tonnes
-            double totalCargoVolume = airport.Profile.CargoVolume.Equals(0)
-                                          ? ((int) airport.Profile.Cargo + 1)*10000
-                                          : airport.Profile.CargoVolume*1000; //in metric ton
+            //total cargo volume from/to station in tonnes
+            double totalCargoVolume = station.Profile.CargoVolume.Equals(0)
+                                          ? ((int) station.Profile.Cargo + 1)*10000
+                                          : station.Profile.CargoVolume*1000; //in metric ton
             const double cargoDensity = 3000; //kg/cu m
 
             //in cargo mass
@@ -3560,12 +3560,12 @@ namespace TheBusProject.Helpers
             return 0.15*(yearDiff + 1);
         }
 
-        private static double GetHolidayFactor(Airport airport)
+        private static double GetHolidayFactor(Station station)
         {
-            if (HolidayYear.IsHoliday(airport.Profile.Country, GameObject.GetInstance().GameTime))
+            if (HolidayYear.IsHoliday(station.Profile.Country, GameObject.GetInstance().GameTime))
             {
                 HolidayYearEvent holiday = HolidayYear.GetHoliday(
-                    airport.Profile.Country,
+                    station.Profile.Country,
                     GameObject.GetInstance().GameTime);
 
                 if (holiday.Holiday.Travel == Holiday.TravelType.Both
@@ -3577,67 +3577,67 @@ namespace TheBusProject.Helpers
             return 1;
         }
 
-        /// <summary>Passengers from airports near the start who would use the flight (for the route forecast).</summary>
-        public static double NearbyDemandFor(Airport from, Airport to, FleetAirliner airliner, AirlinerClass.ClassType type)
+        /// <summary>Passengers from stations near the start who would use the trip (for the route forecast).</summary>
+        public static double NearbyDemandFor(Station from, Station to, FleetCoach coach, CoachClass.ClassType type)
         {
-            return GetNearbyPassengerDemand(from, to, airliner, type);
+            return GetNearbyPassengerDemand(from, to, coach, type);
         }
 
-        /// <summary>The season's effect on the demand to an airport today (for the route forecast).</summary>
-        /// <summary>A holiday's effect on the demand at an airport today (for the route forecast).</summary>
-        public static double HolidayFactorFor(Airport airport)
+        /// <summary>The season's effect on the demand to an station today (for the route forecast).</summary>
+        /// <summary>A holiday's effect on the demand at an station today (for the route forecast).</summary>
+        public static double HolidayFactorFor(Station station)
         {
-            return GetHolidayFactor(airport);
+            return GetHolidayFactor(station);
         }
 
-        /// <summary>A route's service score as the flights use it today (out of 10).</summary>
+        /// <summary>A route's service score as the trips use it today (out of 10).</summary>
         public static double RouteScoreFor(Route route)
         {
             return RouteScore(route);
         }
 
-        public static double SeasonFactorFor(Airport airport)
+        public static double SeasonFactorFor(Station station)
         {
-            return GetSeasonFactor(airport);
+            return GetSeasonFactor(station);
         }
 
-        /// <summary>The share the airline's reputation at the airport gives (0.75 to 1, as for a flight).</summary>
-        public static double ReputationShare(Airport airport, Airline airline)
+        /// <summary>The share the carrier's reputation at the station gives (0.75 to 1, as for a trip).</summary>
+        public static double ReputationShare(Station station, Carrier carrier)
         {
-            return Math.Max(75, ReputationScale(airport, airline))/100;
+            return Math.Max(75, ReputationScale(station, carrier))/100;
         }
 
-        // every airline's reputation score at an airport (before scaling), worked out once a game day per airport
-        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Airport, Tuple<DateTime, Dictionary<Airline, double>>> ReputationScoreCache =
-            new System.Runtime.CompilerServices.ConditionalWeakTable<Airport, Tuple<DateTime, Dictionary<Airline, double>>>();
+        // every carrier's reputation score at an station (before scaling), worked out once a game day per station
+        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Station, Tuple<DateTime, Dictionary<Carrier, double>>> ReputationScoreCache =
+            new System.Runtime.CompilerServices.ConditionalWeakTable<Station, Tuple<DateTime, Dictionary<Carrier, double>>>();
 
         /// <summary>
-        ///     The share the airline's reputation at the airport would give with `added` more to its score (a new route there
-        ///     adds 7 and 6 for each point of its service), against every airline's reputation there today (0.75 to 1).
+        ///     The share the carrier's reputation at the station would give with `added` more to its score (a new route there
+        ///     adds 7 and 6 for each point of its service), against every carrier's reputation there today (0.75 to 1).
         /// </summary>
-        public static double ReputationShareWith(Airport airport, Airline airline, double added)
+        public static double ReputationShareWith(Station station, Carrier carrier, double added)
         {
             DateTime day = GameObject.GetInstance().GameTime.Date;
-            Tuple<DateTime, Dictionary<Airline, double>> cached;
-            Dictionary<Airline, double> scores;
-            if (ReputationScoreCache.TryGetValue(airport, out cached) && cached.Item1 == day) scores = cached.Item2;
+            Tuple<DateTime, Dictionary<Carrier, double>> cached;
+            Dictionary<Carrier, double> scores;
+            if (ReputationScoreCache.TryGetValue(station, out cached) && cached.Item1 == day) scores = cached.Item2;
             else
             {
-                scores = new Dictionary<Airline, double>();
-                foreach (Airline a in Airlines.GetAllAirlines())
+                scores = new Dictionary<Carrier, double>();
+                foreach (Carrier a in Carriers.GetAllCarriers())
                 {
-                    if (!scores.ContainsKey(a)) scores.Add(a, airport.GetAirlineReputation(a));
+                    if (!scores.ContainsKey(a)) scores.Add(a, station.GetCarrierReputation(a));
                 }
-                ReputationScoreCache.AddOrUpdate(airport, Tuple.Create(day, scores));
+                ReputationScoreCache.AddOrUpdate(station, Tuple.Create(day, scores));
             }
-            var with = new Dictionary<Airline, double>(scores);
+            var with = new Dictionary<Carrier, double>(scores);
             double mine;
-            if (!with.TryGetValue(airline, out mine)) mine = airport.GetAirlineReputation(airline);
-            with[airline] = mine + added;
-            return Math.Max(75, StatisticsHelpers.GetRatingScale(with)[airline])/100;
+            if (!with.TryGetValue(carrier, out mine)) mine = station.GetCarrierReputation(carrier);
+            with[carrier] = mine + added;
+            return Math.Max(75, StatisticsHelpers.GetRatingScale(with)[carrier])/100;
         }
 
-        // a route's service score (aircraft age, meals, seats, fare and so on), worked out once a game day per route
+        // a route's service score (coach age, meals, seats, fare and so on), worked out once a game day per route
         private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Route, Tuple<DateTime, double>> RouteScoreCache =
             new System.Runtime.CompilerServices.ConditionalWeakTable<Route, Tuple<DateTime, double>>();
 
@@ -3651,76 +3651,76 @@ namespace TheBusProject.Helpers
             return score;
         }
 
-        // each airline's reputation at an airport on a 1-100 scale against all airlines, worked out once a game day
-        // per airport (it looks at every airline's routes and facilities there, which used to happen for every flight)
-        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Airport, Tuple<DateTime, IDictionary<Airline, double>>> ReputationCache =
-            new System.Runtime.CompilerServices.ConditionalWeakTable<Airport, Tuple<DateTime, IDictionary<Airline, double>>>();
+        // each carrier's reputation at an station on a 1-100 scale against all carriers, worked out once a game day
+        // per station (it looks at every carrier's routes and facilities there, which used to happen for every trip)
+        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Station, Tuple<DateTime, IDictionary<Carrier, double>>> ReputationCache =
+            new System.Runtime.CompilerServices.ConditionalWeakTable<Station, Tuple<DateTime, IDictionary<Carrier, double>>>();
 
-        private static double ReputationScale(Airport airport, Airline airline)
+        private static double ReputationScale(Station station, Carrier carrier)
         {
             DateTime day = GameObject.GetInstance().GameTime.Date;
-            Tuple<DateTime, IDictionary<Airline, double>> cached;
+            Tuple<DateTime, IDictionary<Carrier, double>> cached;
             double value;
-            if (ReputationCache.TryGetValue(airport, out cached) && cached.Item1 == day && cached.Item2.TryGetValue(airline, out value))
+            if (ReputationCache.TryGetValue(station, out cached) && cached.Item1 == day && cached.Item2.TryGetValue(carrier, out value))
             {
                 return value;
             }
 
-            IDictionary<Airline, double> airlineScores = new Dictionary<Airline, double>();
-            foreach (Airline a in Airlines.GetAllAirlines())
+            IDictionary<Carrier, double> carrierScores = new Dictionary<Carrier, double>();
+            foreach (Carrier a in Carriers.GetAllCarriers())
             {
-                if (!airlineScores.ContainsKey(a)) airlineScores.Add(a, airport.GetAirlineReputation(a));
+                if (!carrierScores.ContainsKey(a)) carrierScores.Add(a, station.GetCarrierReputation(a));
             }
-            if (!airlineScores.ContainsKey(airline)) airlineScores.Add(airline, airport.GetAirlineReputation(airline));
+            if (!carrierScores.ContainsKey(carrier)) carrierScores.Add(carrier, station.GetCarrierReputation(carrier));
 
-            IDictionary<Airline, double> scale = StatisticsHelpers.GetRatingScale(airlineScores);
-            ReputationCache.AddOrUpdate(airport, Tuple.Create(day, scale));
-            return scale[airline];
+            IDictionary<Carrier, double> scale = StatisticsHelpers.GetRatingScale(carrierScores);
+            ReputationCache.AddOrUpdate(station, Tuple.Create(day, scale));
+            return scale[carrier];
         }
 
         private static double GetNearbyPassengerDemand(
-            Airport airportCurrent,
-            Airport airportDestination,
-            FleetAirliner airliner,
-            AirlinerClass.ClassType type)
+            Station stationCurrent,
+            Station stationDestination,
+            FleetCoach coach,
+            CoachClass.ClassType type)
         {
-            TimeSpan flightTime = MathHelpers.GetFlightTime(airportCurrent, airportDestination, airliner.Airliner.Type);
+            TimeSpan tripTime = MathHelpers.GetTripTime(stationCurrent, stationDestination, coach.Coach.Type);
 
-            double maxDistance = (flightTime.TotalHours*0.5)*100;
+            double maxDistance = (tripTime.TotalHours*0.5)*100;
 
-            IEnumerable<Airport> nearbyAirports =
-                AirportHelpers.GetAirportsNearAirport(airportCurrent, maxDistance)
+            IEnumerable<Station> nearbyStations =
+                StationHelpers.GetStationsNearStation(stationCurrent, maxDistance)
                               .DefaultIfEmpty()
-                              .Where(a => !AirportHelpers.HasRoute(a, airportDestination));
+                              .Where(a => !StationHelpers.HasRoute(a, stationDestination));
 
             double demand = 0;
 
-            foreach (Airport airport in nearbyAirports)
+            foreach (Station station in nearbyStations)
             {
-                if (airport != null)
+                if (station != null)
                 {
-                    double distance = MathHelpers.GetDistance(airportCurrent, airport);
+                    double distance = MathHelpers.GetDistance(stationCurrent, station);
 
-                    double airportDemand = airport.GetDestinationPassengersRate(airportDestination, type);
+                    double stationDemand = station.GetDestinationPassengersRate(stationDestination, type);
 
                     if (distance < 150)
                     {
-                        demand += airportDemand*0.75;
+                        demand += stationDemand*0.75;
                     }
 
                     if (distance >= 150 && distance < 225)
                     {
-                        demand += airportDemand*0.5;
+                        demand += stationDemand*0.5;
                     }
 
                     if (distance >= 225 && distance < 300)
                     {
-                        demand += airportDemand*0.25;
+                        demand += stationDemand*0.25;
                     }
 
                     if (distance >= 300 && distance < 400)
                     {
-                        demand += airportDemand*0.10;
+                        demand += stationDemand*0.10;
                     }
                 }
             }
@@ -3728,42 +3728,42 @@ namespace TheBusProject.Helpers
             return demand;
         }
 
-        private static Airport GetRandomDestination(Airport currentAirport)
+        private static Station GetRandomDestination(Station currentStation)
         {
-            var airportsList = new Dictionary<Airport, int>();
-            Airports.GetAirports(
+            var stationsList = new Dictionary<Station, int>();
+            Stations.GetStations(
                 a =>
-                currentAirport != null && a != currentAirport
-                && !FlightRestrictions.HasRestriction(
-                    currentAirport.Profile.Country,
+                currentStation != null && a != currentStation
+                && !TripRestrictions.HasRestriction(
+                    currentStation.Profile.Country,
                     a.Profile.Country,
                     GameObject.GetInstance().GameTime,
-                    FlightRestriction.RestrictionType.Flights))
+                    TripRestriction.RestrictionType.Trips))
                     .ForEach(
                         a =>
-                        airportsList.Add(
+                        stationsList.Add(
                             a,
-                            (int) a.Profile.Size*(a.Profile.Country == currentAirport.Profile.Country ? 7 : 3)));
+                            (int) a.Profile.Size*(a.Profile.Country == currentStation.Profile.Country ? 7 : 3)));
 
-            if (airportsList.Count > 0)
+            if (stationsList.Count > 0)
             {
-                return AIHelpers.GetRandomItem(airportsList);
+                return AIHelpers.GetRandomItem(stationsList);
             }
             return null;
         }
 
         // (the factors were written as 150/100 and 50/100, whole-number divisions that came out as 1 and 0: a summer
-        // airport got no passengers at all from September to February, a winter airport none from March to August)
-        private static double GetSeasonFactor(Airport airport)
+        // station got no passengers at all from September to February, a winter station none from March to August)
+        private static double GetSeasonFactor(Station station)
         {
             bool isSummer = GameObject.GetInstance().GameTime.Month >= 3
                                && GameObject.GetInstance().GameTime.Month < 9;
 
-            if (airport.Profile.Season == Weather.Season.AllYear)
+            if (station.Profile.Season == Weather.Season.AllYear)
             {
                 return 1;
             }
-            if (airport.Profile.Season == Weather.Season.Summer)
+            if (station.Profile.Season == Weather.Season.Summer)
             {
                 if (isSummer)
                 {
@@ -3771,7 +3771,7 @@ namespace TheBusProject.Helpers
                 }
                 return 0.5;
             }
-            if (airport.Profile.Season == Weather.Season.Winter)
+            if (station.Profile.Season == Weather.Season.Winter)
             {
                 if (isSummer)
                 {
@@ -3785,12 +3785,12 @@ namespace TheBusProject.Helpers
 
         #endregion
 
-        //returns the passengers happiness for an airline
+        //returns the passengers happiness for an carrier
 
-        //adds happiness to an airline
+        //adds happiness to an carrier
 
-        //creates the random airport destination for a list of destinations
+        //creates the random station destination for a list of destinations
 
-        //changes the demand for all airports with a factor
+        //changes the demand for all stations with a factor
     }
 }

@@ -83,8 +83,8 @@ namespace TheBusProject.Helpers.Workers
         public void SkipUntil(DateTime target)
         {
             var game = GameObject.GetInstance();
-            if (game?.HumanAirline == null || target <= game.GameTime) return;
-            _skipStartMoney = game.HumanAirline.Money;
+            if (game?.HumanCarrier == null || target <= game.GameTime) return;
+            _skipStartMoney = game.HumanCarrier.Money;
             _skipResult = null;
             _skipTo = target;
             IsPaused = false;
@@ -106,14 +106,14 @@ namespace TheBusProject.Helpers.Workers
         private bool SkipDone()
         {
             var game = GameObject.GetInstance();
-            if (_skipTo == null || game?.HumanAirline == null) return false;
+            if (_skipTo == null || game?.HumanCarrier == null) return false;
             string reason = null;
             // (the monthly bills come on the 1st, the day a 'next month' ends: say so when they took the cash below zero)
             if (game.Scenario != null && game.Scenario.IsEnded)
             {
                 reason = "the scenario ended";
             }
-            else if (_skipStartMoney >= 0 && game.HumanAirline.Money < 0)
+            else if (_skipStartMoney >= 0 && game.HumanCarrier.Money < 0)
             {
                 reason = "your cash went below zero";
             }
@@ -123,7 +123,7 @@ namespace TheBusProject.Helpers.Workers
             }
             if (reason == null) return false;
 
-            double change = game.HumanAirline.Money - _skipStartMoney;
+            double change = game.HumanCarrier.Money - _skipStartMoney;
             _skipResult = (reason == "reached" ? "Fast-forwarded to " : "Fast-forward stopped on ")
                           + game.GameTime.ToString("d MMM yyyy") + (reason == "reached" ? "" : ": " + reason)
                           + ". Cash " + (change >= 0 ? "+" : "-") + Math.Abs(Math.Round(change)).ToString("N0") + " meanwhile.";
@@ -292,7 +292,7 @@ namespace TheBusProject.Helpers.Workers
                             "TheBusProject",
                             "The game was paused because a turn failed several times in a row.\n\n"
                             + ex.GetType().Name + ": " + ex.Message
-                            + "\n\nDetails are in startup.log in your Documents\\theairlineproject folder.");
+                            + "\n\nDetails are in startup.log in your Documents\\thebusproject folder.");
                     }
                     else
                     {
@@ -321,7 +321,7 @@ namespace TheBusProject.Helpers.Workers
 
                 var lCurrentStack = new StackTrace(true);
 
-                var file = new StreamWriter(AppSettings.GetCommonApplicationDataPath() + "/theairlinepause.log");
+                var file = new StreamWriter(AppSettings.GetCommonApplicationDataPath() + "/thecarrierpause.log");
                 file.WriteLine(lCurrentStack.ToString());
                 file.WriteLine("------------ERROR MESSAGE--------------");
                 file.WriteLine(e.Error.Message);

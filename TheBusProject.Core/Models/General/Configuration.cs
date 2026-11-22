@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using TheBusProject.Models;
@@ -29,13 +29,13 @@ namespace TheBusProject.Infrastructure
 
         public enum ConfigurationType
         {
-            Airliner,
+            Coach,
 
             Routeclasses,
 
-            AirlinerType,
+            CoachType,
 
-            AirlinerSchedule
+            CoachSchedule
         }
 
         #endregion

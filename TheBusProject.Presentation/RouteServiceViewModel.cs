@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Input;
 using TheBusProject.Helpers;
-using TheBusProject.Models.Airliners;
+using TheBusProject.Models.Coaches;
 using TheBusProject.Models.General;
 using TheBusProject.Models.Routes;
 
@@ -35,7 +35,7 @@ namespace TheBusProject.Presentation
 
     public class ClassServiceItem
     {
-        public AirlinerClass.ClassType Type { get; set; }
+        public CoachClass.ClassType Type { get; set; }
         public string ClassName { get; set; }
         public List<FacilityRow> Rows { get; set; }
     }
@@ -47,7 +47,7 @@ namespace TheBusProject.Presentation
         public double Number { get; set; }
     }
 
-    /// <summary>The meals, drinks, newspapers and Wi-Fi on the flights of a passenger route, per class, and how passengers rate the route.</summary>
+    /// <summary>The meals, drinks, newspapers and Wi-Fi on the trips of a passenger route, per class, and how passengers rate the route.</summary>
     public class RouteServiceViewModel : ObservableObject
     {
         private readonly Route _route;
@@ -120,7 +120,7 @@ namespace TheBusProject.Presentation
                 return;
             }
 
-            var airline = GameObject.GetInstance().HumanAirline;
+            var carrier = GameObject.GetInstance().HumanCarrier;
             int year = GameObject.GetInstance().GameTime.Year;
             foreach (var rc in pr.Classes)
             {
@@ -133,7 +133,7 @@ namespace TheBusProject.Presentation
                     }
 
                     var current = rc.GetFacility(type);
-                    var available = AirlineHelpers.GetRouteFacilities(airline, type).OrderBy(f => f.ServiceLevel).ToList();
+                    var available = CarrierHelpers.GetRouteFacilities(carrier, type).OrderBy(f => f.ServiceLevel).ToList();
                     if (current != null && !available.Exists(a => a.Uid == current.Uid))
                     {
                         available.Add(current);
@@ -185,7 +185,7 @@ namespace TheBusProject.Presentation
 
             foreach (var c in Classes)
             {
-                var rc = pr.GetRouteAirlinerClass(c.Type);
+                var rc = pr.GetRouteCoachClass(c.Type);
                 rc.Facilities.Clear();
                 foreach (var row in c.Rows)
                 {
@@ -198,17 +198,17 @@ namespace TheBusProject.Presentation
 
             UpdateCost();
             LoadScores();
-            Status = "Service saved. Passengers notice it from the next flights.";
+            Status = "Service saved. Passengers notice it from the next trips.";
         }
 
         private void Preset(ServiceTier tier)
         {
-            var airline = GameObject.GetInstance().HumanAirline;
+            var carrier = GameObject.GetInstance().HumanCarrier;
             foreach (var c in Classes)
             {
                 foreach (var row in c.Rows)
                 {
-                    var f = RouteCreator.PickFacility(airline, row.Type, tier);
+                    var f = RouteCreator.PickFacility(carrier, row.Type, tier);
                     var choice = f == null ? null : row.Options.FirstOrDefault(o => o.Facility == f);
                     if (choice != null)
                     {
@@ -221,12 +221,12 @@ namespace TheBusProject.Presentation
             Status = tier + " service chosen. Press Save service to use it.";
         }
 
-        private bool _hadAirliner;
+        private bool _hadCoach;
 
-        /// <summary>Reads the scores again only when an aircraft was added or removed (the list is not rebuilt on every tick).</summary>
+        /// <summary>Reads the scores again only when an coach was added or removed (the list is not rebuilt on every tick).</summary>
         public void RefreshScores()
         {
-            if (_route.HasAirliner != _hadAirliner)
+            if (_route.HasCoach != _hadCoach)
             {
                 LoadScores();
             }
@@ -234,11 +234,11 @@ namespace TheBusProject.Presentation
 
         public void LoadScores()
         {
-            _hadAirliner = _route.HasAirliner;
+            _hadCoach = _route.HasCoach;
             Scores.Clear();
-            if (!_route.HasAirliner)
+            if (!_route.HasCoach)
             {
-                ScoreTitle = "Passenger opinion appears once an aircraft flies this route.";
+                ScoreTitle = "Passenger opinion appears once a coach runs this route.";
                 OnPropertyChanged(nameof(ScoreTitle));
                 return;
             }
@@ -248,14 +248,14 @@ namespace TheBusProject.Presentation
             Add("Price", () => RouteHelpers.GetRoutePriceScore(_route));
             Add("Seats", () => RouteHelpers.GetRouteSeatsScore(_route));
             Add("Meals", () => RouteHelpers.GetRouteMealScore(_route));
-            Add("In-flight entertainment", () => RouteHelpers.GetRouteInflightScore(_route));
+            Add("In-trip entertainment", () => RouteHelpers.GetRouteIntripScore(_route));
             if ((int) RouteFacility.FacilityType.WiFi <= GameObject.GetInstance().GameTime.Year)
             {
                 Add("Wi-Fi", () => RouteHelpers.GetRouteWifiScore(_route));
             }
 
-            Add("Aircraft type", () => RouteHelpers.GetRoutePlaneTypeScore(_route));
-            Add("Aircraft age", () => RouteHelpers.GetPlaneAgeScore(_route));
+            Add("Coach type", () => RouteHelpers.GetRoutePlaneTypeScore(_route));
+            Add("Coach age", () => RouteHelpers.GetPlaneAgeScore(_route));
             Add("Luggage", () => RouteHelpers.GetRouteLuggageScore(_route));
             Add("Overall", () => RouteHelpers.GetRouteTotalScore(_route));
         }

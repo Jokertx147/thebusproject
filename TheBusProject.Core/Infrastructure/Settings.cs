@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.Serialization;
 using TheBusProject.Helpers;
 using TheBusProject.Infrastructure.Enums;
@@ -20,11 +20,11 @@ namespace TheBusProject.Infrastructure
 
         private Settings()
         {
-            AirportCodeDisplay = AirportCode.Iata;
+            StationCodeDisplay = StationCode.Iata;
             //DifficultyDisplay = Difficulty.Normal;
             GameSpeed = GeneralHelpers.GameSpeedValue.Normal;
             MailsOnLandings = false;
-            MailsOnAirlineRoutes = false;
+            MailsOnCarrierRoutes = false;
             MailsOnBadWeather = true;
             MinutesPerTurn = 60;
             CurrencyShorten = true;
@@ -42,8 +42,8 @@ namespace TheBusProject.Infrastructure
 
         #region Public Properties
 
-        [Versioning("airportcode")]
-        public AirportCode AirportCodeDisplay { get; set; }
+        [Versioning("stationcode")]
+        public StationCode StationCodeDisplay { get; set; }
 
         [Versioning("autosave")]
         public Intervals AutoSave { get; set; }
@@ -63,7 +63,7 @@ namespace TheBusProject.Infrastructure
         //the setting for receiving mails on landings
 
         [Versioning("mailsonroutes")]
-        public bool MailsOnAirlineRoutes { get; set; }
+        public bool MailsOnCarrierRoutes { get; set; }
 
         [Versioning("mailsonweather")]
         public bool MailsOnBadWeather { get; set; }
@@ -75,7 +75,7 @@ namespace TheBusProject.Infrastructure
         [Versioning("norivalalerts")]
         public bool NoRivalAlerts { get; set; }
 
-        /// <summary>No news with the airline report at each new month (off: the news comes).</summary>
+        /// <summary>No news with the carrier report at each new month (off: the news comes).</summary>
         [Versioning("nomonthlyreport")]
         public bool NoMonthlyReport { get; set; }
 
@@ -115,7 +115,7 @@ namespace TheBusProject.Infrastructure
 
         #endregion
 
-        //the setting for which kind of airport code to show
+        //the setting for which kind of station code to show
 
         //returns the settings instance
     }

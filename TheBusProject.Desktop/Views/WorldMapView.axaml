@@ -6,23 +6,23 @@
     <StackPanel Orientation="Horizontal" Spacing="14" Margin="0,0,0,6">
       <TextBlock Text="World map" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
       <CheckBox Content="Routes" IsChecked="{Binding ShowRoutes}" />
-      <CheckBox Content="Airports" IsChecked="{Binding ShowAirports}" />
-      <CheckBox Content="Aircraft" IsChecked="{Binding ShowAircraft}" />
-      <CheckBox Content="Animate" IsChecked="{Binding Animate}" ToolTip.Tip="Aircraft glide along their routes with a trail behind them, and white dashes flow along each route in the direction its aircraft are flying. Turn off on a slow computer." />
+      <CheckBox Content="Stations" IsChecked="{Binding ShowStations}" />
+      <CheckBox Content="Coach" IsChecked="{Binding ShowCoach}" />
+      <CheckBox Content="Animate" IsChecked="{Binding Animate}" ToolTip.Tip="Coach glide along their routes with a trail behind them, and white dashes flow along each route in the direction its coach are running. Turn off on a slow computer." />
       <TextBlock Text="{Binding Caption}" VerticalAlignment="Center" Opacity="0.7" />
       <Button Content="+" Click="ZoomIn" ToolTip.Tip="Zoom in" MinWidth="32" />
       <Button Content="-" Click="ZoomOut" ToolTip.Tip="Zoom out" MinWidth="32" />
-      <Button Content="Fit network" Click="FitNetwork" ToolTip.Tip="Show the whole airline network" />
-      <ComboBox ItemsSource="{Binding AircraftChoices}" SelectedItem="{Binding PickedAircraft}" PlaceholderText="Pick an aircraft" MinWidth="200" MaxDropDownHeight="420"
-                ToolTip.Tip="One of your aircraft: selected and followed on the map" />
+      <Button Content="Fit network" Click="FitNetwork" ToolTip.Tip="Show the whole carrier network" />
+      <ComboBox ItemsSource="{Binding CoachChoices}" SelectedItem="{Binding PickedCoach}" PlaceholderText="Pick a coach" MinWidth="200" MaxDropDownHeight="420"
+                ToolTip.Tip="One of your coach: selected and followed on the map" />
       <ToggleButton Content="Follow" IsChecked="{Binding Follow}" IsEnabled="{Binding HasSelection}"
-                    ToolTip.Tip="Keep the selected aircraft in the middle of the map as it flies. Dragging the map stops it." />
+                    ToolTip.Tip="Keep the selected coach in the middle of the map as it runs. Dragging the map stops it." />
     </StackPanel>
     <StackPanel Grid.Row="1" Spacing="4" Margin="0,0,0,6">
       <StackPanel Orientation="Horizontal" Spacing="8">
         <TextBlock Text="Rivals" VerticalAlignment="Center" />
         <ComboBox ItemsSource="{Binding RivalChoices}" SelectedItem="{Binding SelectedRival}" MinWidth="320" MaxDropDownHeight="420"
-                  ToolTip.Tip="Show a rival airline's routes and aircraft, the airlines on your routes, or everyone flying from one of your airports, each in its own colour." />
+                  ToolTip.Tip="Show a rival carrier's routes and coach, the carriers on your routes, or everyone running from one of your stations, each in its own colour." />
       </StackPanel>
       <ItemsControl ItemsSource="{Binding Legend}" IsVisible="{Binding HasLegend}">
         <ItemsControl.ItemsPanel>
@@ -43,17 +43,17 @@
         <v:WorldMapControl x:Name="MapControl" DataContext="{Binding}" />
       </Border>
 
-      <!-- the selected aircraft's flights today -->
+      <!-- the selected coach's trips today -->
       <Border Grid.Column="1" Width="360" Margin="8,0,0,0" IsVisible="{Binding HasSelection}" BorderBrush="#555555" BorderThickness="1" Padding="8">
         <DockPanel>
           <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0,0,0,6">
-            <TextBlock Text="Flight board" FontSize="15" FontWeight="SemiBold" />
+            <TextBlock Text="Trip board" FontSize="15" FontWeight="SemiBold" />
             <TextBlock Text="{Binding BoardTitle}" TextWrapping="Wrap" FontWeight="SemiBold" />
             <TextBlock Text="{Binding BoardSummary}" TextWrapping="Wrap" Opacity="0.75" FontSize="12" />
           </StackPanel>
-          <TextBlock DockPanel.Dock="Top" Text="No flights today." Opacity="0.6" IsVisible="{Binding !HasBoardFlights}" />
+          <TextBlock DockPanel.Dock="Top" Text="No trips today." Opacity="0.6" IsVisible="{Binding !HasBoardTrips}" />
           <ScrollViewer>
-            <ItemsControl ItemsSource="{Binding FlightBoard}">
+            <ItemsControl ItemsSource="{Binding TripBoard}">
               <ItemsControl.Styles>
                 <Style Selector="Border.row">
                   <Setter Property="Padding" Value="6,4" />
@@ -80,7 +80,7 @@
                     <StackPanel Spacing="1">
                       <Grid ColumnDefinitions="48,64,*,52">
                         <TextBlock Text="{Binding Departs}" FontWeight="SemiBold" />
-                        <TextBlock Grid.Column="1" Text="{Binding Flight}" />
+                        <TextBlock Grid.Column="1" Text="{Binding Trip}" />
                         <TextBlock Grid.Column="2" Text="{Binding Route}" />
                         <TextBlock Grid.Column="3" Text="{Binding Arrives}" HorizontalAlignment="Right" Opacity="0.8" />
                       </Grid>
@@ -99,7 +99,7 @@
     </Grid>
     <StackPanel Grid.Row="3" Margin="0,6,0,0" Spacing="2">
       <TextBlock Text="{Binding SelectedText}" TextWrapping="Wrap" />
-      <TextBlock Text="Drag to move (arrow keys work too; either stops following), scroll or double-click to zoom, + and - keys or the buttons also zoom, Home fits the network. Yellow arrows are aircraft in the air (they glide with a trail while the game runs, and white dashes flow along their routes the way they fly; click one to see its whole flight), grey dots are aircraft on the ground, red dots are hubs. Orange dashed lines are cargo routes. Rivals you choose to show are drawn in their own colours (their airports as small white dots)." Opacity="0.55" FontSize="12" TextWrapping="Wrap" />
+      <TextBlock Text="Drag to move (arrow keys work too; either stops following), scroll or double-click to zoom, + and - keys or the buttons also zoom, Home fits the network. Yellow arrows are coach in the air (they glide with a trail while the game runs, and white dashes flow along their routes the way they run; click one to see its whole trip), grey dots are coach on the ground, red dots are hubs. Orange dashed lines are cargo routes. Rivals you choose to show are drawn in their own colours (their stations as small white dots)." Opacity="0.55" FontSize="12" TextWrapping="Wrap" />
     </StackPanel>
   </Grid>
 </UserControl>

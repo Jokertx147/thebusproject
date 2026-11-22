@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using TheBusProject.Models.Airlines;
+using TheBusProject.Models.Carriers;
 using TheBusProject.Models.General;
 
 namespace TheBusProject.Helpers
@@ -11,15 +11,15 @@ namespace TheBusProject.Helpers
     {
         #region Public Methods and Operators
 
-        public static void GenerateEvents(Airline airline)
+        public static void GenerateEvents(Carrier carrier)
         {
             var rnd = new Random();
             var eventOccurences = new Dictionary<RandomEvent.EventType, double>();
             int eFreq;
 
-            //sets an overall event frequency based on an airlines total overall rating
-            int totalRating = airline.Ratings.CustomerHappinessRating + airline.Ratings.EmployeeHappinessRating
-                              + airline.Ratings.SafetyRating + airline.Ratings.SecurityRating;
+            //sets an overall event frequency based on an carriers total overall rating
+            int totalRating = carrier.Ratings.CustomerHappinessRating + carrier.Ratings.EmployeeHappinessRating
+                              + carrier.Ratings.SafetyRating + carrier.Ratings.SecurityRating;
             if (totalRating < 300)
             {
                 eFreq = rnd.Next(1, 6);
@@ -38,7 +38,7 @@ namespace TheBusProject.Helpers
             }
 
             //gets the event proportions and multiplies them by total # events to get events per type
-            List<double> probs = GetEventProportions(airline);
+            List<double> probs = GetEventProportions(carrier);
             double custEvents = eFreq*probs[0];
             double empEvents = eFreq*probs[1];
             double secEvents = eFreq*probs[2];
@@ -57,25 +57,25 @@ namespace TheBusProject.Helpers
             foreach (KeyValuePair<RandomEvent.EventType, double> v in eventOccurences)
             {
                 int k = (int)v.Value;
-                List<RandomEvent> list = RandomEvents.GetEvents(v.Key, k, airline);
+                List<RandomEvent> list = RandomEvents.GetEvents(v.Key, k, carrier);
                 foreach (RandomEvent e in list)
                 {
-                    airline.EventLog.Add(e);
+                    carrier.EventLog.Add(e);
                 }
             }
             */
         }
 
-        public static List<double> GetEventProportions(Airline airline)
+        public static List<double> GetEventProportions(Carrier carrier)
         {
             //chr 0 ehr 1 scr 2 sfr 3 total 4
             var ratings = new List<int>
                 {
-                    100 - airline.Ratings.CustomerHappinessRating,
-                    100 - airline.Ratings.EmployeeHappinessRating,
-                    100 - airline.Ratings.SecurityRating,
-                    100 - airline.Ratings.SafetyRating,
-                    100 - airline.Ratings.MaintenanceRating
+                    100 - carrier.Ratings.CustomerHappinessRating,
+                    100 - carrier.Ratings.EmployeeHappinessRating,
+                    100 - carrier.Ratings.SecurityRating,
+                    100 - carrier.Ratings.SafetyRating,
+                    100 - carrier.Ratings.MaintenanceRating
                 };
             ratings.Add(500 - ratings.Sum());
             double pCHR = ratings[0]/ratings[5];

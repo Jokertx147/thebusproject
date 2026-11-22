@@ -5,9 +5,9 @@ using System.Linq;
 using System.Windows.Input;
 using TheBusProject.Helpers;
 using TheBusProject.Infrastructure.Enums;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airlines.Subsidiary;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Carriers.Subsidiary;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.Routes;
 
@@ -15,41 +15,41 @@ namespace TheBusProject.Presentation
 {
     public class SubsidiaryRow
     {
-        public SubsidiaryAirline Airline { get; set; }
+        public SubsidiaryCarrier Carrier { get; set; }
         public string LogoPath { get; set; }
         public string Name { get; set; }
         public string Numbers { get; set; }
     }
 
-    /// <summary>Airlines > Subsidiaries: start one, move money in and out, sell it or fold it into your airline.</summary>
+    /// <summary>Carriers > Subsidiaries: start one, move money in and out, sell it or fold it into your carrier.</summary>
     public class SubsidiariesViewModel : ObservableObject
     {
         private readonly Action _changed;
         private SubsidiaryRow _selected;
         private string _status, _pendingText, _transfer = "1000000", _name = "", _code = "", _money = "", _summary;
         private Action _pending;
-        private AirportItem _homebase;
-        private NamedChoice<Airline.AirlineMentality> _mentality;
-        private NamedChoice<AirlineFocus> _market;
+        private StationItem _homebase;
+        private NamedChoice<Carrier.CarrierMentality> _mentality;
+        private NamedChoice<CarrierFocus> _market;
         private NamedChoice<Route.RouteType> _focus;
 
         public SubsidiariesViewModel(Action changed)
         {
             _changed = changed;
             Rows = new ObservableCollection<SubsidiaryRow>();
-            Homebases = new ObservableCollection<AirportItem>();
-            Mentalities = new List<NamedChoice<Airline.AirlineMentality>>
+            Homebases = new ObservableCollection<StationItem>();
+            Mentalities = new List<NamedChoice<Carrier.CarrierMentality>>
             {
-                new NamedChoice<Airline.AirlineMentality> { Name = "Careful", Value = Airline.AirlineMentality.Safe },
-                new NamedChoice<Airline.AirlineMentality> { Name = "Balanced", Value = Airline.AirlineMentality.Moderate },
-                new NamedChoice<Airline.AirlineMentality> { Name = "Fast growing", Value = Airline.AirlineMentality.Aggressive }
+                new NamedChoice<Carrier.CarrierMentality> { Name = "Careful", Value = Carrier.CarrierMentality.Safe },
+                new NamedChoice<Carrier.CarrierMentality> { Name = "Balanced", Value = Carrier.CarrierMentality.Moderate },
+                new NamedChoice<Carrier.CarrierMentality> { Name = "Fast growing", Value = Carrier.CarrierMentality.Aggressive }
             };
-            Markets = new List<NamedChoice<AirlineFocus>>
+            Markets = new List<NamedChoice<CarrierFocus>>
             {
-                new NamedChoice<AirlineFocus> { Name = "Local", Value = AirlineFocus.Local },
-                new NamedChoice<AirlineFocus> { Name = "Domestic", Value = AirlineFocus.Domestic },
-                new NamedChoice<AirlineFocus> { Name = "Regional", Value = AirlineFocus.Regional },
-                new NamedChoice<AirlineFocus> { Name = "Global", Value = AirlineFocus.Global }
+                new NamedChoice<CarrierFocus> { Name = "Local", Value = CarrierFocus.Local },
+                new NamedChoice<CarrierFocus> { Name = "Domestic", Value = CarrierFocus.Domestic },
+                new NamedChoice<CarrierFocus> { Name = "Regional", Value = CarrierFocus.Regional },
+                new NamedChoice<CarrierFocus> { Name = "Global", Value = CarrierFocus.Global }
             };
             Focuses = new List<NamedChoice<Route.RouteType>>
             {
@@ -71,9 +71,9 @@ namespace TheBusProject.Presentation
         }
 
         public ObservableCollection<SubsidiaryRow> Rows { get; }
-        public ObservableCollection<AirportItem> Homebases { get; }
-        public List<NamedChoice<Airline.AirlineMentality>> Mentalities { get; }
-        public List<NamedChoice<AirlineFocus>> Markets { get; }
+        public ObservableCollection<StationItem> Homebases { get; }
+        public List<NamedChoice<Carrier.CarrierMentality>> Mentalities { get; }
+        public List<NamedChoice<CarrierFocus>> Markets { get; }
         public List<NamedChoice<Route.RouteType>> Focuses { get; }
         public ICommand CreateCommand { get; }
         public ICommand ToSubCommand { get; }
@@ -84,9 +84,9 @@ namespace TheBusProject.Presentation
         public ICommand CancelCommand { get; }
 
         public string Explanation =>
-            "A subsidiary is a second airline you own. It flies under its own name, code and money and is run by its own " +
-            "management: it buys aircraft, opens routes and keeps what it earns. You decide how much money it has, and you can " +
-            "sell it or fold it into your airline at any time. Its value counts toward yours.";
+            "A subsidiary is a second carrier you own. It runs under its own name, code and money and is run by its own " +
+            "management: it buys coach, opens routes and keeps what it earns. You decide how much money it has, and you can " +
+            "sell it or fold it into your carrier at any time. Its value counts toward yours.";
 
         public string Summary { get => _summary; private set => SetProperty(ref _summary, value); }
         public string Status { get => _status; private set => SetProperty(ref _status, value); }
@@ -98,12 +98,12 @@ namespace TheBusProject.Presentation
         public string NewName { get => _name; set => SetProperty(ref _name, value ?? ""); }
         public string NewCode { get => _code; set => SetProperty(ref _code, value ?? ""); }
         public string NewMoney { get => _money; set => SetProperty(ref _money, value ?? ""); }
-        public AirportItem Homebase { get => _homebase; set => SetProperty(ref _homebase, value); }
-        public NamedChoice<Airline.AirlineMentality> Mentality { get => _mentality; set => SetProperty(ref _mentality, value); }
-        public NamedChoice<AirlineFocus> Market { get => _market; set => SetProperty(ref _market, value); }
+        public StationItem Homebase { get => _homebase; set => SetProperty(ref _homebase, value); }
+        public NamedChoice<Carrier.CarrierMentality> Mentality { get => _mentality; set => SetProperty(ref _mentality, value); }
+        public NamedChoice<CarrierFocus> Market { get => _market; set => SetProperty(ref _market, value); }
         public NamedChoice<Route.RouteType> Focus { get => _focus; set => SetProperty(ref _focus, value); }
 
-        public string MinMoneyText => "At least " + Money(SubsidiaryService.MinStartMoney) + ". It comes out of your airline's cash.";
+        public string MinMoneyText => "At least " + Money(SubsidiaryService.MinStartMoney) + ". It comes out of your carrier's cash.";
 
         public SubsidiaryRow Selected
         {
@@ -139,33 +139,33 @@ namespace TheBusProject.Presentation
 
         public void Reload()
         {
-            var me = GameObject.GetInstance()?.HumanAirline;
+            var me = GameObject.GetInstance()?.HumanCarrier;
             if (me == null) return;
-            var keep = _selected?.Airline;
+            var keep = _selected?.Carrier;
             Rows.Clear();
             foreach (var s in SubsidiaryService.Mine(me))
             {
                 Rows.Add(new SubsidiaryRow
                 {
-                    Airline = s,
-                    LogoPath = AirlineProfileService.GetLogo(s),
+                    Carrier = s,
+                    LogoPath = CarrierProfileService.GetLogo(s),
                     Name = s.Profile.Name + " (" + s.Profile.IATACode + ")",
                     Numbers = string.Format(
-                        "cash {0}  |  {1} aircraft, {2} routes, {3} airports  |  worth {4}  |  last month {5}",
-                        Money(s.Money), s.Fleet.Count, s.Routes.Count, s.Airports.Count, Money(SharesService.Value(s)), Money(SubsidiaryService.LastMonthProfit(s)))
+                        "cash {0}  |  {1} coach, {2} routes, {3} stations  |  worth {4}  |  last month {5}",
+                        Money(s.Money), s.Fleet.Count, s.Routes.Count, s.Stations.Count, Money(SharesService.Value(s)), Money(SubsidiaryService.LastMonthProfit(s)))
                 });
             }
             _selected = null;
-            Selected = Rows.FirstOrDefault(r => r.Airline == keep) ?? Rows.FirstOrDefault();
+            Selected = Rows.FirstOrDefault(r => r.Carrier == keep) ?? Rows.FirstOrDefault();
             OnPropertyChanged(nameof(Selected));
             Summary = Rows.Count == 0
                 ? "You have no subsidiaries."
-                : string.Format("{0} subsidiar{1}, worth {2} together.", Rows.Count, Rows.Count == 1 ? "y" : "ies", Money(Rows.Sum(r => SharesService.Value(r.Airline))));
+                : string.Format("{0} subsidiar{1}, worth {2} together.", Rows.Count, Rows.Count == 1 ? "y" : "ies", Money(Rows.Sum(r => SharesService.Value(r.Carrier))));
 
-            var home = _homebase?.Airport;
+            var home = _homebase?.Station;
             Homebases.Clear();
-            foreach (var a in me.Airports.OrderBy(a => a.Profile.Name)) Homebases.Add(new AirportItem(a, true));
-            Homebase = Homebases.FirstOrDefault(h => h.Airport == home) ?? Homebases.FirstOrDefault();
+            foreach (var a in me.Stations.OrderBy(a => a.Profile.Name)) Homebases.Add(new StationItem(a, true));
+            Homebase = Homebases.FirstOrDefault(h => h.Station == home) ?? Homebases.FirstOrDefault();
         }
 
         private void Done(bool ok, string message)
@@ -177,16 +177,16 @@ namespace TheBusProject.Presentation
 
         private void AskCreate()
         {
-            var me = GameObject.GetInstance().HumanAirline;
+            var me = GameObject.GetInstance().HumanCarrier;
             double money = Parse(_money);
-            string blocker = SubsidiaryService.GetCreateBlocker(me, _name, _code, _homebase?.Airport, money);
+            string blocker = SubsidiaryService.GetCreateBlocker(me, _name, _code, _homebase?.Station, money);
             if (blocker != null)
             {
                 Status = blocker;
                 return;
             }
             string name = _name, code = _code;
-            var home = _homebase.Airport;
+            var home = _homebase.Station;
             var mentality = _mentality.Value;
             var market = _market.Value;
             var focus = _focus.Value;
@@ -207,7 +207,7 @@ namespace TheBusProject.Presentation
 
         private void AskTransfer(bool toSub)
         {
-            var s = _selected?.Airline;
+            var s = _selected?.Carrier;
             if (s == null) return;
             double amount = Parse(_transfer);
             if (amount <= 0)
@@ -215,7 +215,7 @@ namespace TheBusProject.Presentation
                 Status = "Type an amount.";
                 return;
             }
-            var me = GameObject.GetInstance().HumanAirline;
+            var me = GameObject.GetInstance().HumanCarrier;
             SetPending(
                 toSub ? "Move " + Money(amount) + " to " + s.Profile.Name + "?" : "Take " + Money(amount) + " out of " + s.Profile.Name + "?",
                 () => { string m; Done(SubsidiaryService.Transfer(me, s, toSub ? amount : -amount, out m), m); });
@@ -223,27 +223,27 @@ namespace TheBusProject.Presentation
 
         private void AskSell()
         {
-            var s = _selected?.Airline;
+            var s = _selected?.Carrier;
             if (s == null) return;
-            var me = GameObject.GetInstance().HumanAirline;
+            var me = GameObject.GetInstance().HumanCarrier;
             SetPending(
-                "Sell " + s.Profile.Name + " for " + Money(SubsidiaryService.SalePrice(s)) + " (90% of its value)? It becomes an independent airline.",
+                "Sell " + s.Profile.Name + " for " + Money(SubsidiaryService.SalePrice(s)) + " (90% of its value)? It becomes an independent carrier.",
                 () => { string m; SubsidiaryService.Sell(me, s, out m); Done(true, m); });
         }
 
         private void AskFold()
         {
-            var s = _selected?.Airline;
+            var s = _selected?.Carrier;
             if (s == null) return;
-            var me = GameObject.GetInstance().HumanAirline;
-            string blocker = AirlineTypeRules.MergeBlocker(me, s);
+            var me = GameObject.GetInstance().HumanCarrier;
+            string blocker = CarrierTypeRules.MergeBlocker(me, s);
             if (blocker != null)
             {
                 Status = blocker;
                 return;
             }
             SetPending(
-                "Fold " + s.Profile.Name + " into your airline? Its aircraft, routes, gates, pilots and " + Money(s.Money) + " come over and its name disappears.",
+                "Fold " + s.Profile.Name + " into your carrier? Its coach, routes, gates, pilots and " + Money(s.Money) + " come over and its name disappears.",
                 () => { string m; Done(SubsidiaryService.FoldIn(me, s, out m), m); });
         }
     }

@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Scenarios;
 using TheBusProject.Models.General.Statistics;
@@ -22,16 +22,16 @@ namespace TheBusProject.Helpers
     }
 
     /// <summary>
-    ///     Scenarios: a start (year, airline, fleet, routes, rivals, cash and sometimes debt), goals the airline must keep
+    ///     Scenarios: a start (year, carrier, fleet, routes, rivals, cash and sometimes debt), goals the carrier must keep
     ///     meeting (every month, or once in a given year) and an end year. Missing a monthly goal for its allowed number of
     ///     months in a row, or a yearly goal when it is checked, ends the scenario as lost; reaching the end year wins it.
-    ///     The airline and its subsidiaries count together. Safety, security and crime goals aren't measured by the game.
+    ///     The carrier and its subsidiaries count together. Safety, security and crime goals aren't measured by the game.
     /// </summary>
     public static class ScenarioService
     {
-        private static Airline Main => GameObject.GetInstance().MainAirline ?? GameObject.GetInstance().HumanAirline;
+        private static Carrier Main => GameObject.GetInstance().MainCarrier ?? GameObject.GetInstance().HumanCarrier;
 
-        private static IEnumerable<Airline> Group(Airline a)
+        private static IEnumerable<Carrier> Group(Carrier a)
         {
             yield return a;
             foreach (var s in a.Subsidiaries.ToList()) yield return s;
@@ -53,12 +53,12 @@ namespace TheBusProject.Helpers
             return Convert.ToString(new ValueCurrencyFormatter().Convert(v));
         }
 
-        private static double Passengers(Airline a, int year)
+        private static double Passengers(Carrier a, int year)
         {
             return a.Statistics.GetStatisticsValue(year, StatisticsTypes.GetStatisticsType("Passengers"));
         }
 
-        /// <summary>The airline's current figure for a goal, or null when it can't be measured (yet).</summary>
+        /// <summary>The carrier's current figure for a goal, or null when it can't be measured (yet).</summary>
         public static double? Measure(ScenarioObject so, ScenarioFailure f)
         {
             var main = Main;
@@ -75,9 +75,9 @@ namespace TheBusProject.Helpers
                 case ScenarioFailure.FailureType.Fleet:
                     return all.Sum(a => a.Fleet.Count);
                 case ScenarioFailure.FailureType.Domestic:
-                    return all.Sum(a => a.Airports.Count(x => x.Profile.Country == a.Profile.Country));
+                    return all.Sum(a => a.Stations.Count(x => x.Profile.Country == a.Profile.Country));
                 case ScenarioFailure.FailureType.Intl:
-                    return all.Sum(a => a.Airports.Count(x => x.Profile.Country != a.Profile.Country));
+                    return all.Sum(a => a.Stations.Count(x => x.Profile.Country != a.Profile.Country));
                 case ScenarioFailure.FailureType.PaxGrowth:
                 {
                     // last full year against the year before; not measurable until both are played
@@ -88,16 +88,16 @@ namespace TheBusProject.Helpers
                 case ScenarioFailure.FailureType.FleetAge:
                 {
                     var fleet = all.SelectMany(a => a.Fleet.ToList()).ToList();
-                    return fleet.Count == 0 ? 0 : fleet.Average(x => x.Airliner.Age);
+                    return fleet.Count == 0 ? 0 : fleet.Average(x => x.Coach.Age);
                 }
                 case ScenarioFailure.FailureType.Pax:
                     return all.Sum(a => a.Statistics.GetStatisticsValue(StatisticsTypes.GetStatisticsType("Passengers")));
                 case ScenarioFailure.FailureType.Bases:
-                    return all.Sum(a => a.Airports.Count(x => x.GetCurrentAirportFacility(a, AirportFacility.FacilityType.Service).TypeLevel > 0));
+                    return all.Sum(a => a.Stations.Count(x => x.GetCurrentStationFacility(a, StationFacility.FacilityType.Service).TypeLevel > 0));
                 case ScenarioFailure.FailureType.JetRation:
                 {
                     var fleet = all.SelectMany(a => a.Fleet.ToList()).ToList();
-                    return fleet.Count == 0 ? 0 : (double) fleet.Count(x => x.Airliner.Type.Engine == AirlinerType.TypeOfEngine.Jet)/fleet.Count;
+                    return fleet.Count == 0 ? 0 : (double) fleet.Count(x => x.Coach.Type.Engine == CoachType.TypeOfEngine.Jet)/fleet.Count;
                 }
                 default:
                     return null;
@@ -111,7 +111,7 @@ namespace TheBusProject.Helpers
             switch (f.Type)
             {
                 case ScenarioFailure.FailureType.Cash: return now > v;
-                // debt may not grow above where the airline started
+                // debt may not grow above where the carrier started
                 case ScenarioFailure.FailureType.Debt: return now <= so.Scenario.StartDebt + v + 1;
                 case ScenarioFailure.FailureType.Fleet:
                 case ScenarioFailure.FailureType.Domestic:
@@ -132,18 +132,18 @@ namespace TheBusProject.Helpers
         {
             double v = Value(f);
             int more = (int) Math.Floor(v) + 1;
-            string home = s.Airline?.Profile.Country?.Name ?? "your home country";
+            string home = s.Carrier?.Profile.Country?.Name ?? "your home country";
             switch (f.Type)
             {
                 case ScenarioFailure.FailureType.Cash: return "Cash above " + Money(v);
                 case ScenarioFailure.FailureType.Debt: return "Debt no higher than " + Money(s.StartDebt + v) + (s.StartDebt > 0 ? " (what you start with)" : "");
-                case ScenarioFailure.FailureType.Fleet: return "At least " + more + " aircraft";
-                case ScenarioFailure.FailureType.Domestic: return "At least " + more + " airports in " + home;
-                case ScenarioFailure.FailureType.Intl: return "At least " + more + " airports abroad";
+                case ScenarioFailure.FailureType.Fleet: return "At least " + more + " coach";
+                case ScenarioFailure.FailureType.Domestic: return "At least " + more + " stations in " + home;
+                case ScenarioFailure.FailureType.Intl: return "At least " + more + " stations abroad";
                 case ScenarioFailure.FailureType.PaxGrowth: return "Passengers growing more than " + v.ToString("0.#", CultureInfo.InvariantCulture) + "% a year";
                 case ScenarioFailure.FailureType.FleetAge: return "Average fleet age under " + v.ToString("0.#", CultureInfo.InvariantCulture) + " years";
                 case ScenarioFailure.FailureType.Pax: return "More than " + (v*1000).ToString("N0") + " passengers carried";
-                case ScenarioFailure.FailureType.Bases: return "At least " + more + " bases (airports with a service centre)";
+                case ScenarioFailure.FailureType.Bases: return "At least " + more + " bases (stations with a service centre)";
                 case ScenarioFailure.FailureType.JetRation: return "At least " + Math.Round(v*100) + "% of the fleet jets";
                 case ScenarioFailure.FailureType.Safety: return "Safety standards (not checked in this version)";
                 case ScenarioFailure.FailureType.Security: return "Security standards (not checked in this version)";
@@ -175,7 +175,7 @@ namespace TheBusProject.Helpers
             }
         }
 
-        /// <summary>All goals with where the airline stands now.</summary>
+        /// <summary>All goals with where the carrier stands now.</summary>
         public static List<ScenarioGoal> Goals(ScenarioObject so)
         {
             var list = new List<ScenarioGoal>();
@@ -256,8 +256,8 @@ namespace TheBusProject.Helpers
         /// <summary>Why a scenario can't be played with the loaded data, or null.</summary>
         public static string Problem(Scenario s)
         {
-            if (s.Airline == null) return "its airline is missing from the game data";
-            if (s.Homebase == null) return "its home airport is missing from the game data";
+            if (s.Carrier == null) return "its carrier is missing from the game data";
+            if (s.Homebase == null) return "its home station is missing from the game data";
             return null;
         }
 

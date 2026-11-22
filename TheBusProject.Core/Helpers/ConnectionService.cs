@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.Routes;
 
@@ -16,7 +16,7 @@ namespace TheBusProject.Helpers
     public class ConnectionMarket
     {
         public Route Route, Feeder;
-        public Airport Near, Via, Far;
+        public Station Near, Via, Far;
         public bool Partner;
         public string HubName;
 
@@ -34,10 +34,10 @@ namespace TheBusProject.Helpers
     }
 
     /// <summary>
-    ///     Connecting passengers. A flight from A to B also carries passengers going on from B (or coming from
-    ///     beyond A) on another route of the airline or of its alliance and codeshare partners. A connection counts
-    ///     when the trip is less than three times the nonstop distance and fewer than two airlines fly the nonstop.
-    ///     The airline's own feeder routes bring a quarter of the market, more through its hubs (30% at a focus
+    ///     Connecting passengers. A trip from A to B also carries passengers going on from B (or coming from
+    ///     beyond A) on another route of the carrier or of its alliance and codeshare partners. A connection counts
+    ///     when the trip is less than three times the nonstop distance and fewer than two carriers fly the nonstop.
+    ///     The carrier's own feeder routes bring a quarter of the market, more through its hubs (30% at a focus
     ///     city, 33% at a regional hub, 35% at a hub, 40% at a fortress hub); a partner's routes bring a fifth.
     ///     The routes count connecting passengers each month.
     /// </summary>
@@ -45,9 +45,9 @@ namespace TheBusProject.Helpers
     {
         public const double OwnWeight = 0.25, PartnerWeight = 0.2;
 
-        // ---- how many airlines fly each airport pair nonstop, built once a day ----
+        // ---- how many carriers fly each station pair nonstop, built once a day ----
         private static readonly object CacheLock = new object();
-        private static Dictionary<Airport, Dictionary<Airport, int>> _nonstop;
+        private static Dictionary<Station, Dictionary<Station, int>> _nonstop;
         private static DateTime _nonstopDate;
 
         public static void Invalidate()
@@ -55,7 +55,7 @@ namespace TheBusProject.Helpers
             lock (CacheLock) _nonstop = null;
         }
 
-        private static Dictionary<Airport, Dictionary<Airport, int>> Nonstop()
+        private static Dictionary<Station, Dictionary<Station, int>> Nonstop()
         {
             var day = GameObject.GetInstance()?.GameTime.Date ?? DateTime.MinValue;
             var cache = _nonstop;
@@ -63,11 +63,11 @@ namespace TheBusProject.Helpers
             lock (CacheLock)
             {
                 if (_nonstop != null && _nonstopDate == day) return _nonstop;
-                var map = new Dictionary<Airport, Dictionary<Airport, int>>();
+                var map = new Dictionary<Station, Dictionary<Station, int>>();
                 int count = 0;
-                foreach (var airline in Airlines.GetAllAirlines().ToList())
+                foreach (var carrier in Carriers.GetAllCarriers().ToList())
                 {
-                    foreach (var r in airline.Routes.ToList())
+                    foreach (var r in carrier.Routes.ToList())
                     {
                         if (r?.Destination1 == null || r.Destination2 == null) continue;
                         Add(map, r.Destination1, r.Destination2);
@@ -81,46 +81,46 @@ namespace TheBusProject.Helpers
             }
         }
 
-        private static void Add(Dictionary<Airport, Dictionary<Airport, int>> map, Airport a, Airport b)
+        private static void Add(Dictionary<Station, Dictionary<Station, int>> map, Station a, Station b)
         {
-            Dictionary<Airport, int> inner;
-            if (!map.TryGetValue(a, out inner)) map[a] = inner = new Dictionary<Airport, int>();
+            Dictionary<Station, int> inner;
+            if (!map.TryGetValue(a, out inner)) map[a] = inner = new Dictionary<Station, int>();
             int n;
             inner.TryGetValue(b, out n);
             inner[b] = n + 1;
         }
 
-        /// <summary>How many routes (of all airlines) fly between two airports.</summary>
-        public static int NonstopRoutes(Airport a, Airport b)
+        /// <summary>How many routes (of all carriers) fly between two stations.</summary>
+        public static int NonstopRoutes(Station a, Station b)
         {
-            Dictionary<Airport, int> inner;
+            Dictionary<Station, int> inner;
             int n;
             return Nonstop().TryGetValue(a, out inner) && inner.TryGetValue(b, out n) ? n : 0;
         }
 
-        // ---- the airline's network ----
+        // ---- the carrier's network ----
 
-        /// <summary>The partners whose routes can feed the airline's: alliance members and codeshare partners.</summary>
-        public static List<Airline> Partners(Airline airline)
+        /// <summary>The partners whose routes can feed the carrier's: alliance members and codeshare partners.</summary>
+        public static List<Carrier> Partners(Carrier carrier)
         {
-            var list = new List<Airline>();
-            foreach (var al in airline.Alliances.ToList())
+            var list = new List<Carrier>();
+            foreach (var al in carrier.Alliances.ToList())
                 foreach (var m in al.Members.ToList())
-                    if (m.Airline != airline && !list.Contains(m.Airline)) list.Add(m.Airline);
-            foreach (var c in airline.Codeshares.ToList())
+                    if (m.Carrier != carrier && !list.Contains(m.Carrier)) list.Add(m.Carrier);
+            foreach (var c in carrier.Codeshares.ToList())
             {
-                if (!(c.Airline2 == airline && c.Type == CodeshareAgreement.CodeshareType.OneWay) && c.Type != CodeshareAgreement.CodeshareType.BothWays) continue;
-                var other = c.Airline1 == airline ? c.Airline2 : c.Airline1;
-                if (other != airline && !list.Contains(other)) list.Add(other);
+                if (!(c.Carrier2 == carrier && c.Type == CodeshareAgreement.CodeshareType.OneWay) && c.Type != CodeshareAgreement.CodeshareType.BothWays) continue;
+                var other = c.Carrier1 == carrier ? c.Carrier2 : c.Carrier1;
+                if (other != carrier && !list.Contains(other)) list.Add(other);
             }
             return list;
         }
 
-        /// <summary>The share of a market the airline's own feeder brings through an airport (more at its hubs).</summary>
-        public static double OwnWeightAt(Airline airline, Airport via, out string hubName)
+        /// <summary>The share of a market the carrier's own feeder brings through an station (more at its hubs).</summary>
+        public static double OwnWeightAt(Carrier carrier, Station via, out string hubName)
         {
             hubName = null;
-            var hub = via.GetHubs().Find(h => h.Airline == airline);
+            var hub = via.GetHubs().Find(h => h.Carrier == carrier);
             if (hub == null) return OwnWeight;
             switch (hub.Type.Type)
             {
@@ -131,36 +131,36 @@ namespace TheBusProject.Helpers
             }
         }
 
-        /// <summary>The demand between two airports, both ways and all classes.</summary>
-        public static double PairDemand(Airport a, Airport b)
+        /// <summary>The demand between two stations, both ways and all classes.</summary>
+        public static double PairDemand(Station a, Station b)
         {
             return Rate(a, b, null) + Rate(b, a, null);
         }
 
-        private static double Rate(Airport from, Airport to, AirlinerClass.ClassType? type)
+        private static double Rate(Station from, Station to, CoachClass.ClassType? type)
         {
             if (type.HasValue) return from.GetDestinationPassengersRate(to, type.Value);
             double v = 0;
-            foreach (AirlinerClass.ClassType t in Enum.GetValues(typeof (AirlinerClass.ClassType)))
+            foreach (CoachClass.ClassType t in Enum.GetValues(typeof (CoachClass.ClassType)))
                 v += from.GetDestinationPassengersRate(to, t);
             return v;
         }
 
         /// <summary>
         ///     The connection markets at one end (via) of a leg between near and via. With a class, the demand is the
-        ///     one-way daily demand from near (or to near when inbound) in that class, as the flight uses it; without one,
+        ///     one-way daily demand from near (or to near when inbound) in that class, as the trip uses it; without one,
         ///     both ways in all classes.
         /// </summary>
-        private static IEnumerable<ConnectionMarket> MarketsAt(Airline airline, Route route, Airport near, Airport via, AirlinerClass.ClassType? type, bool outbound)
+        private static IEnumerable<ConnectionMarket> MarketsAt(Carrier carrier, Route route, Station near, Station via, CoachClass.ClassType? type, bool outbound)
         {
             double leg = MathHelpers.GetDistance(near, via);
             string hubName;
-            double own = OwnWeightAt(airline, via, out hubName);
+            double own = OwnWeightAt(carrier, via, out hubName);
             // only routes touching via can feed it: take them from the route index instead of every route of the network
             var atVia = RouteIndex.At(via);
-            var feeders = atVia.Where(r => r.Airline == airline).Select(r => new { r, partner = false })
-                               .Concat(Partners(airline).SelectMany(p => atVia.Where(r => r.Airline == p)).Select(r => new { r, partner = true }));
-            var seen = new HashSet<Airport>();
+            var feeders = atVia.Where(r => r.Carrier == carrier).Select(r => new { r, partner = false })
+                               .Concat(Partners(carrier).SelectMany(p => atVia.Where(r => r.Carrier == p)).Select(r => new { r, partner = true }));
+            var seen = new HashSet<Station>();
             foreach (var f in feeders)
             {
                 var r = f.r;
@@ -168,7 +168,7 @@ namespace TheBusProject.Helpers
                 if (r.Destination1 != via && r.Destination2 != via) continue;
                 if (r.Destination1 == near || r.Destination2 == near) continue;
                 var far = r.Destination1 == via ? r.Destination2 : r.Destination1;
-                // one market per far airport: the own route first, then partners
+                // one market per far station: the own route first, then partners
                 if (!seen.Add(far)) continue;
                 var m = new ConnectionMarket
                 {
@@ -179,37 +179,37 @@ namespace TheBusProject.Helpers
                     ? (outbound ? Rate(near, far, type) : Rate(far, near, type))
                     : Rate(near, far, null) + Rate(far, near, null);
                 double direct = MathHelpers.GetDistance(near, far);
-                if (!r.HasAirliner) m.Problem = "no aircraft flies " + Code(r.Destination1) + "-" + Code(r.Destination2) + " yet";
+                if (!r.HasCoach) m.Problem = "no coach runs " + Code(r.Destination1) + "-" + Code(r.Destination2) + " yet";
                 else if (r.GetDistance() + leg >= direct*3) m.Problem = "too far out of the way (" + ((r.GetDistance() + leg)/Math.Max(1, direct)).ToString("0.0") + " times the nonstop distance)";
                 else
                 {
                     int n = NonstopRoutes(near, far);
-                    if (n >= 2) m.Problem = n + " routes already fly " + Code(near) + "-" + Code(far) + " nonstop";
+                    if (n >= 2) m.Problem = n + " routes already run " + Code(near) + "-" + Code(far) + " nonstop";
                 }
                 if (m.Demand <= 0 && m.Problem == null) m.Problem = "nobody wants to travel " + Code(near) + "-" + Code(far);
                 yield return m;
             }
         }
 
-        // a route that can feed connections at an airport: the far end, whether a partner flies it, its length
+        // a route that can feed connections at an station: the far end, whether a partner flies it, its length
         private sealed class Feeder
         {
             public Route Route;
-            public Airport Far;
+            public Station Far;
             public bool Partner;
             public double Distance;
         }
 
-        // the airline's (then its partners') passenger routes from an airport, as MarketsAt goes through them; kept until
+        // the carrier's (then its partners') passenger routes from an station, as MarketsAt goes through them; kept until
         // the routes change
-        private static List<Feeder> FeedersAt(Airline airline, Airport via)
+        private static List<Feeder> FeedersAt(Carrier carrier, Station via)
         {
-            return RouteIndex.Derived(Tuple.Create("feeders", airline, via), () =>
+            return RouteIndex.Derived(Tuple.Create("feeders", carrier, via), () =>
                 {
                     var atVia = RouteIndex.At(via);
                     var list = new List<Feeder>();
-                    foreach (var x in atVia.Where(r => r.Airline == airline).Select(r => new {r, partner = false})
-                                           .Concat(Partners(airline).SelectMany(p => atVia.Where(r => r.Airline == p)).Select(r => new {r, partner = true})))
+                    foreach (var x in atVia.Where(r => r.Carrier == carrier).Select(r => new {r, partner = false})
+                                           .Concat(Partners(carrier).SelectMany(p => atVia.Where(r => r.Carrier == p)).Select(r => new {r, partner = true})))
                     {
                         Route r = x.r;
                         if (r == null || r.IsCargoRoute) continue;
@@ -220,15 +220,15 @@ namespace TheBusProject.Helpers
                 });
         }
 
-        // the passengers a day the connection markets at via add to a flight between near and via (MarketsAt's Added, summed)
-        private static double AddedAt(Airline airline, Route route, Airport near, Airport via, AirlinerClass.ClassType type, bool outbound)
+        // the passengers a day the connection markets at via add to a trip between near and via (MarketsAt's Added, summed)
+        private static double AddedAt(Carrier carrier, Route route, Station near, Station via, CoachClass.ClassType type, bool outbound)
         {
-            List<Feeder> feeders = FeedersAt(airline, via);
+            List<Feeder> feeders = FeedersAt(carrier, via);
             if (feeders.Count == 0) return 0;
             double leg = MathHelpers.GetDistance(near, via);
             string hubName;
-            double own = OwnWeightAt(airline, via, out hubName);
-            var seen = new HashSet<Airport>();
+            double own = OwnWeightAt(carrier, via, out hubName);
+            var seen = new HashSet<Station>();
             double v = 0;
             foreach (Feeder f in feeders)
             {
@@ -237,7 +237,7 @@ namespace TheBusProject.Helpers
                 if (r.Destination1 == near || r.Destination2 == near) continue;
                 if (!seen.Add(f.Far)) continue;
                 double demand = outbound ? Rate(near, f.Far, type) : Rate(f.Far, near, type);
-                if (demand <= 0 || !r.HasAirliner) continue;
+                if (demand <= 0 || !r.HasCoach) continue;
                 if (f.Distance + leg >= MathHelpers.GetDistance(near, f.Far)*3) continue;
                 if (NonstopRoutes(near, f.Far) >= 2) continue;
                 v += demand*(f.Partner ? PartnerWeight : own);
@@ -245,7 +245,7 @@ namespace TheBusProject.Helpers
             return v;
         }
 
-        public static string Code(Airport a)
+        public static string Code(Station a)
         {
             return a?.Profile.IATACode ?? "?";
         }
@@ -253,24 +253,24 @@ namespace TheBusProject.Helpers
         /// <summary>All connection markets of a route, at both ends, both ways and all classes.</summary>
         public static List<ConnectionMarket> Markets(Route route)
         {
-            var airline = route.Airline;
+            var carrier = route.Carrier;
             var list = new List<ConnectionMarket>();
-            if (airline == null || route.IsCargoRoute) return list;
-            list.AddRange(MarketsAt(airline, route, route.Destination1, route.Destination2, null, true));
-            list.AddRange(MarketsAt(airline, route, route.Destination2, route.Destination1, null, true));
+            if (carrier == null || route.IsCargoRoute) return list;
+            list.AddRange(MarketsAt(carrier, route, route.Destination1, route.Destination2, null, true));
+            list.AddRange(MarketsAt(carrier, route, route.Destination2, route.Destination1, null, true));
             return list.OrderByDescending(m => m.Added).ThenByDescending(m => m.Demand).ToList();
         }
 
         /// <summary>
-        ///     The connecting demand a flight from current to destination adds in one class (passengers a day), as the
-        ///     flight engine uses it: passengers going on beyond the destination and passengers from beyond the start.
+        ///     The connecting demand a trip from current to destination adds in one class (passengers a day), as the
+        ///     trip engine uses it: passengers going on beyond the destination and passengers from beyond the start.
         /// </summary>
-        public static double FlightDemand(Airline airline, Route route, Airport current, Airport destination, AirlinerClass.ClassType type)
+        public static double TripDemand(Carrier carrier, Route route, Station current, Station destination, CoachClass.ClassType type)
         {
-            if (airline == null) return 0;
-            // the same for every flight of the route in that direction and class on one day: work it out once a day
+            if (carrier == null) return 0;
+            // the same for every trip of the route in that direction and class on one day: work it out once a day
             DateTime day = GameObject.GetInstance().GameTime.Date;
-            var key = Tuple.Create(airline, current, destination, type);
+            var key = Tuple.Create(carrier, current, destination, type);
             DemandDay cached = route == null ? null : DemandCache.GetOrCreateValue(route);
             if (cached != null)
             {
@@ -282,7 +282,7 @@ namespace TheBusProject.Helpers
             }
             long pfMiss = Profiler.Start();
             // the same sum as the markets' (MarketsAt), without building them
-            double v = AddedAt(airline, route, current, destination, type, true) + AddedAt(airline, route, destination, current, type, false);
+            double v = AddedAt(carrier, route, current, destination, type, true) + AddedAt(carrier, route, destination, current, type, false);
             if (cached != null)
             {
                 lock (cached)
@@ -299,26 +299,26 @@ namespace TheBusProject.Helpers
             return v;
         }
 
-        /// <summary>FlightDemand worked out the long way, from the markets (for the tests: the two must agree).</summary>
-        public static double FlightDemandByMarkets(Airline airline, Route route, Airport current, Airport destination, AirlinerClass.ClassType type)
+        /// <summary>TripDemand worked out the long way, from the markets (for the tests: the two must agree).</summary>
+        public static double TripDemandByMarkets(Carrier carrier, Route route, Station current, Station destination, CoachClass.ClassType type)
         {
             double v = 0;
-            foreach (var m in MarketsAt(airline, route, current, destination, type, true)) v += m.Added;
-            foreach (var m in MarketsAt(airline, route, destination, current, type, false)) v += m.Added;
+            foreach (var m in MarketsAt(carrier, route, current, destination, type, true)) v += m.Added;
+            foreach (var m in MarketsAt(carrier, route, destination, current, type, false)) v += m.Added;
             return v;
         }
 
-        /// <summary>FlightDemand without the day's cache (for the tests).</summary>
-        public static double FlightDemandFresh(Airline airline, Route route, Airport current, Airport destination, AirlinerClass.ClassType type)
+        /// <summary>TripDemand without the day's cache (for the tests).</summary>
+        public static double TripDemandFresh(Carrier carrier, Route route, Station current, Station destination, CoachClass.ClassType type)
         {
-            return AddedAt(airline, route, current, destination, type, true) + AddedAt(airline, route, destination, current, type, false);
+            return AddedAt(carrier, route, current, destination, type, true) + AddedAt(carrier, route, destination, current, type, false);
         }
 
         private sealed class DemandDay
         {
             public DateTime Day;
-            public readonly Dictionary<Tuple<Airline, Airport, Airport, AirlinerClass.ClassType>, double> Values =
-                new Dictionary<Tuple<Airline, Airport, Airport, AirlinerClass.ClassType>, double>();
+            public readonly Dictionary<Tuple<Carrier, Station, Station, CoachClass.ClassType>, double> Values =
+                new Dictionary<Tuple<Carrier, Station, Station, CoachClass.ClassType>, double>();
         }
 
         private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Route, DemandDay> DemandCache =
@@ -331,7 +331,7 @@ namespace TheBusProject.Helpers
             return d.Year*12 + d.Month - 1;
         }
 
-        /// <summary>Counts a flight's passengers, how many of them connect, and the seats it flew.</summary>
+        /// <summary>Counts a trip's passengers, how many of them connect, and the seats it flew.</summary>
         public static void Record(Route route, int passengers, double connecting, int seats = 0)
         {
             if (passengers < 0) passengers = 0;
@@ -405,29 +405,29 @@ namespace TheBusProject.Helpers
 
         public class HubIdea
         {
-            public Airport Destination;
+            public Station Destination;
             public double Nonstop, Connecting;
             public int Feeders;
             public double Total => Nonstop + Connecting;
         }
 
         /// <summary>
-        ///     New destinations from an airport the airline flies from, ranked by the passengers a day a route there
-        ///     would get: the nonstop demand both ways and the connecting demand from the airline's other routes there.
+        ///     New destinations from an station the carrier flies from, ranked by the passengers a day a route there
+        ///     would get: the nonstop demand both ways and the connecting demand from the carrier's other routes there.
         /// </summary>
-        public static List<HubIdea> HubIdeas(Airline airline, Airport hub, int count, double maxKm)
+        public static List<HubIdea> HubIdeas(Carrier carrier, Station hub, int count, double maxKm)
         {
             string hubName;
-            double weight = OwnWeightAt(airline, hub, out hubName);
-            var spokes = airline.Routes.ToList()
-                                .Where(r => !r.IsCargoRoute && r.HasAirliner && (r.Destination1 == hub || r.Destination2 == hub))
+            double weight = OwnWeightAt(carrier, hub, out hubName);
+            var spokes = carrier.Routes.ToList()
+                                .Where(r => !r.IsCargoRoute && r.HasCoach && (r.Destination1 == hub || r.Destination2 == hub))
                                 .Select(r => r.Destination1 == hub ? r.Destination2 : r.Destination1)
                                 .Distinct().ToList();
-            var served = new HashSet<Airport>(spokes);
+            var served = new HashSet<Station>(spokes);
             var ideas = new List<HubIdea>();
             foreach (var d in hub.GetDestinationDemands())
             {
-                if (d == null || d == hub || served.Contains(d) || !GeneralHelpers.IsAirportActive(d)) continue;
+                if (d == null || d == hub || served.Contains(d) || !GeneralHelpers.IsStationActive(d)) continue;
                 double km = MathHelpers.GetDistance(hub, d);
                 if (km < 50 || km > maxKm) continue;
                 var idea = new HubIdea { Destination = d, Nonstop = Rate(hub, d, null) + Rate(d, hub, null) };

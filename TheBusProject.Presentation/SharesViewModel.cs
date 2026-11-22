@@ -4,15 +4,15 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 using TheBusProject.Helpers;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airlines.Subsidiary;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Carriers.Subsidiary;
 using TheBusProject.Models.General;
 
 namespace TheBusProject.Presentation
 {
     public class MarketRow
     {
-        public Airline Airline { get; set; }
+        public Carrier Carrier { get; set; }
         public string LogoPath { get; set; }
         public string Name { get; set; }
         public string Numbers { get; set; }
@@ -20,12 +20,12 @@ namespace TheBusProject.Presentation
 
     public class HoldingRow
     {
-        public Airline Airline { get; set; }
+        public Carrier Carrier { get; set; }
         public string Text { get; set; }
         public int Count { get; set; }
     }
 
-    /// <summary>Airlines > Shares: your airline's shares, the shares you own and the market, with takeovers.</summary>
+    /// <summary>Carriers > Shares: your carrier's shares, the shares you own and the market, with takeovers.</summary>
     public class SharesViewModel : ObservableObject
     {
         private readonly Action _changed;
@@ -130,7 +130,7 @@ namespace TheBusProject.Presentation
             OnPropertyChanged(nameof(HasPending));
         }
 
-        private static Airline Me => GameObject.GetInstance()?.HumanAirline;
+        private static Carrier Me => GameObject.GetInstance()?.HumanCarrier;
 
         public void Reload()
         {
@@ -150,7 +150,7 @@ namespace TheBusProject.Presentation
                 SharesService.OwnedPercent(me, me)*100, SharesService.Public(me));
             int max = SharesService.MaxIssue(me);
             IssueText = max == 0
-                ? "You can't issue more shares without falling below 51% of your airline."
+                ? "You can't issue more shares without falling below 51% of your carrier."
                 : string.Format("Issuing {0:N0} new shares brings in {1} (up to {2:N0} can be issued).", Math.Min(_issueCount, max), Money(SharesService.IssueIncome(me, Math.Min(_issueCount, max))), max);
             int pub = SharesService.Public(me);
             BuybackText = pub == 0
@@ -172,7 +172,7 @@ namespace TheBusProject.Presentation
                 cost += p.Value.Cost;
                 PortfolioRows.Add(new HoldingRow
                 {
-                    Airline = p.Key,
+                    Carrier = p.Key,
                     Count = p.Value.Count,
                     Text = string.Format(
                         "{0}: {1:N0} shares ({2:0.#}%)  |  worth {3}  |  paid {4}  |  {5} {6}",
@@ -181,8 +181,8 @@ namespace TheBusProject.Presentation
                 });
             }
             PortfolioText = PortfolioRows.Count == 0
-                ? "You don't own shares in other airlines."
-                : string.Format("Your shares in other airlines are worth {0} (you paid {1}).", Money(value), Money(cost));
+                ? "You don't own shares in other carriers."
+                : string.Format("Your shares in other carriers are worth {0} (you paid {1}).", Money(value), Money(cost));
             SelectedHolding = null;
         }
 
@@ -191,9 +191,9 @@ namespace TheBusProject.Presentation
             var me = Me;
             if (me == null) return;
             string s = _search.Trim();
-            var keep = _selected?.Airline;
+            var keep = _selected?.Carrier;
             Market.Clear();
-            foreach (var a in Airlines.GetAllAirlines()
+            foreach (var a in Carriers.GetAllCarriers()
                                       .Where(a => SharesService.GetTradeBlocker(me, a) == null)
                                       .Where(a => s.Length == 0 || a.Profile.Name.IndexOf(s, StringComparison.OrdinalIgnoreCase) >= 0
                                                   || (a.Profile.IATACode ?? "").StartsWith(s, StringComparison.OrdinalIgnoreCase)
@@ -204,8 +204,8 @@ namespace TheBusProject.Presentation
                 double mine = SharesService.OwnedPercent(a, me);
                 Market.Add(new MarketRow
                 {
-                    Airline = a,
-                    LogoPath = AirlineProfileService.GetLogo(a),
+                    Carrier = a,
+                    LogoPath = CarrierProfileService.GetLogo(a),
                     Name = a.Profile.Name + " (" + a.Profile.IATACode + "), " + a.Profile.Country?.Name,
                     Numbers = string.Format(
                         "worth {0}  |  share {1}  |  {2:N0} on the market{3}",
@@ -214,7 +214,7 @@ namespace TheBusProject.Presentation
                 });
             }
             _selected = null;
-            Selected = Market.FirstOrDefault(m => m.Airline == keep);
+            Selected = Market.FirstOrDefault(m => m.Carrier == keep);
             OnPropertyChanged(nameof(Selected));
         }
 
@@ -225,11 +225,11 @@ namespace TheBusProject.Presentation
                 SelectedText = "";
                 return;
             }
-            var a = _selected.Airline;
+            var a = _selected.Carrier;
             var me = Me;
             int buy = Math.Min(_buyCount, SharesService.Public(a));
             SelectedText = string.Format(
-                "{0}: {1} routes, {2} aircraft, cash {3}" + Environment.NewLine +
+                "{0}: {1} routes, {2} coach, cash {3}" + Environment.NewLine +
                 "Its founders hold {4:0.#}%, the market {5:0.#}%, you {6:0.#}%." + Environment.NewLine +
                 "Buying {7:N0} shares costs {8}." + Environment.NewLine +
                 "Taking it over (all {9:N0} shares you don't own, with a 30% premium) costs {10}.",
@@ -274,7 +274,7 @@ namespace TheBusProject.Presentation
 
         private void AskBuy()
         {
-            var a = _selected?.Airline;
+            var a = _selected?.Carrier;
             if (a == null) return;
             int n = Math.Min(_buyCount, SharesService.Public(a));
             SetPending(string.Format("Buy {0:N0} shares of {1} for {2}?", n, a.Profile.Name, Money(SharesService.BuyCost(a, n))),
@@ -286,13 +286,13 @@ namespace TheBusProject.Presentation
             var h = _selectedHolding;
             if (h == null) return;
             int n = Math.Min(_sellCount, h.Count);
-            SetPending(string.Format("Sell {0:N0} shares of {1} for {2}?", n, h.Airline.Profile.Name, Money(SharesService.SellIncome(h.Airline, n))),
-                () => { string m; Done(SharesService.Sell(Me, h.Airline, n, out m), m); });
+            SetPending(string.Format("Sell {0:N0} shares of {1} for {2}?", n, h.Carrier.Profile.Name, Money(SharesService.SellIncome(h.Carrier, n))),
+                () => { string m; Done(SharesService.Sell(Me, h.Carrier, n, out m), m); });
         }
 
         private void AskTakeover(bool asSubsidiary)
         {
-            var a = _selected?.Airline;
+            var a = _selected?.Carrier;
             if (a == null) return;
             string blocker = SharesService.GetTakeoverBlocker(Me, a);
             if (blocker != null)
@@ -302,7 +302,7 @@ namespace TheBusProject.Presentation
             }
             string what = asSubsidiary
                 ? "It keeps its name, logo and money and its management keeps running it as your subsidiary."
-                : "Its aircraft, routes, gates, pilots, cash and loans join your airline and its name disappears.";
+                : "Its coach, routes, gates, pilots, cash and loans join your carrier and its name disappears.";
             SetPending(
                 string.Format("Take over {0} for {1}? {2} This can't be undone.", a.Profile.Name, Money(SharesService.TakeoverCost(Me, a)), what),
                 () => { string m; Done(SharesService.TakeOver(Me, a, asSubsidiary, out m), m); });

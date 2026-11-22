@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 using TheBusProject.Helpers;
-using TheBusProject.Models.Airlines;
+using TheBusProject.Models.Carriers;
 using TheBusProject.Models.General;
 
 namespace TheBusProject.Presentation
@@ -20,7 +20,7 @@ namespace TheBusProject.Presentation
         public ICommand EndCommand { get; set; }
     }
 
-    /// <summary>An offer from a computer airline.</summary>
+    /// <summary>An offer from a computer carrier.</summary>
     public class CodeshareOfferRow
     {
         public CodeshareAgreement Agreement { get; set; }
@@ -31,16 +31,16 @@ namespace TheBusProject.Presentation
         public ICommand DeclineCommand { get; set; }
     }
 
-    /// <summary>An airline you could ask.</summary>
+    /// <summary>An carrier you could ask.</summary>
     public class CodeshareCandidateRow
     {
-        public Airline Airline { get; set; }
+        public Carrier Carrier { get; set; }
         public string LogoPath { get; set; }
         public string Name { get; set; }
         public string Numbers { get; set; }
     }
 
-    /// <summary>Airlines > Codeshares: your partners, offers from other airlines and finding new partners.</summary>
+    /// <summary>Carriers > Codeshares: your partners, offers from other carriers and finding new partners.</summary>
     public class CodesharesViewModel : ObservableObject
     {
         private readonly Action _changed;
@@ -75,9 +75,9 @@ namespace TheBusProject.Presentation
         public bool HasSelection => _selected != null;
 
         public string Explanation =>
-            "A codeshare lets two airlines sell seats on each other's flights. Each partner earns 1% of the ticket income " +
-            "on the other's flights it sells, and both get more passengers at airports the partner flies to. " +
-            "Both ways: you each sell the other's flights. One way: you sell the partner's flights only (you earn, it doesn't).";
+            "A codeshare lets two carriers sell seats on each other's trips. Each partner earns 1% of the ticket income " +
+            "on the other's trips it sells, and both get more passengers at stations the partner runs to. " +
+            "Both ways: you each sell the other's trips. One way: you sell the partner's trips only (you earn, it doesn't).";
 
         public string Summary
         {
@@ -107,14 +107,14 @@ namespace TheBusProject.Presentation
             }
         }
 
-        /// <summary>How the selected airline would answer, by the game's rules.</summary>
+        /// <summary>How the selected carrier would answer, by the game's rules.</summary>
         public string Evaluation
         {
             get
             {
                 if (_selected == null) return "";
-                var me = GameObject.GetInstance().HumanAirline;
-                var a = _selected.Airline;
+                var me = GameObject.GetInstance().HumanCarrier;
+                var a = _selected.Carrier;
                 string blocker = CodeshareService.GetBlocker(me, a);
                 if (blocker != null) return blocker;
                 var both = CodeshareService.Reasons(a, me, CodeshareAgreement.CodeshareType.BothWays);
@@ -153,7 +153,7 @@ namespace TheBusProject.Presentation
 
         public void Reload()
         {
-            var me = GameObject.GetInstance()?.HumanAirline;
+            var me = GameObject.GetInstance()?.HumanCarrier;
             if (me == null) return;
 
             Partners.Clear();
@@ -168,12 +168,12 @@ namespace TheBusProject.Presentation
                 Partners.Add(new CodesharePartnerRow
                 {
                     Agreement = c,
-                    LogoPath = AirlineProfileService.GetLogo(p),
+                    LogoPath = CarrierProfileService.GetLogo(p),
                     Name = p.Profile.Name + " (" + p.Profile.IATACode + ")",
                     Kind = CodeshareService.Describe(c, me),
                     Numbers = string.Format(
-                        "{0} of their routes touch your airports  |  {1} shared airports  |  last month: you got {2}, you paid {3}",
-                        CodeshareService.PartnerRoutesAtMyAirports(me, p), CodeshareService.SharedAirports(me, p), Money(inc), Money(co)),
+                        "{0} of their routes touch your stations  |  {1} shared stations  |  last month: you got {2}, you paid {3}",
+                        CodeshareService.PartnerRoutesAtMyStations(me, p), CodeshareService.SharedStations(me, p), Money(inc), Money(co)),
                     EndCommand = new RelayCommand(() => SetPending(
                         "End the codeshare with " + p.Profile.Name + "?",
                         () =>
@@ -194,11 +194,11 @@ namespace TheBusProject.Presentation
                 Offers.Add(new CodeshareOfferRow
                 {
                     Agreement = o,
-                    LogoPath = AirlineProfileService.GetLogo(p),
+                    LogoPath = CarrierProfileService.GetLogo(p),
                     Name = p.Profile.Name + " (" + p.Profile.IATACode + ") asks for a codeshare both ways",
                     Numbers = string.Format(
-                        "{0} routes  |  {1} of their routes touch your airports  |  {2} shared airports",
-                        p.Routes.Count, CodeshareService.PartnerRoutesAtMyAirports(me, p), CodeshareService.SharedAirports(me, p)),
+                        "{0} routes  |  {1} of their routes touch your stations  |  {2} shared stations",
+                        p.Routes.Count, CodeshareService.PartnerRoutesAtMyStations(me, p), CodeshareService.SharedStations(me, p)),
                     AcceptCommand = new RelayCommand(() => Answer(offer, true)),
                     DeclineCommand = new RelayCommand(() => Answer(offer, false))
                 });
@@ -215,9 +215,9 @@ namespace TheBusProject.Presentation
 
         private void LoadCandidates()
         {
-            var me = GameObject.GetInstance()?.HumanAirline;
+            var me = GameObject.GetInstance()?.HumanCarrier;
             if (me == null) return;
-            var keep = _selected?.Airline;
+            var keep = _selected?.Carrier;
             string s = _search.Trim();
             var list = CodeshareService.Candidates(me)
                                        .Where(a => s.Length == 0
@@ -230,16 +230,16 @@ namespace TheBusProject.Presentation
             {
                 Candidates.Add(new CodeshareCandidateRow
                 {
-                    Airline = a,
-                    LogoPath = AirlineProfileService.GetLogo(a),
+                    Carrier = a,
+                    LogoPath = CarrierProfileService.GetLogo(a),
                     Name = a.Profile.Name + " (" + a.Profile.IATACode + "), " + a.Profile.Country?.Name,
                     Numbers = string.Format(
-                        "{0} routes  |  {1} touch your airports  |  {2} shared airports",
-                        a.Routes.Count, CodeshareService.PartnerRoutesAtMyAirports(me, a), CodeshareService.SharedAirports(me, a))
+                        "{0} routes  |  {1} touch your stations  |  {2} shared stations",
+                        a.Routes.Count, CodeshareService.PartnerRoutesAtMyStations(me, a), CodeshareService.SharedStations(me, a))
                 });
             }
             _selected = null;
-            Selected = Candidates.FirstOrDefault(c => c.Airline == keep);
+            Selected = Candidates.FirstOrDefault(c => c.Carrier == keep);
             OnPropertyChanged(nameof(Selected));
         }
 
@@ -247,8 +247,8 @@ namespace TheBusProject.Presentation
         {
             var row = _selected;
             if (row == null) return;
-            var me = GameObject.GetInstance().HumanAirline;
-            string blocker = CodeshareService.GetBlocker(me, row.Airline);
+            var me = GameObject.GetInstance().HumanCarrier;
+            string blocker = CodeshareService.GetBlocker(me, row.Carrier);
             if (blocker != null)
             {
                 Status = blocker;
@@ -256,13 +256,13 @@ namespace TheBusProject.Presentation
             }
             string kind = type == CodeshareAgreement.CodeshareType.BothWays ? "both ways" : "one way";
             SetPending(
-                "Ask " + row.Airline.Profile.Name + " for a codeshare " + kind + "? If they agree, the signing fee is "
-                + Money(CodeshareService.SigningFee(row.Airline, me)) + ". If they say no, you can ask again after "
+                "Ask " + row.Carrier.Profile.Name + " for a codeshare " + kind + "? If they agree, the signing fee is "
+                + Money(CodeshareService.SigningFee(row.Carrier, me)) + ". If they say no, you can ask again after "
                 + CodeshareService.RefusalDays + " days.",
                 () =>
                     {
                         string m;
-                        bool ok = CodeshareService.Propose(me, row.Airline, type, out m);
+                        bool ok = CodeshareService.Propose(me, row.Carrier, type, out m);
                         Reload();
                         Status = m;
                         if (ok) _changed?.Invoke();
@@ -272,7 +272,7 @@ namespace TheBusProject.Presentation
         private void Answer(CodeshareAgreement offer, bool accept)
         {
             string m;
-            CodeshareService.AnswerOffer(GameObject.GetInstance().HumanAirline, offer, accept, out m);
+            CodeshareService.AnswerOffer(GameObject.GetInstance().HumanCarrier, offer, accept, out m);
             Reload();
             Status = m;
             if (accept) _changed?.Invoke();

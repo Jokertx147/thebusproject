@@ -5,8 +5,8 @@ using System.Linq;
 using System.Windows.Input;
 using TheBusProject.Helpers;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 
 namespace TheBusProject.Presentation
@@ -31,13 +31,13 @@ namespace TheBusProject.Presentation
         public ICommand DeclineCommand { get; set; }
     }
 
-    /// <summary>Alliances: look at them, join, leave, invite airlines, answer requests and start your own.</summary>
+    /// <summary>Alliances: look at them, join, leave, invite carriers, answer requests and start your own.</summary>
     public class AlliancesViewModel : ObservableObject
     {
         private readonly Action _changed;
         private AllianceItem _selected;
-        private Airline _invite;
-        private Airport _headquarter;
+        private Carrier _invite;
+        private Station _headquarter;
         private string _newName = "";
         private string _status;
         private Action _pending;
@@ -64,8 +64,8 @@ namespace TheBusProject.Presentation
         public ObservableCollection<AllianceItem> Alliances { get; } = new ObservableCollection<AllianceItem>();
         public ObservableCollection<AllianceMemberItem> Members { get; } = new ObservableCollection<AllianceMemberItem>();
         public ObservableCollection<PendingMemberItem> Requests { get; } = new ObservableCollection<PendingMemberItem>();
-        public ObservableCollection<Airline> InviteCandidates { get; } = new ObservableCollection<Airline>();
-        public List<Airport> Headquarters { get; private set; } = new List<Airport>();
+        public ObservableCollection<Carrier> InviteCandidates { get; } = new ObservableCollection<Carrier>();
+        public List<Station> Headquarters { get; private set; } = new List<Station>();
 
         public ICommand JoinCommand { get; }
         public ICommand LeaveCommand { get; }
@@ -86,7 +86,7 @@ namespace TheBusProject.Presentation
             }
         }
 
-        public Airline Invite
+        public Carrier Invite
         {
             get { return _invite; }
             set
@@ -98,7 +98,7 @@ namespace TheBusProject.Presentation
             }
         }
 
-        public Airport Headquarter
+        public Station Headquarter
         {
             get { return _headquarter; }
             set { SetProperty(ref _headquarter, value); }
@@ -132,17 +132,17 @@ namespace TheBusProject.Presentation
         public string Title { get; private set; }
         public string Info { get; private set; }
         public bool HasSelection => _selected != null;
-        public bool IsMember => _selected != null && _selected.Alliance.Members.Any(m => m.Airline == Human);
+        public bool IsMember => _selected != null && _selected.Alliance.Members.Any(m => m.Carrier == Human);
         public bool CanJoin => _selected != null && !IsMember;
         public bool HasRequests => Requests.Count > 0;
 
-        private static Airline Human => GameObject.GetInstance().HumanAirline;
+        private static Carrier Human => GameObject.GetInstance().HumanCarrier;
 
         public void Reload()
         {
             var keep = _selected?.Alliance;
             Alliances.Clear();
-            foreach (var a in Models.Airlines.Alliances.GetAlliances().OrderByDescending(a => a.IsHumanAlliance).ThenBy(a => a.Name))
+            foreach (var a in Models.Carriers.Alliances.GetAlliances().OrderByDescending(a => a.IsHumanAlliance).ThenBy(a => a.Name))
             {
                 Alliances.Add(
                     new AllianceItem
@@ -150,11 +150,11 @@ namespace TheBusProject.Presentation
                         Alliance = a,
                         Text = string.Format(
                             "{0}{1}  |  {2} member(s)  |  founded {3:MMM yyyy}",
-                            a.Name, a.Members.Any(m => m.Airline == Human) ? "  (yours)" : "", a.Members.Count, a.FormationDate)
+                            a.Name, a.Members.Any(m => m.Carrier == Human) ? "  (yours)" : "", a.Members.Count, a.FormationDate)
                     });
             }
 
-            Headquarters = Human == null ? new List<Airport>() : Human.Airports.OrderBy(a => a.Profile.Name).ToList();
+            Headquarters = Human == null ? new List<Station>() : Human.Stations.OrderBy(a => a.Profile.Name).ToList();
             _headquarter = _headquarter != null && Headquarters.Contains(_headquarter) ? _headquarter : Headquarters.FirstOrDefault();
             OnPropertyChanged(nameof(Headquarters));
             OnPropertyChanged(nameof(Headquarter));
@@ -181,9 +181,9 @@ namespace TheBusProject.Presentation
                 Title = alliance.Name;
                 Info = string.Format(
                     "Headquarters {0}  |  founded {1}  |  {2} routes in total",
-                    alliance.Headquarter?.Profile.Name ?? "-", DateFormatter.Date(alliance.FormationDate), alliance.Members.Sum(m => m.Airline.Routes.Count));
+                    alliance.Headquarter?.Profile.Name ?? "-", DateFormatter.Date(alliance.FormationDate), alliance.Members.Sum(m => m.Carrier.Routes.Count));
 
-                bool member = alliance.Members.Any(m => m.Airline == human);
+                bool member = alliance.Members.Any(m => m.Carrier == human);
                 foreach (var m in alliance.Members.ToList())
                 {
                     var captured = m;
@@ -191,10 +191,10 @@ namespace TheBusProject.Presentation
                         new AllianceMemberItem
                         {
                             Text = string.Format(
-                                "{0}  |  {1}  |  {2} aircraft, {3} routes  |  joined {4:MMM yyyy}",
-                                m.Airline.Profile.Name, m.Airline.Profile.Country?.Name, m.Airline.Fleet.Count, m.Airline.Routes.Count, m.JoinedDate),
-                            CanRemove = member && m.Airline != human,
-                            RemoveCommand = new RelayCommand(() => AskRemove(alliance, captured.Airline))
+                                "{0}  |  {1}  |  {2} coach, {3} routes  |  joined {4:MMM yyyy}",
+                                m.Carrier.Profile.Name, m.Carrier.Profile.Country?.Name, m.Carrier.Fleet.Count, m.Carrier.Routes.Count, m.JoinedDate),
+                            CanRemove = member && m.Carrier != human,
+                            RemoveCommand = new RelayCommand(() => AskRemove(alliance, captured.Carrier))
                         });
                 }
 
@@ -206,14 +206,14 @@ namespace TheBusProject.Presentation
                         Requests.Add(
                             new PendingMemberItem
                             {
-                                Text = p.Airline.Profile.Name + " asks to join (" + DateFormatter.Date(p.Date) + ")",
+                                Text = p.Carrier.Profile.Name + " asks to join (" + DateFormatter.Date(p.Date) + ")",
                                 AcceptCommand = new RelayCommand(() => Answer(alliance, captured, true)),
                                 DeclineCommand = new RelayCommand(() => Answer(alliance, captured, false))
                             });
                     }
 
-                    foreach (var a in Airlines.GetAllAirlines()
-                                              .Where(a => !a.IsHuman && alliance.Members.All(m => m.Airline != a)
+                    foreach (var a in Carriers.GetAllCarriers()
+                                              .Where(a => !a.IsHuman && alliance.Members.All(m => m.Carrier != a)
                                                           && a.Profile.Founded <= GameObject.GetInstance().GameTime.Year
                                                           && a.Profile.Folded >= GameObject.GetInstance().GameTime.Year)
                                               .OrderBy(a => a.Profile.Name))
@@ -248,7 +248,7 @@ namespace TheBusProject.Presentation
                     }
                     else
                     {
-                        Status = alliance.Name + " turned down your request: your airline is too small, or too similar to its members.";
+                        Status = alliance.Name + " turned down your request: your carrier is too small, or too similar to its members.";
                     }
                 };
             PendingText = "Ask to join " + alliance.Name + "?";
@@ -262,7 +262,7 @@ namespace TheBusProject.Presentation
                     alliance.RemoveMember(Human);
                     if (alliance.Members.Count == 0 && alliance.PendingMembers.Count == 0)
                     {
-                        Models.Airlines.Alliances.RemoveAlliance(alliance);
+                        Models.Carriers.Alliances.RemoveAlliance(alliance);
                     }
 
                     Done("You left " + alliance.Name + ".");
@@ -270,31 +270,31 @@ namespace TheBusProject.Presentation
             PendingText = "Leave " + alliance.Name + "?";
         }
 
-        private void AskRemove(Alliance alliance, Airline airline)
+        private void AskRemove(Alliance alliance, Carrier carrier)
         {
-            if (!AIHelpers.CanRemoveFromAlliance(Human, airline, alliance))
+            if (!AIHelpers.CanRemoveFromAlliance(Human, carrier, alliance))
             {
-                Status = "You are not big enough to remove " + airline.Profile.Name + " from the alliance.";
+                Status = "You are not big enough to remove " + carrier.Profile.Name + " from the alliance.";
                 return;
             }
 
             _pending = () =>
                 {
-                    alliance.RemoveMember(airline);
-                    Done(airline.Profile.Name + " was removed from " + alliance.Name + ".");
+                    alliance.RemoveMember(carrier);
+                    Done(carrier.Profile.Name + " was removed from " + alliance.Name + ".");
                 };
-            PendingText = "Remove " + airline.Profile.Name + " from " + alliance.Name + "?";
+            PendingText = "Remove " + carrier.Profile.Name + " from " + alliance.Name + "?";
         }
 
         private void Answer(Alliance alliance, PendingAllianceMember pending, bool accept)
         {
             if (accept)
             {
-                alliance.AddMember(new AllianceMember(pending.Airline, GameObject.GetInstance().GameTime));
+                alliance.AddMember(new AllianceMember(pending.Carrier, GameObject.GetInstance().GameTime));
             }
 
             alliance.RemovePendingMember(pending);
-            Done(accept ? pending.Airline.Profile.Name + " joined." : "Request from " + pending.Airline.Profile.Name + " declined.");
+            Done(accept ? pending.Carrier.Profile.Name + " joined." : "Request from " + pending.Carrier.Profile.Name + " declined.");
         }
 
         private void DoInvite()
@@ -305,15 +305,15 @@ namespace TheBusProject.Presentation
             }
 
             var alliance = _selected.Alliance;
-            var airline = _invite;
-            if (AIHelpers.DoAcceptAllianceInvitation(airline, alliance))
+            var carrier = _invite;
+            if (AIHelpers.DoAcceptAllianceInvitation(carrier, alliance))
             {
-                alliance.AddMember(new AllianceMember(airline, GameObject.GetInstance().GameTime));
-                Done(airline.Profile.Name + " accepted and joined " + alliance.Name + ".");
+                alliance.AddMember(new AllianceMember(carrier, GameObject.GetInstance().GameTime));
+                Done(carrier.Profile.Name + " accepted and joined " + alliance.Name + ".");
             }
             else
             {
-                Status = airline.Profile.Name + " declined the invitation to " + alliance.Name + ".";
+                Status = carrier.Profile.Name + " declined the invitation to " + alliance.Name + ".";
             }
         }
 
@@ -326,7 +326,7 @@ namespace TheBusProject.Presentation
                 return;
             }
 
-            if (Models.Airlines.Alliances.GetAlliances().Any(a => string.Equals(a.Name, name, StringComparison.OrdinalIgnoreCase)))
+            if (Models.Carriers.Alliances.GetAlliances().Any(a => string.Equals(a.Name, name, StringComparison.OrdinalIgnoreCase)))
             {
                 Status = "There is an alliance with that name already.";
                 return;
@@ -334,7 +334,7 @@ namespace TheBusProject.Presentation
 
             if (_headquarter == null)
             {
-                Status = "Pick the airport for its headquarters (one of your airports).";
+                Status = "Pick the station for its headquarters (one of your stations).";
                 return;
             }
 
@@ -343,7 +343,7 @@ namespace TheBusProject.Presentation
                 Logo = AppSettings.GetDataPath() + "/graphics/alliancelogos/default.png"
             };
             alliance.AddMember(new AllianceMember(Human, GameObject.GetInstance().GameTime));
-            Models.Airlines.Alliances.AddAlliance(alliance);
+            Models.Carriers.Alliances.AddAlliance(alliance);
             NewName = "";
             Done("Created " + name + ".");
             Selected = Alliances.FirstOrDefault(a => a.Alliance == alliance);

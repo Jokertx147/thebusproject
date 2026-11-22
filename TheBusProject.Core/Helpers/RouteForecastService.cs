@@ -2,26 +2,26 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using TheBusProject.Infrastructure.Enums;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Finances;
 using TheBusProject.Models.Routes;
 
 namespace TheBusProject.Helpers
 {
-    /// <summary>What a passenger route flown by one aircraft is expected to do, at one number of round trips a day.</summary>
+    /// <summary>What a passenger route flown by one coach is expected to do, at one number of round trips a day.</summary>
     public class RouteForecast
     {
         public int RoundTrips { get; set; }
         public double Load { get; set; }
-        public double PassengersPerFlight { get; set; }
+        public double PassengersPerTrip { get; set; }
         public int Seats { get; set; }
-        public double RevenuePerFlight { get; set; }
-        public double CostPerFlight { get; set; }
-        public double ProfitPerFlight => RevenuePerFlight - CostPerFlight;
-        public double ProfitPerDay => ProfitPerFlight*RoundTrips*2;
+        public double RevenuePerTrip { get; set; }
+        public double CostPerTrip { get; set; }
+        public double ProfitPerTrip => RevenuePerTrip - CostPerTrip;
+        public double ProfitPerDay => ProfitPerTrip*RoundTrips*2;
 
         /// <summary>The rivals' share of the seats on the pair (0 when nobody else flies it).</summary>
         public int Rivals { get; set; }
@@ -43,69 +43,69 @@ namespace TheBusProject.Helpers
     }
 
     /// <summary>
-    ///     A forecast for a new passenger route before it is flown, worked out the way a flight's passengers and costs are:
-    ///     the demand both ways (season, difficulty, the airline's focus and hubs, a usual service score), split over all
-    ///     the flights on the airport pair and set against all the seats offered there, the airline's reputation at the
-    ///     airport, the market fares, and the flight's costs (fuel, fees, crew, ground, maintenance, sales and overhead,
-    ///     and the aircraft's ownership spread over its flights). It is an estimate: rivals change fares and schedules.
+    ///     A forecast for a new passenger route before it is flown, worked out the way a trip's passengers and costs are:
+    ///     the demand both ways (season, difficulty, the carrier's focus and hubs, a usual service score), split over all
+    ///     the trips on the station pair and set against all the seats offered there, the carrier's reputation at the
+    ///     station, the market fares, and the trip's costs (fuel, fees, crew, ground, maintenance, sales and overhead,
+    ///     and the coach's ownership spread over its trips). It is an estimate: rivals change fares and schedules.
     /// </summary>
     public static class RouteForecastService
     {
-        // a new route's service score (out of 10) when the airline has no route flying yet: the passenger demand is
-        // multiplied by score/5 for a flight
+        // a new route's service score (out of 10) when the carrier has no route flying yet: the passenger demand is
+        // multiplied by score/5 for a trip
         private const double UsualScore = 6.0;
 
-        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Airline, Tuple<DateTime, double>> ScoreCache =
-            new System.Runtime.CompilerServices.ConditionalWeakTable<Airline, Tuple<DateTime, double>>();
+        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Carrier, Tuple<DateTime, double>> ScoreCache =
+            new System.Runtime.CompilerServices.ConditionalWeakTable<Carrier, Tuple<DateTime, double>>();
 
         /// <summary>
-        ///     The service score a new route of the airline can expect: the average of its passenger routes that fly
-        ///     (aircraft, cabin, meals and fares much as on them), worked out once a game day; 6 without routes yet.
+        ///     The service score a new route of the carrier can expect: the average of its passenger routes that fly
+        ///     (coach, cabin, meals and fares much as on them), worked out once a game day; 6 without routes yet.
         /// </summary>
-        public static double UsualScoreOf(Airline airline)
+        public static double UsualScoreOf(Carrier carrier)
         {
-            if (airline == null) return UsualScore;
+            if (carrier == null) return UsualScore;
             DateTime today = GameObject.GetInstance().GameTime.Date;
             Tuple<DateTime, double> cached;
-            if (ScoreCache.TryGetValue(airline, out cached) && cached.Item1 == today) return cached.Item2;
+            if (ScoreCache.TryGetValue(carrier, out cached) && cached.Item1 == today) return cached.Item2;
             var scores = new List<double>();
-            foreach (Route r in airline.Routes.ToArray())
+            foreach (Route r in carrier.Routes.ToArray())
             {
-                if (r is PassengerRoute && r.HasAirliner)
+                if (r is PassengerRoute && r.HasCoach)
                 {
                     try { scores.Add(PassengerHelpers.RouteScoreFor(r)); }
                     catch (Exception) { }
                 }
             }
             double score = scores.Count > 0 ? scores.Average() : UsualScore;
-            ScoreCache.AddOrUpdate(airline, Tuple.Create(today, score));
+            ScoreCache.AddOrUpdate(carrier, Tuple.Create(today, score));
             return score;
         }
 
-        // the airline's reputation share at an airport as the route's flights will get it: for a route it flies already,
-        // today's; for a new route, with that route counted (a route adds 7 to the airline's score there and 6 for each
-        // point of its service, and the score is ranked against the other airlines'). Today's alone, or the airline's
-        // average elsewhere, left a new route's forecast at the 75% floor where the flights soon got 100%.
-        private static double ReputationFor(Airline airline, Airport airport, bool newRoute)
+        // the carrier's reputation share at an station as the route's trips will get it: for a route it flies already,
+        // today's; for a new route, with that route counted (a route adds 7 to the carrier's score there and 6 for each
+        // point of its service, and the score is ranked against the other carriers'). Today's alone, or the carrier's
+        // average elsewhere, left a new route's forecast at the 75% floor where the trips soon got 100%.
+        private static double ReputationFor(Carrier carrier, Station station, bool newRoute)
         {
-            if (!newRoute) return PassengerHelpers.ReputationShare(airport, airline);
-            return PassengerHelpers.ReputationShareWith(airport, airline, 7 + 6*NewRouteService(airline));
+            if (!newRoute) return PassengerHelpers.ReputationShare(station, carrier);
+            return PassengerHelpers.ReputationShareWith(station, carrier, 7 + 6*NewRouteService(carrier));
         }
 
-        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Airline, Tuple<DateTime, double>> ServiceCache =
-            new System.Runtime.CompilerServices.ConditionalWeakTable<Airline, Tuple<DateTime, double>>();
+        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Carrier, Tuple<DateTime, double>> ServiceCache =
+            new System.Runtime.CompilerServices.ConditionalWeakTable<Carrier, Tuple<DateTime, double>>();
 
         /// <summary>
-        ///     The economy service level a new route of the airline gets: its routes' usual, or for an airline without
+        ///     The economy service level a new route of the carrier gets: its routes' usual, or for an carrier without
         ///     routes the planner's standard facilities (once a game day).
         /// </summary>
-        public static double NewRouteService(Airline airline)
+        public static double NewRouteService(Carrier carrier)
         {
             DateTime today = GameObject.GetInstance().GameTime.Date;
             Tuple<DateTime, double> cached;
-            if (ServiceCache.TryGetValue(airline, out cached) && cached.Item1 == today) return cached.Item2;
-            var levels = airline.Routes.ToArray().OfType<PassengerRoute>().Where(r => r.HasAirliner && r.GetRouteAirlinerClass(AirlinerClass.ClassType.EconomyClass) != null)
-                                .Select(r => r.GetServiceLevel(AirlinerClass.ClassType.EconomyClass)).ToList();
+            if (ServiceCache.TryGetValue(carrier, out cached) && cached.Item1 == today) return cached.Item2;
+            var levels = carrier.Routes.ToArray().OfType<PassengerRoute>().Where(r => r.HasCoach && r.GetRouteCoachClass(CoachClass.ClassType.EconomyClass) != null)
+                                .Select(r => r.GetServiceLevel(CoachClass.ClassType.EconomyClass)).ToList();
             double v;
             if (levels.Count > 0) v = levels.Average();
             else
@@ -115,40 +115,40 @@ namespace TheBusProject.Helpers
                 foreach (RouteFacility.FacilityType t in Enum.GetValues(typeof(RouteFacility.FacilityType)))
                 {
                     if (year < (int) t || RouteFacilities.IsDiscontinued(t, year)) continue;
-                    v += RouteCreator.PickFacility(airline, t, ServiceTier.Standard)?.ServiceLevel ?? 0;
+                    v += RouteCreator.PickFacility(carrier, t, ServiceTier.Standard)?.ServiceLevel ?? 0;
                 }
             }
-            ServiceCache.AddOrUpdate(airline, Tuple.Create(today, v));
+            ServiceCache.AddOrUpdate(carrier, Tuple.Create(today, v));
             return v;
         }
 
-        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Airline, Tuple<DateTime, double>> ReputationCache =
-            new System.Runtime.CompilerServices.ConditionalWeakTable<Airline, Tuple<DateTime, double>>();
+        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Carrier, Tuple<DateTime, double>> ReputationCache =
+            new System.Runtime.CompilerServices.ConditionalWeakTable<Carrier, Tuple<DateTime, double>>();
 
-        /// <summary>The airline's average reputation share (0.75 to 1) at the airports it flies from, once a game day.</summary>
-        public static double UsualReputationOf(Airline airline)
+        /// <summary>The carrier's average reputation share (0.75 to 1) at the stations it flies from, once a game day.</summary>
+        public static double UsualReputationOf(Carrier carrier)
         {
             DateTime today = GameObject.GetInstance().GameTime.Date;
             Tuple<DateTime, double> cached;
-            if (ReputationCache.TryGetValue(airline, out cached) && cached.Item1 == today) return cached.Item2;
-            var served = airline.Routes.ToArray().Where(r => r is PassengerRoute && r.HasAirliner).SelectMany(r => new[] {r.Destination1, r.Destination2}).Distinct().ToList();
-            double v = served.Count > 0 ? served.Average(a => PassengerHelpers.ReputationShare(a, airline)) : 0.75;
-            ReputationCache.AddOrUpdate(airline, Tuple.Create(today, v));
+            if (ReputationCache.TryGetValue(carrier, out cached) && cached.Item1 == today) return cached.Item2;
+            var served = carrier.Routes.ToArray().Where(r => r is PassengerRoute && r.HasCoach).SelectMany(r => new[] {r.Destination1, r.Destination2}).Distinct().ToList();
+            double v = served.Count > 0 ? served.Average(a => PassengerHelpers.ReputationShare(a, carrier)) : 0.75;
+            ReputationCache.AddOrUpdate(carrier, Tuple.Create(today, v));
             return v;
         }
 
-        private static double FocusAndHub(Airline airline, Airport from, Airport to, double km)
+        private static double FocusAndHub(Carrier carrier, Station from, Station to, double km)
         {
             double f = 1;
             bool sameCountry = from.Profile.Country == to.Profile.Country;
-            switch (airline.MarketFocus)
+            switch (carrier.MarketFocus)
             {
-                case AirlineFocus.Global: if (km > 3000 && !sameCountry) f *= 1.15; break;
-                case AirlineFocus.Regional: if (km < 1500) f *= 1.15; break;
-                case AirlineFocus.Domestic: if (km < 1500 && sameCountry) f *= 1.15; break;
-                case AirlineFocus.Local: if (km < 1000) f *= 1.15; break;
+                case CarrierFocus.Global: if (km > 3000 && !sameCountry) f *= 1.15; break;
+                case CarrierFocus.Regional: if (km < 1500) f *= 1.15; break;
+                case CarrierFocus.Domestic: if (km < 1500 && sameCountry) f *= 1.15; break;
+                case CarrierFocus.Local: if (km < 1000) f *= 1.15; break;
             }
-            var hub = to.GetHubs().Find(h => h.Airline == airline);
+            var hub = to.GetHubs().Find(h => h.Carrier == carrier);
             if (hub != null)
             {
                 switch (hub.Type.Type)
@@ -162,33 +162,33 @@ namespace TheBusProject.Helpers
             return f;
         }
 
-        // the other airlines' (and the airline's own) flying passenger routes on the pair
-        private static List<Route> Others(Airport a, Airport b)
+        // the other carriers' (and the carrier's own) flying passenger routes on the pair
+        private static List<Route> Others(Station a, Station b)
         {
             return RouteIndex.Direct(a, b).Concat(RouteIndex.WithLeg(a, b))
-                             .Where(r => (r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed) && r.HasAirliner).Distinct().ToList();
+                             .Where(r => (r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed) && r.HasCoach).Distinct().ToList();
         }
 
-        /// <summary>The flight costs of one flight with `pax` passengers paying `revenue`.</summary>
-        private static double Cost(FleetAirliner f, Airline airline, Airport from, Airport to, double km, double pax, double revenue, double flightsPerMonth)
+        /// <summary>The trip costs of one trip with `pax` passengers paying `revenue`.</summary>
+        private static double Cost(FleetCoach f, Carrier carrier, Station from, Station to, double km, double pax, double revenue, double tripsPerMonth)
         {
-            Airliner a = f.Airliner;
-            // as a landing charges them: the flight's own time, fuel by seats and passengers, the landing fee and the
+            Coach a = f.Coach;
+            // as a landing charges them: the trip's own time, fuel by seats and passengers, the landing fee and the
             // passenger tax, cabin wages, and the extra costs (handling, maintenance, en-route, crews, ticket sales,
             // overhead) from the tickets
-            double hours = MathHelpers.GetFlightTime(from.Profile.Coordinates.ConvertToGeoCoordinate(), to.Profile.Coordinates.ConvertToGeoCoordinate(), a.Type).TotalHours;
+            double hours = MathHelpers.GetTripTime(from.Profile.Coordinates.ConvertToGeoCoordinate(), to.Profile.Coordinates.ConvertToGeoCoordinate(), a.Type).TotalHours;
             int seats = Math.Max(1, a.GetTotalSeatCapacity());
-            double fuelPrice = AirportHelpers.GetFuelPrice(from);
-            int maxSeats = a.Type is AirlinerPassengerType pt ? pt.MaxSeatingCapacity : seats;
+            double fuelPrice = StationHelpers.GetFuelPrice(from);
+            int maxSeats = a.Type is CoachPassengerType pt ? pt.MaxSeatingCapacity : seats;
             double fuel = fuelPrice*km*maxSeats*a.FuelConsumption*0.55 + fuelPrice*km*a.FuelConsumption*pax*0.45;
-            double fees = AirportHelpers.GetLandingFee(to, a) + 5*pax;
-            double cabin = (a.Type is AirlinerPassengerType p2 ? p2.CabinCrew : 0)*hours*airline.Fees.GetValue(FeeTypes.GetType("Cabin Wage"));
-            var parts = FlightCosts.Calculate(a, km, hours, revenue);
-            double ownership = flightsPerMonth > 0 ? OwnershipService.MonthlyCost(f)/flightsPerMonth : 0;
+            double fees = StationHelpers.GetLandingFee(to, a) + 5*pax;
+            double cabin = (a.Type is CoachPassengerType p2 ? p2.CabinCrew : 0)*hours*carrier.Fees.GetValue(FeeTypes.GetType("Cabin Wage"));
+            var parts = TripCosts.Calculate(a, km, hours, revenue);
+            double ownership = tripsPerMonth > 0 ? OwnershipService.MonthlyCost(f)/tripsPerMonth : 0;
             return fuel + fees + cabin + parts.Total + ownership;
         }
 
-        // what a passenger brings besides the ticket (in-flight sales less meals), from the route's last month (or
+        // what a passenger brings besides the ticket (in-trip sales less meals), from the route's last month (or
         // this month so far); 0 for a route that doesn't fly yet
         private static double ExtrasPerPassenger(Route route)
         {
@@ -203,61 +203,61 @@ namespace TheBusProject.Helpers
                 m = now;
             }
             if (carried <= 0) return 0;
-            double extras = RouteProfitService.Month(route, Invoice.InvoiceType.Fees, m.Year, m.Month) + RouteProfitService.Month(route, Invoice.InvoiceType.OnFlightIncome, m.Year, m.Month);
+            double extras = RouteProfitService.Month(route, Invoice.InvoiceType.Fees, m.Year, m.Month) + RouteProfitService.Month(route, Invoice.InvoiceType.OnTripIncome, m.Year, m.Month);
             return extras/carried;
         }
 
-        // what doesn't depend on the number of round trips: the other flights and seats on the pair, and each class's
+        // what doesn't depend on the number of round trips: the other trips and seats on the pair, and each class's
         // demand, share and fare both ways (worked out once, then tried for each number of round trips)
         private class Prepared
         {
-            public Airline Airline;
-            public Airport A, B;
-            public FleetAirliner F;
+            public Carrier Carrier;
+            public Station A, B;
+            public FleetCoach F;
             public double Km;
             public int Seats, Rivals;
-            public double OtherFlightsPerDay, Capacity, Extras;
+            public double OtherTripsPerDay, Capacity, Extras;
             public readonly List<double[]> Classes = new List<double[]>(); // demand, seats, share, fare
         }
 
-        private static Prepared Prepare(Airline airline, Airport a, Airport b, FleetAirliner f, Route exclude, double fareFactor)
+        private static Prepared Prepare(Carrier carrier, Station a, Station b, FleetCoach f, Route exclude, double fareFactor)
         {
-            var p = new Prepared {Airline = airline, A = a, B = b, F = f, Seats = f.Airliner.GetTotalSeatCapacity(), Km = MathHelpers.GetDistance(a, b)};
+            var p = new Prepared {Carrier = carrier, A = a, B = b, F = f, Seats = f.Coach.GetTotalSeatCapacity(), Km = MathHelpers.GetDistance(a, b)};
             if (p.Seats <= 0) return p;
             var game = GameObject.GetInstance();
 
-            List<Route> others = Others(a, b).Where(r => r != exclude && !r.GetAirliners().Contains(f)).ToList();
-            p.Rivals = others.Count(r => r.Airline != airline);
-            // flights a day on the pair (both ways, as the flight engine counts them) and the seats offered
-            p.OtherFlightsPerDay = others.Sum(r => r.TimeTable.Entries.Count)/7.0;
-            p.Capacity = others.Sum(r => r.GetAirliners().Select(x => x.Airliner.GetTotalSeatCapacity()).DefaultIfEmpty(0).Max()) + p.Seats;
+            List<Route> others = Others(a, b).Where(r => r != exclude && !r.GetCoaches().Contains(f)).ToList();
+            p.Rivals = others.Count(r => r.Carrier != carrier);
+            // trips a day on the pair (both ways, as the trip engine counts them) and the seats offered
+            p.OtherTripsPerDay = others.Sum(r => r.TimeTable.Entries.Count)/7.0;
+            p.Capacity = others.Sum(r => r.GetCoaches().Select(x => x.Coach.GetTotalSeatCapacity()).DefaultIfEmpty(0).Max()) + p.Seats;
 
-            // a route that flies already: its own service score, fares and competition, as its flights get them
+            // a route that flies already: its own service score, fares and competition, as its trips get them
             var flown = exclude as PassengerRoute;
-            if (flown != null && !flown.HasAirliner) flown = null;
-            double score = flown != null ? PassengerHelpers.RouteScoreFor(flown) : UsualScoreOf(airline);
+            if (flown != null && !flown.HasCoach) flown = null;
+            double score = flown != null ? PassengerHelpers.RouteScoreFor(flown) : UsualScoreOf(carrier);
             List<Route> pairRoutes = null;
             if (flown != null) pairRoutes = others.Concat(new[] {(Route) flown}).ToList();
             p.Extras = ExtrasPerPassenger(flown);
-            bool newRoute = exclude == null && !Others(a, b).Any(r => r.Airline == airline);
+            bool newRoute = exclude == null && !Others(a, b).Any(r => r.Carrier == carrier);
 
             foreach (var dir in new[] {Tuple.Create(a, b), Tuple.Create(b, a)})
             {
-                Airport from = dir.Item1, to = dir.Item2;
+                Station from = dir.Item1, to = dir.Item2;
                 double factors = PassengerHelpers.SeasonFactorFor(to)*PassengerHelpers.HolidayFactorFor(to)*PassengerHelpers.HolidayFactorFor(from)
-                                 *game.Difficulty.PassengersLevel*score/5*FocusAndHub(airline, from, to, p.Km);
-                // (a new route: one of the airline's own on the pair counts in its reputation already)
-                double reputation = ReputationFor(airline, from, newRoute);
-                foreach (AirlinerClass c in f.Airliner.Classes)
+                                 *game.Difficulty.PassengersLevel*score/5*FocusAndHub(carrier, from, to, p.Km);
+                // (a new route: one of the carrier's own on the pair counts in its reputation already)
+                double reputation = ReputationFor(carrier, from, newRoute);
+                foreach (CoachClass c in f.Coach.Classes)
                 {
-                    // as for a flight: the direct demand, passengers connecting to and from the airline's other routes
-                    // at both ends, and passengers from airports nearby
+                    // as for a trip: the direct demand, passengers connecting to and from the carrier's other routes
+                    // at both ends, and passengers from stations nearby
                     double direct = from.GetDestinationPassengersRate(to, c.Type);
-                    double connecting = ConnectionService.FlightDemand(airline, exclude, from, to, c.Type);
+                    double connecting = ConnectionService.TripDemand(carrier, exclude, from, to, c.Type);
                     double nearby = PassengerHelpers.NearbyDemandFor(from, to, f, c.Type);
                     double market = PricingService.MarketFare(from, to, c.Type);
                     double fare = market*fareFactor;
-                    var own = flown?.GetRouteAirlinerClass(c.Type);
+                    var own = flown?.GetRouteCoachClass(c.Type);
                     if (own != null && own.FarePrice > 0) fare = own.FarePrice;
                     // fewer passengers above the market fare, more below it; on a shared route, the share its
                     // service and fare win
@@ -274,36 +274,36 @@ namespace TheBusProject.Helpers
         {
             var result = new RouteForecast {RoundTrips = roundTrips, Seats = p.Seats, Rivals = p.Rivals};
             if (roundTrips < 1 || p.Seats <= 0) return result;
-            double flightsPerDay = p.OtherFlightsPerDay + 2*roundTrips;
+            double tripsPerDay = p.OtherTripsPerDay + 2*roundTrips;
             double pax = 0, revenue = 0;
             foreach (double[] c in p.Classes)
             {
-                double perFlight = c[0]/Math.Max(1, flightsPerDay);
-                double capacityShare = p.Capacity > 0 ? Math.Min(1, perFlight/p.Capacity) : 1;
+                double perTrip = c[0]/Math.Max(1, tripsPerDay);
+                double capacityShare = p.Capacity > 0 ? Math.Min(1, perTrip/p.Capacity) : 1;
                 double seats = c[1];
                 double n = Math.Min(seats, seats*c[2]*capacityShare);
                 pax += n/2;
                 revenue += n*c[3]/2;
             }
-            result.PassengersPerFlight = pax;
+            result.PassengersPerTrip = pax;
             result.Load = Math.Min(1, pax/result.Seats);
-            result.RevenuePerFlight = revenue + pax*p.Extras;
-            result.CostPerFlight = Cost(p.F, p.Airline, p.A, p.B, p.Km, pax, revenue, roundTrips*2*30.4);
+            result.RevenuePerTrip = revenue + pax*p.Extras;
+            result.CostPerTrip = Cost(p.F, p.Carrier, p.A, p.B, p.Km, pax, revenue, roundTrips*2*30.4);
             return result;
         }
 
-        /// <summary>The forecast for the aircraft flying the pair `roundTrips` times a day (both ways averaged).</summary>
+        /// <summary>The forecast for the coach flying the pair `roundTrips` times a day (both ways averaged).</summary>
         /// <param name="fareFactor">the fares as a share of the market fares (a route that flies already uses its own fares)</param>
-        public static RouteForecast Forecast(Airline airline, Airport a, Airport b, FleetAirliner f, int roundTrips, Route exclude = null, double fareFactor = 1)
+        public static RouteForecast Forecast(Carrier carrier, Station a, Station b, FleetCoach f, int roundTrips, Route exclude = null, double fareFactor = 1)
         {
-            if (roundTrips < 1) return new RouteForecast {RoundTrips = roundTrips, Seats = f.Airliner.GetTotalSeatCapacity()};
-            return Evaluate(Prepare(airline, a, b, f, exclude, fareFactor), roundTrips);
+            if (roundTrips < 1) return new RouteForecast {RoundTrips = roundTrips, Seats = f.Coach.GetTotalSeatCapacity()};
+            return Evaluate(Prepare(carrier, a, b, f, exclude, fareFactor), roundTrips);
         }
 
         /// <summary>The forecasts for each of the given numbers of round trips a day (the demand worked out once).</summary>
-        public static List<RouteForecast> ForecastEach(Airline airline, Airport a, Airport b, FleetAirliner f, IEnumerable<int> roundTrips, Route exclude = null, double fareFactor = 1)
+        public static List<RouteForecast> ForecastEach(Carrier carrier, Station a, Station b, FleetCoach f, IEnumerable<int> roundTrips, Route exclude = null, double fareFactor = 1)
         {
-            var p = Prepare(airline, a, b, f, exclude, fareFactor);
+            var p = Prepare(carrier, a, b, f, exclude, fareFactor);
             return roundTrips.Select(n => Evaluate(p, n)).ToList();
         }
 
@@ -313,22 +313,22 @@ namespace TheBusProject.Helpers
         }
 
         /// <summary>
-        ///     For a passenger route flown by one aircraft that flies nothing else, every day at the same times: the
+        ///     For a passenger route flown by one coach that flies nothing else, every day at the same times: the
         ///     forecast for each number of round trips from 1 to what fits between 06:00 and 22:00 (or more, if it flies
         ///     more already), with the route's own service score, fares and competition. Null when the route doesn't
         ///     qualify.
         /// </summary>
-        public static TripAdvice AdviseTrips(Airline airline, Route route)
+        public static TripAdvice AdviseTrips(Carrier carrier, Route route)
         {
             if (!(route is PassengerRoute) || route.HasStopovers || route.TimeTable?.Entries == null) return null;
-            var airliners = route.GetAirliners();
-            if (airliners.Count != 1) return null;
-            FleetAirliner f = airliners[0];
+            var coaches = route.GetCoaches();
+            if (coaches.Count != 1) return null;
+            FleetCoach f = coaches[0];
             if (f.Routes.Count != 1) return null;
             int now = route.TimeTable.Entries.Count(e => e.Day == DayOfWeek.Monday)/2;
             if (now < 1 || route.TimeTable.Entries.Count != 14*now) return null;
-            int max = Math.Max(now, RouteCreator.GetMaxRoundTrips(route.Destination1, route.Destination2, f.Airliner.Type, (int) FleetAirlinerHelpers.GetMinTimeBetweenFlights(f).TotalMinutes, OpsType.Regular));
-            var all = ForecastEach(airline, route.Destination1, route.Destination2, f, Enumerable.Range(1, max), route);
+            int max = Math.Max(now, RouteCreator.GetMaxRoundTrips(route.Destination1, route.Destination2, f.Coach.Type, (int) FleetCoachHelpers.GetMinTimeBetweenTrips(f).TotalMinutes, OpsType.Regular));
+            var all = ForecastEach(carrier, route.Destination1, route.Destination2, f, Enumerable.Range(1, max), route);
             var advice = new TripAdvice {Now = now, Max = max, Current = all[now - 1], Best = all.OrderByDescending(x => x.ProfitPerDay).ThenBy(x => Math.Abs(x.RoundTrips - now)).First()};
             advice.Change = advice.Best.RoundTrips != now && advice.Gain > Math.Max(300, Math.Abs(advice.Current.ProfitPerDay)*0.05);
             if (advice.Change)
@@ -343,9 +343,9 @@ namespace TheBusProject.Helpers
         }
 
         /// <summary>The forecasts for 1 to `maxTrips` round trips a day, and the one that earns the most a day.</summary>
-        public static RouteForecast Best(Airline airline, Airport a, Airport b, FleetAirliner f, int maxTrips, out List<RouteForecast> all, Route exclude = null, double fareFactor = 1)
+        public static RouteForecast Best(Carrier carrier, Station a, Station b, FleetCoach f, int maxTrips, out List<RouteForecast> all, Route exclude = null, double fareFactor = 1)
         {
-            all = ForecastEach(airline, a, b, f, Enumerable.Range(1, Math.Max(1, maxTrips)), exclude, fareFactor);
+            all = ForecastEach(carrier, a, b, f, Enumerable.Range(1, Math.Max(1, maxTrips)), exclude, fareFactor);
             // the most profit a day; when every choice loses money, the smallest loss
             return all.OrderByDescending(x => x.ProfitPerDay).ThenBy(x => x.RoundTrips).First();
         }

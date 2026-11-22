@@ -92,13 +92,13 @@ namespace TheBusProject.Desktop
             scroller.Offset = new Vector(scroller.Offset.X, 0);
         }
 
-        private static int PageOf(string name) => Array.IndexOf(AirlineViewModel.PageNames, name);
+        private static int PageOf(string name) => Array.IndexOf(CarrierViewModel.PageNames, name);
 
-        // an aircraft from the market the player can base somewhere (as the tests buy theirs)
-        private static void Buy(AirlineViewModel av, int skip)
+        // an coach from the market the player can base somewhere (as the tests buy theirs)
+        private static void Buy(CarrierViewModel av, int skip)
         {
             var mk = av.Market;
-            foreach (var item in mk.Aircraft.OrderBy(x => x.Airliner.GetPrice()).Skip(skip).Take(200))
+            foreach (var item in mk.Coach.OrderBy(x => x.Coach.GetPrice()).Skip(skip).Take(200))
             {
                 mk.Selected = item;
                 if (mk.Homebase != null) break;
@@ -119,40 +119,40 @@ namespace TheBusProject.Desktop
                 window.Height = 900;
                 await Settle();
 
-                // a new game as Delta with eight computer airlines
+                // a new game as Delta with eight computer carriers
                 ((MainMenuViewModel) shell.Current).NewGameCommand.Execute(null);
                 var ng = (NewGameViewModel) shell.Current;
                 await Wait(() => !ng.IsBusy, "the new game screen");
                 var america = ng.Continents.FirstOrDefault(c => c.Name == "North America");
                 if (america != null) ng.SelectedContinent = america;
-                await Wait(() => !ng.IsBusy, "the airlines");
-                ng.SelectedAirline = ng.Airlines.FirstOrDefault(a => a.Profile.IATACode == "DL") ?? ng.Airlines.First();
+                await Wait(() => !ng.IsBusy, "the carriers");
+                ng.SelectedCarrier = ng.Carriers.FirstOrDefault(a => a.Profile.IATACode == "DL") ?? ng.Carriers.First();
                 ng.Opponents = 8;
                 await Shoot(window, "00-new-game");
                 ng.CreateCommand.Execute(null);
-                await Wait(() => shell.Current is AirlineViewModel, "the game", 600);
+                await Wait(() => shell.Current is CarrierViewModel, "the game", 600);
                 GameSession.StopClock();
-                var av = (AirlineViewModel) shell.Current;
-                var me = GameObject.GetInstance().HumanAirline;
+                var av = (CarrierViewModel) shell.Current;
+                var me = GameObject.GetInstance().HumanCarrier;
                 Log("game created: " + me.Profile.Name + ", " + GameObject.GetInstance().GameTime.ToString("yyyy-MM-dd"));
 
-                // four aircraft: three get a route, the fourth is delivered during the weeks played and left idle
+                // four coach: three get a route, the fourth is delivered during the weeks played and left idle
                 foreach (int skip in new[] {40, 90, 140, 60}) Buy(av, skip);
                 foreach (var f in me.Fleet.ToList())
-                    if (f.Pilots.Count < f.Airliner.Type.CockpitCrew) AirlineHelpers.HireAirlinerPilots(f);
+                    if (f.Pilots.Count < f.Coach.Type.CockpitCrew) CarrierHelpers.HireCoachPilots(f);
                 int give = Math.Max(1, me.Fleet.Count - 1);
                 for (int i = 0; i < give; i++)
                 {
                     await av.Suggestions.Reload();
-                    var row = av.Suggestions.Aircraft.FirstOrDefault(a => a.Suggestions.Count > 0);
+                    var row = av.Suggestions.Coach.FirstOrDefault(a => a.Suggestions.Count > 0);
                     if (row == null) break;
                     bool opened = av.Suggestions.Open(row.Suggestions[0]);
                     Log("route " + row.Suggestions[0].Name + " with " + row.Title + ": " + (opened ? "opened" : av.Suggestions.Status));
                     await Wait(() => !av.Suggestions.IsBusy, "the suggestions");
                 }
                 foreach (var f in me.Fleet.ToList())
-                    if (f.Routes.Count > 0 && f.Status == TheBusProject.Models.Airliners.FleetAirliner.AirlinerStatus.Stopped)
-                        f.Status = TheBusProject.Models.Airliners.FleetAirliner.AirlinerStatus.OnRoute;
+                    if (f.Routes.Count > 0 && f.Status == TheBusProject.Models.Coaches.FleetCoach.CoachStatus.Stopped)
+                        f.Status = TheBusProject.Models.Coaches.FleetCoach.CoachStatus.OnRoute;
 
                 // ten weeks of play: two full months and part of a third
                 await Task.Run(() =>
@@ -161,11 +161,11 @@ namespace TheBusProject.Desktop
                 });
                 av.Refresh();
                 Log("played to " + GameObject.GetInstance().GameTime.ToString("yyyy-MM-dd") + "; routes " + me.Routes.Count
-                    + ", fleet " + me.Fleet.Count + ", idle " + RouteSuggestionService.IdleAircraft(me).Count);
+                    + ", fleet " + me.Fleet.Count + ", idle " + RouteSuggestionService.IdleCoach(me).Count);
 
-                // My Airline > Statistics
-                av.Page = PageOf("My Airline");
-                av.MyAirlineTab = AirlineViewModel.StatisticsTabIndex;
+                // My Carrier > Statistics
+                av.Page = PageOf("My Carrier");
+                av.MyCarrierTab = CarrierViewModel.StatisticsTabIndex;
                 await Shoot(window, "01-statistics-passengers");
                 av.Statistics.Figure = "Operating result";
                 await Shoot(window, "02-statistics-result");
@@ -184,32 +184,32 @@ namespace TheBusProject.Desktop
                 av.Statistics.Period = StatisticsViewModel.ByMonth;
                 av.Statistics.Figure = "Passengers";
 
-                // My Airline > Monthly report
-                av.MyAirlineTab = AirlineViewModel.ReportTabIndex;
+                // My Carrier > Monthly report
+                av.MyCarrierTab = CarrierViewModel.ReportTabIndex;
                 await Shoot(window, "05-monthly-report");
 
                 // Routes > Suggestions
                 av.Page = PageOf("Routes");
-                av.RoutesTab = AirlineViewModel.SuggestionsTabIndex;
+                av.RoutesTab = CarrierViewModel.SuggestionsTabIndex;
                 await Wait(() => !av.Suggestions.IsBusy, "the suggestions");
                 await Shoot(window, "06-route-suggestions");
 
-                // Airports > Manage: the list sorted by distance from an airport
-                av.Page = PageOf("Airports");
-                av.AirportsTab = 0;
-                av.AirportManager.OnlyMine = false;
-                av.AirportManager.Search = "United States";
-                av.AirportManager.SortBy = "Distance";
-                av.AirportManager.Near = "KOA";
+                // Stations > Manage: the list sorted by distance from an station
+                av.Page = PageOf("Stations");
+                av.StationsTab = 0;
+                av.StationManager.OnlyMine = false;
+                av.StationManager.Search = "United States";
+                av.StationManager.SortBy = "Distance";
+                av.StationManager.Near = "KOA";
                 await Settle();
-                Save(window, "06b-airports-near");
-                av.AirportManager.SortBy = "Name";
-                av.AirportManager.Near = "";
-                av.AirportManager.Search = "";
+                Save(window, "06b-stations-near");
+                av.StationManager.SortBy = "Name";
+                av.StationManager.Near = "";
+                av.StationManager.Search = "";
 
-                // Airlines > Competitors
-                av.Page = PageOf("Airlines");
-                av.AirlinesTab = 1;
+                // Carriers > Competitors
+                av.Page = PageOf("Carriers");
+                av.CarriersTab = 1;
                 await Shoot(window, "07-competitors");
 
                 // News
@@ -219,37 +219,37 @@ namespace TheBusProject.Desktop
                 if (report != null) av.News.Selected = report;
                 await Shoot(window, "08-news-report-link");
 
-                // Flights > Timetable: the week, with the gate time after each flight
-                var withFlights = me.Fleet.FirstOrDefault(x => x.Routes.Count > 0);
-                if (withFlights != null)
+                // Trips > Timetable: the week, with the gate time after each trip
+                var withTrips = me.Fleet.FirstOrDefault(x => x.Routes.Count > 0);
+                if (withTrips != null)
                 {
-                    av.OpenSchedule(withFlights);
+                    av.OpenSchedule(withTrips);
                     await Shoot(window, "11-timetable-gate-time");
                     Log("timetable: " + av.Timetable.Summary);
                 }
 
-                // My Airline > Best and worst: the routes, then the aircraft
-                av.Page = PageOf("My Airline");
-                av.MyAirlineTab = AirlineViewModel.RankingTabIndex;
+                // My Carrier > Best and worst: the routes, then the coach
+                av.Page = PageOf("My Carrier");
+                av.MyCarrierTab = CarrierViewModel.RankingTabIndex;
                 av.Ranking.What = TheBusProject.Presentation.ProfitRankingViewModel.Routes;
                 av.Ranking.Reload();
                 await Shoot(window, "10-best-and-worst-routes");
-                av.Ranking.What = TheBusProject.Presentation.ProfitRankingViewModel.Aircraft;
+                av.Ranking.What = TheBusProject.Presentation.ProfitRankingViewModel.Coach;
                 av.Ranking.Reload();
-                await Shoot(window, "10b-best-and-worst-aircraft");
+                await Shoot(window, "10b-best-and-worst-coach");
                 Log("best and worst: " + av.Ranking.Summary);
 
-                // Airliners > New aircraft: a type with a choice of engines, ordered ahead of its first deliveries
-                av.Page = PageOf("Airliners");
-                av.NewAircraft.Reload();
-                var boeing = av.NewAircraft.Manufacturers.FirstOrDefault(m => m.Name == "The Boeing Company");
+                // Coaches > New coach: a type with a choice of engines, ordered ahead of its first deliveries
+                av.Page = PageOf("Coaches");
+                av.NewCoach.Reload();
+                var boeing = av.NewCoach.Manufacturers.FirstOrDefault(m => m.Name == "The Boeing Company");
                 if (boeing != null)
                 {
-                    av.NewAircraft.Manufacturer = boeing;
-                    var type = av.NewAircraft.Types.FirstOrDefault(t => t.Name == "Boeing 787-8") ?? av.NewAircraft.Types.FirstOrDefault(t => t.Name.StartsWith("Boeing 777"));
-                    if (type != null) av.NewAircraft.Selected = type;
+                    av.NewCoach.Manufacturer = boeing;
+                    var type = av.NewCoach.Types.FirstOrDefault(t => t.Name == "Boeing 787-8") ?? av.NewCoach.Types.FirstOrDefault(t => t.Name.StartsWith("Boeing 777"));
+                    if (type != null) av.NewCoach.Selected = type;
                 }
-                await Shoot(window, "09-new-aircraft-engines");
+                await Shoot(window, "09-new-coach-engines");
 
                 Log("done");
             }

@@ -4,8 +4,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 using TheBusProject.Helpers;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Finances;
 
@@ -13,7 +13,7 @@ namespace TheBusProject.Presentation
 {
     public class OverviewRow
     {
-        public FleetAirliner Aircraft { get; set; }
+        public FleetCoach Coach { get; set; }
         public string Name { get; set; }
         public string Type { get; set; }
         public string Cabin { get; set; }
@@ -39,32 +39,32 @@ namespace TheBusProject.Presentation
         public string Filling { get; set; }
     }
 
-    /// <summary>The list of the aircraft the airline owns, with details and the actions to start, stop, refit and sell them.</summary>
+    /// <summary>The list of the coach the carrier owns, with details and the actions to start, stop, refit and sell them.</summary>
     public class FleetOverviewViewModel : ObservableObject
     {
         public static readonly string[] SortNames = { "Name", "Type", "Age", "Condition", "Value", "Routes" };
 
         private readonly Action _changed;
-        private readonly Action<FleetAirliner> _refit;
-        private readonly Action<FleetAirliner> _schedule;
+        private readonly Action<FleetCoach> _refit;
+        private readonly Action<FleetCoach> _schedule;
         private string _search = "", _sortBy = "Name", _status, _pendingText, _signature;
         private OverviewRow _selected;
         private Action _pending;
 
-        public FleetOverviewViewModel(Action changed, Action<FleetAirliner> refit, Action<FleetAirliner> schedule = null)
+        public FleetOverviewViewModel(Action changed, Action<FleetCoach> refit, Action<FleetCoach> schedule = null)
         {
             _changed = changed;
             _refit = refit;
             _schedule = schedule;
-            ScheduleCommand = new RelayCommand(() => { if (_selected != null) _schedule?.Invoke(_selected.Aircraft); });
+            ScheduleCommand = new RelayCommand(() => { if (_selected != null) _schedule?.Invoke(_selected.Coach); });
             Rows = new ObservableCollection<OverviewRow>();
             Details = new ObservableCollection<string>();
             RouteLines = new ObservableCollection<OverviewRouteLine>();
-            FerryTargets = new ObservableCollection<NamedChoice<Airport>>();
+            FerryTargets = new ObservableCollection<NamedChoice<Station>>();
             FerryCommand = new RelayCommand(AskFerry);
             StartCommand = new RelayCommand(() => Do(f => Status = TryStart(f)));
-            StopCommand = new RelayCommand(() => Do(f => { f.Status = FleetAirliner.AirlinerStatus.Stopped; Status = f.Name + " stopped."; }));
-            CabinCommand = new RelayCommand(() => { if (_selected != null) _refit?.Invoke(_selected.Aircraft); });
+            StopCommand = new RelayCommand(() => Do(f => { f.Status = FleetCoach.CoachStatus.Stopped; Status = f.Name + " stopped."; }));
+            CabinCommand = new RelayCommand(() => { if (_selected != null) _refit?.Invoke(_selected.Coach); });
             SellCommand = new RelayCommand(AskSell);
             ConfirmCommand = new RelayCommand(() => { var p = _pending; ClearPending(); p?.Invoke(); });
             CancelCommand = new RelayCommand(ClearPending);
@@ -76,12 +76,12 @@ namespace TheBusProject.Presentation
         public ObservableCollection<OverviewRouteLine> RouteLines { get; }
         public string[] Sorts => SortNames;
 
-        public ObservableCollection<NamedChoice<Airport>> FerryTargets { get; }
+        public ObservableCollection<NamedChoice<Station>> FerryTargets { get; }
         public ICommand FerryCommand { get; }
-        private NamedChoice<Airport> _ferryTarget;
+        private NamedChoice<Station> _ferryTarget;
         public string FerryHint { get; private set; }
 
-        public NamedChoice<Airport> FerryTarget
+        public NamedChoice<Station> FerryTarget
         {
             get { return _ferryTarget; }
             set { if (SetProperty(ref _ferryTarget, value)) UpdateFerryHint(); }
@@ -91,15 +91,15 @@ namespace TheBusProject.Presentation
         {
             var keep = _ferryTarget?.Value;
             FerryTargets.Clear();
-            var airline = GameObject.GetInstance().HumanAirline;
-            var f = _selected?.Aircraft;
-            if (airline != null && f?.CurrentPosition != null)
+            var carrier = GameObject.GetInstance().HumanCarrier;
+            var f = _selected?.Coach;
+            if (carrier != null && f?.CurrentPosition != null)
             {
-                var set = new List<Airport>(airline.Airports);
+                var set = new List<Station>(carrier.Stations);
                 if (f.Homebase != null && !set.Contains(f.Homebase)) set.Add(f.Homebase);
                 foreach (var a in set.Where(a => a != f.CurrentPosition).OrderBy(a => MathHelpers.GetDistance(f.CurrentPosition, a)))
                 {
-                    FerryTargets.Add(new NamedChoice<Airport> { Name = a.Profile.IATACode + " " + a.Profile.Name + " (" + DistanceFormatter.Km(MathHelpers.GetDistance(f.CurrentPosition, a)) + ")", Value = a });
+                    FerryTargets.Add(new NamedChoice<Station> { Name = a.Profile.IATACode + " " + a.Profile.Name + " (" + DistanceFormatter.Km(MathHelpers.GetDistance(f.CurrentPosition, a)) + ")", Value = a });
                 }
             }
             _ferryTarget = FerryTargets.FirstOrDefault(c => c.Value == keep) ?? FerryTargets.FirstOrDefault();
@@ -109,7 +109,7 @@ namespace TheBusProject.Presentation
 
         private void UpdateFerryHint()
         {
-            var f = _selected?.Aircraft;
+            var f = _selected?.Coach;
             string hint = null;
             if (f != null)
             {
@@ -123,7 +123,7 @@ namespace TheBusProject.Presentation
                         : string.Format("{0} stop(s), {1}, about {2:0.0} hours, fuel about {3}.{4}", plan.Count, DistanceFormatter.Km(FerryService.PlanKm(f.CurrentPosition, plan)), FerryService.PlanHours(f, f.CurrentPosition, plan), Money(FerryService.PlanCost(f, f.CurrentPosition, plan)),
                             plan.Count > 1 ? " Via " + string.Join(", ", plan.Take(plan.Count - 1).Select(a => a.Profile.IATACode)) + "." : "");
                 }
-                else hint = "You have no other airport to ferry to.";
+                else hint = "You have no other station to ferry to.";
             }
             FerryHint = hint;
             OnPropertyChanged(nameof(FerryHint));
@@ -131,7 +131,7 @@ namespace TheBusProject.Presentation
 
         private void AskFerry()
         {
-            var f = _selected?.Aircraft;
+            var f = _selected?.Coach;
             var to = _ferryTarget?.Value;
             if (f == null || to == null) return;
             string blocker = FerryService.GetManualBlocker(f);
@@ -161,7 +161,7 @@ namespace TheBusProject.Presentation
         public ICommand StopCommand { get; }
         public ICommand CabinCommand { get; }
         public ICommand ScheduleCommand { get; }
-        public bool CanSchedule => _selected != null && _selected.Aircraft.Airliner.BuiltDate <= GameObject.GetInstance().GameTime;
+        public bool CanSchedule => _selected != null && _selected.Coach.Coach.BuiltDate <= GameObject.GetInstance().GameTime;
         public ICommand SellCommand { get; }
         public ICommand ConfirmCommand { get; }
         public ICommand CancelCommand { get; }
@@ -195,25 +195,25 @@ namespace TheBusProject.Presentation
         public bool HasRows => Rows.Count > 0;
         public string Title { get; private set; }
 
-        public bool CanStart => _selected != null && _selected.Aircraft.Status == FleetAirliner.AirlinerStatus.Stopped
-                                && _selected.Aircraft.Airliner.BuiltDate <= GameObject.GetInstance().GameTime;
-        public bool CanStop => _selected != null && _selected.Aircraft.Status != FleetAirliner.AirlinerStatus.Stopped
-                               && _selected.Aircraft.Airliner.BuiltDate <= GameObject.GetInstance().GameTime;
-        public bool CanCabin => _selected != null && _selected.Aircraft.Status == FleetAirliner.AirlinerStatus.Stopped
-                                && _selected.Aircraft.Airliner.Type is AirlinerPassengerType;
+        public bool CanStart => _selected != null && _selected.Coach.Status == FleetCoach.CoachStatus.Stopped
+                                && _selected.Coach.Coach.BuiltDate <= GameObject.GetInstance().GameTime;
+        public bool CanStop => _selected != null && _selected.Coach.Status != FleetCoach.CoachStatus.Stopped
+                               && _selected.Coach.Coach.BuiltDate <= GameObject.GetInstance().GameTime;
+        public bool CanCabin => _selected != null && _selected.Coach.Status == FleetCoach.CoachStatus.Stopped
+                                && _selected.Coach.Coach.Type is CoachPassengerType;
         public bool CanSell => _selected != null;
 
-        /// <summary>An idle aircraft scheduled to fly from another airport gets a ferry flight there first (fuel cost, takes time).</summary>
+        /// <summary>An idle coach scheduled to fly from another station gets a ferry trip there first (fuel cost, takes time).</summary>
         public bool AutoFerry
         {
-            get { return GameObject.GetInstance().HumanAirline?.AutoFerry ?? true; }
+            get { return GameObject.GetInstance().HumanCarrier?.AutoFerry ?? true; }
             set
             {
-                var airline = GameObject.GetInstance().HumanAirline;
-                if (airline == null || airline.AutoFerry == value) return;
-                airline.AutoFerry = value;
+                var carrier = GameObject.GetInstance().HumanCarrier;
+                if (carrier == null || carrier.AutoFerry == value) return;
+                carrier.AutoFerry = value;
                 OnPropertyChanged(nameof(AutoFerry));
-                Status = value ? "Automatic ferry flights are on." : "Automatic ferry flights are off: aircraft just start from the first airport of their schedule.";
+                Status = value ? "Automatic ferry trips are on." : "Automatic ferry trips are off: coach just start from the first station of their schedule.";
             }
         }
         public string SellText { get; private set; } = "Sell";
@@ -231,31 +231,31 @@ namespace TheBusProject.Presentation
             }
         }
 
-        /// <summary>Starts an aircraft; returns what happened as a sentence.</summary>
-        public static string TryStart(FleetAirliner f)
+        /// <summary>Starts an coach; returns what happened as a sentence.</summary>
+        public static string TryStart(FleetCoach f)
         {
-            if (f.Airliner.BuiltDate > GameObject.GetInstance().GameTime)
+            if (f.Coach.BuiltDate > GameObject.GetInstance().GameTime)
             {
-                return f.Name + " has not been delivered yet (" + DateFormatter.Date(f.Airliner.BuiltDate) + ").";
+                return f.Name + " has not been delivered yet (" + DateFormatter.Date(f.Coach.BuiltDate) + ").";
             }
             if (f.Routes.Count == 0)
             {
                 return f.Name + " has no route. Create a route for it first.";
             }
-            if (f.Pilots.Count < f.Airliner.Type.CockpitCrew)
+            if (f.Pilots.Count < f.Coach.Type.CockpitCrew)
             {
-                return f.Name + " needs " + f.Airliner.Type.CockpitCrew + " pilots (it has " + f.Pilots.Count + "). Hire them under Staff > Pilots.";
+                return f.Name + " needs " + f.Coach.Type.CockpitCrew + " pilots (it has " + f.Pilots.Count + "). Hire them under Staff > Pilots.";
             }
             f.Status = GameObject.GetInstance().DayRoundEnabled
-                ? FleetAirliner.AirlinerStatus.OnRoute
-                : FleetAirliner.AirlinerStatus.ToRouteStart;
-            return f.Name + " is flying.";
+                ? FleetCoach.CoachStatus.OnRoute
+                : FleetCoach.CoachStatus.ToRouteStart;
+            return f.Name + " is running.";
         }
 
-        private void Do(Action<FleetAirliner> action)
+        private void Do(Action<FleetCoach> action)
         {
             if (_selected == null) return;
-            action(_selected.Aircraft);
+            action(_selected.Coach);
             _changed?.Invoke();
         }
 
@@ -273,40 +273,40 @@ namespace TheBusProject.Presentation
         private void AskSell()
         {
             if (_selected == null) return;
-            var f = _selected.Aircraft;
-            if (AircraftDealService.IsLeasedOut(f))
+            var f = _selected.Coach;
+            if (CoachDealService.IsLeasedOut(f))
             {
-                Status = f.Name + " is leased out. End the lease under Aircraft deals first.";
+                Status = f.Name + " is leased out. End the lease under Coach deals first.";
                 return;
             }
-            if (f.Status != FleetAirliner.AirlinerStatus.Stopped)
+            if (f.Status != FleetCoach.CoachStatus.Stopped)
             {
-                Status = "Stop " + f.Name + " first: a flying aircraft can't be sold.";
+                Status = "Stop " + f.Name + " first: a running coach can't be sold.";
                 return;
             }
 
-            if (f.Purchased == FleetAirliner.PurchasedType.Bought)
+            if (f.Purchased == FleetCoach.PurchasedType.Bought)
             {
-                long price = f.Airliner.GetPrice();
-                PendingText = "Sell " + f.Name + " (" + f.Airliner.Type.Name + ") for " + Money(price) + "? Its routes are removed.";
+                long price = f.Coach.GetPrice();
+                PendingText = "Sell " + f.Name + " (" + f.Coach.Type.Name + ") for " + Money(price) + "? Its routes are removed.";
                 _pending = () => Sell(f, price);
             }
-            else if (f.Purchased == FleetAirliner.PurchasedType.Leased)
+            else if (f.Purchased == FleetCoach.PurchasedType.Leased)
             {
-                PendingText = "Return the leased " + f.Name + " (" + f.Airliner.Type.Name + ") to the lessor? Its routes are removed.";
+                PendingText = "Return the leased " + f.Name + " (" + f.Coach.Type.Name + ") to the lessor? Its routes are removed.";
                 _pending = () => Sell(f, 0);
             }
             else
             {
-                PendingText = "Give up " + f.Name + " (" + f.Airliner.Type.Name + ")? It is not paid in full, so nothing is paid back. Its routes are removed.";
+                PendingText = "Give up " + f.Name + " (" + f.Coach.Type.Name + ")? It is not paid in full, so nothing is paid back. Its routes are removed.";
                 _pending = () => Sell(f, 0);
             }
         }
 
-        private void Sell(FleetAirliner f, long price)
+        private void Sell(FleetCoach f, long price)
         {
-            var airline = GameObject.GetInstance().HumanAirline;
-            if (f.Status != FleetAirliner.AirlinerStatus.Stopped || !airline.Fleet.Contains(f))
+            var carrier = GameObject.GetInstance().HumanCarrier;
+            if (f.Status != FleetCoach.CoachStatus.Stopped || !carrier.Fleet.Contains(f))
             {
                 return;
             }
@@ -316,10 +316,10 @@ namespace TheBusProject.Presentation
                 f.RemoveRoute(route);
             }
 
-            airline.RemoveAirliner(f);
+            carrier.RemoveCoach(f);
             if (price > 0)
             {
-                AirlineHelpers.AddAirlineInvoice(airline, GameObject.GetInstance().GameTime, Invoice.InvoiceType.Purchases, price);
+                CarrierHelpers.AddCarrierInvoice(carrier, GameObject.GetInstance().GameTime, Invoice.InvoiceType.Purchases, price);
             }
 
             foreach (var pilot in f.Pilots.ToList())
@@ -337,11 +337,11 @@ namespace TheBusProject.Presentation
         public void Reload()
         {
             var game = GameObject.GetInstance();
-            var airline = game?.HumanAirline;
-            if (airline == null) return;
+            var carrier = game?.HumanCarrier;
+            if (carrier == null) return;
 
-            var keep = _selected?.Aircraft;
-            var fleet = airline.Fleet.ToList();
+            var keep = _selected?.Coach;
+            var fleet = carrier.Fleet.ToList();
             string term = _search.Trim().ToLowerInvariant();
 
             var rows = fleet.Select(f => MakeRow(f, game)).Where(
@@ -363,23 +363,23 @@ namespace TheBusProject.Presentation
 
             Rows.Clear();
             foreach (var r in rows) Rows.Add(r);
-            _selected = Rows.FirstOrDefault(r => r.Aircraft == keep);
+            _selected = Rows.FirstOrDefault(r => r.Coach == keep);
             OnPropertyChanged(nameof(Selected));
             OnPropertyChanged(nameof(HasRows));
             int idle = rows.Count(r => r.IsIdle);
-            Title = fleet.Count + " aircraft, total value " + Money(rows.Sum(r => r.ValueNumber)) + (idle > 0 ? "  |  " + idle + " idle (no route)" : "") + (rows.Count(r => r.IsOnOrder) > 0 ? "  |  " + rows.Count(r => r.IsOnOrder) + " awaiting delivery" : "");
+            Title = fleet.Count + " coach, total value " + Money(rows.Sum(r => r.ValueNumber)) + (idle > 0 ? "  |  " + idle + " idle (no route)" : "") + (rows.Count(r => r.IsOnOrder) > 0 ? "  |  " + rows.Count(r => r.IsOnOrder) + " awaiting delivery" : "");
             OnPropertyChanged(nameof(Title));
             LoadDetails();
         }
 
-        private static OverviewRow MakeRow(FleetAirliner f, GameObject game)
+        private static OverviewRow MakeRow(FleetCoach f, GameObject game)
         {
-            var a = f.Airliner;
+            var a = f.Coach;
             string ownership;
             switch (f.Purchased)
             {
-                case FleetAirliner.PurchasedType.Leased: ownership = "Leased, " + Money(a.GetLeasingPrice()) + " / month"; break;
-                case FleetAirliner.PurchasedType.BoughtDownPayment:
+                case FleetCoach.PurchasedType.Leased: ownership = "Leased, " + Money(a.GetLeasingPrice()) + " / month"; break;
+                case FleetCoach.PurchasedType.BoughtDownPayment:
                     ownership = f.RemainingPayment > 0 ? "Down payment, " + Money(f.RemainingPayment) + " to pay" : "Down payment";
                     break;
                 default: ownership = "Bought"; break;
@@ -388,11 +388,11 @@ namespace TheBusProject.Presentation
             long value = a.GetPrice();
             return new OverviewRow
             {
-                Aircraft = f,
+                Coach = f,
                 Name = f.Name,
                 Type = a.Type.Name,
                 Cabin = a.CabinConfiguration,
-                Status = a.BuiltDate > game.GameTime ? "Delivery " + DateFormatter.Date(a.BuiltDate) : FerryService.IsFerrying(f) ? "Ferry to " + f.FerryTo.Profile.IATACode : AircraftDealService.IsLeasedOut(f) ? "Leased to " + f.LeaseOutTo.Profile.IATACode : AircraftDealService.IsListed(f) ? "For sale" : CharterService.IsOnCharter(f) ? "On charter" : f.Status.ToString(),
+                Status = a.BuiltDate > game.GameTime ? "Delivery " + DateFormatter.Date(a.BuiltDate) : FerryService.IsFerrying(f) ? "Ferry to " + f.FerryTo.Profile.IATACode : CoachDealService.IsLeasedOut(f) ? "Leased to " + f.LeaseOutTo.Profile.IATACode : CoachDealService.IsListed(f) ? "For sale" : CharterService.IsOnCharter(f) ? "On charter" : f.Status.ToString(),
                 Homebase = f.Homebase?.Profile.IATACode,
                 Ownership = ownership,
                 Age = a.Age + " y",
@@ -400,7 +400,7 @@ namespace TheBusProject.Presentation
                 Condition = string.Format("{0:0}%", a.Condition),
                 ConditionNumber = a.Condition,
                 Routes = f.Routes.Count,
-                IsIdle = f.Routes.Count == 0 && a.BuiltDate <= game.GameTime && !AircraftDealService.IsLeasedOut(f) && !CharterService.IsOnCharter(f),
+                IsIdle = f.Routes.Count == 0 && a.BuiltDate <= game.GameTime && !CoachDealService.IsLeasedOut(f) && !CharterService.IsOnCharter(f),
                 IsOnOrder = a.BuiltDate > game.GameTime,
                 Crew = f.Pilots.Count + "/" + a.Type.CockpitCrew,
                 Value = Money(value),
@@ -415,15 +415,15 @@ namespace TheBusProject.Presentation
             var r = _selected;
             if (r != null)
             {
-                var f = r.Aircraft;
-                var a = f.Airliner;
+                var f = r.Coach;
+                var a = f.Coach;
                 Details.Add("Position: " + FerryService.Diagnose(f));
                 Details.Add("Registration: " + a.TailNumber + (a.Registered != null ? " (" + a.Registered.Name + ")" : ""));
                 Details.Add("Type: " + a.Type.Manufacturer?.Name + " " + a.Type.Name);
                 Details.Add("Built: " + DateFormatter.Date(a.BuiltDate) + ", age " + a.Age + " years");
                 Details.Add("Acquired: " + DateFormatter.Date(f.PurchasedDate) + " (" + r.Ownership + ")");
                 Details.Add("Homebase: " + f.Homebase?.Profile.Name);
-                Details.Add("Condition: " + r.Condition + ", flown " + DistanceFormatter.Km(a.Flown) + ", " + DistanceFormatter.Km(a.Flown - a.LastServiceCheck) + " since the last service");
+                Details.Add("Condition: " + r.Condition + ", run " + DistanceFormatter.Km(a.Flown) + ", " + DistanceFormatter.Km(a.Flown - a.LastServiceCheck) + " since the last service");
                 Details.Add("Range: " + DistanceFormatter.Km(a.Range) + ", cruising speed " + DistanceFormatter.Speed(a.CruisingSpeed)
                             + ", runway " + DistanceFormatter.Metres(a.MinRunwaylength));
                 if (a.EngineType != null) Details.Add("Engine: " + EngineTypes.FullName(a.EngineType) + (EngineTypes.Describe(a.EngineType) == "" ? "" : " (" + EngineTypes.Describe(a.EngineType) + ")"));
@@ -432,7 +432,7 @@ namespace TheBusProject.Presentation
 
                 foreach (var c in a.Classes.OrderBy(c => (int) c.Type).ToList())
                 {
-                    if (c.SeatingCapacity <= 0 && !(a.Type is AirlinerCargoType)) continue;
+                    if (c.SeatingCapacity <= 0 && !(a.Type is CoachCargoType)) continue;
                     string facilities = string.Join(", ", c.GetFacilities().Select(x => x.Name));
                     Details.Add(c.Type + ": " + c.SeatingCapacity + " seats" + (facilities.Length > 0 ? " (" + facilities + ")" : ""));
                 }
@@ -454,7 +454,7 @@ namespace TheBusProject.Presentation
             }
 
             LoadFerryTargets();
-            SellText = r == null ? "Sell" : r.Aircraft.Purchased == FleetAirliner.PurchasedType.Bought ? "Sell aircraft" : "Return aircraft";
+            SellText = r == null ? "Sell" : r.Coach.Purchased == FleetCoach.PurchasedType.Bought ? "Sell coach" : "Return coach";
             OnPropertyChanged(nameof(SellText));
             OnPropertyChanged(nameof(HasSelection));
             OnPropertyChanged(nameof(CanStart));

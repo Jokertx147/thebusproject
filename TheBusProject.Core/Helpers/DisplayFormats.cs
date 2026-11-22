@@ -2,14 +2,14 @@ using System;
 using System.Globalization;
 using TheBusProject.Infrastructure;
 using TheBusProject.Infrastructure.Enums;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Countries;
 using Settings = TheBusProject.Infrastructure.Settings;
 
 namespace TheBusProject.Helpers
 {
-    // Text and value formatting the game logic needs (money, airport codes, distances, current country).
+    // Text and value formatting the game logic needs (money, station codes, distances, current country).
     // The WPF converters of the same purpose wrap these.
 
     public class ValueCurrencyFormatter
@@ -142,21 +142,21 @@ namespace TheBusProject.Helpers
         #endregion
     }
 
-    public class AirportCodeFormatter
+    public class StationCodeFormatter
     {
         #region Public Methods and Operators
 
         public object Convert(object value)
         {
-            if (value is Airport)
+            if (value is Station)
             {
-                var airport = (Airport) value;
+                var station = (Station) value;
 
-                if (Settings.GetInstance().AirportCodeDisplay == AirportCode.Iata)
+                if (Settings.GetInstance().StationCodeDisplay == StationCode.Iata)
                 {
-                    return airport.Profile.IATACode;
+                    return station.Profile.IATACode;
                 }
-                return airport.Profile.ICAOCode;
+                return station.Profile.ICAOCode;
             }
             return "";
         }

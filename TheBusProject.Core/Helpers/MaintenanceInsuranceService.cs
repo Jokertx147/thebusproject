@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Finances;
 
@@ -29,12 +29,12 @@ namespace TheBusProject.Helpers
         D
     }
 
-    /// <summary>Maintenance checks, wear and breakdowns for an airline's fleet.</summary>
+    /// <summary>Maintenance checks, wear and breakdowns for an carrier's fleet.</summary>
     public static class MaintenanceService
     {
-        public static double GetCost(FleetAirliner f, MaintenanceCheck c)
+        public static double GetCost(FleetCoach f, MaintenanceCheck c)
         {
-            double v = f.Airliner.GetValue();
+            double v = f.Coach.GetValue();
             switch (c)
             {
                 case MaintenanceCheck.A: return v*0.01 + 2000;
@@ -54,10 +54,10 @@ namespace TheBusProject.Helpers
             return c == MaintenanceCheck.A ? 10 : c == MaintenanceCheck.B ? 20 : c == MaintenanceCheck.C ? 30 : 50;
         }
 
-        /// <summary>Days the aircraft is grounded while the check is done.</summary>
-        public static int GetDowntimeDays(FleetAirliner f, MaintenanceCheck c)
+        /// <summary>Days the coach is grounded while the check is done.</summary>
+        public static int GetDowntimeDays(FleetCoach f, MaintenanceCheck c)
         {
-            double worn = 100 - f.Airliner.Condition;
+            double worn = 100 - f.Coach.Condition;
             if (worn < 0) worn = 0;
             switch (c)
             {
@@ -69,7 +69,7 @@ namespace TheBusProject.Helpers
         }
 
         /// <summary>Days between two checks. A and B are stored in days, C and D in months; unset uses defaults.</summary>
-        public static int GetIntervalDays(FleetAirliner f, MaintenanceCheck c)
+        public static int GetIntervalDays(FleetCoach f, MaintenanceCheck c)
         {
             switch (c)
             {
@@ -80,7 +80,7 @@ namespace TheBusProject.Helpers
             }
         }
 
-        public static void SetIntervals(FleetAirliner f, int aDays, int bDays, int cMonths, int dMonths)
+        public static void SetIntervals(FleetCoach f, int aDays, int bDays, int cMonths, int dMonths)
         {
             f.AMaintenanceInterval = Math.Max(30, Math.Min(365, aDays));
             f.BMaintenanceInterval = Math.Max(90, Math.Min(730, bDays));
@@ -88,7 +88,7 @@ namespace TheBusProject.Helpers
             f.DMaintenanceInterval = Math.Max(24, Math.Min(120, dMonths));
         }
 
-        public static DateTime GetLastDate(FleetAirliner f, MaintenanceCheck c)
+        public static DateTime GetLastDate(FleetCoach f, MaintenanceCheck c)
         {
             DateTime last;
             switch (c)
@@ -102,17 +102,17 @@ namespace TheBusProject.Helpers
             return last < f.PurchasedDate ? f.PurchasedDate : last;
         }
 
-        public static DateTime GetDueDate(FleetAirliner f, MaintenanceCheck c)
+        public static DateTime GetDueDate(FleetCoach f, MaintenanceCheck c)
         {
             return GetLastDate(f, c).AddDays(GetIntervalDays(f, c));
         }
 
-        public static bool IsOverdue(FleetAirliner f, MaintenanceCheck c)
+        public static bool IsOverdue(FleetCoach f, MaintenanceCheck c)
         {
             return GetDueDate(f, c).Date < GameObject.GetInstance().GameTime.Date;
         }
 
-        public static bool IsGrounded(FleetAirliner f)
+        public static bool IsGrounded(FleetCoach f)
         {
             return f.GroundedToDate > GameObject.GetInstance().GameTime;
         }
@@ -131,29 +131,29 @@ namespace TheBusProject.Helpers
             return c == MaintenanceCheck.C || c == MaintenanceCheck.D;
         }
 
-        /// <summary>A heavy check on an aircraft that flies routes needs a spare aircraft to take its place.</summary>
-        public static bool NeedsSpare(FleetAirliner f, MaintenanceCheck c)
+        /// <summary>A heavy check on an coach that flies routes needs a spare coach to take its place.</summary>
+        public static bool NeedsSpare(FleetCoach f, MaintenanceCheck c)
         {
             return IsHeavy(c) && f.Routes.Count > 0;
         }
 
-        public static bool IsCovering(FleetAirliner f)
+        public static bool IsCovering(FleetCoach f)
         {
             return f.CoverUntil > GameObject.GetInstance().GameTime;
         }
 
-        public static bool IsCovered(FleetAirliner f)
+        public static bool IsCovered(FleetCoach f)
         {
             return f.CoveredUntil > GameObject.GetInstance().GameTime;
         }
 
-        public static bool IsOnCharter(FleetAirliner f)
+        public static bool IsOnCharter(FleetCoach f)
         {
-            return CharterService.IsOnCharter(f) || AircraftDealService.IsLeasedOut(f) || FerryService.IsFerrying(f);
+            return CharterService.IsOnCharter(f) || CoachDealService.IsLeasedOut(f) || FerryService.IsFerrying(f);
         }
 
-        /// <summary>What the spare has to be able to do: the longest route of the aircraft.</summary>
-        public static double GetSpareRange(FleetAirliner f)
+        /// <summary>What the spare has to be able to do: the longest route of the coach.</summary>
+        public static double GetSpareRange(FleetCoach f)
         {
             double longest = 0;
             foreach (var r in f.Routes)
@@ -164,41 +164,41 @@ namespace TheBusProject.Helpers
         }
 
         /// <summary>
-        ///     Finds a spare for a heavy check: an aircraft of the same airline that is delivered, has no routes, is not grounded or
+        ///     Finds a spare for a heavy check: an coach of the same carrier that is delivered, has no routes, is not grounded or
         ///     covering another one, is the same kind (passenger or cargo) and can fly the longest route. The closest in size wins.
         /// </summary>
-        public static FleetAirliner FindSpare(FleetAirliner f)
+        public static FleetCoach FindSpare(FleetCoach f)
         {
             GameObject game = GameObject.GetInstance();
-            Airline airline = f.Airliner.Airline;
-            if (airline == null) return null;
+            Carrier carrier = f.Coach.Carrier;
+            if (carrier == null) return null;
 
-            bool cargo = f.Airliner.Type is AirlinerCargoType;
+            bool cargo = f.Coach.Type is CoachCargoType;
             double range = GetSpareRange(f);
             int size = SizeOf(f);
-            return airline.Fleet
-                .Where(s => s != f && s.Routes.Count == 0 && s.Airliner.BuiltDate <= game.GameTime && !IsGrounded(s) && !IsOnCharter(s) && !IsCovering(s) && !IsCovered(s)
-                            && (s.Airliner.Type is AirlinerCargoType) == cargo && s.Airliner.Type.Range >= range)
+            return carrier.Fleet
+                .Where(s => s != f && s.Routes.Count == 0 && s.Coach.BuiltDate <= game.GameTime && !IsGrounded(s) && !IsOnCharter(s) && !IsCovering(s) && !IsCovered(s)
+                            && (s.Coach.Type is CoachCargoType) == cargo && s.Coach.Type.Range >= range)
                 .OrderBy(s => Math.Abs(SizeOf(s) - size))
                 .FirstOrDefault();
         }
 
-        private static int SizeOf(FleetAirliner f)
+        private static int SizeOf(FleetCoach f)
         {
-            var pax = f.Airliner.Type as AirlinerPassengerType;
+            var pax = f.Coach.Type as CoachPassengerType;
             if (pax != null) return pax.MaxSeatingCapacity;
-            var cargo = f.Airliner.Type as AirlinerCargoType;
+            var cargo = f.Coach.Type as CoachCargoType;
             return cargo != null ? (int) cargo.CargoSize : 0;
         }
 
         /// <summary>Why a check cannot be done now, or null when it can (apart from money).</summary>
-        public static string GetBlocker(FleetAirliner f, MaintenanceCheck c)
+        public static string GetBlocker(FleetCoach f, MaintenanceCheck c)
         {
             if (!NeedsSpare(f, c)) return null;
             if (IsCovered(f)) return null;
             if (FindSpare(f) != null) return null;
-            return "A " + c + " check needs a spare aircraft to take over " + f.Name + "'s routes: one with no routes of its own, not grounded, of the same kind"
-                   + " and able to fly " + DistanceFormatterText(GetSpareRange(f)) + ".";
+            return "A " + c + " check needs a spare coach to take over " + f.Name + "'s routes: one with no routes of its own, not grounded, of the same kind"
+                   + " and able to run " + DistanceFormatterText(GetSpareRange(f)) + ".";
         }
 
         /// <summary>Set by the interface, so the messages here follow the player's choice of kilometres or miles.</summary>
@@ -210,29 +210,29 @@ namespace TheBusProject.Helpers
         }
 
         /// <summary>Does a check now. Returns false with a message if it is not possible.</summary>
-        public static bool PerformCheck(FleetAirliner f, MaintenanceCheck c, out string message)
+        public static bool PerformCheck(FleetCoach f, MaintenanceCheck c, out string message)
         {
             GameObject game = GameObject.GetInstance();
-            if (f.Airliner.BuiltDate > game.GameTime)
+            if (f.Coach.BuiltDate > game.GameTime)
             {
-                message = "The aircraft has not been delivered yet.";
+                message = "The coach has not been delivered yet.";
                 return false;
             }
             if (IsGrounded(f))
             {
-                message = "The aircraft is already grounded until " + DateDisplay.Format(f.GroundedToDate) + ".";
+                message = "The coach is already grounded until " + DateDisplay.Format(f.GroundedToDate) + ".";
                 return false;
             }
             if (IsOnCharter(f))
             {
                 message = FerryService.IsFerrying(f)
-                    ? "The aircraft is on a ferry flight until " + DateDisplay.Format(f.FerryUntil) + "."
-                    : AircraftDealService.IsLeasedOut(f)
-                    ? "The aircraft is leased out until " + DateDisplay.Format(f.LeaseOutUntil) + "."
-                    : "The aircraft is out on a charter flight until " + DateDisplay.Format(f.CharterUntil) + ".";
+                    ? "The coach is on a ferry trip until " + DateDisplay.Format(f.FerryUntil) + "."
+                    : CoachDealService.IsLeasedOut(f)
+                    ? "The coach is leased out until " + DateDisplay.Format(f.LeaseOutUntil) + "."
+                    : "The coach is out on a charter trip until " + DateDisplay.Format(f.CharterUntil) + ".";
                 return false;
             }
-            FleetAirliner spare = null;
+            FleetCoach spare = null;
             if (NeedsSpare(f, c))
             {
                 string blocker = GetBlocker(f, c);
@@ -244,17 +244,17 @@ namespace TheBusProject.Helpers
                 spare = FindSpare(f);
             }
             double cost = GetCost(f, c);
-            if (f.Airliner.Airline == game.HumanAirline && game.HumanMoney < cost)
+            if (f.Coach.Carrier == game.HumanCarrier && game.HumanMoney < cost)
             {
                 message = "Not enough money: the " + c + " check costs " + cost.ToString("C0", CultureInfo.GetCultureInfo("en-US")) + ".";
                 return false;
             }
 
-            AirlineHelpers.AddAirlineInvoice(f.Airliner.Airline, game.GameTime, Invoice.InvoiceType.Maintenances, -cost);
+            CarrierHelpers.AddCarrierInvoice(f.Coach.Carrier, game.GameTime, Invoice.InvoiceType.Maintenances, -cost);
             f.Data?.AddOperatingValue(new OperatingValue("Maintenance", game.GameTime.Year, game.GameTime.Month, -cost));
             var rnd = new Random();
-            double before = f.Airliner.Condition;
-            f.Airliner.Condition = Math.Min(100, f.Airliner.Condition + rnd.Next(MinGain(c), MaxGain(c) + 1));
+            double before = f.Coach.Condition;
+            f.Coach.Condition = Math.Min(100, f.Coach.Condition + rnd.Next(MinGain(c), MaxGain(c) + 1));
             int days = GetDowntimeDays(f, c);
             switch (c)
             {
@@ -276,27 +276,27 @@ namespace TheBusProject.Helpers
             }
             f.MaintenanceHistory.Add(new Invoice(game.GameTime, Invoice.InvoiceType.Maintenances, -cost), c.ToString());
 
-            message = c + " check done for " + f.Name + ": condition " + before.ToString("0") + "% -> " + f.Airliner.Condition.ToString("0") + "%, "
+            message = c + " check done for " + f.Name + ": condition " + before.ToString("0") + "% -> " + f.Coach.Condition.ToString("0") + "%, "
                       + cost.ToString("C0", CultureInfo.GetCultureInfo("en-US")) + (days > 0 ? ", grounded for " + days + " days" : "") + (spare != null ? ", " + spare.Name + " covers its routes" : "") + ".";
             return true;
         }
 
         /// <summary>
-        ///     Daily: does the checks that are due on aircraft set to automatic maintenance. A and B first, and only one check that
-        ///     grounds the aircraft at a time. It keeps a cash reserve, so the checks never take the airline to its last dollar.
+        ///     Daily: does the checks that are due on coach set to automatic maintenance. A and B first, and only one check that
+        ///     grounds the coach at a time. It keeps a cash reserve, so the checks never take the carrier to its last dollar.
         /// </summary>
-        //aircraft whose heavy check is waiting for a spare, so the news is only written once
+        //coach whose heavy check is waiting for a spare, so the news is only written once
         private static readonly HashSet<string> WaitingForSpare = new HashSet<string>();
 
-        public static List<string> ProcessAuto(Airline airline)
+        public static List<string> ProcessAuto(Carrier carrier)
         {
             GameObject game = GameObject.GetInstance();
             var done = new List<string>();
             var skipped = new List<string>();
             var noSpare = new List<string>();
-            foreach (FleetAirliner f in airline.Fleet.ToList())
+            foreach (FleetCoach f in carrier.Fleet.ToList())
             {
-                if (!f.AutoMaintenance || f.Airliner.BuiltDate > game.GameTime || IsOnCharter(f)) continue;
+                if (!f.AutoMaintenance || f.Coach.BuiltDate > game.GameTime || IsOnCharter(f)) continue;
 
                 foreach (MaintenanceCheck c in new[] {MaintenanceCheck.A, MaintenanceCheck.B, MaintenanceCheck.C, MaintenanceCheck.D})
                 {
@@ -304,7 +304,7 @@ namespace TheBusProject.Helpers
                     if (GetDueDate(f, c).Date > game.GameTime.Date) continue;
 
                     double cost = GetCost(f, c);
-                    if (airline.Money < cost*2)
+                    if (carrier.Money < cost*2)
                     {
                         if (!skipped.Contains(f.Name)) skipped.Add(f.Name);
                         break;
@@ -327,84 +327,84 @@ namespace TheBusProject.Helpers
                 }
             }
 
-            if (airline == game.HumanAirline)
+            if (carrier == game.HumanCarrier)
             {
                 if (done.Count > 0)
                 {
-                    game.NewsBox.AddNews(new News(News.NewsType.AirlineNews, game.GameTime, "Automatic maintenance", string.Join("\n", done)));
+                    game.NewsBox.AddNews(new News(News.NewsType.CarrierNews, game.GameTime, "Automatic maintenance", string.Join("\n", done)));
                 }
                 if (noSpare.Count > 0)
                 {
                     game.NewsBox.AddNews(
                         new News(
-                            News.NewsType.AirlineNews, game.GameTime, "Automatic maintenance needs a spare aircraft",
-                            "A heavy check is due on " + string.Join(", ", noSpare) + ", but there is no spare aircraft to take over its routes. Keep an aircraft without routes, not grounded, that can fly the longest route."));
+                            News.NewsType.CarrierNews, game.GameTime, "Automatic maintenance needs a spare coach",
+                            "A heavy check is due on " + string.Join(", ", noSpare) + ", but there is no spare coach to take over its routes. Keep a coach without routes, not grounded, that can run the longest route."));
                 }
                 if (skipped.Count > 0)
                 {
                     game.NewsBox.AddNews(
                         new News(
-                            News.NewsType.AirlineNews, game.GameTime, "Automatic maintenance waiting for cash",
+                            News.NewsType.CarrierNews, game.GameTime, "Automatic maintenance waiting for cash",
                             "There is not enough money for the checks that are due on: " + string.Join(", ", skipped) + "."));
                 }
             }
             return done;
         }
 
-        /// <summary>Monthly wear and chance of breakdowns for one airline. Returns messages for what happened.</summary>
-        public static List<string> ProcessMonth(Airline airline, Random rnd = null)
+        /// <summary>Monthly wear and chance of breakdowns for one carrier. Returns messages for what happened.</summary>
+        public static List<string> ProcessMonth(Carrier carrier, Random rnd = null)
         {
             rnd = rnd ?? new Random();
             GameObject game = GameObject.GetInstance();
             var messages = new List<string>();
-            foreach (FleetAirliner f in airline.Fleet.ToList())
+            foreach (FleetCoach f in carrier.Fleet.ToList())
             {
-                if (f.Airliner.BuiltDate > game.GameTime) continue;
+                if (f.Coach.BuiltDate > game.GameTime) continue;
 
                 double wear = f.Routes.Count > 0 ? 0.4 + rnd.NextDouble()*0.5 : 0.1;
                 foreach (MaintenanceCheck c in new[] {MaintenanceCheck.A, MaintenanceCheck.B, MaintenanceCheck.C})
                 {
                     if (IsOverdue(f, c)) wear += 0.2;
                 }
-                f.Airliner.Condition = Math.Max(20, f.Airliner.Condition - wear);
+                f.Coach.Condition = Math.Max(20, f.Coach.Condition - wear);
 
-                double worn = (100 - f.Airliner.Condition)/100;
+                double worn = (100 - f.Coach.Condition)/100;
                 if (f.Routes.Count > 0 && !IsGrounded(f) && rnd.NextDouble() < worn*worn*0.2)
                 {
-                    messages.Add(Breakdown(airline, f, rnd));
+                    messages.Add(Breakdown(carrier, f, rnd));
                 }
             }
             return messages;
         }
 
-        private static string Breakdown(Airline airline, FleetAirliner f, Random rnd)
+        private static string Breakdown(Carrier carrier, FleetCoach f, Random rnd)
         {
             GameObject game = GameObject.GetInstance();
-            double cost = f.Airliner.GetValue()*(0.01 + rnd.NextDouble()*0.04);
-            f.Airliner.Condition = Math.Max(20, f.Airliner.Condition - rnd.Next(3, 9));
+            double cost = f.Coach.GetValue()*(0.01 + rnd.NextDouble()*0.04);
+            f.Coach.Condition = Math.Max(20, f.Coach.Condition - rnd.Next(3, 9));
             f.GroundedToDate = game.GameTime.AddDays(7);
-            AirlineHelpers.AddAirlineInvoice(airline, game.GameTime, Invoice.InvoiceType.Maintenances, -cost);
+            CarrierHelpers.AddCarrierInvoice(carrier, game.GameTime, Invoice.InvoiceType.Maintenances, -cost);
 
-            Airport where = PickLocation(f, rnd);
-            double payout = InsuranceService.Payout(airline, f, where, cost);
+            Station where = PickLocation(f, rnd);
+            double payout = InsuranceService.Payout(carrier, f, where, cost);
             if (payout > 0)
             {
-                AirlineHelpers.AddAirlineInvoice(airline, game.GameTime, Invoice.InvoiceType.Maintenances, payout);
+                CarrierHelpers.AddCarrierInvoice(carrier, game.GameTime, Invoice.InvoiceType.Maintenances, payout);
             }
 
             string text = f.Name + " broke down at " + (where != null ? where.Profile.IATACode : "its base") + ". Repairs cost " + cost.ToString("C0", CultureInfo.GetCultureInfo("en-US"))
                           + " and it is grounded for 7 days."
                           + (payout > 0 ? " Insurance paid " + payout.ToString("C0", CultureInfo.GetCultureInfo("en-US")) + "." : " It was not covered by insurance.");
-            if (airline == game.HumanAirline)
+            if (carrier == game.HumanCarrier)
             {
-                game.NewsBox.AddNews(new News(News.NewsType.AirlineNews, game.GameTime, "Breakdown: " + f.Name, text));
+                game.NewsBox.AddNews(new News(News.NewsType.CarrierNews, game.GameTime, "Breakdown: " + f.Name, text));
             }
             return text;
         }
 
-        private static Airport PickLocation(FleetAirliner f, Random rnd)
+        private static Station PickLocation(FleetCoach f, Random rnd)
         {
-            var places = new List<Airport>();
+            var places = new List<Station>();
             foreach (var r in f.Routes)
             {
                 places.Add(r.Destination1);
@@ -415,84 +415,84 @@ namespace TheBusProject.Helpers
         }
     }
 
-    /// <summary>Airline insurance: quotes, payments, cancellation and payouts for breakdowns.</summary>
+    /// <summary>Carrier insurance: quotes, payments, cancellation and payouts for breakdowns.</summary>
     public static class InsuranceService
     {
-        public static int PaymentsPerYear(AirlineInsurance.PaymentTerms t)
+        public static int PaymentsPerYear(CarrierInsurance.PaymentTerms t)
         {
             switch (t)
             {
-                case AirlineInsurance.PaymentTerms.Monthly: return 12;
-                case AirlineInsurance.PaymentTerms.Quarterly: return 4;
-                case AirlineInsurance.PaymentTerms.Biannual: return 2;
+                case CarrierInsurance.PaymentTerms.Monthly: return 12;
+                case CarrierInsurance.PaymentTerms.Quarterly: return 4;
+                case CarrierInsurance.PaymentTerms.Biannual: return 2;
                 default: return 1;
             }
         }
 
-        public static int MonthsPerPayment(AirlineInsurance.PaymentTerms t)
+        public static int MonthsPerPayment(CarrierInsurance.PaymentTerms t)
         {
             return 12/PaymentsPerYear(t);
         }
 
-        public static string Describe(AirlineInsurance.InsuranceType t)
+        public static string Describe(CarrierInsurance.InsuranceType t)
         {
             switch (t)
             {
-                case AirlineInsurance.InsuranceType.PublicLiability: return "Third-party damage on the ground. Does not cover your aircraft.";
-                case AirlineInsurance.InsuranceType.PassengerLiability: return "Injury to passengers. Does not cover your aircraft.";
-                case AirlineInsurance.InsuranceType.CombinedSingleLimit: return "Liability plus damage to your aircraft in one limit.";
+                case CarrierInsurance.InsuranceType.PublicLiability: return "Third-party damage on the ground. Does not cover your coach.";
+                case CarrierInsurance.InsuranceType.PassengerLiability: return "Injury to passengers. Does not cover your coach.";
+                case CarrierInsurance.InsuranceType.CombinedSingleLimit: return "Liability plus damage to your coach in one limit.";
                 default: return "Everything above, with the highest premiums.";
             }
         }
 
-        public static string Describe(AirlineInsurance.InsuranceScope s)
+        public static string Describe(CarrierInsurance.InsuranceScope s)
         {
             switch (s)
             {
-                case AirlineInsurance.InsuranceScope.Airport: return "Only airports where you have facilities.";
-                case AirlineInsurance.InsuranceScope.Domestic: return "Airports in your home country.";
-                case AirlineInsurance.InsuranceScope.Hub: return "Your hubs and all domestic airports.";
+                case CarrierInsurance.InsuranceScope.Station: return "Only stations where you have facilities.";
+                case CarrierInsurance.InsuranceScope.Domestic: return "Stations in your home country.";
+                case CarrierInsurance.InsuranceScope.Hub: return "Your hubs and all domestic stations.";
                 default: return "Anywhere in the world.";
             }
         }
 
-        public static bool CoversAircraft(AirlineInsurance.InsuranceType t)
+        public static bool CoversCoach(CarrierInsurance.InsuranceType t)
         {
-            return t == AirlineInsurance.InsuranceType.CombinedSingleLimit || t == AirlineInsurance.InsuranceType.FullCoverage;
+            return t == CarrierInsurance.InsuranceType.CombinedSingleLimit || t == CarrierInsurance.InsuranceType.FullCoverage;
         }
 
-        private static double TypeFactor(AirlineInsurance.InsuranceType t)
+        private static double TypeFactor(CarrierInsurance.InsuranceType t)
         {
             switch (t)
             {
-                case AirlineInsurance.InsuranceType.PublicLiability: return 1;
-                case AirlineInsurance.InsuranceType.PassengerLiability: return 1.4;
-                case AirlineInsurance.InsuranceType.CombinedSingleLimit: return 2;
+                case CarrierInsurance.InsuranceType.PublicLiability: return 1;
+                case CarrierInsurance.InsuranceType.PassengerLiability: return 1.4;
+                case CarrierInsurance.InsuranceType.CombinedSingleLimit: return 2;
                 default: return 3;
             }
         }
 
-        private static double ScopeFactor(AirlineInsurance.InsuranceScope s)
+        private static double ScopeFactor(CarrierInsurance.InsuranceScope s)
         {
             switch (s)
             {
-                case AirlineInsurance.InsuranceScope.Airport: return 0.8;
-                case AirlineInsurance.InsuranceScope.Domestic: return 1;
-                case AirlineInsurance.InsuranceScope.Hub: return 1.4;
+                case CarrierInsurance.InsuranceScope.Station: return 0.8;
+                case CarrierInsurance.InsuranceScope.Domestic: return 1;
+                case CarrierInsurance.InsuranceScope.Hub: return 1.4;
                 default: return 2;
             }
         }
 
-        /// <summary>Builds a priced policy covering the whole fleet; the amount is the limit per aircraft. Nothing is charged.</summary>
-        public static AirlineInsurance Quote(Airline airline, AirlineInsurance.InsuranceType type, AirlineInsurance.InsuranceScope scope, AirlineInsurance.PaymentTerms terms, int years, int amount)
+        /// <summary>Builds a priced policy covering the whole fleet; the amount is the limit per coach. Nothing is charged.</summary>
+        public static CarrierInsurance Quote(Carrier carrier, CarrierInsurance.InsuranceType type, CarrierInsurance.InsuranceScope scope, CarrierInsurance.PaymentTerms terms, int years, int amount)
         {
             years = Math.Max(1, Math.Min(20, years));
-            var policy = AirlineInsuranceHelpers.CreatePolicy(airline, type, scope, terms, true, years, amount);
-            policy.AllFleetAirliners = true;
-            policy.Deductible = amount*(scope == AirlineInsurance.InsuranceScope.Airport ? 0.005 : 0.001);
+            var policy = CarrierInsuranceHelpers.CreatePolicy(carrier, type, scope, terms, true, years, amount);
+            policy.AllFleetCoaches = true;
+            policy.Deductible = amount*(scope == CarrierInsurance.InsuranceScope.Station ? 0.005 : 0.001);
 
-            double fleet = Math.Max(1, airline.Fleet.Count)*0.95;
-            double annual = amount*0.0015*TypeFactor(type)*ScopeFactor(scope)*AirlineInsuranceHelpers.GetRatingModifier(airline)*fleet;
+            double fleet = Math.Max(1, carrier.Fleet.Count)*0.95;
+            double annual = amount*0.0015*TypeFactor(type)*ScopeFactor(scope)*CarrierInsuranceHelpers.GetRatingModifier(carrier)*fleet;
             policy.PaymentAmount = annual/PaymentsPerYear(terms);
             policy.TermLength = years;
             policy.RemainingPayments = years*PaymentsPerYear(terms);
@@ -500,65 +500,65 @@ namespace TheBusProject.Helpers
         }
 
         /// <summary>Buys a quoted policy: the first payment is charged now.</summary>
-        public static bool Purchase(Airline airline, AirlineInsurance policy, out string message)
+        public static bool Purchase(Carrier carrier, CarrierInsurance policy, out string message)
         {
             GameObject game = GameObject.GetInstance();
-            if (airline == game.HumanAirline && game.HumanMoney < policy.PaymentAmount)
+            if (carrier == game.HumanCarrier && game.HumanMoney < policy.PaymentAmount)
             {
                 message = "Not enough money for the first payment of " + policy.PaymentAmount.ToString("C0", CultureInfo.GetCultureInfo("en-US")) + ".";
                 return false;
             }
-            AirlineHelpers.AddAirlineInvoice(airline, game.GameTime, Invoice.InvoiceType.Maintenances, -policy.PaymentAmount);
+            CarrierHelpers.AddCarrierInvoice(carrier, game.GameTime, Invoice.InvoiceType.Maintenances, -policy.PaymentAmount);
             policy.RemainingPayments--;
             policy.NextPaymentDue = game.GameTime.AddMonths(MonthsPerPayment(policy.InsTerms));
             policy.InsuranceEffective = game.GameTime;
             policy.InsuranceExpires = game.GameTime.AddYears((int) policy.TermLength);
             policy.CancellationFee = (int) (policy.PaymentAmount*2);
-            airline.AddInsurance(policy);
+            carrier.AddInsurance(policy);
             message = "Policy bought. First payment of " + policy.PaymentAmount.ToString("C0", CultureInfo.GetCultureInfo("en-US")) + " charged.";
             return true;
         }
 
-        public static bool Cancel(Airline airline, AirlineInsurance policy, out string message)
+        public static bool Cancel(Carrier carrier, CarrierInsurance policy, out string message)
         {
             GameObject game = GameObject.GetInstance();
             double fee = policy.CancellationFee;
-            if (airline == game.HumanAirline && game.HumanMoney < fee)
+            if (carrier == game.HumanCarrier && game.HumanMoney < fee)
             {
                 message = "Not enough money for the cancellation fee of " + fee.ToString("C0", CultureInfo.GetCultureInfo("en-US")) + ".";
                 return false;
             }
             if (fee > 0)
             {
-                AirlineHelpers.AddAirlineInvoice(airline, game.GameTime, Invoice.InvoiceType.Maintenances, -fee);
+                CarrierHelpers.AddCarrierInvoice(carrier, game.GameTime, Invoice.InvoiceType.Maintenances, -fee);
             }
-            airline.RemoveInsurance(policy);
+            carrier.RemoveInsurance(policy);
             message = "Policy cancelled" + (fee > 0 ? " for a fee of " + fee.ToString("C0", CultureInfo.GetCultureInfo("en-US")) + "." : ".");
             return true;
         }
 
-        public static bool IsCovered(Airline airline, AirlineInsurance policy, Airport where)
+        public static bool IsCovered(Carrier carrier, CarrierInsurance policy, Station where)
         {
             switch (policy.InsScope)
             {
-                case AirlineInsurance.InsuranceScope.Global:
+                case CarrierInsurance.InsuranceScope.Global:
                     return true;
-                case AirlineInsurance.InsuranceScope.Hub:
-                    return where != null && (airline.GetHubs().Contains(where) || where.Profile.Country == airline.Profile.Country);
-                case AirlineInsurance.InsuranceScope.Domestic:
-                    return where != null && where.Profile.Country == airline.Profile.Country;
+                case CarrierInsurance.InsuranceScope.Hub:
+                    return where != null && (carrier.GetHubs().Contains(where) || where.Profile.Country == carrier.Profile.Country);
+                case CarrierInsurance.InsuranceScope.Domestic:
+                    return where != null && where.Profile.Country == carrier.Profile.Country;
                 default:
-                    return where != null && airline.Airports.Contains(where);
+                    return where != null && carrier.Stations.Contains(where);
             }
         }
 
-        /// <summary>Amount paid by the best policy for damage to an aircraft (0 if not covered).</summary>
-        public static double Payout(Airline airline, FleetAirliner f, Airport where, double damage)
+        /// <summary>Amount paid by the best policy for damage to an coach (0 if not covered).</summary>
+        public static double Payout(Carrier carrier, FleetCoach f, Station where, double damage)
         {
             double best = 0;
-            foreach (AirlineInsurance p in airline.InsurancePolicies)
+            foreach (CarrierInsurance p in carrier.InsurancePolicies)
             {
-                if (!CoversAircraft(p.InsType) || p.InsuranceExpires < GameObject.GetInstance().GameTime || !IsCovered(airline, p, where)) continue;
+                if (!CoversCoach(p.InsType) || p.InsuranceExpires < GameObject.GetInstance().GameTime || !IsCovered(carrier, p, where)) continue;
                 double pay = Math.Min(damage, p.InsuredAmount) - p.Deductible;
                 if (pay > best) best = pay;
             }
@@ -566,19 +566,19 @@ namespace TheBusProject.Helpers
         }
 
         /// <summary>Monthly: charge payments that are due and remove expired policies.</summary>
-        public static void ProcessMonth(Airline airline)
+        public static void ProcessMonth(Carrier carrier)
         {
             GameObject game = GameObject.GetInstance();
-            foreach (AirlineInsurance p in airline.InsurancePolicies.ToList())
+            foreach (CarrierInsurance p in carrier.InsurancePolicies.ToList())
             {
                 if (p.InsuranceExpires < game.GameTime || p.RemainingPayments <= 0 && p.NextPaymentDue < game.GameTime)
                 {
-                    airline.RemoveInsurance(p);
+                    carrier.RemoveInsurance(p);
                     continue;
                 }
                 if (p.RemainingPayments > 0 && p.NextPaymentDue.Date <= game.GameTime.Date)
                 {
-                    AirlineHelpers.AddAirlineInvoice(airline, game.GameTime, Invoice.InvoiceType.Maintenances, -p.PaymentAmount);
+                    CarrierHelpers.AddCarrierInvoice(carrier, game.GameTime, Invoice.InvoiceType.Maintenances, -p.PaymentAmount);
                     p.RemainingPayments--;
                     p.NextPaymentDue = p.NextPaymentDue.AddMonths(MonthsPerPayment(p.InsTerms));
                 }

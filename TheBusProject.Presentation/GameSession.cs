@@ -106,14 +106,14 @@ namespace TheBusProject.Presentation
 
         public static string AutoSaveName()
         {
-            var airline = GameObject.GetInstance()?.HumanAirline;
-            return "Autosave " + SafeFileName(airline?.Profile?.Name ?? "game");
+            var carrier = GameObject.GetInstance()?.HumanCarrier;
+            return "Autosave " + SafeFileName(carrier?.Profile?.Name ?? "game");
         }
 
         /// <summary>Saves under the autosave name if that is switched on and a game is open. Blocks; call when leaving. Returns the name or null.</summary>
         public static string AutoSaveIfNeeded()
         {
-            if (!InGame || !AutoSaveOnExit || GameObject.GetInstance()?.HumanAirline == null)
+            if (!InGame || !AutoSaveOnExit || GameObject.GetInstance()?.HumanCarrier == null)
             {
                 return null;
             }

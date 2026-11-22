@@ -5,7 +5,7 @@ using TheBusProject.Models.General;
 
 namespace TheBusProject.Presentation
 {
-    /// <summary>The airline's flying license and the upgrade to a higher one.</summary>
+    /// <summary>The carrier's flying license and the upgrade to a higher one.</summary>
     public class LicenseViewModel : ObservableObject
     {
         private readonly Action _changed;
@@ -56,19 +56,19 @@ namespace TheBusProject.Presentation
 
         public void Reload()
         {
-            var airline = GameObject.GetInstance().HumanAirline;
-            if (airline == null) return;
-            Current = "License: " + LicenseService.Name(airline.License);
-            Allows = LicenseService.Allows(airline.License);
-            if (LicenseService.IsHighest(airline))
+            var carrier = GameObject.GetInstance().HumanCarrier;
+            if (carrier == null) return;
+            Current = "License: " + LicenseService.Name(carrier.License);
+            Allows = LicenseService.Allows(carrier.License);
+            if (LicenseService.IsHighest(carrier))
             {
-                NextText = "This is the highest license. You can fly anywhere.";
+                NextText = "This is the highest license. You can run anywhere.";
                 CanUpgrade = false;
             }
             else
             {
-                var next = LicenseService.Next(airline);
-                NextText = "Next: " + LicenseService.Name(next) + " license for " + Money(LicenseService.Price(airline)) + ". " + LicenseService.Allows(next);
+                var next = LicenseService.Next(carrier);
+                NextText = "Next: " + LicenseService.Name(next) + " license for " + Money(LicenseService.Price(carrier)) + ". " + LicenseService.Allows(next);
                 CanUpgrade = true;
             }
             OnPropertyChanged(nameof(Current));
@@ -79,19 +79,19 @@ namespace TheBusProject.Presentation
 
         private void AskUpgrade()
         {
-            var airline = GameObject.GetInstance().HumanAirline;
-            string blocker = LicenseService.GetBlocker(airline);
+            var carrier = GameObject.GetInstance().HumanCarrier;
+            string blocker = LicenseService.GetBlocker(carrier);
             if (blocker != null)
             {
                 Status = blocker;
                 return;
             }
             SetPending(
-                string.Format("Buy the {0} license for {1}?", LicenseService.Name(LicenseService.Next(airline)), Money(LicenseService.Price(airline))),
+                string.Format("Buy the {0} license for {1}?", LicenseService.Name(LicenseService.Next(carrier)), Money(LicenseService.Price(carrier))),
                 () =>
                 {
                     string m;
-                    LicenseService.Upgrade(airline, out m);
+                    LicenseService.Upgrade(carrier, out m);
                     Status = m;
                     Reload();
                     _changed?.Invoke();

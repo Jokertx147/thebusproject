@@ -1,7 +1,7 @@
 using System;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Stations;
 
 namespace TheBusProject.Infrastructure
 {
@@ -14,11 +14,11 @@ namespace TheBusProject.Infrastructure
         /// <summary>Shows a message to the player (title, text).</summary>
         public static Action<string, string> ShowMessage { get; set; }
 
-        /// <summary>Lets the player pick a new homebase for an aircraft, or returns null.</summary>
-        public static Func<FleetAirliner, Airport> ChooseHomebase { get; set; }
+        /// <summary>Lets the player pick a new homebase for an coach, or returns null.</summary>
+        public static Func<FleetCoach, Station> ChooseHomebase { get; set; }
 
-        /// <summary>Called when a scenario has been set up and the game should show the player's airline.</summary>
-        public static Action<Airline> ScenarioStarted { get; set; }
+        /// <summary>Called when a scenario has been set up and the game should show the player's carrier.</summary>
+        public static Action<Carrier> ScenarioStarted { get; set; }
 
         /// <summary>Builds the map images; called while the game data is loaded.</summary>
         public static Action PrepareMaps { get; set; }

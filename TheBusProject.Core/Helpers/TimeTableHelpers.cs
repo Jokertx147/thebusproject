@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Environment;
 using TheBusProject.Models.Routes;
@@ -14,15 +14,15 @@ namespace TheBusProject.Helpers
     {
         #region Public Methods and Operators
 
-        public static bool IsRouteEntryInOccupied(RouteTimeTableEntry entry, FleetAirliner airliner)
+        public static bool IsRouteEntryInOccupied(RouteTimeTableEntry entry, FleetCoach coach)
         {
-            List<TimeSpan> occupiedSlots1 = AirportHelpers.GetOccupiedSlotTimes(
-                entry.DepartureAirport,
-                airliner.Airliner.Airline,
+            List<TimeSpan> occupiedSlots1 = StationHelpers.GetOccupiedSlotTimes(
+                entry.DepartureStation,
+                coach.Coach.Carrier,
                 GeneralHelpers.GetSeason(GameObject.GetInstance().GameTime), entry.TimeTable.Route.IsCargoRoute ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger);
-            List<TimeSpan> occupiedSlots2 = AirportHelpers.GetOccupiedSlotTimes(
-                entry.Destination.Airport,
-                airliner.Airliner.Airline,
+            List<TimeSpan> occupiedSlots2 = StationHelpers.GetOccupiedSlotTimes(
+                entry.Destination.Station,
+                coach.Coach.Carrier,
                 GeneralHelpers.GetSeason(GameObject.GetInstance().GameTime), entry.TimeTable.Route.IsCargoRoute ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger);
 
             var gateTimeBefore = new TimeSpan(0, 15, 0);
@@ -34,7 +34,7 @@ namespace TheBusProject.Helpers
                 entry.Time.Minutes,
                 entry.Time.Seconds);
             TimeSpan entryLandingTime =
-                entryTakeoffTime.Add(entry.TimeTable.Route.GetFlightTime(entry.Airliner.Airliner.Type));
+                entryTakeoffTime.Add(entry.TimeTable.Route.GetTripTime(entry.Coach.Coach.Type));
 
             if (entryLandingTime.Days > 6)
             {
@@ -88,7 +88,7 @@ namespace TheBusProject.Helpers
 
         public static bool IsRoutePlannerTimeTableValid(
             RouteTimeTable timeTable,
-            FleetAirliner airliner,
+            FleetCoach coach,
             List<RouteTimeTableEntry> entries,
             bool withSlots = true)
         {
@@ -101,7 +101,7 @@ namespace TheBusProject.Helpers
                 var cEntries = new List<RouteTimeTableEntry>(tEntries);
                 cEntries.Remove(e);
 
-                if (!IsRouteEntryValid(e, airliner, cEntries, withSlots))
+                if (!IsRouteEntryValid(e, coach, cEntries, withSlots))
                 {
                     return false;
                 }
@@ -110,7 +110,7 @@ namespace TheBusProject.Helpers
         }
 
         public static bool IsTimeTableValid(
-            FleetAirliner airliner,
+            FleetCoach coach,
             List<RouteTimeTableEntry> entries,
             bool withSlots = true)
         {
@@ -119,7 +119,7 @@ namespace TheBusProject.Helpers
                 var tEntries = new List<RouteTimeTableEntry>(entries);
                 tEntries.Remove(e);
 
-                if (!IsRouteEntryValid(e, airliner, tEntries, withSlots))
+                if (!IsRouteEntryValid(e, coach, tEntries, withSlots))
                 {
                     return false;
                 }
@@ -129,11 +129,11 @@ namespace TheBusProject.Helpers
 
         public static bool IsTimeTableValid(
             RouteTimeTable timeTable,
-            FleetAirliner airliner,
+            FleetCoach coach,
             List<RouteTimeTableEntry> entries,
             bool withSlots = true)
         {
-            return timeTable.Entries.All(e => IsRouteEntryValid(e, airliner, entries, withSlots));
+            return timeTable.Entries.All(e => IsRouteEntryValid(e, coach, entries, withSlots));
         }
 
         #endregion
@@ -142,7 +142,7 @@ namespace TheBusProject.Helpers
 
         private static RouteTimeTableEntry GetNextEntry(
             RouteTimeTableEntry entry,
-            FleetAirliner airliner,
+            FleetCoach coach,
             List<RouteTimeTableEntry> entries)
         {
             DayOfWeek day = entry.Day;
@@ -177,7 +177,7 @@ namespace TheBusProject.Helpers
 
         private static RouteTimeTableEntry GetPreviousEntry(
             RouteTimeTableEntry entry,
-            FleetAirliner airliner,
+            FleetCoach coach,
             List<RouteTimeTableEntry> entries)
         {
             var tsEntry = new TimeSpan((int) entry.Day, entry.Time.Hours, entry.Time.Minutes, entry.Time.Seconds);
@@ -215,53 +215,53 @@ namespace TheBusProject.Helpers
 
         private static bool IsRouteEntryValid(
             RouteTimeTableEntry entry,
-            FleetAirliner airliner,
+            FleetCoach coach,
             IEnumerable<RouteTimeTableEntry> entries,
             bool withSlots)
         {
-            TimeSpan flightTime =
-                entry.TimeTable.Route.GetFlightTime(airliner.Airliner.Type)
-                     .Add(FleetAirlinerHelpers.GetMinTimeBetweenFlights(airliner));
+            TimeSpan tripTime =
+                entry.TimeTable.Route.GetTripTime(coach.Coach.Type)
+                     .Add(FleetCoachHelpers.GetMinTimeBetweenTrips(coach));
 
             var startTime = new TimeSpan((int) entry.Day, entry.Time.Hours, entry.Time.Minutes, entry.Time.Seconds);
 
-            TimeSpan endTime = startTime.Add(flightTime);
+            TimeSpan endTime = startTime.Add(tripTime);
             if (endTime.Days == 7)
             {
                 endTime = new TimeSpan(0, endTime.Hours, endTime.Minutes, endTime.Seconds);
             }
 
-            var airlinerEntries = new List<RouteTimeTableEntry>(entries);
+            var coachEntries = new List<RouteTimeTableEntry>(entries);
 
             if (entry.TimeTable.Route.Season == Weather.Season.Winter)
             {
-                airlinerEntries.RemoveAll(e => e.TimeTable.Route.Season == Weather.Season.Summer);
+                coachEntries.RemoveAll(e => e.TimeTable.Route.Season == Weather.Season.Summer);
             }
 
             if (entry.TimeTable.Route.Season == Weather.Season.Summer)
             {
-                airlinerEntries.RemoveAll(e => e.TimeTable.Route.Season == Weather.Season.Winter);
+                coachEntries.RemoveAll(e => e.TimeTable.Route.Season == Weather.Season.Winter);
             }
 
             if (withSlots)
             {
-                if (IsRouteEntryInOccupied(entry, airliner))
+                if (IsRouteEntryInOccupied(entry, coach))
                 {
                     return false;
                 }
             }
 
-            // airlinerEntries.AddRange(entry.TimeTable.Entries.FindAll(e => e.Destination.Airport == entry.Destination.Airport));
+            // coachEntries.AddRange(entry.TimeTable.Entries.FindAll(e => e.Destination.Station == entry.Destination.Station));
 
-            foreach (RouteTimeTableEntry e in airlinerEntries)
+            foreach (RouteTimeTableEntry e in coachEntries)
             {
                 var eStartTime = new TimeSpan((int) e.Day, e.Time.Hours, e.Time.Minutes, e.Time.Seconds);
 
-                TimeSpan eFlightTime =
-                    e.TimeTable.Route.GetFlightTime(airliner.Airliner.Type)
-                     .Add(FleetAirlinerHelpers.GetMinTimeBetweenFlights(airliner));
+                TimeSpan eTripTime =
+                    e.TimeTable.Route.GetTripTime(coach.Coach.Type)
+                     .Add(FleetCoachHelpers.GetMinTimeBetweenTrips(coach));
 
-                TimeSpan eEndTime = eStartTime.Add(eFlightTime);
+                TimeSpan eEndTime = eStartTime.Add(eTripTime);
 
                 double diffStartTime = Math.Abs(eStartTime.Subtract(startTime).TotalMinutes);
                 double diffEndTime = Math.Abs(eEndTime.Subtract(endTime).TotalMinutes);
@@ -271,7 +271,7 @@ namespace TheBusProject.Helpers
                     eEndTime = new TimeSpan(0, eEndTime.Hours, eEndTime.Minutes, eEndTime.Seconds);
                 }
 
-                // Two flights clash when one is still on the ground as the other leaves. A flight that leaves at the
+                // Two trips clash when one is still on the ground as the other leaves. A trip that leaves at the
                 // moment the one before it has finished its ground time does not clash: the comparisons at the two
                 // touching ends are strict, where they used to count that as a clash and so quietly demanded a minute
                 // more than the ground time, which with departures on the quarter hour cost a whole extra quarter.
@@ -279,7 +279,7 @@ namespace TheBusProject.Helpers
                     || (endTime > eStartTime && eEndTime >= endTime)
                     || (startTime >= eStartTime && eEndTime > startTime))
                 {
-                    if (e.Airliner == airliner || diffEndTime < 15 || diffStartTime < 15)
+                    if (e.Coach == coach || diffEndTime < 15 || diffStartTime < 15)
                     {
                         return false;
                     }
@@ -287,24 +287,24 @@ namespace TheBusProject.Helpers
             }
             const double minutesPerWeek = 7*24*60;
 
-            RouteTimeTableEntry nextEntry = GetNextEntry(entry, airliner, airlinerEntries);
+            RouteTimeTableEntry nextEntry = GetNextEntry(entry, coach, coachEntries);
 
-            RouteTimeTableEntry previousEntry = GetPreviousEntry(entry, airliner, airlinerEntries);
+            RouteTimeTableEntry previousEntry = GetPreviousEntry(entry, coach, coachEntries);
 
             if (nextEntry != null && previousEntry != null)
             {
-                TimeSpan flightTimeNext =
-                    MathHelpers.GetFlightTime(
-                        entry.Destination.Airport.Profile.Coordinates.ConvertToGeoCoordinate(),
-                        nextEntry.DepartureAirport.Profile.Coordinates.ConvertToGeoCoordinate(),
-                        airliner.Airliner.Type.CruisingSpeed)
-                               .Add(FleetAirlinerHelpers.GetMinTimeBetweenFlights(airliner));
-                TimeSpan flightTimePrevious =
-                    MathHelpers.GetFlightTime(
-                        entry.DepartureAirport.Profile.Coordinates.ConvertToGeoCoordinate(),
-                        previousEntry.Destination.Airport.Profile.Coordinates.ConvertToGeoCoordinate(),
-                        airliner.Airliner.Type.CruisingSpeed)
-                               .Add(FleetAirlinerHelpers.GetMinTimeBetweenFlights(airliner));
+                TimeSpan tripTimeNext =
+                    MathHelpers.GetTripTime(
+                        entry.Destination.Station.Profile.Coordinates.ConvertToGeoCoordinate(),
+                        nextEntry.DepartureStation.Profile.Coordinates.ConvertToGeoCoordinate(),
+                        coach.Coach.Type.CruisingSpeed)
+                               .Add(FleetCoachHelpers.GetMinTimeBetweenTrips(coach));
+                TimeSpan tripTimePrevious =
+                    MathHelpers.GetTripTime(
+                        entry.DepartureStation.Profile.Coordinates.ConvertToGeoCoordinate(),
+                        previousEntry.Destination.Station.Profile.Coordinates.ConvertToGeoCoordinate(),
+                        coach.Coach.Type.CruisingSpeed)
+                               .Add(FleetCoachHelpers.GetMinTimeBetweenTrips(coach));
 
                 var prevDate = new TimeSpan(
                     (int) previousEntry.Day,
@@ -325,14 +325,14 @@ namespace TheBusProject.Helpers
                                           ? minutesPerWeek - prevDate.Subtract(currentDate).TotalMinutes
                                           : Math.Abs(prevDate.Subtract(currentDate).TotalMinutes);
 
-                // Enough time to fly it, reach the next departure airport and do the ground time: exactly enough is
+                // Enough time to fly it, reach the next departure station and do the ground time: exactly enough is
                 // enough, where asking for strictly more again cost a departure slot it did not need to.
                 if (timeFromPrev
-                    >= previousEntry.TimeTable.Route.GetFlightTime(airliner.Airliner.Type).TotalMinutes
-                      + flightTimePrevious.TotalMinutes
+                    >= previousEntry.TimeTable.Route.GetTripTime(coach.Coach.Type).TotalMinutes
+                      + tripTimePrevious.TotalMinutes
                     && timeToNext
-                    >= entry.TimeTable.Route.GetFlightTime(airliner.Airliner.Type).TotalMinutes
-                    + flightTimeNext.TotalMinutes)
+                    >= entry.TimeTable.Route.GetTripTime(coach.Coach.Type).TotalMinutes
+                    + tripTimeNext.TotalMinutes)
                 {
                     return true;
                 }

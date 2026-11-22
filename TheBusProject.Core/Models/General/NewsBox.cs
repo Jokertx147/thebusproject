@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.Serialization;
@@ -158,17 +158,17 @@ namespace TheBusProject.Models.General
         {
             StandardNews,
 
-            AirportNews,
+            StationNews,
 
-            FlightNews,
+            TripNews,
 
             FleetNews,
 
-            AirlineNews,
+            CarrierNews,
 
             AllianceNews,
 
-            AirlinerNews,
+            CoachNews,
 
             RivalNews
         }

@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<carrier>
+  <profile name="Alitalia" iata="AZ" color="Green" country="141" CEO="Andrea Ragnetti" mentality="Aggressive"
+           market="Global" preferedstation="FCO">
+    <narrative
+      narrative="Alitalia is a major Italian airline based in Rome, in operation since 1946. They fly to 86 destinations throughout the world on a fleet of 112 aircraft. The fleet primarily consists of Airbus aircraft." />
+  </profile>
+  <startdata>
+    <coaches>
+      <coach type="Airbus A320-200" early="0" late="48"></coach>
+      <coach type="Airbus A319-100" early="0" late="22"></coach>
+      <coach type="Airbus A321-100" early="0" late="22"></coach>
+      <coach type="Airbus A330-200" early="0" late="12"></coach>
+      <coach type="Boeing 777-200ER" early="0" late="10"></coach>
+    </coaches>
+  </startdata>
+</carrier>

@@ -100,7 +100,7 @@ namespace TheBusProject.Presentation
             try
             {
                 await GameSession.LoadGameAsync(name);
-                _shell.ShowAirline();
+                _shell.ShowCarrier();
             }
             catch (Exception ex)
             {

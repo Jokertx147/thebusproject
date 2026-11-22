@@ -16,7 +16,7 @@ namespace TheBusProject.Presentation
         public string Path { get; set; }
     }
 
-    /// <summary>My Airline > Profile: name, CEO, color, story, route focus and logo.</summary>
+    /// <summary>My Carrier > Profile: name, CEO, color, story, route focus and logo.</summary>
     public class ProfileViewModel : ObservableObject
     {
         private readonly Action _changed;
@@ -30,9 +30,9 @@ namespace TheBusProject.Presentation
             Logos = new ObservableCollection<LogoChoice>();
             Focuses = new List<NamedChoice<Route.RouteType>>
             {
-                // an airline is one or the other; a subsidiary flies the other kind
-                new NamedChoice<Route.RouteType> { Name = "Passenger airline", Value = Route.RouteType.Passenger },
-                new NamedChoice<Route.RouteType> { Name = "Cargo airline", Value = Route.RouteType.Cargo }
+                // an carrier is one or the other; a subsidiary flies the other kind
+                new NamedChoice<Route.RouteType> { Name = "Passenger carrier", Value = Route.RouteType.Passenger },
+                new NamedChoice<Route.RouteType> { Name = "Cargo carrier", Value = Route.RouteType.Cargo }
             };
             SaveCommand = new RelayCommand(Save);
             UndoCommand = new RelayCommand(Reload);
@@ -48,7 +48,7 @@ namespace TheBusProject.Presentation
 
         public ObservableCollection<LogoChoice> Logos { get; }
         public List<NamedChoice<Route.RouteType>> Focuses { get; }
-        public List<string> ColorChoices => AirlineProfileService.ColorChoices;
+        public List<string> ColorChoices => CarrierProfileService.ColorChoices;
 
         public string Code { get; private set; }
         public string Info { get => _info; private set => SetProperty(ref _info, value); }
@@ -71,7 +71,7 @@ namespace TheBusProject.Presentation
         }
 
         /// <summary>The color as #RRGGBB for the preview square, or grey when the text is not a color.</summary>
-        public string ColorPreview => AirlineProfileService.NormalizeColor(_color) is string c && c.StartsWith("#") ? c : "#808080";
+        public string ColorPreview => CarrierProfileService.NormalizeColor(_color) is string c && c.StartsWith("#") ? c : "#808080";
 
         /// <summary>Picks a color from the swatches.</summary>
         public string PickedColor
@@ -116,30 +116,30 @@ namespace TheBusProject.Presentation
 
         public void Reload()
         {
-            var airline = GameObject.GetInstance()?.HumanAirline;
-            if (airline == null) return;
-            var p = airline.Profile;
+            var carrier = GameObject.GetInstance()?.HumanCarrier;
+            if (carrier == null) return;
+            var p = carrier.Profile;
             Code = p.IATACode;
             OnPropertyChanged(nameof(Code));
             Name = p.Name;
             CEO = p.CEO;
             Color = p.Color;
             Narrative = p.Narrative;
-            Focus = AirlineTypeRules.IsCargoAirline(airline) ? Focuses[1] : Focuses[0];
+            Focus = CarrierTypeRules.IsCargoCarrier(carrier) ? Focuses[1] : Focuses[0];
             Info = string.Format(
-                "Code {0}  |  {1}  |  founded {2}  |  the code cannot be changed, the game uses it to find your airline",
+                "Code {0}  |  {1}  |  founded {2}  |  the code cannot be changed, the game uses it to find your carrier",
                 p.IATACode, p.Country?.Name, p.Founded);
-            LogoPath = AirlineProfileService.GetLogo(airline);
+            LogoPath = CarrierProfileService.GetLogo(carrier);
             if (Logos.Count == 0) LoadLogos();
         }
 
         private void LoadLogos()
         {
-            var all = AirlineProfileService.BuiltInLogos(_logoFilter);
+            var all = CarrierProfileService.BuiltInLogos(_logoFilter);
             Logos.Clear();
             foreach (var n in all.Take(120))
             {
-                Logos.Add(new LogoChoice { Name = n, Path = AirlineProfileService.BuiltInLogoPath(n) });
+                Logos.Add(new LogoChoice { Name = n, Path = CarrierProfileService.BuiltInLogoPath(n) });
             }
             LogoCount = all.Count > 120
                 ? "Showing 120 of " + all.Count + " logos. Type a code (for example DL or AA) to narrow it down."
@@ -149,9 +149,9 @@ namespace TheBusProject.Presentation
 
         private void Save()
         {
-            var airline = GameObject.GetInstance().HumanAirline;
+            var carrier = GameObject.GetInstance().HumanCarrier;
             string message;
-            bool ok = AirlineProfileService.Save(airline, _name, _ceo, _color, _narrative, _focus?.Value ?? airline.AirlineRouteFocus, out message);
+            bool ok = CarrierProfileService.Save(carrier, _name, _ceo, _color, _narrative, _focus?.Value ?? carrier.CarrierRouteFocus, out message);
             Status = message;
             if (ok)
             {
@@ -165,7 +165,7 @@ namespace TheBusProject.Presentation
         {
             if (_selectedLogo == null) return;
             string message;
-            AirlineProfileService.SetBuiltInLogo(GameObject.GetInstance().HumanAirline, _selectedLogo.Name, out message);
+            CarrierProfileService.SetBuiltInLogo(GameObject.GetInstance().HumanCarrier, _selectedLogo.Name, out message);
             AfterLogo(message);
         }
 
@@ -173,19 +173,19 @@ namespace TheBusProject.Presentation
         public void UseLogoFile(string file)
         {
             string message;
-            AirlineProfileService.SetCustomLogo(GameObject.GetInstance().HumanAirline, file, out message);
+            CarrierProfileService.SetCustomLogo(GameObject.GetInstance().HumanCarrier, file, out message);
             AfterLogo(message);
         }
 
         private void ResetLogo()
         {
-            AirlineProfileService.ResetLogo(GameObject.GetInstance().HumanAirline);
+            CarrierProfileService.ResetLogo(GameObject.GetInstance().HumanCarrier);
             AfterLogo("Back to the starting logo.");
         }
 
         private void AfterLogo(string message)
         {
-            LogoPath = AirlineProfileService.GetLogo(GameObject.GetInstance().HumanAirline);
+            LogoPath = CarrierProfileService.GetLogo(GameObject.GetInstance().HumanCarrier);
             Status = message;
             _changed?.Invoke();
         }

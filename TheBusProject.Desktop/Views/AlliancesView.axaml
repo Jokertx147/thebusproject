@@ -21,7 +21,7 @@
             </DataTemplate>
           </ComboBox.ItemTemplate>
         </ComboBox>
-        <Button Content="Create (headquarters at the airport above)" Command="{Binding CreateCommand}" />
+        <Button Content="Create (headquarters at the station above)" Command="{Binding CreateCommand}" />
       </StackPanel>
     </Grid>
 
@@ -70,7 +70,7 @@
         </ItemsControl>
 
         <StackPanel IsVisible="{Binding IsMember}" Spacing="6">
-          <TextBlock Text="Invite an airline" FontSize="16" FontWeight="SemiBold" Margin="0,8,0,0" />
+          <TextBlock Text="Invite a carrier" FontSize="16" FontWeight="SemiBold" Margin="0,8,0,0" />
           <StackPanel Orientation="Horizontal" Spacing="10">
             <ComboBox ItemsSource="{Binding InviteCandidates}" SelectedItem="{Binding Invite}" MinWidth="280">
               <ComboBox.ItemTemplate>

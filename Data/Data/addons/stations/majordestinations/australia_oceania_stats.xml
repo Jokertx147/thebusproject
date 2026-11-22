@@ -1,0 +1,9 @@
+
+
+<majordestinations>
+<majordestination station="SYD">
+    <destinations>
+      <destination station="DFW" pax="391" cargo="60" />
+    </destinations>
+  </majordestination>
+</majordestinations>

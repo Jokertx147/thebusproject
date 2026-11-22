@@ -4,7 +4,7 @@ using System.Threading;
 namespace TheBusProject.Infrastructure
 {
     /// <summary>
-    ///     Loads the game's XML data (airports, airlines, airliners ...) once, using the older static setup code.
+    ///     Loads the game's XML data (stations, carriers, coaches ...) once, using the older static setup code.
     ///     It is called on the thread that owns the UI, because the UI hooks it triggers may need it.
     /// </summary>
     public static class GameDataLoader
@@ -40,20 +40,20 @@ namespace TheBusProject.Infrastructure
                 Helpers.AIPricingService.Invalidate();
                 Helpers.AIPricingService.ForgetReviews();
                 Helpers.CompetitorService.Clear();
-                Helpers.FlightRecords.Clear();
-                Helpers.AirlineReportService.Clear();
+                Helpers.TripRecords.Clear();
+                Helpers.CarrierReportService.Clear();
                 if (Setup.SetupError != null)
                 {
                     throw new System.InvalidOperationException("Loading the game data failed: " + Setup.SetupError.Message,
                         Setup.SetupError);
                 }
                 StartupLog.Write(string.Format(
-                    "Game data loaded: {0} airports, {1} airlines, {2} airliner types, {3} standard airliner configurations, {4} airliner facilities",
-                    Models.Airports.Airports.GetAllAirports().Count,
-                    Models.Airlines.Airlines.GetAllAirlines().Count,
-                    Models.Airliners.AirlinerTypes.GetAllTypes().Count,
-                    Configurations.GetConfigurations(Configuration.ConfigurationType.Airliner).Count,
-                    Models.Airliners.AirlinerFacilities.GetFacilities(Models.Airliners.AirlinerFacility.FacilityType.Seat).Count));
+                    "Game data loaded: {0} stations, {1} carriers, {2} coach types, {3} standard coach configurations, {4} coach facilities",
+                    Models.Stations.Stations.GetAllStations().Count,
+                    Models.Carriers.Carriers.GetAllCarriers().Count,
+                    Models.Coaches.CoachTypes.GetAllTypes().Count,
+                    Configurations.GetConfigurations(Configuration.ConfigurationType.Coach).Count,
+                    Models.Coaches.CoachFacilities.GetFacilities(Models.Coaches.CoachFacility.FacilityType.Seat).Count));
                 _loaded = true;
             }
             finally

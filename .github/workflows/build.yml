@@ -56,17 +56,17 @@ jobs:
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm bloat 2>&1 | tee bloattest.log
           grep -q "BLOAT TEST OK" bloattest.log || { grep -m8 -iE "FAILED|timeout|exception|   at " bloattest.log | sed 's/^/::error::/'; exit 1; }
 
-      - name: Replace aircraft test (one aircraft of a route replaced by another on the route screen)
+      - name: Replace coach test (one coach of a route replaced by another on the route screen)
         run: |
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm replace 2>&1 | tee replacetest.log
           grep -q "REPLACE TEST OK" replacetest.log || { grep -m8 -iE "FAILED|timeout|exception|   at " replacetest.log | sed 's/^/::error::/'; exit 1; }
 
-      - name: Fleet renewal test (every aircraft of one type replaced by another from the market)
+      - name: Fleet renewal test (every coach of one type replaced by another from the market)
         run: |
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm renewal 2>&1 | tee renewaltest.log
           grep -q "RENEWAL TEST OK" renewaltest.log || { grep -m8 -iE "FAILED|timeout|exception|   at " renewaltest.log | sed 's/^/::error::/'; exit 1; }
 
-      - name: Fleet renewal order test (a new aircraft ordered, saved and loaded, taking over on delivery)
+      - name: Fleet renewal order test (a new coach ordered, saved and loaded, taking over on delivery)
         run: |
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm renewalorder 2>&1 | tee renewalordertest.log
           grep -q "RENEWAL ORDER TEST OK" renewalordertest.log || { grep -m8 -iE "FAILED|timeout|exception|   at " renewalordertest.log | sed 's/^/::error::/'; exit 1; }
@@ -86,27 +86,27 @@ jobs:
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm forecast 2>&1 | tee forecasttest.log
           grep -q "FORECAST TEST OK" forecasttest.log || { grep -m8 -iE "FAILED|timeout|exception|   at " forecasttest.log | sed 's/^/::error::/'; exit 1; }
 
-      - name: Computer airlines test (destinations picked by forecast, losing routes given up)
+      - name: Computer carriers test (destinations picked by forecast, losing routes given up)
         run: |
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm aiplan 2>&1 | tee aiplantest.log
           grep -q "AI PLAN TEST OK" aiplantest.log || { grep -m8 -iE "FAILED|timeout|exception|   at " aiplantest.log | sed 's/^/::error::/'; exit 1; }
 
-      - name: World map animation test (aircraft glide between reads of the game)
+      - name: World map animation test (coach glide between reads of the game)
         run: |
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm mapanim 2>&1 | tee mapanimtest.log
           grep -q "MAP ANIMATION TEST OK" mapanimtest.log || { grep -m8 -iE "FAILED|timeout|exception|   at " mapanimtest.log | sed 's/^/::error::/'; exit 1; }
 
-      - name: Competitors test (rivals on my routes and airports, their moves, the screen)
+      - name: Competitors test (rivals on my routes and stations, their moves, the screen)
         run: |
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm competitors 2>&1 | tee competitorstest.log
           grep -q "COMPETITORS TEST OK" competitorstest.log || { grep -m8 -iE "FAILED|timeout|exception|   at " competitorstest.log | sed 's/^/::error::/'; exit 1; }
 
-      - name: Rivals on the map test (one airline, those on my routes, everyone at an airport)
+      - name: Rivals on the map test (one carrier, those on my routes, everyone at an station)
         run: |
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm rivalmap 2>&1 | tee rivalmaptest.log
           grep -q "RIVAL MAP TEST OK" rivalmaptest.log || { grep -m8 -iE "FAILED|timeout|exception|   at " rivalmaptest.log | sed 's/^/::error::/'; exit 1; }
 
-      - name: Connecting passengers test (the flight engine's quick sum equals the markets)
+      - name: Connecting passengers test (the trip engine's quick sum equals the markets)
         run: |
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm fastdemand 2>&1 | tee fastdemandtest.log
           grep -q "FAST DEMAND TEST OK" fastdemandtest.log || { grep -m8 -iE "FAILED|timeout|exception|   at " fastdemandtest.log | sed 's/^/::error::/'; exit 1; }
@@ -116,22 +116,22 @@ jobs:
           TAP_OPPONENTS=20 TAP_SAMPLE=40 timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm tripadvice 2>&1 | tee tripadvicetest.log
           grep -q "TRIP ADVICE TEST OK" tripadvicetest.log || { grep -m8 -iE "FAILED|timeout|exception|   at " tripadvicetest.log | sed 's/^/::error::/'; exit 1; }
 
-      - name: Follow an aircraft on the map test
+      - name: Follow an coach on the map test
         run: |
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm follow 2>&1 | tee followtest.log
           grep -q "FOLLOW TEST OK" followtest.log || { grep -m8 -iE "FAILED|timeout|exception|   at " followtest.log | sed 's/^/::error::/'; exit 1; }
 
-      - name: Flight board test (a followed aircraft's flights through a day)
+      - name: Trip board test (a followed coach's trips through a day)
         run: |
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm board 2>&1 | tee boardtest.log
-          grep -q "FLIGHT BOARD TEST OK" boardtest.log || { grep -m8 -iE "FAILED|timeout|exception|   at " boardtest.log | sed 's/^/::error::/'; exit 1; }
+          grep -q "TRIP BOARD TEST OK" boardtest.log || { grep -m8 -iE "FAILED|timeout|exception|   at " boardtest.log | sed 's/^/::error::/'; exit 1; }
 
-      - name: Demand both ways test (a new game's airline airports get passengers towards them too)
+      - name: Demand both ways test (a new game's carrier stations get passengers towards them too)
         run: |
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm onewaytest 2>&1 | tee onewaytest.log
           grep -q "DEMAND BOTH WAYS TEST OK" onewaytest.log || { grep -m8 -iE "FAILED|timeout|exception|   at " onewaytest.log | sed 's/^/::error::/'; exit 1; }
 
-      - name: History test (rival moves and recorded flights come back with a saved game)
+      - name: History test (rival moves and recorded trips come back with a saved game)
         run: |
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm history 2>&1 | tee historytest.log
           grep -q "HISTORY TEST OK" historytest.log || { grep -m8 -iE "FAILED|timeout|exception|   at " historytest.log | sed 's/^/::error::/'; exit 1; }
@@ -186,32 +186,32 @@ jobs:
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm statistics 2>&1 | tee statisticsscreen.log
           grep -q "STATISTICS TEST OK" statisticsscreen.log || { grep -m8 -iE "FAILED|timeout|exception|   at " statisticsscreen.log | sed 's/^/::error::/'; exit 1; }
 
-      - name: Airport search test
+      - name: Station search test
         run: |
-          timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm airportsearch 2>&1 | tee airportsearch.log
-          grep -q "AIRPORT SEARCH TEST OK" airportsearch.log || { grep -m8 -iE "FAILED|timeout|exception|   at " airportsearch.log | sed 's/^/::error::/'; exit 1; }
+          timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm stationsearch 2>&1 | tee stationsearch.log
+          grep -q "STATION SEARCH TEST OK" stationsearch.log || { grep -m8 -iE "FAILED|timeout|exception|   at " stationsearch.log | sed 's/^/::error::/'; exit 1; }
 
-      - name: Airport sort test
+      - name: Station sort test
         run: |
-          timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm airportsort 2>&1 | tee airportsort.log
-          grep -q "AIRPORT SORT TEST OK" airportsort.log || { grep -m8 -iE "FAILED|timeout|exception|   at " airportsort.log | sed 's/^/::error::/'; exit 1; }
+          timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm stationsort 2>&1 | tee stationsort.log
+          grep -q "STATION SORT TEST OK" stationsort.log || { grep -m8 -iE "FAILED|timeout|exception|   at " stationsort.log | sed 's/^/::error::/'; exit 1; }
 
       - name: Empty route test
         run: |
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm aiempty 2>&1 | tee aiempty.log
           grep -q "EMPTY ROUTE TEST OK" aiempty.log || { grep -m8 -iE "FAILED|timeout|exception|   at " aiempty.log | sed 's/^/::error::/'; exit 1; }
 
-      - name: Best and worst test (profit per route and per aircraft)
+      - name: Best and worst test (profit per route and per coach)
         run: |
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm ranking 2>&1 | tee ranking.log
           grep -q "RANKING TEST OK" ranking.log || { grep -m8 -iE "FAILED|timeout|exception|   at " ranking.log | sed 's/^/::error::/'; exit 1; }
 
-      - name: Ground time test (the gap between flights is the aircraft's ground time)
+      - name: Ground time test (the gap between trips is the coach's ground time)
         run: |
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm groundtime 2>&1 | tee groundtime.log
           grep -q "GROUND TIME TEST OK" groundtime.log || { grep -m8 -iE "FAILED|timeout|exception|   at " groundtime.log | sed 's/^/::error::/'; exit 1; }
 
-      - name: Cabins test (every aircraft can say which cabin a passenger sits in)
+      - name: Cabins test (every coach can say which cabin a passenger sits in)
         run: |
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm cabins 2>&1 | tee cabins.log
           grep -q "CABINS TEST OK" cabins.log || { grep -m8 -iE "FAILED|timeout|exception|   at " cabins.log | sed 's/^/::error::/'; exit 1; }

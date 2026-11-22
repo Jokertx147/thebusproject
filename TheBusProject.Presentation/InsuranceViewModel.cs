@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Input;
 using TheBusProject.Helpers;
-using TheBusProject.Models.Airlines;
+using TheBusProject.Models.Carriers;
 using TheBusProject.Models.General;
 
 namespace TheBusProject.Presentation
@@ -19,19 +19,19 @@ namespace TheBusProject.Presentation
 
     public class PolicyItem
     {
-        public AirlineInsurance Policy { get; set; }
+        public CarrierInsurance Policy { get; set; }
         public string Text { get; set; }
         public string Detail { get; set; }
         public ICommand CancelCommand { get; set; }
     }
 
-    /// <summary>The insurance policies of the airline: what is covered, what they cost and buying or cancelling them.</summary>
+    /// <summary>The insurance policies of the carrier: what is covered, what they cost and buying or cancelling them.</summary>
     public class InsuranceViewModel : ObservableObject
     {
         private readonly Action _changed;
-        private NamedChoice<AirlineInsurance.InsuranceType> _type;
-        private NamedChoice<AirlineInsurance.InsuranceScope> _scope;
-        private NamedChoice<AirlineInsurance.PaymentTerms> _terms;
+        private NamedChoice<CarrierInsurance.InsuranceType> _type;
+        private NamedChoice<CarrierInsurance.InsuranceScope> _scope;
+        private NamedChoice<CarrierInsurance.PaymentTerms> _terms;
         private int _years = 3;
         private string _amountText = "50000000";
         private string _status, _pendingText;
@@ -41,26 +41,26 @@ namespace TheBusProject.Presentation
         {
             _changed = changed;
             Policies = new ObservableCollection<PolicyItem>();
-            Types = new List<NamedChoice<AirlineInsurance.InsuranceType>>
+            Types = new List<NamedChoice<CarrierInsurance.InsuranceType>>
             {
-                new NamedChoice<AirlineInsurance.InsuranceType> { Name = "Public liability", Value = AirlineInsurance.InsuranceType.PublicLiability },
-                new NamedChoice<AirlineInsurance.InsuranceType> { Name = "Passenger liability", Value = AirlineInsurance.InsuranceType.PassengerLiability },
-                new NamedChoice<AirlineInsurance.InsuranceType> { Name = "Combined single limit", Value = AirlineInsurance.InsuranceType.CombinedSingleLimit },
-                new NamedChoice<AirlineInsurance.InsuranceType> { Name = "Full coverage", Value = AirlineInsurance.InsuranceType.FullCoverage }
+                new NamedChoice<CarrierInsurance.InsuranceType> { Name = "Public liability", Value = CarrierInsurance.InsuranceType.PublicLiability },
+                new NamedChoice<CarrierInsurance.InsuranceType> { Name = "Passenger liability", Value = CarrierInsurance.InsuranceType.PassengerLiability },
+                new NamedChoice<CarrierInsurance.InsuranceType> { Name = "Combined single limit", Value = CarrierInsurance.InsuranceType.CombinedSingleLimit },
+                new NamedChoice<CarrierInsurance.InsuranceType> { Name = "Full coverage", Value = CarrierInsurance.InsuranceType.FullCoverage }
             };
-            Scopes = new List<NamedChoice<AirlineInsurance.InsuranceScope>>
+            Scopes = new List<NamedChoice<CarrierInsurance.InsuranceScope>>
             {
-                new NamedChoice<AirlineInsurance.InsuranceScope> { Name = "Airport", Value = AirlineInsurance.InsuranceScope.Airport },
-                new NamedChoice<AirlineInsurance.InsuranceScope> { Name = "Domestic", Value = AirlineInsurance.InsuranceScope.Domestic },
-                new NamedChoice<AirlineInsurance.InsuranceScope> { Name = "Hub", Value = AirlineInsurance.InsuranceScope.Hub },
-                new NamedChoice<AirlineInsurance.InsuranceScope> { Name = "Global", Value = AirlineInsurance.InsuranceScope.Global }
+                new NamedChoice<CarrierInsurance.InsuranceScope> { Name = "Station", Value = CarrierInsurance.InsuranceScope.Station },
+                new NamedChoice<CarrierInsurance.InsuranceScope> { Name = "Domestic", Value = CarrierInsurance.InsuranceScope.Domestic },
+                new NamedChoice<CarrierInsurance.InsuranceScope> { Name = "Hub", Value = CarrierInsurance.InsuranceScope.Hub },
+                new NamedChoice<CarrierInsurance.InsuranceScope> { Name = "Global", Value = CarrierInsurance.InsuranceScope.Global }
             };
-            Terms = new List<NamedChoice<AirlineInsurance.PaymentTerms>>
+            Terms = new List<NamedChoice<CarrierInsurance.PaymentTerms>>
             {
-                new NamedChoice<AirlineInsurance.PaymentTerms> { Name = "Monthly", Value = AirlineInsurance.PaymentTerms.Monthly },
-                new NamedChoice<AirlineInsurance.PaymentTerms> { Name = "Quarterly", Value = AirlineInsurance.PaymentTerms.Quarterly },
-                new NamedChoice<AirlineInsurance.PaymentTerms> { Name = "Every six months", Value = AirlineInsurance.PaymentTerms.Biannual },
-                new NamedChoice<AirlineInsurance.PaymentTerms> { Name = "Yearly", Value = AirlineInsurance.PaymentTerms.Annual }
+                new NamedChoice<CarrierInsurance.PaymentTerms> { Name = "Monthly", Value = CarrierInsurance.PaymentTerms.Monthly },
+                new NamedChoice<CarrierInsurance.PaymentTerms> { Name = "Quarterly", Value = CarrierInsurance.PaymentTerms.Quarterly },
+                new NamedChoice<CarrierInsurance.PaymentTerms> { Name = "Every six months", Value = CarrierInsurance.PaymentTerms.Biannual },
+                new NamedChoice<CarrierInsurance.PaymentTerms> { Name = "Yearly", Value = CarrierInsurance.PaymentTerms.Annual }
             };
             YearChoices = new List<int> { 1, 2, 3, 5, 10, 20 };
             _type = Types[3];
@@ -73,9 +73,9 @@ namespace TheBusProject.Presentation
         }
 
         public ObservableCollection<PolicyItem> Policies { get; }
-        public List<NamedChoice<AirlineInsurance.InsuranceType>> Types { get; }
-        public List<NamedChoice<AirlineInsurance.InsuranceScope>> Scopes { get; }
-        public List<NamedChoice<AirlineInsurance.PaymentTerms>> Terms { get; }
+        public List<NamedChoice<CarrierInsurance.InsuranceType>> Types { get; }
+        public List<NamedChoice<CarrierInsurance.InsuranceScope>> Scopes { get; }
+        public List<NamedChoice<CarrierInsurance.PaymentTerms>> Terms { get; }
         public List<int> YearChoices { get; }
         public ICommand BuyCommand { get; }
         public ICommand ConfirmCommand { get; }
@@ -83,19 +83,19 @@ namespace TheBusProject.Presentation
         public string Summary { get; private set; }
         public bool HasPending => _pending != null;
 
-        public NamedChoice<AirlineInsurance.InsuranceType> Type
+        public NamedChoice<CarrierInsurance.InsuranceType> Type
         {
             get { return _type; }
             set { if (SetProperty(ref _type, value)) Changed(); }
         }
 
-        public NamedChoice<AirlineInsurance.InsuranceScope> Scope
+        public NamedChoice<CarrierInsurance.InsuranceScope> Scope
         {
             get { return _scope; }
             set { if (SetProperty(ref _scope, value)) Changed(); }
         }
 
-        public NamedChoice<AirlineInsurance.PaymentTerms> PaymentTerm
+        public NamedChoice<CarrierInsurance.PaymentTerms> PaymentTerm
         {
             get { return _terms; }
             set { if (SetProperty(ref _terms, value)) Changed(); }
@@ -139,13 +139,13 @@ namespace TheBusProject.Presentation
             get
             {
                 int amount;
-                var airline = GameObject.GetInstance().HumanAirline;
-                if (airline == null || !TryAmount(out amount))
+                var carrier = GameObject.GetInstance().HumanCarrier;
+                if (carrier == null || !TryAmount(out amount))
                 {
-                    return "Enter the limit per aircraft as a number between 500,000 and 1,000,000,000.";
+                    return "Enter the limit per coach as a number between 500,000 and 1,000,000,000.";
                 }
 
-                var p = InsuranceService.Quote(airline, _type.Value, _scope.Value, _terms.Value, _years, amount);
+                var p = InsuranceService.Quote(carrier, _type.Value, _scope.Value, _terms.Value, _years, amount);
                 return string.Format(
                     "{0} per payment ({1} payments over {2} years, {3} in total)  |  deductible {4}  |  cancelling costs {5}",
                     Money(p.PaymentAmount), p.RemainingPayments, _years, Money(p.PaymentAmount*p.RemainingPayments), Money(p.Deductible), Money(p.PaymentAmount*2));
@@ -192,37 +192,37 @@ namespace TheBusProject.Presentation
 
         public void Reload()
         {
-            var airline = GameObject.GetInstance().HumanAirline;
-            if (airline == null)
+            var carrier = GameObject.GetInstance().HumanCarrier;
+            if (carrier == null)
             {
                 return;
             }
 
             Policies.Clear();
-            foreach (var policy in airline.InsurancePolicies.ToList())
+            foreach (var policy in carrier.InsurancePolicies.ToList())
             {
                 var captured = policy;
                 Policies.Add(new PolicyItem
                 {
                     Policy = policy,
                     Text = string.Format(
-                        "{0}, {1} scope  |  limit {2} per aircraft  |  {3} {4}",
+                        "{0}, {1} scope  |  limit {2} per coach  |  {3} {4}",
                         policy.InsType, policy.InsScope, Money(policy.InsuredAmount), Money(policy.PaymentAmount), policy.InsTerms.ToString().ToLowerInvariant()),
                     Detail = string.Format(
                         "Runs until {0}  |  {1} payments left, next {2}  |  deductible {3}  |  {4}",
                         DateFormatter.Date(policy.InsuranceExpires), policy.RemainingPayments,
                         policy.RemainingPayments > 0 ? DateFormatter.Date(policy.NextPaymentDue) : "none",
                         Money(policy.Deductible),
-                        InsuranceService.CoversAircraft(policy.InsType) ? "covers breakdown repairs" : "liability only, no repairs"),
+                        InsuranceService.CoversCoach(policy.InsType) ? "covers breakdown repairs" : "liability only, no repairs"),
                     CancelCommand = new RelayCommand(() => AskCancel(captured))
                 });
             }
 
-            bool covered = airline.InsurancePolicies.Any(p => InsuranceService.CoversAircraft(p.InsType));
-            double yearly = airline.InsurancePolicies.Sum(p => p.PaymentAmount*InsuranceService.PaymentsPerYear(p.InsTerms));
+            bool covered = carrier.InsurancePolicies.Any(p => InsuranceService.CoversCoach(p.InsType));
+            double yearly = carrier.InsurancePolicies.Sum(p => p.PaymentAmount*InsuranceService.PaymentsPerYear(p.InsTerms));
             Summary = string.Format(
                 "{0} policies  |  about {1} a year in premiums  |  rating factor {2:0.00} (better maintenance, safety and security make premiums cheaper)  |  {3}",
-                airline.InsurancePolicies.Count, Money(yearly), AirlineInsuranceHelpers.GetRatingModifier(airline),
+                carrier.InsurancePolicies.Count, Money(yearly), CarrierInsuranceHelpers.GetRatingModifier(carrier),
                 covered ? "breakdown repairs are covered" : "no policy covers breakdown repairs: combined single limit or full coverage does");
             OnPropertyChanged(nameof(Summary));
             Changed();
@@ -231,34 +231,34 @@ namespace TheBusProject.Presentation
         private void AskBuy()
         {
             int amount;
-            var airline = GameObject.GetInstance().HumanAirline;
+            var carrier = GameObject.GetInstance().HumanCarrier;
             if (!TryAmount(out amount))
             {
-                Status = "Enter the limit per aircraft as a number between 500,000 and 1,000,000,000.";
+                Status = "Enter the limit per coach as a number between 500,000 and 1,000,000,000.";
                 return;
             }
 
-            var p = InsuranceService.Quote(airline, _type.Value, _scope.Value, _terms.Value, _years, amount);
+            var p = InsuranceService.Quote(carrier, _type.Value, _scope.Value, _terms.Value, _years, amount);
             SetPending(
                 string.Format("Buy {0} insurance ({1}) for {2} years? The first payment of {3} is charged now.", _type.Name.ToLowerInvariant(), _scope.Name.ToLowerInvariant(), _years, Money(p.PaymentAmount)),
                 () =>
                 {
                     string message;
-                    InsuranceService.Purchase(airline, p, out message);
+                    InsuranceService.Purchase(carrier, p, out message);
                     Status = message;
                     Reload();
                     _changed();
                 });
         }
 
-        private void AskCancel(AirlineInsurance policy)
+        private void AskCancel(CarrierInsurance policy)
         {
             SetPending(
                 "Cancel this " + policy.InsType + " policy? The cancellation fee is " + Money(policy.CancellationFee) + ".",
                 () =>
                 {
                     string message;
-                    InsuranceService.Cancel(GameObject.GetInstance().HumanAirline, policy, out message);
+                    InsuranceService.Cancel(GameObject.GetInstance().HumanCarrier, policy, out message);
                     Status = message;
                     Reload();
                     _changed();

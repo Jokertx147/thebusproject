@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Runtime.Serialization;
 using TheBusProject.Infrastructure;
 
 namespace TheBusProject.Models.Passengers
 {
     [Serializable]
-    //the class for the demand rate for an airport/destination
+    //the class for the demand rate for an station/destination
     public class DestinationDemand : BaseModel
     {
         #region Constructors and Destructors

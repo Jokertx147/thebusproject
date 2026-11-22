@@ -18,19 +18,24 @@ operators that make their own decisions, and books that have to balance. What
 changes is the vocabulary, the vehicles, the geography and the rules of the
 road.
 
-The airline's own vocabulary has been renamed throughout: an operator rather
-than an airline, a terminal rather than an airport, a coach rather than an
-airliner, a trip rather than a flight.
+The airline's own vocabulary has been renamed throughout:
+
+| Was | Is | Why |
+| --- | --- | --- |
+| Airline | Carrier | US law calls an intercity bus company a motor carrier. `operator` is a C# keyword, so that word was out. |
+| Airport | Station | A bus station. `Terminal` and `Gate` are kept for a building and a bay within a station. |
+| Airliner, Aircraft | Coach | |
+| Flight | Trip | One run of a route in one direction. |
 
 ## Layout
 
 | Project | What it is |
 | --- | --- |
-| `TheBusProject.Core` | The simulation: the clock, the model, the money, the rival operators. No user interface. |
+| `TheBusProject.Core` | The simulation: the clock, the model, the money, the rival carriers. No user interface. |
 | `TheBusProject.Presentation` | View models. Everything the screens need, with no drawing in it. |
 | `TheBusProject.Desktop` | The game itself, in Avalonia, so it runs on Linux and Windows. |
 | `TheBusProject.Headless` | Runs the simulation with no screen at all. This is what the tests use. |
-| `Data/Data` | The game's data as XML: places, vehicles, operators. |
+| `Data/Data` | The game's data as XML: places, vehicles, carriers. |
 
 ## Building and running
 

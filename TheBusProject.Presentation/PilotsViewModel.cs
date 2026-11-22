@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 using TheBusProject.Helpers;
-using TheBusProject.Models.Airliners;
+using TheBusProject.Models.Coaches;
 using TheBusProject.Models.General;
 using TheBusProject.Models.Pilots;
 
@@ -15,21 +15,21 @@ namespace TheBusProject.Presentation
         public PilotItem(Pilot pilot)
         {
             Pilot = pilot;
-            IsIdle = pilot.Airline != null && pilot.Airliner == null;
+            IsIdle = pilot.Carrier != null && pilot.Coach == null;
             IsTraining = pilot.Training != null;
             Name = pilot.Profile.Name;
             Details = string.Format(
                 "age {0}  |  {1}  |  {2}",
-                pilot.Profile.Age, pilot.Rating?.Name, string.Join(", ", pilot.Aircrafts ?? new List<string>()));
-            Mood = pilot.Airline == null ? null : string.Format("morale {0:0} ({1})", pilot.Morale, PilotMoraleService.MoodText(pilot.Morale));
-            IsUnhappy = pilot.Airline != null && pilot.Morale < 35;
-            Assignment = (pilot.Airliner == null ? "not assigned" : "flies " + pilot.Airliner.Name)
-                         + (pilot.Training != null ? "  |  training for the " + pilot.Training.AirlinerFamily + " until " + DateFormatter.Date(pilot.Training.EndDate) : "");
+                pilot.Profile.Age, pilot.Rating?.Name, string.Join(", ", pilot.Coaches ?? new List<string>()));
+            Mood = pilot.Carrier == null ? null : string.Format("morale {0:0} ({1})", pilot.Morale, PilotMoraleService.MoodText(pilot.Morale));
+            IsUnhappy = pilot.Carrier != null && pilot.Morale < 35;
+            Assignment = (pilot.Coach == null ? "not assigned" : "runs " + pilot.Coach.Name)
+                         + (pilot.Training != null ? "  |  training for the " + pilot.Training.CoachFamily + " until " + DateFormatter.Date(pilot.Training.EndDate) : "");
         }
 
         public Pilot Pilot { get; }
 
-        /// <summary>One of your pilots who has no aircraft.</summary>
+        /// <summary>One of your pilots who has no coach.</summary>
         public bool IsIdle { get; }
 
         public bool IsTraining { get; }
@@ -43,11 +43,11 @@ namespace TheBusProject.Presentation
     public class CrewChoice
     {
         public string Name { get; set; }
-        public FleetAirliner Airliner { get; set; }
+        public FleetCoach Coach { get; set; }
         public override string ToString() { return Name; }
     }
 
-    /// <summary>Hire pilots and put them on aircraft. An aircraft needs a full cockpit crew before it can fly.</summary>
+    /// <summary>Hire pilots and put them on coach. An coach needs a full cockpit crew before it can fly.</summary>
     public class PilotsViewModel : ObservableObject
     {
         private readonly Action _changed;
@@ -60,7 +60,7 @@ namespace TheBusProject.Presentation
         private NamedChoice<Pilot> _trainPilot;
         private NamedChoice<string> _trainFamily;
         private NamedChoice<Pilot> _assignPilot;
-        private NamedChoice<FleetAirliner> _assignTarget;
+        private NamedChoice<FleetCoach> _assignTarget;
 
         public PilotsViewModel(Action changed)
         {
@@ -69,13 +69,13 @@ namespace TheBusProject.Presentation
             Hired = new ObservableCollection<PilotItem>();
             Targets = new ObservableCollection<CrewChoice>();
             HireCommand = new RelayCommand(HireSelected, () => _selected != null);
-            HireCrewCommand = new RelayCommand(HireCrew, () => _target?.Airliner != null);
+            HireCrewCommand = new RelayCommand(HireCrew, () => _target?.Coach != null);
             AssignIdleCommand = new RelayCommand(AssignIdle);
             TrainPilots = new ObservableCollection<NamedChoice<Pilot>>();
             TrainFamilies = new ObservableCollection<NamedChoice<string>>();
             TrainCommand = new RelayCommand(AskTrain);
             AssignPilots = new ObservableCollection<NamedChoice<Pilot>>();
-            AssignTargets = new ObservableCollection<NamedChoice<FleetAirliner>>();
+            AssignTargets = new ObservableCollection<NamedChoice<FleetCoach>>();
             AssignCommand = new RelayCommand(AssignSelected);
             UnassignCommand = new RelayCommand(UnassignSelected);
             ConfirmCommand = new RelayCommand(() => { var a = _pending; SetPending(null, null); a?.Invoke(); });
@@ -92,7 +92,7 @@ namespace TheBusProject.Presentation
         public ObservableCollection<PilotItem> Available { get; }
         public ObservableCollection<PilotItem> Hired { get; }
 
-        /// <summary>The aircraft that still need pilots; "any" shows every pilot for hire.</summary>
+        /// <summary>The coach that still need pilots; "any" shows every pilot for hire.</summary>
         public ObservableCollection<CrewChoice> Targets { get; }
 
         public ICommand HireCommand { get; }
@@ -102,32 +102,32 @@ namespace TheBusProject.Presentation
         public ICommand AssignCommand { get; }
         public ICommand UnassignCommand { get; }
 
-        /// <summary>Your pilots, those without an aircraft first.</summary>
+        /// <summary>Your pilots, those without an coach first.</summary>
         public ObservableCollection<NamedChoice<Pilot>> AssignPilots { get; }
 
-        /// <summary>The aircraft that need a pilot and match the chosen pilot's types.</summary>
-        public ObservableCollection<NamedChoice<FleetAirliner>> AssignTargets { get; }
+        /// <summary>The coach that need a pilot and match the chosen pilot's types.</summary>
+        public ObservableCollection<NamedChoice<FleetCoach>> AssignTargets { get; }
 
         public string AssignHint { get; private set; }
 
-        /// <summary>Pilots who finish training or flight school, or have no aircraft, are put on aircraft that need them every day.</summary>
+        /// <summary>Pilots who finish training or trip school, or have no coach, are put on coach that need them every day.</summary>
         public bool AutoAssign
         {
-            get { return GameObject.GetInstance().HumanAirline?.AutoAssignPilots ?? false; }
+            get { return GameObject.GetInstance().HumanCarrier?.AutoAssignPilots ?? false; }
             set
             {
-                var airline = GameObject.GetInstance().HumanAirline;
-                if (airline == null || airline.AutoAssignPilots == value)
+                var carrier = GameObject.GetInstance().HumanCarrier;
+                if (carrier == null || carrier.AutoAssignPilots == value)
                 {
                     return;
                 }
 
-                airline.AutoAssignPilots = value;
+                carrier.AutoAssignPilots = value;
                 OnPropertyChanged(nameof(AutoAssign));
                 if (value)
                 {
-                    int n = FlightSchoolService.AssignIdlePilots(airline);
-                    Status = "Automatic assignment is on" + (n > 0 ? ": " + n + " pilot(s) without an aircraft were put on aircraft that needed them." : ".");
+                    int n = TripSchoolService.AssignIdlePilots(carrier);
+                    Status = "Automatic assignment is on" + (n > 0 ? ": " + n + " pilot(s) without a coach were put on coach that needed them." : ".");
                 }
                 else
                 {
@@ -151,7 +151,7 @@ namespace TheBusProject.Presentation
             }
         }
 
-        public NamedChoice<FleetAirliner> AssignTarget
+        public NamedChoice<FleetCoach> AssignTarget
         {
             get { return _assignTarget; }
             set { SetProperty(ref _assignTarget, value); }
@@ -159,17 +159,17 @@ namespace TheBusProject.Presentation
 
         private void LoadAssignPilots()
         {
-            var airline = GameObject.GetInstance().HumanAirline;
+            var carrier = GameObject.GetInstance().HumanCarrier;
             var keep = _assignPilot?.Value;
             AssignPilots.Clear();
-            if (airline != null)
+            if (carrier != null)
             {
-                foreach (var p in airline.Pilots.Where(p => p.Training == null).OrderBy(p => p.Airliner != null).ThenBy(p => p.Profile.Name))
+                foreach (var p in carrier.Pilots.Where(p => p.Training == null).OrderBy(p => p.Coach != null).ThenBy(p => p.Profile.Name))
                 {
                     AssignPilots.Add(
                         new NamedChoice<Pilot>
                         {
-                            Name = (p.Airliner == null ? "[no aircraft] " : "") + p.Profile.Name + "  (" + (p.Airliner == null ? "" : "flies " + p.Airliner.Name + ", ") + string.Join(", ", p.Aircrafts ?? new List<string>()) + ")",
+                            Name = (p.Coach == null ? "[no coach] " : "") + p.Profile.Name + "  (" + (p.Coach == null ? "" : "runs " + p.Coach.Name + ", ") + string.Join(", ", p.Coaches ?? new List<string>()) + ")",
                             Value = p
                         });
                 }
@@ -182,18 +182,18 @@ namespace TheBusProject.Presentation
 
         private void LoadAssignTargets()
         {
-            var airline = GameObject.GetInstance().HumanAirline;
+            var carrier = GameObject.GetInstance().HumanCarrier;
             var pilot = _assignPilot?.Value;
             var keep = _assignTarget?.Value;
             AssignTargets.Clear();
-            if (airline != null && pilot != null)
+            if (carrier != null && pilot != null)
             {
-                foreach (var f in FlightSchoolService.AssignTargets(airline, pilot))
+                foreach (var f in TripSchoolService.AssignTargets(carrier, pilot))
                 {
                     AssignTargets.Add(
-                        new NamedChoice<FleetAirliner>
+                        new NamedChoice<FleetCoach>
                         {
-                            Name = string.Format("{0} - {1} ({2}/{3} pilots)", f.Name, f.Airliner.Type.Name, f.Pilots.Count, f.Airliner.Type.CockpitCrew),
+                            Name = string.Format("{0} - {1} ({2}/{3} pilots)", f.Name, f.Coach.Type.Name, f.Pilots.Count, f.Coach.Type.CockpitCrew),
                             Value = f
                         });
                 }
@@ -204,8 +204,8 @@ namespace TheBusProject.Presentation
             AssignHint = pilot == null
                 ? "You have no pilot to assign."
                 : AssignTargets.Count == 0
-                    ? "No aircraft with a free cockpit seat matches what " + pilot.Profile.Name + " can fly. Train him for another family, or buy a matching aircraft."
-                    : "Choose the aircraft for " + pilot.Profile.Name + ". A pilot who flies another aircraft moves over.";
+                    ? "No coach with a free cockpit seat matches what " + pilot.Profile.Name + " can run. Train him for another family, or buy a matching coach."
+                    : "Choose the coach for " + pilot.Profile.Name + ". A pilot who runs another coach moves over.";
             OnPropertyChanged(nameof(AssignHint));
         }
 
@@ -214,7 +214,7 @@ namespace TheBusProject.Presentation
             var pilot = _assignPilot?.Value;
             var target = _assignTarget?.Value;
             string m;
-            FlightSchoolService.AssignPilot(GameObject.GetInstance().HumanAirline, pilot, target, out m);
+            TripSchoolService.AssignPilot(GameObject.GetInstance().HumanCarrier, pilot, target, out m);
             Status = m;
             Reload();
             _changed?.Invoke();
@@ -223,7 +223,7 @@ namespace TheBusProject.Presentation
         private void UnassignSelected()
         {
             string m;
-            FlightSchoolService.UnassignPilot(GameObject.GetInstance().HumanAirline, _assignPilot?.Value, out m);
+            TripSchoolService.UnassignPilot(GameObject.GetInstance().HumanCarrier, _assignPilot?.Value, out m);
             Status = m;
             Reload();
             _changed?.Invoke();
@@ -237,19 +237,19 @@ namespace TheBusProject.Presentation
         public string MoraleText { get; private set; }
         private NamedChoice<int> _payLevel;
 
-        /// <summary>What the airline pays its pilots compared to the market. Higher pay lifts morale and costs more every month.</summary>
+        /// <summary>What the carrier pays its pilots compared to the market. Higher pay lifts morale and costs more every month.</summary>
         public NamedChoice<int> PayLevel
         {
             get { return _payLevel; }
             set
             {
                 if (value == null || value == _payLevel) return;
-                var airline = GameObject.GetInstance().HumanAirline;
+                var carrier = GameObject.GetInstance().HumanCarrier;
                 _payLevel = value;
                 OnPropertyChanged(nameof(PayLevel));
-                if (airline == null || (int) Math.Round(airline.PilotPayPercent <= 0 ? 100 : airline.PilotPayPercent) == value.Value) return;
+                if (carrier == null || (int) Math.Round(carrier.PilotPayPercent <= 0 ? 100 : carrier.PilotPayPercent) == value.Value) return;
                 string m;
-                PilotMoraleService.SetPay(airline, value.Value, out m);
+                PilotMoraleService.SetPay(carrier, value.Value, out m);
                 Status = m;
                 LoadPay();
                 _changed?.Invoke();
@@ -258,50 +258,50 @@ namespace TheBusProject.Presentation
 
         private void LoadPay()
         {
-            var airline = GameObject.GetInstance().HumanAirline;
-            if (airline == null) return;
-            int pct = (int) Math.Round(airline.PilotPayPercent <= 0 ? 100 : airline.PilotPayPercent);
+            var carrier = GameObject.GetInstance().HumanCarrier;
+            if (carrier == null) return;
+            int pct = (int) Math.Round(carrier.PilotPayPercent <= 0 ? 100 : carrier.PilotPayPercent);
             pct = Math.Max(PilotMoraleService.MinPay, Math.Min(PilotMoraleService.MaxPay, pct / 10 * 10));
             _payLevel = PayLevels.FirstOrDefault(c => c.Value == pct) ?? PayLevels[0];
             OnPropertyChanged(nameof(PayLevel));
-            double now = PilotMoraleService.Payroll(airline, pct);
-            double market = PilotMoraleService.Payroll(airline, 100);
-            PayText = string.Format("Monthly pilot pay: {0} (market level: {1}). Each month morale drifts toward a target: higher pay raises it, pilots without an aircraft lose heart, long service helps.", Money(now), Money(market));
-            var pilots = airline.Pilots.ToList();
+            double now = PilotMoraleService.Payroll(carrier, pct);
+            double market = PilotMoraleService.Payroll(carrier, 100);
+            PayText = string.Format("Monthly pilot pay: {0} (market level: {1}). Each month morale drifts toward a target: higher pay raises it, pilots without a coach lose heart, long service helps.", Money(now), Money(market));
+            var pilots = carrier.Pilots.ToList();
             int low = pilots.Count(p => p.Morale < 35);
             MoraleText = pilots.Count == 0
                 ? "You have no pilots."
-                : string.Format("Average morale {0:0} ({1}).{2}", PilotMoraleService.Average(airline), PilotMoraleService.MoodText(PilotMoraleService.Average(airline)), low > 0 ? " " + low + " pilot(s) are close to quitting." : "");
+                : string.Format("Average morale {0:0} ({1}).{2}", PilotMoraleService.Average(carrier), PilotMoraleService.MoodText(PilotMoraleService.Average(carrier)), low > 0 ? " " + low + " pilot(s) are close to quitting." : "");
             OnPropertyChanged(nameof(PayText));
             OnPropertyChanged(nameof(MoraleText));
         }
 
         private void AskBonus()
         {
-            var airline = GameObject.GetInstance().HumanAirline;
-            if (airline == null) return;
-            int wait = PilotMoraleService.DaysToNextBonus(airline);
+            var carrier = GameObject.GetInstance().HumanCarrier;
+            if (carrier == null) return;
+            int wait = PilotMoraleService.DaysToNextBonus(carrier);
             if (wait > 0)
             {
                 Status = "A bonus was paid recently. You can pay the next one in " + wait + " days.";
                 return;
             }
             SetPending(
-                string.Format("Pay every pilot a one-month bonus? It costs {0} and lifts morale by 15. You can do it once every {1} days.", Money(PilotMoraleService.BonusCost(airline)), PilotMoraleService.BonusWaitDays),
+                string.Format("Pay every pilot a one-month bonus? It costs {0} and lifts morale by 15. You can do it once every {1} days.", Money(PilotMoraleService.BonusCost(carrier)), PilotMoraleService.BonusWaitDays),
                 () =>
                 {
                     string m;
-                    PilotMoraleService.PayBonus(airline, out m);
+                    PilotMoraleService.PayBonus(carrier, out m);
                     Status = m;
                     Reload();
                     _changed?.Invoke();
                 });
         }
 
-        /// <summary>Pilots who can be sent to training for another aircraft family: by default those without an aircraft.</summary>
+        /// <summary>Pilots who can be sent to training for another coach family: by default those without an coach.</summary>
         public ObservableCollection<NamedChoice<Pilot>> TrainPilots { get; }
 
-        /// <summary>The aircraft families the chosen pilot cannot fly yet, with the days and the price.</summary>
+        /// <summary>The coach families the chosen pilot cannot fly yet, with the days and the price.</summary>
         public ObservableCollection<NamedChoice<string>> TrainFamilies { get; }
 
         public bool HasPending => _pending != null;
@@ -313,7 +313,7 @@ namespace TheBusProject.Presentation
             private set { SetProperty(ref _pendingText, value); }
         }
 
-        /// <summary>Also show pilots who fly an aircraft. A substitute pilot is paid while they are away.</summary>
+        /// <summary>Also show pilots who fly an coach. A substitute pilot is paid while they are away.</summary>
         public bool IncludeAssigned
         {
             get { return _includeAssigned; }
@@ -364,17 +364,17 @@ namespace TheBusProject.Presentation
 
         private void LoadTrainPilots()
         {
-            var airline = GameObject.GetInstance().HumanAirline;
+            var carrier = GameObject.GetInstance().HumanCarrier;
             var keep = _trainPilot?.Value;
             TrainPilots.Clear();
-            if (airline != null)
+            if (carrier != null)
             {
-                foreach (var p in airline.Pilots.Where(p => p.Training == null && (_includeAssigned || p.Airliner == null)).OrderBy(p => p.Profile.Name))
+                foreach (var p in carrier.Pilots.Where(p => p.Training == null && (_includeAssigned || p.Coach == null)).OrderBy(p => p.Profile.Name))
                 {
                     TrainPilots.Add(
                         new NamedChoice<Pilot>
                         {
-                            Name = p.Profile.Name + "  (" + (p.Airliner == null ? "no aircraft" : "flies " + p.Airliner.Name) + ", " + string.Join(", ", p.Aircrafts ?? new List<string>()) + ")",
+                            Name = p.Profile.Name + "  (" + (p.Coach == null ? "no coach" : "runs " + p.Coach.Name) + ", " + string.Join(", ", p.Coaches ?? new List<string>()) + ")",
                             Value = p
                         });
                 }
@@ -392,15 +392,15 @@ namespace TheBusProject.Presentation
             TrainFamilies.Clear();
             if (pilot != null)
             {
-                var fleetFamilies = GameObject.GetInstance().HumanAirline.Fleet.Select(f => f.Airliner.Type.AirlinerFamily).ToList();
+                var fleetFamilies = GameObject.GetInstance().HumanCarrier.Fleet.Select(f => f.Coach.Type.CoachFamily).ToList();
                 // the families of your own fleet come first
-                foreach (var f in FlightSchoolService.TrainingFamilies(pilot).OrderByDescending(f => fleetFamilies.Contains(f)).ThenBy(f => f))
+                foreach (var f in TripSchoolService.TrainingFamilies(pilot).OrderByDescending(f => fleetFamilies.Contains(f)).ThenBy(f => f))
                 {
-                    int days = AirlineHelpers.GetTrainingDays(pilot, f);
+                    int days = CarrierHelpers.GetTrainingDays(pilot, f);
                     TrainFamilies.Add(
                         new NamedChoice<string>
                         {
-                            Name = f + (fleetFamilies.Contains(f) ? " (in your fleet)" : "") + "  -  " + days + " days, " + Money(FlightSchoolService.GetTrainingCost(pilot, f)),
+                            Name = f + (fleetFamilies.Contains(f) ? " (in your fleet)" : "") + "  -  " + days + " days, " + Money(TripSchoolService.GetTrainingCost(pilot, f)),
                             Value = f
                         });
                 }
@@ -415,9 +415,9 @@ namespace TheBusProject.Presentation
         {
             var pilot = _trainPilot?.Value;
             TrainHint = pilot == null
-                ? (_includeAssigned ? "You have no pilot who can be trained." : "None of your pilots is without an aircraft. Tick the box to also train pilots who fly one.")
+                ? (_includeAssigned ? "You have no pilot who can be trained." : "None of your pilots is without a coach. Tick the box to also train pilots who run one.")
                 : "Training takes 2 days for a family of a manufacturer the pilot knows and 14 days otherwise. A training facility for the family (under Facilities) brings the price down to one day."
-                  + (pilot.Airliner != null ? " " + pilot.Airliner.Name + " gets a substitute pilot meanwhile, which is paid extra." : "");
+                  + (pilot.Coach != null ? " " + pilot.Coach.Name + " gets a substitute pilot meanwhile, which is paid extra." : "");
             OnPropertyChanged(nameof(TrainHint));
         }
 
@@ -427,17 +427,17 @@ namespace TheBusProject.Presentation
             var family = _trainFamily?.Value;
             if (pilot == null || family == null)
             {
-                Status = "Choose a pilot and an aircraft family.";
+                Status = "Choose a pilot and a coach family.";
                 return;
             }
 
             SetPending(
-                "Send " + pilot.Profile.Name + " to train for the " + family + " for " + Money(FlightSchoolService.GetTrainingCost(pilot, family)) + "? It takes "
-                + AirlineHelpers.GetTrainingDays(pilot, family) + " days.",
+                "Send " + pilot.Profile.Name + " to train for the " + family + " for " + Money(TripSchoolService.GetTrainingCost(pilot, family)) + "? It takes "
+                + CarrierHelpers.GetTrainingDays(pilot, family) + " days.",
                 () =>
                 {
                     string m;
-                    FlightSchoolService.TrainPilot(GameObject.GetInstance().HumanAirline, pilot, family, out m);
+                    TripSchoolService.TrainPilot(GameObject.GetInstance().HumanCarrier, pilot, family, out m);
                     Status = m;
                     Reload();
                     _changed?.Invoke();
@@ -479,30 +479,30 @@ namespace TheBusProject.Presentation
         /// <summary>Refreshes the lists after the fleet or crews changed.</summary>
         public void Reload()
         {
-            var airline = GameObject.GetInstance().HumanAirline;
-            if (airline == null)
+            var carrier = GameObject.GetInstance().HumanCarrier;
+            if (carrier == null)
             {
                 return;
             }
 
-            var keep = _target?.Airliner;
+            var keep = _target?.Coach;
             Targets.Clear();
-            Targets.Add(new CrewChoice { Name = "(any aircraft)" });
-            foreach (var f in airline.Fleet.Where(f => f.Pilots.Count < f.Airliner.Type.CockpitCrew).OrderBy(f => f.Name))
+            Targets.Add(new CrewChoice { Name = "(any coach)" });
+            foreach (var f in carrier.Fleet.Where(f => f.Pilots.Count < f.Coach.Type.CockpitCrew).OrderBy(f => f.Name))
             {
                 Targets.Add(
                     new CrewChoice
                     {
-                        Name = string.Format("{0} - {1} ({2}/{3} pilots)", f.Name, f.Airliner.Type.Name, f.Pilots.Count, f.Airliner.Type.CockpitCrew),
-                        Airliner = f
+                        Name = string.Format("{0} - {1} ({2}/{3} pilots)", f.Name, f.Coach.Type.Name, f.Pilots.Count, f.Coach.Type.CockpitCrew),
+                        Coach = f
                     });
             }
 
-            _target = Targets.FirstOrDefault(t => t.Airliner == keep && keep != null) ?? Targets[0];
+            _target = Targets.FirstOrDefault(t => t.Coach == keep && keep != null) ?? Targets[0];
             OnPropertyChanged(nameof(Target));
 
             Hired.Clear();
-            foreach (var p in airline.Pilots.OrderBy(p => p.Profile.Name))
+            foreach (var p in carrier.Pilots.OrderBy(p => p.Profile.Name))
             {
                 Hired.Add(new PilotItem(p));
             }
@@ -518,7 +518,7 @@ namespace TheBusProject.Presentation
         private List<Pilot> Candidates()
         {
             var all = Pilots.GetUnassignedPilots();
-            var family = _target?.Airliner?.Airliner.Type.AirlinerFamily;
+            var family = _target?.Coach?.Coach.Type.CoachFamily;
             //there are always pilots to hire: the market fills up when it runs short
             if (family != null)
             {
@@ -532,7 +532,7 @@ namespace TheBusProject.Presentation
                 PilotSupply.EnsureAnyPilots();
                 all = Pilots.GetUnassignedPilots();
             }
-            return all.Where(p => family == null || (p.Aircrafts != null && p.Aircrafts.Contains(family)))
+            return all.Where(p => family == null || (p.Coaches != null && p.Coaches.Contains(family)))
                       .OrderBy(p => p.Profile.Name)
                       .ToList();
         }
@@ -548,27 +548,27 @@ namespace TheBusProject.Presentation
             Selected = null;
         }
 
-        private void Hire(Pilot pilot, FleetAirliner airliner)
+        private void Hire(Pilot pilot, FleetCoach coach)
         {
-            var airline = GameObject.GetInstance().HumanAirline;
-            airline.AddPilot(pilot);
-            pilot.AirlineSignedDate = GameObject.GetInstance().GameTime;
+            var carrier = GameObject.GetInstance().HumanCarrier;
+            carrier.AddPilot(pilot);
+            pilot.CarrierSignedDate = GameObject.GetInstance().GameTime;
 
-            // with no aircraft chosen the pilot goes to the first aircraft of his type that needs a pilot
-            airliner = airliner ?? airline.Fleet.FirstOrDefault(
-                f => f.Pilots.Count < f.Airliner.Type.CockpitCrew
-                     && pilot.Aircrafts != null && pilot.Aircrafts.Contains(f.Airliner.Type.AirlinerFamily));
+            // with no coach chosen the pilot goes to the first coach of his type that needs a pilot
+            coach = coach ?? carrier.Fleet.FirstOrDefault(
+                f => f.Pilots.Count < f.Coach.Type.CockpitCrew
+                     && pilot.Coaches != null && pilot.Coaches.Contains(f.Coach.Type.CoachFamily));
 
-            if (airliner != null && airliner.Pilots.Count < airliner.Airliner.Type.CockpitCrew)
+            if (coach != null && coach.Pilots.Count < coach.Coach.Type.CockpitCrew)
             {
-                airliner.AddPilot(pilot);
+                coach.AddPilot(pilot);
             }
         }
 
         private void AssignIdle()
         {
-            int n = FlightSchoolService.AssignIdlePilots(GameObject.GetInstance().HumanAirline);
-            Status = n > 0 ? n + " pilot(s) without an aircraft were put on aircraft that needed them." : "No idle pilot fits an aircraft that needs a pilot.";
+            int n = TripSchoolService.AssignIdlePilots(GameObject.GetInstance().HumanCarrier);
+            Status = n > 0 ? n + " pilot(s) without a coach were put on coach that needed them." : "No idle pilot fits a coach that needs a pilot.";
             Reload();
             _changed?.Invoke();
         }
@@ -581,30 +581,30 @@ namespace TheBusProject.Presentation
             }
 
             var pilot = _selected.Pilot;
-            Hire(pilot, _target?.Airliner);
-            Status = "Hired " + pilot.Profile.Name + (pilot.Airliner != null ? " for " + pilot.Airliner.Name : "") + ".";
+            Hire(pilot, _target?.Coach);
+            Status = "Hired " + pilot.Profile.Name + (pilot.Coach != null ? " for " + pilot.Coach.Name : "") + ".";
             Reload();
             _changed?.Invoke();
         }
 
         private void HireCrew()
         {
-            var airliner = _target?.Airliner;
-            if (airliner == null)
+            var coach = _target?.Coach;
+            if (coach == null)
             {
                 return;
             }
 
-            int needed = airliner.Airliner.Type.CockpitCrew - airliner.Pilots.Count;
+            int needed = coach.Coach.Type.CockpitCrew - coach.Pilots.Count;
             var candidates = Candidates().Take(needed).ToList();
             foreach (var p in candidates)
             {
-                Hire(p, airliner);
+                Hire(p, coach);
             }
 
             Status = candidates.Count < needed
-                ? "Only " + candidates.Count + " matching pilot(s) were available for " + airliner.Name + "."
-                : "Hired a full crew for " + airliner.Name + ".";
+                ? "Only " + candidates.Count + " matching pilot(s) were available for " + coach.Name + "."
+                : "Hired a full crew for " + coach.Name + ".";
             Reload();
             _changed?.Invoke();
         }

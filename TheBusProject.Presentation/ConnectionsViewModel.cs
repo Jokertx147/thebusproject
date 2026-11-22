@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 using TheBusProject.Helpers;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.Routes;
 
@@ -27,7 +27,7 @@ namespace TheBusProject.Presentation
 
     public class HubIdeaRow
     {
-        public Airport Destination { get; set; }
+        public Station Destination { get; set; }
         public string Name { get; set; }
         public string Numbers { get; set; }
         public ICommand PlanCommand { get; set; }
@@ -36,31 +36,31 @@ namespace TheBusProject.Presentation
     /// <summary>Routes > Connections: which routes feed each other, how many passengers connect, and where to fly next from a hub.</summary>
     public class ConnectionsViewModel : ObservableObject
     {
-        private readonly Action<Airport, Airport> _planRoute;
+        private readonly Action<Station, Station> _planRoute;
         private ConnectionRouteRow _selected;
-        private AirportItem _hub;
+        private StationItem _hub;
         private string _summary, _routeSummary, _ideasSummary, _maxDistance = "5000";
 
-        public ConnectionsViewModel(Action<Airport, Airport> planRoute)
+        public ConnectionsViewModel(Action<Station, Station> planRoute)
         {
             _planRoute = planRoute;
             Rows = new ObservableCollection<ConnectionRouteRow>();
             Markets = new ObservableCollection<ConnectionRow>();
-            Hubs = new ObservableCollection<AirportItem>();
+            Hubs = new ObservableCollection<StationItem>();
             Ideas = new ObservableCollection<HubIdeaRow>();
         }
 
         public ObservableCollection<ConnectionRouteRow> Rows { get; }
         public ObservableCollection<ConnectionRow> Markets { get; }
-        public ObservableCollection<AirportItem> Hubs { get; }
+        public ObservableCollection<StationItem> Hubs { get; }
         public ObservableCollection<HubIdeaRow> Ideas { get; }
 
         public string Explanation =>
-            "Passengers also fly with you when they change planes. A flight from A to B carries people going on from B on " +
+            "Passengers also run with you when they change planes. A trip from A to B carries people going on from B on " +
             "another of your routes (or an alliance or codeshare partner's), and people who came to A from somewhere else. " +
-            "A connection counts when the trip is less than three times the nonstop distance and fewer than two routes fly " +
-            "the nonstop. Your own routes bring a quarter of that market, more where the airport is your hub (30 to 40%); a " +
-            "partner's bring a fifth. Demand numbers are both ways and all classes, on the scale of Airports > Demand.";
+            "A connection counts when the trip is less than three times the nonstop distance and fewer than two routes run " +
+            "the nonstop. Your own routes bring a quarter of that market, more where the station is your hub (30 to 40%); a " +
+            "partner's bring a fifth. Demand numbers are both ways and all classes, on the scale of Stations > Demand.";
 
         public string Summary { get => _summary; private set => SetProperty(ref _summary, value); }
         public string RouteSummary { get => _routeSummary; private set => SetProperty(ref _routeSummary, value); }
@@ -72,7 +72,7 @@ namespace TheBusProject.Presentation
             set { if (SetProperty(ref _selected, value)) LoadMarkets(); }
         }
 
-        public AirportItem Hub
+        public StationItem Hub
         {
             get => _hub;
             set { if (SetProperty(ref _hub, value)) LoadIdeas(); }
@@ -90,14 +90,14 @@ namespace TheBusProject.Presentation
             return v < 10 && v > 0 ? v.ToString("0.#") : v.ToString("N0");
         }
 
-        private static string Code(Airport a)
+        private static string Code(Station a)
         {
             return ConnectionService.Code(a);
         }
 
         public void Reload()
         {
-            var me = GameObject.GetInstance()?.HumanAirline;
+            var me = GameObject.GetInstance()?.HumanCarrier;
             if (me == null) return;
             ConnectionService.Invalidate();
             var keep = _selected?.Route;
@@ -115,7 +115,7 @@ namespace TheBusProject.Presentation
                     ? string.Format("last month {0:N0} of {1:N0} passengers connected ({2:0}%)", conn, pax, 100.0*conn/pax)
                     : pax2 > 0
                         ? string.Format("this month so far {0:N0} of {1:N0} passengers connected ({2:0}%)", conn2, pax2, 100.0*conn2/pax2)
-                        : r.HasAirliner ? "no flights counted yet" : "no aircraft on it";
+                        : r.HasCoach ? "no trips counted yet" : "no coach on it";
                 Rows.Add(new ConnectionRouteRow { Route = r, Name = Code(r.Destination1) + " - " + Code(r.Destination2), Numbers = numbers });
             }
             Summary = Rows.Count == 0
@@ -126,14 +126,14 @@ namespace TheBusProject.Presentation
             _selected = null;
             Selected = Rows.FirstOrDefault(x => x.Route == keep) ?? Rows.FirstOrDefault();
 
-            var hub = _hub?.Airport;
+            var hub = _hub?.Station;
             Hubs.Clear();
-            foreach (var a in me.Airports.ToList()
+            foreach (var a in me.Stations.ToList()
                                 .OrderByDescending(a => me.Routes.Count(r => r.Destination1 == a || r.Destination2 == a))
                                 .ThenBy(a => a.Profile.Name))
-                Hubs.Add(new AirportItem(a, true));
+                Hubs.Add(new StationItem(a, true));
             _hub = null;
-            Hub = Hubs.FirstOrDefault(h => h.Airport == hub) ?? Hubs.FirstOrDefault();
+            Hub = Hubs.FirstOrDefault(h => h.Station == hub) ?? Hubs.FirstOrDefault();
             if (Hub == null)
             {
                 Ideas.Clear();
@@ -154,7 +154,7 @@ namespace TheBusProject.Presentation
             foreach (var m in list)
             {
                 string feeder = Code(m.Feeder.Destination1) + "-" + Code(m.Feeder.Destination2);
-                string on = m.Partner ? m.Feeder.Airline.Profile.Name + "'s " + feeder : "your " + feeder;
+                string on = m.Partner ? m.Feeder.Carrier.Profile.Name + "'s " + feeder : "your " + feeder;
                 Markets.Add(new ConnectionRow
                 {
                     Market = m,
@@ -180,8 +180,8 @@ namespace TheBusProject.Presentation
         private void LoadIdeas()
         {
             Ideas.Clear();
-            var me = GameObject.GetInstance()?.HumanAirline;
-            var hub = _hub?.Airport;
+            var me = GameObject.GetInstance()?.HumanCarrier;
+            var hub = _hub?.Station;
             if (me == null || hub == null)
             {
                 IdeasSummary = null;
@@ -191,7 +191,7 @@ namespace TheBusProject.Presentation
             if (!double.TryParse(_maxDistance.Replace(",", ""), out max) || max <= 0) max = 5000;
             string hubName;
             double w = ConnectionService.OwnWeightAt(me, hub, out hubName);
-            int spokes = me.Routes.ToList().Count(r => !r.IsCargoRoute && r.HasAirliner && (r.Destination1 == hub || r.Destination2 == hub));
+            int spokes = me.Routes.ToList().Count(r => !r.IsCargoRoute && r.HasCoach && (r.Destination1 == hub || r.Destination2 == hub));
             foreach (var i in ConnectionService.HubIdeas(me, hub, 15, max))
             {
                 var dest = i.Destination;
@@ -208,8 +208,8 @@ namespace TheBusProject.Presentation
             }
             IdeasSummary = string.Format(
                 "New destinations from {0}, by the demand a route there would get. {1} from {0}; connections there bring {2:0}% of their market{3}.",
-                Code(hub), spokes == 1 ? "1 of your routes flies" : spokes + " of your routes fly", w*100,
-                hubName != null ? " (it is your " + hubName + ")" : ". Making it a hub under Airports > Manage raises that to 30-40%");
+                Code(hub), spokes == 1 ? "1 of your routes runs" : spokes + " of your routes run", w*100,
+                hubName != null ? " (it is your " + hubName + ")" : ". Making it a hub under Stations > Manage raises that to 30-40%");
         }
     }
 }

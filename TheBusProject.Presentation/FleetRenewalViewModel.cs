@@ -6,21 +6,21 @@ using System.Windows.Input;
 using TheBusProject.Helpers;
 using TheBusProject.Helpers.Workers;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airliners;
+using TheBusProject.Models.Coaches;
 using TheBusProject.Models.General;
 
 namespace TheBusProject.Presentation
 {
     /// <summary>
-    ///     Fleet renewal: replace every aircraft of one type by another type, route by route. Shows what would happen to
-    ///     each aircraft before anything is done.
+    ///     Fleet renewal: replace every coach of one type by another type, route by route. Shows what would happen to
+    ///     each coach before anything is done.
     /// </summary>
     public class FleetRenewalViewModel : ObservableObject
     {
         private readonly Action _changed;
-        private NamedChoice<AirlinerType> _oldType, _newType;
+        private NamedChoice<CoachType> _oldType, _newType;
         private NamedChoice<SlowerChoice> _slower;
-        private NamedChoice<OldAircraftChoice> _after;
+        private NamedChoice<OldCoachChoice> _after;
         private NamedChoice<MissingSource> _source;
         private bool _downPayment, _busy, _loading;
         private string _summary, _status, _pendingText;
@@ -31,10 +31,10 @@ namespace TheBusProject.Presentation
             _changed = changed;
             SlowerChoices.Add(new NamedChoice<SlowerChoice> {Name = "Shift the times (or keep the round trips that fit)", Value = SlowerChoice.ShiftOrKeep});
             SlowerChoices.Add(new NamedChoice<SlowerChoice> {Name = "Keep only the round trips that fit", Value = SlowerChoice.KeepWhatFits});
-            SlowerChoices.Add(new NamedChoice<SlowerChoice> {Name = "Skip that aircraft", Value = SlowerChoice.Skip});
-            AfterChoices.Add(new NamedChoice<OldAircraftChoice> {Name = "Sell them (leased ones go back)", Value = OldAircraftChoice.Sell});
-            AfterChoices.Add(new NamedChoice<OldAircraftChoice> {Name = "List them for sale", Value = OldAircraftChoice.ListForSale});
-            AfterChoices.Add(new NamedChoice<OldAircraftChoice> {Name = "Keep them idle", Value = OldAircraftChoice.KeepIdle});
+            SlowerChoices.Add(new NamedChoice<SlowerChoice> {Name = "Skip that coach", Value = SlowerChoice.Skip});
+            AfterChoices.Add(new NamedChoice<OldCoachChoice> {Name = "Sell them (leased ones go back)", Value = OldCoachChoice.Sell});
+            AfterChoices.Add(new NamedChoice<OldCoachChoice> {Name = "List them for sale", Value = OldCoachChoice.ListForSale});
+            AfterChoices.Add(new NamedChoice<OldCoachChoice> {Name = "Keep them idle", Value = OldCoachChoice.KeepIdle});
             SourceChoices.Add(new NamedChoice<MissingSource> {Name = "Buy used ones on the market", Value = MissingSource.BuyUsed});
             SourceChoices.Add(new NamedChoice<MissingSource> {Name = "Lease used ones on the market", Value = MissingSource.LeaseUsed});
             SourceChoices.Add(new NamedChoice<MissingSource> {Name = "Order new ones from the manufacturer", Value = MissingSource.OrderNew});
@@ -49,10 +49,10 @@ namespace TheBusProject.Presentation
             Reload();
         }
 
-        public ObservableCollection<NamedChoice<AirlinerType>> OldTypes { get; } = new ObservableCollection<NamedChoice<AirlinerType>>();
-        public ObservableCollection<NamedChoice<AirlinerType>> NewTypes { get; } = new ObservableCollection<NamedChoice<AirlinerType>>();
+        public ObservableCollection<NamedChoice<CoachType>> OldTypes { get; } = new ObservableCollection<NamedChoice<CoachType>>();
+        public ObservableCollection<NamedChoice<CoachType>> NewTypes { get; } = new ObservableCollection<NamedChoice<CoachType>>();
         public ObservableCollection<NamedChoice<SlowerChoice>> SlowerChoices { get; } = new ObservableCollection<NamedChoice<SlowerChoice>>();
-        public ObservableCollection<NamedChoice<OldAircraftChoice>> AfterChoices { get; } = new ObservableCollection<NamedChoice<OldAircraftChoice>>();
+        public ObservableCollection<NamedChoice<OldCoachChoice>> AfterChoices { get; } = new ObservableCollection<NamedChoice<OldCoachChoice>>();
         public ObservableCollection<string> Rows { get; } = new ObservableCollection<string>();
         public ObservableCollection<string> Report { get; } = new ObservableCollection<string>();
 
@@ -60,7 +60,7 @@ namespace TheBusProject.Presentation
         public ICommand ConfirmCommand { get; }
         public ICommand CancelCommand { get; }
 
-        public NamedChoice<AirlinerType> OldType
+        public NamedChoice<CoachType> OldType
         {
             get { return _oldType; }
             set
@@ -72,7 +72,7 @@ namespace TheBusProject.Presentation
             }
         }
 
-        public NamedChoice<AirlinerType> NewType
+        public NamedChoice<CoachType> NewType
         {
             get { return _newType; }
             set
@@ -90,7 +90,7 @@ namespace TheBusProject.Presentation
             }
         }
 
-        public NamedChoice<OldAircraftChoice> After
+        public NamedChoice<OldCoachChoice> After
         {
             get { return _after; }
             set
@@ -101,7 +101,7 @@ namespace TheBusProject.Presentation
 
         public ObservableCollection<NamedChoice<MissingSource>> SourceChoices { get; } = new ObservableCollection<NamedChoice<MissingSource>>();
 
-        /// <summary>Where the aircraft come from when the fleet hasn't enough idle ones of the new type.</summary>
+        /// <summary>Where the coach come from when the fleet hasn't enough idle ones of the new type.</summary>
         public NamedChoice<MissingSource> Source
         {
             get { return _source; }
@@ -117,7 +117,7 @@ namespace TheBusProject.Presentation
 
         public bool Orders => _source?.Value == MissingSource.OrderNew || _source?.Value == MissingSource.UsedThenNew;
 
-        /// <summary>New aircraft: the down payment now and the rest on delivery.</summary>
+        /// <summary>New coach: the down payment now and the rest on delivery.</summary>
         public bool DownPayment
         {
             get { return _downPayment; }
@@ -127,7 +127,7 @@ namespace TheBusProject.Presentation
             }
         }
 
-        /// <summary>New aircraft from earlier renewals still waiting for delivery.</summary>
+        /// <summary>New coach from earlier renewals still waiting for delivery.</summary>
         public ObservableCollection<string> Waiting { get; } = new ObservableCollection<string>();
 
         public bool HasWaiting => Waiting.Count > 0;
@@ -152,20 +152,20 @@ namespace TheBusProject.Presentation
             return new RenewalSettings
             {
                 OldType = _oldType?.Value, NewType = _newType?.Value, Source = _source?.Value ?? MissingSource.BuyUsed, DownPayment = _downPayment,
-                Slower = _slower?.Value ?? SlowerChoice.ShiftOrKeep, AfterOld = _after?.Value ?? OldAircraftChoice.Sell
+                Slower = _slower?.Value ?? SlowerChoice.ShiftOrKeep, AfterOld = _after?.Value ?? OldCoachChoice.Sell
             };
         }
 
         /// <summary>Read the fleet and the market again, keeping the picked types when they are still there.</summary>
         public void Reload()
         {
-            if (_busy || GameObject.GetInstance()?.HumanAirline == null) return;
+            if (_busy || GameObject.GetInstance()?.HumanCarrier == null) return;
             var keepOld = _oldType?.Value;
             _loading = true;
             OldTypes.Clear();
             foreach (var t in FleetRenewalService.FleetTypes())
             {
-                OldTypes.Add(new NamedChoice<AirlinerType> {Name = t.Item1.Name + " (" + t.Item2 + " in the fleet)", Value = t.Item1});
+                OldTypes.Add(new NamedChoice<CoachType> {Name = t.Item1.Name + " (" + t.Item2 + " in the fleet)", Value = t.Item1});
             }
             _oldType = OldTypes.FirstOrDefault(o => o.Value == keepOld) ?? OldTypes.FirstOrDefault();
             OnPropertyChanged(nameof(OldType));
@@ -186,7 +186,7 @@ namespace TheBusProject.Presentation
                     if (t.Idle > 0) parts.Add(t.Idle + " idle");
                     if (t.ForSale > 0) parts.Add(t.ForSale + " used from " + Math.Round(t.UsedFrom).ToString("N0"));
                     if (t.Orderable) parts.Add("new " + Math.Round(t.NewPrice).ToString("N0"));
-                    NewTypes.Add(new NamedChoice<AirlinerType>
+                    NewTypes.Add(new NamedChoice<CoachType>
                     {
                         Name = t.Type.Name + ": " + string.Join(", ", parts) + " (" + t.Type.CruisingSpeed.ToString("N0") + " km/h, " + t.Type.Range.ToString("N0") + " km)",
                         Value = t.Type
@@ -202,7 +202,7 @@ namespace TheBusProject.Presentation
         private void UpdatePlan()
         {
             Waiting.Clear();
-            if (GameObject.GetInstance()?.HumanAirline != null)
+            if (GameObject.GetInstance()?.HumanCarrier != null)
             {
                 foreach (string w in FleetRenewalService.Pending()) Waiting.Add(w);
             }
@@ -262,7 +262,7 @@ namespace TheBusProject.Presentation
                 _changed?.Invoke();
             }
 
-            // only now: the aircraft waiting for delivery are listed again by Reload
+            // only now: the coach waiting for delivery are listed again by Reload
             if (done) Status = "Done.";
         }
     }

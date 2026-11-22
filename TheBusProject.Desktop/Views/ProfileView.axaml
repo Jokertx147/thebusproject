@@ -19,13 +19,13 @@
           </Grid>
         </Border>
 
-        <TextBlock Text="Airline name" FontWeight="SemiBold" />
+        <TextBlock Text="Carrier name" FontWeight="SemiBold" />
         <TextBox Text="{Binding Name}" MaxLength="60" />
 
         <TextBlock Text="CEO" FontWeight="SemiBold" />
         <TextBox Text="{Binding CEO}" MaxLength="60" Watermark="your name" />
 
-        <TextBlock Text="Airline color" FontWeight="SemiBold" />
+        <TextBlock Text="Carrier color" FontWeight="SemiBold" />
         <StackPanel Orientation="Horizontal" Spacing="8">
           <Border Width="28" Height="28" CornerRadius="4" Background="{Binding ColorPreview}" BorderBrush="#555" BorderThickness="1" />
           <TextBox Text="{Binding Color}" Width="140" Watermark="#1565C0" />
@@ -44,8 +44,8 @@
         <TextBlock Text="Main business" FontWeight="SemiBold" />
         <ComboBox ItemsSource="{Binding Focuses}" SelectedItem="{Binding Focus}" MinWidth="220" />
 
-        <TextBlock Text="About the airline" FontWeight="SemiBold" />
-        <TextBox Text="{Binding Narrative}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" MaxLength="1000" Watermark="a few lines about your airline" />
+        <TextBlock Text="About the carrier" FontWeight="SemiBold" />
+        <TextBox Text="{Binding Narrative}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" MaxLength="1000" Watermark="a few lines about your carrier" />
 
         <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,6,0,0">
           <Button Content="Save profile" Command="{Binding SaveCommand}" />
@@ -63,7 +63,7 @@
         <Button Content="Back to the starting logo" Command="{Binding ResetLogoCommand}" />
       </StackPanel>
       <StackPanel Grid.Row="2" Spacing="4" Margin="0,0,0,6">
-        <TextBox Text="{Binding LogoFilter}" Watermark="or search the game's logos by airline code" />
+        <TextBox Text="{Binding LogoFilter}" Watermark="or search the game's logos by carrier code" />
         <TextBlock Text="{Binding LogoCount}" Opacity="0.7" />
       </StackPanel>
       <ListBox Grid.Row="3" ItemsSource="{Binding Logos}" SelectedItem="{Binding SelectedLogo}" DoubleTapped="OnLogoDoubleTapped">

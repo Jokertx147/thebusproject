@@ -109,7 +109,7 @@ namespace TheBusProject.Presentation
                 Console.Error.WriteLine("Command failed: " + ex);
                 TheBusProject.Infrastructure.StartupLog.Write("Command failed: " + ex);
                 TheBusProject.Infrastructure.UserInterface.ShowMessage?.Invoke(
-                    "TheBusProject", "Something went wrong: " + ex.Message + "\n\nThe details are in startup.log in your theairlineproject folder.");
+                    "TheBusProject", "Something went wrong: " + ex.Message + "\n\nThe details are in startup.log in your thebusproject folder.");
             }
             finally
             {

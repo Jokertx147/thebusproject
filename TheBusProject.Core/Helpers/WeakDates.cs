@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 namespace TheBusProject.Helpers
 {
     /// <summary>
-    ///     A date remembered per route or airline that doesn't keep it alive: when a game ends and its world is
+    ///     A date remembered per route or carrier that doesn't keep it alive: when a game ends and its world is
     ///     dropped, its entries go with it (a plain dictionary would keep the whole old world in memory).
     /// </summary>
     public class WeakDates<T> where T : class

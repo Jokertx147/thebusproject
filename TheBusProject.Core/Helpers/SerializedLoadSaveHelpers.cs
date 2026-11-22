@@ -7,9 +7,9 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using TheBusProject.Helpers.Workers;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.Routes;
 
@@ -65,68 +65,68 @@ namespace TheBusProject.Helpers
             Parallel.Invoke(
                 () =>
                     {
-                        Airlines.Clear();
+                        Carriers.Clear();
 
-                        foreach (Airline airline in deserializedSaveObject.AirlinesList)
+                        foreach (Carrier carrier in deserializedSaveObject.CarriersList)
                         {
-                            Airlines.AddAirline(airline);
+                            Carriers.AddCarrier(carrier);
                         }
                     },
                 () =>
                     {
-                        Setup.LoadAirports();
+                        Setup.LoadStations();
 
-                        List<Airport> airports = Airports.GetAllAirports();
+                        List<Station> stations = Stations.GetAllStations();
 
-                        Airports.Clear();
+                        Stations.Clear();
 
-                        foreach (Airport airport in deserializedSaveObject.AirportsList)
+                        foreach (Station station in deserializedSaveObject.StationsList)
                         {
-                            airport.Statics = new AirportStatics(airport);
-                            Airports.AddAirport(airport);
+                            station.Statics = new StationStatics(station);
+                            Stations.AddStation(station);
                         }
 
-                        foreach (string iata in deserializedSaveObject.AirportsFromStringList)
+                        foreach (string iata in deserializedSaveObject.StationsFromStringList)
                         {
-                            Airport airport = airports.FirstOrDefault(a => a.Profile.IATACode == iata);
+                            Station station = stations.FirstOrDefault(a => a.Profile.IATACode == iata);
 
-                            if (airport != null)
+                            if (station != null)
                             {
-                                Airports.AddAirport(airport);
+                                Stations.AddStation(station);
                             }
                         }
 
-                        // airports added to the data files after this game was saved (like a new addon airport)
+                        // stations added to the data files after this game was saved (like a new addon station)
                         // are in neither list, so bring them in from the data files. Only those: a game set in one
-                        // region (or with major airports only) leaves most data file airports out on purpose, and
+                        // region (or with major stations only) leaves most data file stations out on purpose, and
                         // adding them made the game world four times bigger after a load. Saves made before the
-                        // save remembered the data file airports don't say which are new, so nothing is added.
+                        // save remembered the data file stations don't say which are new, so nothing is added.
                         var known = new HashSet<string>(
-                            Airports.GetAllAirports().Select(a => a.Profile.IATACode));
-                        var inDataWhenSaved = deserializedSaveObject.DataAirportsList == null
+                            Stations.GetAllStations().Select(a => a.Profile.IATACode));
+                        var inDataWhenSaved = deserializedSaveObject.DataStationsList == null
                             ? null
-                            : new HashSet<string>(deserializedSaveObject.DataAirportsList);
+                            : new HashSet<string>(deserializedSaveObject.DataStationsList);
                         int added = 0;
 
-                        foreach (Airport airport in airports.Where(a => inDataWhenSaved != null && !known.Contains(a.Profile.IATACode) && !inDataWhenSaved.Contains(a.Profile.IATACode)))
+                        foreach (Station station in stations.Where(a => inDataWhenSaved != null && !known.Contains(a.Profile.IATACode) && !inDataWhenSaved.Contains(a.Profile.IATACode)))
                         {
-                            Airports.AddAirport(airport);
-                            known.Add(airport.Profile.IATACode);
+                            Stations.AddStation(station);
+                            known.Add(station.Profile.IATACode);
                             added++;
                         }
 
                         if (added > 0)
                         {
-                            StartupLog.Write("LoadGame: added " + added + " airport(s) that are new in the data files");
+                            StartupLog.Write("LoadGame: added " + added + " station(s) that are new in the data files");
                         }
                     },
                 () =>
                     {
-                        Airliners.Clear();
+                        Coaches.Clear();
 
-                        foreach (Airliner airliner in deserializedSaveObject.AirlinersList)
+                        foreach (Coach coach in deserializedSaveObject.CoachesList)
                         {
-                            Airliners.AddAirliner(airliner);
+                            Coaches.AddCoach(coach);
                         }
                     },
                 () =>
@@ -167,11 +167,11 @@ namespace TheBusProject.Helpers
                     },
                 () =>
                     {
-                        AirportFacilities.Clear();
+                        StationFacilities.Clear();
 
-                        foreach (AirportFacility facility in deserializedSaveObject.AirportFacilitiesList)
+                        foreach (StationFacility facility in deserializedSaveObject.StationFacilitiesList)
                         {
-                            AirportFacilities.AddFacility(facility);
+                            StationFacilities.AddFacility(facility);
                         }
                     },
                 () =>
@@ -194,11 +194,11 @@ namespace TheBusProject.Helpers
                     },
                 () =>
                     {
-                        AirlinerFacilities.Clear();
+                        CoachFacilities.Clear();
 
-                        foreach (AirlinerFacility airlinerfas in deserializedSaveObject.AirlinerFacilitiesList)
+                        foreach (CoachFacility coachfas in deserializedSaveObject.CoachFacilitiesList)
                         {
-                            AirlinerFacilities.AddFacility(airlinerfas);
+                            CoachFacilities.AddFacility(coachfas);
                         }
                     },
                 () =>
@@ -214,30 +214,30 @@ namespace TheBusProject.Helpers
                     {
                         GameObject.SetInstance(deserializedSaveObject.Instance);
                         // the money shown in the header is a separate value that is not part of the save
-                        if (GameObject.GetInstance().HumanAirline != null)
+                        if (GameObject.GetInstance().HumanCarrier != null)
                         {
-                            GameObject.GetInstance().HumanMoney = GameObject.GetInstance().HumanAirline.Money;
+                            GameObject.GetInstance().HumanMoney = GameObject.GetInstance().HumanCarrier.Money;
                         }
                         Infrastructure.Settings.SetInstance(deserializedSaveObject.Settings);
                     },
                 () =>
                     {
-                        if (deserializedSaveObject.AirlineFacilitiesList != null)
+                        if (deserializedSaveObject.CarrierFacilitiesList != null)
                         {
-                            AirlineFacilities.Clear();
+                            CarrierFacilities.Clear();
 
-                            foreach (AirlineFacility airlinefac in deserializedSaveObject.AirlineFacilitiesList)
+                            foreach (CarrierFacility carrierfac in deserializedSaveObject.CarrierFacilitiesList)
                             {
-                                AirlineFacilities.AddFacility(airlinefac);
+                                CarrierFacilities.AddFacility(carrierfac);
                             }
                         }
                     }); //close parallel.invoke
 
             DemandOverrides.Restore(deserializedSaveObject.DemandOverridesList);
             StartupLog.Write("LoadGame: lists restored");
-            foreach (Airport bad in Airports.GetAllAirports().Where(a => a.Profile.Town == null || a.Profile.Town.Country == null || a.Profile.Town.Name == null).Take(20))
+            foreach (Station bad in Stations.GetAllStations().Where(a => a.Profile.Town == null || a.Profile.Town.Country == null || a.Profile.Town.Name == null).Take(20))
             {
-                StartupLog.Write("LoadGame: airport with incomplete town: " + bad.Profile.IATACode + " " + bad.Profile.Name);
+                StartupLog.Write("LoadGame: station with incomplete town: " + bad.Profile.IATACode + " " + bad.Profile.Name);
             }
             //for 0.3.9.2 and the issue with no saved facilities on a route classes
             IEnumerable<RouteClassConfiguration> emptyRouteClassesFacilities =
@@ -269,48 +269,48 @@ namespace TheBusProject.Helpers
 
             StartupLog.Write("LoadGame: creating pilots");
             //create some pilots for the game
-            int pilotsPool = 100*Airlines.GetAllAirlines().Count;
+            int pilotsPool = 100*Carriers.GetAllCarriers().Count;
             GeneralHelpers.CreatePilots(pilotsPool);
-            int instructorsPool = 75*Airlines.GetAllAirlines().Count;
+            int instructorsPool = 75*Carriers.GetAllCarriers().Count;
             GeneralHelpers.CreateInstructors(instructorsPool);
 
-            StartupLog.Write("LoadGame: creating start up airliners");
-            //creates some airliners for the game
-            AirlinerHelpers.CreateStartUpAirliners();
+            StartupLog.Write("LoadGame: creating start up coaches");
+            //creates some coaches for the game
+            CoachHelpers.CreateStartUpCoaches();
 
             RouteIndex.Invalidate();
             int compacted = GameObjectHelpers.CompactInvoices();
             StartupLog.Write("LoadGame: " + compacted + " daily amounts of past months put together");
             int moves = CompetitorService.Restore(deserializedSaveObject.RivalMovesList);
-            int flights = FlightRecords.Restore(deserializedSaveObject.FlownFlightsList);
-            int opsMonths = AirlineReportService.Restore(deserializedSaveObject.MonthlyOpsList);
-            StartupLog.Write("LoadGame: " + opsMonths + " airline months for the reports restored");
-            StartupLog.Write("LoadGame: " + moves + " rival moves and " + flights + " recorded flights restored");
+            int trips = TripRecords.Restore(deserializedSaveObject.FlownTripsList);
+            int opsMonths = CarrierReportService.Restore(deserializedSaveObject.MonthlyOpsList);
+            StartupLog.Write("LoadGame: " + opsMonths + " carrier months for the reports restored");
+            StartupLog.Write("LoadGame: " + moves + " rival moves and " + trips + " recorded trips restored");
             StartupLog.Write("LoadGame: starting the game paused");
             //Start the game paused
             GameObjectWorker.GetInstance().StartPaused();
 
             //Task is needed this unlocks the game agian.
             // the demand is built before the load finishes (the loading screen stays up meanwhile); building it in the
-            // background let the player start the clock first, and the flights then ran with no demand
-            // saves made after loading with an earlier version can hold every airport of the world. Which area the
+            // background let the player start the clock first, and the trips then ran with no demand
+            // saves made after loading with an earlier version can hold every station of the world. Which area the
             // game was started in isn't saved, so point the player to Options when an older save looks like that
             try
             {
-                if (deserializedSaveObject.DataAirportsList == null && AirportCleanupService.ContinentCount() > 1)
+                if (deserializedSaveObject.DataStationsList == null && StationCleanupService.ContinentCount() > 1)
                 {
-                    var areas = AirportCleanupService.Areas().Where(a => a.IsContinent).ToList();
-                    var used = AirportCleanupService.InUse();
-                    // nearly everything the airlines use on one continent
+                    var areas = StationCleanupService.Areas().Where(a => a.IsContinent).ToList();
+                    var used = StationCleanupService.InUse();
+                    // nearly everything the carriers use on one continent
                     var main = areas.OrderByDescending(a => used.Count(a.Contains)).FirstOrDefault();
                     int inMain = main == null ? 0 : used.Count(main.Contains);
                     var usedAreas = main == null ? new List<GameArea>() : new List<GameArea> {main};
                     if (main != null && used.Count > 0 && inMain >= 0.9*used.Count)
                     {
-                        StartupLog.Write("LoadGame: older save with airports on " + areas.Count + " continents, " + inMain + " of " + used.Count + " used ones in " + usedAreas[0].Name);
+                        StartupLog.Write("LoadGame: older save with stations on " + areas.Count + " continents, " + inMain + " of " + used.Count + " used ones in " + usedAreas[0].Name);
                         GameObject.GetInstance().NewsBox.AddNews(new News(News.NewsType.StandardNews, GameObject.GetInstance().GameTime,
-                            "Airports outside your area?",
-                            "This game has " + Airports.GetAllAirports().Count + " airports on " + areas.Count + " continents, but nearly everything the airlines use is in " + usedAreas[0].Name.Replace(" (the whole continent)", "") + ". If you started it in one continent or region, an earlier version may have added the others by mistake when it loaded the game. Options > Game area can take out the unused ones, which makes the game faster. Keep them if this is a world game."));
+                            "Stations outside your area?",
+                            "This game has " + Stations.GetAllStations().Count + " stations on " + areas.Count + " continents, but nearly everything the carriers use is in " + usedAreas[0].Name.Replace(" (the whole continent)", "") + ". If you started it in one continent or region, an earlier version may have added the others by mistake when it loaded the game. Options > Game area can take out the unused ones, which makes the game faster. Keep them if this is a world game."));
                     }
                 }
             }
@@ -321,12 +321,12 @@ namespace TheBusProject.Helpers
 
             StartupLog.Write("LoadGame: creating the demand");
             var demandWatch = Stopwatch.StartNew();
-            // the demand is built only for airports without any, and only between those: when an earlier game in this
-            // session left demand on the other airports, the saved airports got demand only to each other. Start every
-            // airport afresh so the demand is built between all of them, as on the first load.
-            foreach (Airport airport in Airports.GetAllAirports())
+            // the demand is built only for stations without any, and only between those: when an earlier game in this
+            // session left demand on the other stations, the saved stations got demand only to each other. Start every
+            // station afresh so the demand is built between all of them, as on the first load.
+            foreach (Station station in Stations.GetAllStations())
             {
-                airport.Statics = new AirportStatics(airport);
+                station.Statics = new StationStatics(station);
             }
             try
             {
@@ -348,44 +348,44 @@ namespace TheBusProject.Helpers
             StartupLog.Write("SaveGame: " + name + " start");
             var so = new SaveObject();
             so.DemandOverridesList = DemandOverrides.ToStrings();
-            so.DataAirportsList = Setup.DataAirportCodes?.ToList();
-            // the airlines' empty ("none") facilities at airports they don't use: made again when asked for
-            int pruned = Airports.GetAllAirports().Sum(a => a.PruneNoneFacilities());
-            StartupLog.Write("SaveGame: " + pruned + " empty airport facilities left out");
+            so.DataStationsList = Setup.DataStationCodes?.ToList();
+            // the carriers' empty ("none") facilities at stations they don't use: made again when asked for
+            int pruned = Stations.GetAllStations().Sum(a => a.PruneNoneFacilities());
+            StartupLog.Write("SaveGame: " + pruned + " empty station facilities left out");
             so.RivalMovesList = CompetitorService.ToSave();
-            so.FlownFlightsList = FlightRecords.ToSave(Airlines.GetAllAirlines());
-            so.MonthlyOpsList = AirlineReportService.ToSave(Airlines.GetAllAirlines());
+            so.FlownTripsList = TripRecords.ToSave(Carriers.GetAllCarriers());
+            so.MonthlyOpsList = CarrierReportService.ToSave(Carriers.GetAllCarriers());
             Parallel.Invoke(
                 () =>
                     {
-                        so.AirportsList = new List<Airport>();
-                        so.AirportsFromStringList = new List<string>();
+                        so.StationsList = new List<Station>();
+                        so.StationsFromStringList = new List<string>();
 
-                        IEnumerable<Airport> airportsInUse =
-                            Airports.GetAllAirports()
+                        IEnumerable<Station> stationsInUse =
+                            Stations.GetAllStations()
                                     .Where(
                                         a =>
-                                        Airlines.GetAllAirlines().Exists(al => al.Airports.Contains(a))
-                                        || a.HasAirlineFacility()
+                                        Carriers.GetAllCarriers().Exists(al => al.Stations.Contains(a))
+                                        || a.HasCarrierFacility()
                                         || a.PlayerEdited);
-                        Airport[] inUse = airportsInUse as Airport[] ?? airportsInUse.ToArray();
-                        so.AirportsList.AddRange(inUse);
+                        Station[] inUse = stationsInUse as Station[] ?? stationsInUse.ToArray();
+                        so.StationsList.AddRange(inUse);
 
-                        foreach (Airport airport in Airports.GetAirports(a => !inUse.Contains(a)))
+                        foreach (Station station in Stations.GetStations(a => !inUse.Contains(a)))
                         {
-                            so.AirportsFromStringList.Add(airport.Profile.IATACode);
+                            so.StationsFromStringList.Add(station.Profile.IATACode);
                         }
-                        StartupLog.Write("SaveGame: " + so.AirportsList.Count + " airports saved in full (" + string.Join(" ", so.AirportsList.Select(a => a.Profile.IATACode + (a.PlayerEdited ? "*" : ""))) + "), " + so.AirportsFromStringList.Count + " by code");
+                        StartupLog.Write("SaveGame: " + so.StationsList.Count + " stations saved in full (" + string.Join(" ", so.StationsList.Select(a => a.Profile.IATACode + (a.PlayerEdited ? "*" : ""))) + "), " + so.StationsFromStringList.Count + " by code");
                     },
                 () =>
                     {
-                        so.AirlinesList = new List<Airline>();
-                        so.AirlinesList.AddRange(Airlines.GetAllAirlines());
+                        so.CarriersList = new List<Carrier>();
+                        so.CarriersList.AddRange(Carriers.GetAllCarriers());
                     },
                 () =>
                     {
-                        so.AirlinersList = new List<Airliner>();
-                        so.AirlinersList.AddRange(Airliners.GetAllAirliners().Where(a => a.Airline != null));
+                        so.CoachesList = new List<Coach>();
+                        so.CoachesList.AddRange(Coaches.GetAllCoaches().Where(a => a.Carrier != null));
                     },
                 () =>
                     {
@@ -409,8 +409,8 @@ namespace TheBusProject.Helpers
                     },
                 () =>
                     {
-                        so.AirportFacilitiesList = new List<AirportFacility>();
-                        so.AirportFacilitiesList.AddRange(AirportFacilities.GetFacilities());
+                        so.StationFacilitiesList = new List<StationFacility>();
+                        so.StationFacilitiesList.AddRange(StationFacilities.GetFacilities());
                     },
                 () =>
                     {
@@ -424,8 +424,8 @@ namespace TheBusProject.Helpers
                     },
                 () =>
                     {
-                        so.AirlinerFacilitiesList = new List<AirlinerFacility>();
-                        so.AirlinerFacilitiesList.AddRange(AirlinerFacilities.GetAllFacilities());
+                        so.CoachFacilitiesList = new List<CoachFacility>();
+                        so.CoachFacilitiesList.AddRange(CoachFacilities.GetAllFacilities());
                     },
                 () =>
                     {
@@ -439,8 +439,8 @@ namespace TheBusProject.Helpers
                     },
                 () =>
                     {
-                        so.AirlineFacilitiesList = new List<AirlineFacility>();
-                        so.AirlineFacilitiesList.AddRange(AirlineFacilities.GetFacilities());
+                        so.CarrierFacilitiesList = new List<CarrierFacility>();
+                        so.CarrierFacilitiesList.AddRange(CarrierFacilities.GetFacilities());
                     });
 
             string fileName = AppSettings.GetCommonApplicationDataPath() + "/saves/" + name + ".sav";
@@ -452,22 +452,22 @@ namespace TheBusProject.Helpers
             sw.Stop();
             Console.WriteLine(@"Saving: {0} ms", sw.ElapsedMilliseconds);
 
-            // (the statistics of routes, airlines and airports used to be cleared here after every save but the
+            // (the statistics of routes, carriers and stations used to be cleared here after every save but the
             // autosave, so saving a game wiped the passenger totals shown on the route screens; they are kept now)
             /*
             SaveObject so = new SaveObject();
             Parallel.Invoke(() =>
             {
-                so.airportsList = new List<Airport>();
-                so.airportsList.AddRange(Airports.GetAllAirports());
+                so.stationsList = new List<Station>();
+                so.stationsList.AddRange(Stations.GetAllStations());
             }, () =>
             {
-                so.airlinesList = new List<Airline>();
-                so.airlinesList.AddRange(Airlines.GetAllAirlines());
+                so.carriersList = new List<Carrier>();
+                so.carriersList.AddRange(Carriers.GetAllCarriers());
             }, () =>
             {
-                so.airlinersList = new List<Airliner>();
-                so.airlinersList.AddRange(Airliners.GetAllAirliners());
+                so.coachesList = new List<Coach>();
+                so.coachesList.AddRange(Coaches.GetAllCoaches());
             }, () =>
             {
                 so.calendaritemsList = new List<CalendarItem>();
@@ -486,8 +486,8 @@ namespace TheBusProject.Helpers
                 so.allianceList.AddRange(Alliances.GetAlliances());
             }, () =>
             {
-                so.Airportfacilitieslist = new List<AirportFacility>();
-                so.Airportfacilitieslist.AddRange(AirportFacilities.GetFacilities());
+                so.Stationfacilitieslist = new List<StationFacility>();
+                so.Stationfacilitieslist.AddRange(StationFacilities.GetFacilities());
             }, () =>
             {
                 so.feeTypeslist = new List<FeeType>();
@@ -498,8 +498,8 @@ namespace TheBusProject.Helpers
                 so.advertisementTypeslist.AddRange(AdvertisementTypes.GetTypes());
             }, () =>
             {
-                so.airlinerfacilitieslist = new List<AirlinerFacility>();
-                so.airlinerfacilitieslist.AddRange(AirlinerFacilities.GetAllFacilities());
+                so.coachfacilitieslist = new List<CoachFacility>();
+                so.coachfacilitieslist.AddRange(CoachFacilities.GetAllFacilities());
             }, () =>
             {
                 so.routefacilitieslist = new List<RouteFacility>();
@@ -542,29 +542,29 @@ namespace TheBusProject.Helpers
     {
         #region Public Properties
 
-        [Versioning("airportfacilities")]
-        public List<AirportFacility> AirportFacilitiesList { get; set; }
+        [Versioning("stationfacilities")]
+        public List<StationFacility> StationFacilitiesList { get; set; }
 
         [Versioning("advertisementtypes")]
         public List<AdvertisementType> AdvertisementTypesList { get; set; }
 
-        [Versioning("airlinefacilities")]
-        public List<AirlineFacility> AirlineFacilitiesList { get; set; }
+        [Versioning("carrierfacilities")]
+        public List<CarrierFacility> CarrierFacilitiesList { get; set; }
 
-        [Versioning("airlinerfacilities")]
-        public List<AirlinerFacility> AirlinerFacilitiesList { get; set; }
+        [Versioning("coachfacilities")]
+        public List<CoachFacility> CoachFacilitiesList { get; set; }
 
-        [Versioning("airliners")]
-        public List<Airliner> AirlinersList { get; set; }
+        [Versioning("coaches")]
+        public List<Coach> CoachesList { get; set; }
 
-        [Versioning("airlines")]
-        public List<Airline> AirlinesList { set; get; }
+        [Versioning("carriers")]
+        public List<Carrier> CarriersList { set; get; }
 
-        [Versioning("airports")]
-        public List<Airport> AirportsList { set; get; }
+        [Versioning("stations")]
+        public List<Station> StationsList { set; get; }
 
-        [Versioning("airportsfromstrings")]
-        public List<string> AirportsFromStringList { get; set; }
+        [Versioning("stationsfromstrings")]
+        public List<string> StationsFromStringList { get; set; }
 
         [Versioning("alliances")]
         public List<Alliance> AllianceList { get; set; }
@@ -588,21 +588,21 @@ namespace TheBusProject.Helpers
         [Versioning("instance")]
         public GameObject Instance { get; set; }
 
-        // the codes of every airport in the data files at the time of saving, to tell new ones on load
-        [Versioning("dataairports")]
-        public List<string> DataAirportsList { get; set; }
+        // the codes of every station in the data files at the time of saving, to tell new ones on load
+        [Versioning("datastations")]
+        public List<string> DataStationsList { get; set; }
 
         [Versioning("routefacilities")]
         public List<RouteFacility> RouteFacilitiesList { get; set; }
 
-        // the rivals' moves for the competitor screen, and each aircraft's last flights for the flight board
+        // the rivals' moves for the competitor screen, and each coach's last trips for the trip board
         [Versioning("rivalmoves")]
         public List<SavedRivalMove> RivalMovesList { get; set; }
 
-        [Versioning("flownflights")]
-        public List<SavedFlights> FlownFlightsList { get; set; }
+        [Versioning("flowntrips")]
+        public List<SavedTrips> FlownTripsList { get; set; }
 
-        // each airline's flights by month for the monthly report
+        // each carrier's trips by month for the monthly report
         [Versioning("monthlyops")]
         public List<SavedMonthOps> MonthlyOpsList { get; set; }
 

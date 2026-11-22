@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airlines;
+using TheBusProject.Models.Carriers;
 
 namespace TheBusProject.Models.Routes
 {
-    //the class for the in flight facilities on a route
+    //the class for the in trip facilities on a route
     [Serializable]
     public class RouteFacility : BaseModel
     {
@@ -33,7 +33,7 @@ namespace TheBusProject.Models.Routes
             ExpenseType eType,
             double expense,
             FeeType feeType,
-            AirlineFacility requires)
+            CarrierFacility requires)
         {
             Type = type;
             Name = name;
@@ -92,7 +92,7 @@ namespace TheBusProject.Models.Routes
         public string Name { get; set; }
 
         [Versioning("requires")]
-        public AirlineFacility Requires { get; set; }
+        public CarrierFacility Requires { get; set; }
 
         [Versioning("servicelevel")]
         public int ServiceLevel { get; set; }
@@ -138,10 +138,10 @@ namespace TheBusProject.Models.Routes
             _facilities = new List<RouteFacility>();
         }
 
-        //magazines and newspapers on the flights are gone after 2020
+        //magazines and newspapers on the trips are gone after 2020
         public static bool IsDiscontinued(RouteFacility.FacilityType type, int year)
         {
-            return year > AirlineFacilities.PrintedMediaLastYear
+            return year > CarrierFacilities.PrintedMediaLastYear
                    && (type == RouteFacility.FacilityType.Magazines || type == RouteFacility.FacilityType.Newspapers);
         }
 

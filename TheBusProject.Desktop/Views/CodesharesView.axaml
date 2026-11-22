@@ -21,7 +21,7 @@
         </Border>
         <TextBlock Text="{Binding Status}" TextWrapping="Wrap" />
 
-        <TextBlock Text="Offers from other airlines" FontSize="16" FontWeight="SemiBold" IsVisible="{Binding HasOffers}" Margin="0,6,0,0" />
+        <TextBlock Text="Offers from other carriers" FontSize="16" FontWeight="SemiBold" IsVisible="{Binding HasOffers}" Margin="0,6,0,0" />
         <ItemsControl ItemsSource="{Binding Offers}" IsVisible="{Binding HasOffers}">
           <ItemsControl.ItemTemplate>
             <DataTemplate>
@@ -66,7 +66,7 @@
     <!-- find a partner -->
     <Grid Grid.Column="2" RowDefinitions="Auto,Auto,*,Auto">
       <TextBlock Text="Find a partner" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,6" />
-      <TextBox Grid.Row="1" Text="{Binding Search}" Watermark="airline name, code or country (best matches first)" Margin="0,0,0,6" />
+      <TextBox Grid.Row="1" Text="{Binding Search}" Watermark="carrier name, code or country (best matches first)" Margin="0,0,0,6" />
       <ListBox Grid.Row="2" ItemsSource="{Binding Candidates}" SelectedItem="{Binding Selected}">
         <ListBox.ItemTemplate>
           <DataTemplate>

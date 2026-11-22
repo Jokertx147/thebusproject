@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.Runtime.Serialization;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Stations;
 
 namespace TheBusProject.Models.Routes
 {
     /*! RouteEntryDestination.
   * This is used for destination for the route.
-  * The class needs parameter for the destination airport and the flight code
+  * The class needs parameter for the destination station and the trip code
   */
 
     [Serializable]
@@ -15,15 +15,15 @@ namespace TheBusProject.Models.Routes
     {
         #region Constructors and Destructors
 
-        public RouteEntryDestination(Airport airport, string flightCode)
-            : this(airport, flightCode, null)
+        public RouteEntryDestination(Station station, string tripCode)
+            : this(station, tripCode, null)
         {
         }
 
-        public RouteEntryDestination(Airport airport, string flightCode, Gate inboundgate)
+        public RouteEntryDestination(Station station, string tripCode, Gate inboundgate)
         {
-            Airport = airport;
-            FlightCode = flightCode;
+            Station = station;
+            TripCode = tripCode;
             Gate = inboundgate;
         }
 
@@ -35,11 +35,11 @@ namespace TheBusProject.Models.Routes
 
         #region Public Properties
 
-        [Versioning("airport")]
-        public Airport Airport { get; set; }
+        [Versioning("station")]
+        public Station Station { get; set; }
 
-        [Versioning("flightcode")]
-        public string FlightCode { get; set; }
+        [Versioning("tripcode")]
+        public string TripCode { get; set; }
 
         [Versioning("gate")]
         public Gate Gate { get; set; }
@@ -50,10 +50,10 @@ namespace TheBusProject.Models.Routes
 
         public int CompareTo(RouteEntryDestination entry)
         {
-            int compare = string.Compare(entry.FlightCode, FlightCode, StringComparison.Ordinal);
+            int compare = string.Compare(entry.TripCode, TripCode, StringComparison.Ordinal);
             if (compare == 0)
             {
-                return string.Compare(entry.Airport.Profile.IATACode, Airport.Profile.IATACode, StringComparison.Ordinal);
+                return string.Compare(entry.Station.Profile.IATACode, Station.Profile.IATACode, StringComparison.Ordinal);
             }
             return compare;
         }

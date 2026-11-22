@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Countries;
 using TheBusProject.Models.General.Statistics;
@@ -43,17 +43,17 @@ namespace TheBusProject.Helpers
         public static double GetAIAvgTicketPPD()
         {
             var priceDiff = new List<double>();
-            var aiPrices = (from airline in Airlines.GetAirlines(a => !a.IsHuman)
-                            let aiEconPrices = (from r in airline.Routes
+            var aiPrices = (from carrier in Carriers.GetCarriers(a => !a.IsHuman)
+                            let aiEconPrices = (from r in carrier.Routes
                                                 where r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed
-                                                select ((PassengerRoute) r).GetFarePrice(AirlinerClass.ClassType.EconomyClass)).ToList()
-                            let aiBusPrices = (from r in airline.Routes
+                                                select ((PassengerRoute) r).GetFarePrice(CoachClass.ClassType.EconomyClass)).ToList()
+                            let aiBusPrices = (from r in carrier.Routes
                                                where r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed
-                                               select ((PassengerRoute) r).GetFarePrice(AirlinerClass.ClassType.BusinessClass)).ToList()
-                            let aiFirstPrices = (from r in airline.Routes
+                                               select ((PassengerRoute) r).GetFarePrice(CoachClass.ClassType.BusinessClass)).ToList()
+                            let aiFirstPrices = (from r in carrier.Routes
                                                  where r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed
-                                                 select ((PassengerRoute) r).GetFarePrice(AirlinerClass.ClassType.FirstClass)).ToList()
-                            let distance = (from r in airline.Routes select MathHelpers.GetDistance(r.Destination1, r.Destination2)).DefaultIfEmpty(0).Average()
+                                                 select ((PassengerRoute) r).GetFarePrice(CoachClass.ClassType.FirstClass)).ToList()
+                            let distance = (from r in carrier.Routes select MathHelpers.GetDistance(r.Destination1, r.Destination2)).DefaultIfEmpty(0).Average()
                             let avgEP = aiEconPrices.DefaultIfEmpty(0).Average()
                             let avgBP = aiBusPrices.DefaultIfEmpty(0).Average()
                             let avgFP = aiFirstPrices.DefaultIfEmpty(0).Average()
@@ -65,64 +65,64 @@ namespace TheBusProject.Helpers
         //calculate average human ticket price per distance
 
         //returns dictionary of AI average fill degrees
-        public static Dictionary<Airline, double> GetAIFillDegree()
+        public static Dictionary<Carrier, double> GetAIFillDegree()
         {
-            var aIafd = new Dictionary<Airline, double>();
-            foreach (Airline airline in Airlines.GetAirlines(a => !a.IsHuman))
+            var aIafd = new Dictionary<Carrier, double>();
+            foreach (Carrier carrier in Carriers.GetCarriers(a => !a.IsHuman))
             {
-                List<double> aiFillDegree = (from r in airline.Routes select r.GetFillingDegree()).ToList();
-                aIafd.Add(airline, aiFillDegree.DefaultIfEmpty(0).Average());
+                List<double> aiFillDegree = (from r in carrier.Routes select r.GetFillingDegree()).ToList();
+                aIafd.Add(carrier, aiFillDegree.DefaultIfEmpty(0).Average());
             }
             return aIafd;
         }
 
-        //calculates human airline average on-time %
+        //calculates human carrier average on-time %
 
-        //calculates AI airline average on-time %
-        public static Dictionary<Airline, double> GetAIonTime()
+        //calculates AI carrier average on-time %
+        public static Dictionary<Carrier, double> GetAIonTime()
         {
-            var aiOnTime = new Dictionary<Airline, double>();
-            foreach (Airline airline in Airlines.GetAirlines(a => !a.IsHuman))
+            var aiOnTime = new Dictionary<Carrier, double>();
+            foreach (Carrier carrier in Carriers.GetCarriers(a => !a.IsHuman))
             {
-                double otp = FlightStatistics.OnTimePercent(airline);
-                aiOnTime.Add(airline, otp);
+                double otp = TripStatistics.OnTimePercent(carrier);
+                aiOnTime.Add(carrier, otp);
             }
             return aiOnTime;
         }
 
-        public static double GetAirlineFillAverage(Airline airline)
+        public static double GetCarrierFillAverage(Carrier carrier)
         {
-            List<double> fillDegree = (from r in airline.Routes select r.GetFillingDegree()).ToList();
+            List<double> fillDegree = (from r in carrier.Routes select r.GetFillingDegree()).ToList();
 
             double avg = fillDegree.DefaultIfEmpty(0).Average();
             return fillDegree.DefaultIfEmpty(0).Average();
         }
 
-        //returns dictionary of all airline average on-time %
+        //returns dictionary of all carrier average on-time %
 
         //returns the average employee wages
         public static double GetAverageEmployeeWages()
         {
-            int numberOfAirlines = Airlines.GetNumberOfAirlines();
-            var airlineWages = new Dictionary<Airline, double>(GetEmployeeWages());
+            int numberOfCarriers = Carriers.GetNumberOfCarriers();
+            var carrierWages = new Dictionary<Carrier, double>(GetEmployeeWages());
 
-            double totalWages = Airlines.GetAllAirlines().Sum(airline => GetEmployeeWages()[airline]);
+            double totalWages = Carriers.GetAllCarriers().Sum(carrier => GetEmployeeWages()[carrier]);
 
-            return totalWages/numberOfAirlines;
+            return totalWages/numberOfCarriers;
         }
 
-        //returns the average employee wages for the competitors for an airlines
-        public static double GetAverageEmployeeWages(Airline airline)
+        //returns the average employee wages for the competitors for an carriers
+        public static double GetAverageEmployeeWages(Carrier carrier)
         {
-            int numberOfAirlines = Airlines.GetNumberOfAirlines() - 1;
-            var airlineWages = new Dictionary<Airline, double>(GetEmployeeWages());
+            int numberOfCarriers = Carriers.GetNumberOfCarriers() - 1;
+            var carrierWages = new Dictionary<Carrier, double>(GetEmployeeWages());
 
-            double totalWages = Airlines.GetAllAirlines().Where(competitor => competitor != airline).Sum(competitor => GetEmployeeWages()[competitor]);
+            double totalWages = Carriers.GetAllCarriers().Where(competitor => competitor != carrier).Sum(competitor => GetEmployeeWages()[competitor]);
 
-            return totalWages/numberOfAirlines;
+            return totalWages/numberOfCarriers;
         }
 
-        public static int GetBestYear(Airline airline)
+        public static int GetBestYear(Carrier carrier)
         {
             int high = 0;
             int year = 0;
@@ -130,7 +130,7 @@ namespace TheBusProject.Helpers
                 int years = GameObject.GetInstance().GameTime.Year - GameObject.StartYear;
                 for (int z = GameObject.StartYear; z < (z + years); z++)
                 {
-                    int sc = GetScore(airline, z);
+                    int sc = GetScore(carrier, z);
                     if (sc > high)
                     {
                         high = sc;
@@ -143,80 +143,80 @@ namespace TheBusProject.Helpers
         }
 
         //creates a dictionary of average employee discounts
-        public static Dictionary<Airline, double> GetEmployeeDiscounts()
+        public static Dictionary<Carrier, double> GetEmployeeDiscounts()
         {
-            var employeeDiscounts = new Dictionary<Airline, double>();
-            foreach (Airline airline in Airlines.GetAllAirlines())
+            var employeeDiscounts = new Dictionary<Carrier, double>();
+            foreach (Carrier carrier in Carriers.GetAllCarriers())
             {
-                double eDiscount = airline.Fees.GetValue(FeeTypes.GetType("Employee Discount"));
-                employeeDiscounts.Add(airline, eDiscount);
+                double eDiscount = carrier.Fees.GetValue(FeeTypes.GetType("Employee Discount"));
+                employeeDiscounts.Add(carrier, eDiscount);
             }
             return employeeDiscounts;
         }
 
-        public static Dictionary<Airline, double> GetEmployeeWages()
+        public static Dictionary<Carrier, double> GetEmployeeWages()
         {
-            var employeeWages = new Dictionary<Airline, double>();
-            foreach (Airline airline in Airlines.GetAllAirlines())
+            var employeeWages = new Dictionary<Carrier, double>();
+            foreach (Carrier carrier in Carriers.GetAllCarriers())
             {
-                double sWage = airline.Fees.GetValue(FeeTypes.GetType("Support Wage"));
-                double mWage = airline.Fees.GetValue(FeeTypes.GetType("Maintenance Wage"));
-                double pWage = airline.Fees.GetValue(FeeTypes.GetType("Pilot Base Salary")); // *airline.Pilots.Count();
-                double cWage = airline.Fees.GetValue(FeeTypes.GetType("Cabin Wage"));
-                double iWage = airline.Fees.GetValue(FeeTypes.GetType("Instructor Base Salary"));
-                // *PilotModel.FlightSchool.MaxNumberOfInstructors;
+                double sWage = carrier.Fees.GetValue(FeeTypes.GetType("Support Wage"));
+                double mWage = carrier.Fees.GetValue(FeeTypes.GetType("Maintenance Wage"));
+                double pWage = carrier.Fees.GetValue(FeeTypes.GetType("Pilot Base Salary")); // *carrier.Pilots.Count();
+                double cWage = carrier.Fees.GetValue(FeeTypes.GetType("Cabin Wage"));
+                double iWage = carrier.Fees.GetValue(FeeTypes.GetType("Instructor Base Salary"));
+                // *PilotModel.TripSchool.MaxNumberOfInstructors;
                 int cabinCrew =
-                    airline.Routes.Where(r => r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed)
+                    carrier.Routes.Where(r => r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed)
                            .Sum(r => ((PassengerRoute) r).GetTotalCabinCrew());
                 int serviceCrew =
-                    airline.Airports.SelectMany(a => a.GetCurrentAirportFacilities(airline))
-                           .Where(a => a.EmployeeType == AirportFacility.EmployeeTypes.Support)
+                    carrier.Stations.SelectMany(a => a.GetCurrentStationFacilities(carrier))
+                           .Where(a => a.EmployeeType == StationFacility.EmployeeTypes.Support)
                            .Sum(a => a.NumberOfEmployees);
                 int maintenanceCrew =
-                    airline.Airports.SelectMany(a => a.GetCurrentAirportFacilities(airline))
-                           .Where(a => a.EmployeeType == AirportFacility.EmployeeTypes.Maintenance)
+                    carrier.Stations.SelectMany(a => a.GetCurrentStationFacilities(carrier))
+                           .Where(a => a.EmployeeType == StationFacility.EmployeeTypes.Maintenance)
                            .Sum(a => a.NumberOfEmployees);
 
                 double averageWage = (sWage + mWage + pWage + cWage + iWage)/5;
 
-                employeeWages.Add(airline, averageWage);
+                employeeWages.Add(carrier, averageWage);
             }
             return employeeWages;
         }
 
         public static double GetFillAverage()
         {
-            var fillDegrees = Airlines.GetAllAirlines().Select(airline => (from r in airline.Routes select r.GetFillingDegree()).ToList()).Select(fillDegree => fillDegree.DefaultIfEmpty(0).Average()).ToList();
+            var fillDegrees = Carriers.GetAllCarriers().Select(carrier => (from r in carrier.Routes select r.GetFillingDegree()).ToList()).Select(fillDegree => fillDegree.DefaultIfEmpty(0).Average()).ToList();
             return fillDegrees.DefaultIfEmpty(0).Average();
         }
 
-        public static Dictionary<Airline, double> GetFillAverages()
+        public static Dictionary<Carrier, double> GetFillAverages()
         {
-            var fillAverage = new Dictionary<Airline, double>();
-            foreach (Airline airline in Airlines.GetAllAirlines())
+            var fillAverage = new Dictionary<Carrier, double>();
+            foreach (Carrier carrier in Carriers.GetAllCarriers())
             {
-                List<double> fillDegree = (from r in airline.Routes
+                List<double> fillDegree = (from r in carrier.Routes
                                            where r.Type == Route.RouteType.Mixed || r.Type == Route.RouteType.Passenger
                                            select r.GetFillingDegree()).ToList();
                 double uFillDegree = fillDegree.DefaultIfEmpty(0).Average();
-                fillAverage.Add(airline, uFillDegree);
+                fillAverage.Add(carrier, uFillDegree);
             }
             return fillAverage;
         }
 
         public static double GetHumanAvgTicketPPD()
         {
-            List<double> ePrices = (from r in GameObject.GetInstance().HumanAirline.Routes
+            List<double> ePrices = (from r in GameObject.GetInstance().HumanCarrier.Routes
                                     where r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed
-                                    select ((PassengerRoute) r).GetFarePrice(AirlinerClass.ClassType.EconomyClass)).ToList();
-            List<double> bPrices = (from r in GameObject.GetInstance().HumanAirline.Routes
+                                    select ((PassengerRoute) r).GetFarePrice(CoachClass.ClassType.EconomyClass)).ToList();
+            List<double> bPrices = (from r in GameObject.GetInstance().HumanCarrier.Routes
                                     where r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed
-                                    select ((PassengerRoute) r).GetFarePrice(AirlinerClass.ClassType.BusinessClass)).ToList();
-            List<double> fPrices = (from r in GameObject.GetInstance().HumanAirline.Routes
+                                    select ((PassengerRoute) r).GetFarePrice(CoachClass.ClassType.BusinessClass)).ToList();
+            List<double> fPrices = (from r in GameObject.GetInstance().HumanCarrier.Routes
                                     where r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed
-                                    select ((PassengerRoute) r).GetFarePrice(AirlinerClass.ClassType.FirstClass)).ToList();
+                                    select ((PassengerRoute) r).GetFarePrice(CoachClass.ClassType.FirstClass)).ToList();
             double distance =
-                (from r in GameObject.GetInstance().HumanAirline.Routes
+                (from r in GameObject.GetInstance().HumanCarrier.Routes
                  select MathHelpers.GetDistance(r.Destination1, r.Destination2)).DefaultIfEmpty(0).Average();
             double avgHEP = ePrices.DefaultIfEmpty(0).Average();
             double avgHBP = bPrices.DefaultIfEmpty(0).Average();
@@ -228,69 +228,69 @@ namespace TheBusProject.Helpers
         public static double GetHumanFillAverage()
         {
             List<double> fillDegree =
-                (from r in GameObject.GetInstance().HumanAirline.Routes select r.GetFillingDegree()).ToList();
+                (from r in GameObject.GetInstance().HumanCarrier.Routes select r.GetFillingDegree()).ToList();
 
             return fillDegree.DefaultIfEmpty(0).Average();
         }
 
         public static double GetHumanOnTime()
         {
-            return FlightStatistics.OnTimePercent(GameObject.GetInstance().HumanAirline);
+            return TripStatistics.OnTimePercent(GameObject.GetInstance().HumanCarrier);
         }
 
         public static double GetHumanOnTimeYear(int year)
         {
             return GameObject.GetInstance()
-                             .HumanAirline.Statistics.GetStatisticsValue(year, StatisticsTypes.GetStatisticsType("On-Time%"));
+                             .HumanCarrier.Statistics.GetStatisticsValue(year, StatisticsTypes.GetStatisticsType("On-Time%"));
         }
 
-        public static double GetOnTimePercent(Airline airline)
+        public static double GetOnTimePercent(Carrier carrier)
         {
-            return FlightStatistics.OnTimePercent(airline);
+            return TripStatistics.OnTimePercent(carrier);
         }
 
-        public static Dictionary<Airline, double> GetPPDdifference()
+        public static Dictionary<Carrier, double> GetPPDdifference()
         {
-            var ppdDifference = new Dictionary<Airline, double>();
-            foreach (Airline airline in Airlines.GetAllAirlines())
+            var ppdDifference = new Dictionary<Carrier, double>();
+            foreach (Carrier carrier in Carriers.GetAllCarriers())
             {
                 const double avgPPD = 0; // GetTotalTicketPPD();
-                List<double> aiEconPrices = (from r in airline.Routes
+                List<double> aiEconPrices = (from r in carrier.Routes
                                              where r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed
-                                             select ((PassengerRoute) r).GetFarePrice(AirlinerClass.ClassType.EconomyClass)).ToList();
-                List<double> aiBusPrices = (from r in airline.Routes
+                                             select ((PassengerRoute) r).GetFarePrice(CoachClass.ClassType.EconomyClass)).ToList();
+                List<double> aiBusPrices = (from r in carrier.Routes
                                             where r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed
-                                            select ((PassengerRoute) r).GetFarePrice(AirlinerClass.ClassType.BusinessClass)).ToList();
-                List<double> aiFirstPrices = (from r in airline.Routes
+                                            select ((PassengerRoute) r).GetFarePrice(CoachClass.ClassType.BusinessClass)).ToList();
+                List<double> aiFirstPrices = (from r in carrier.Routes
                                               where r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed
-                                              select ((PassengerRoute) r).GetFarePrice(AirlinerClass.ClassType.FirstClass)).ToList();
+                                              select ((PassengerRoute) r).GetFarePrice(CoachClass.ClassType.FirstClass)).ToList();
                 double distance =
-                    (from r in airline.Routes select MathHelpers.GetDistance(r.Destination1, r.Destination2))
+                    (from r in carrier.Routes select MathHelpers.GetDistance(r.Destination1, r.Destination2))
                         .DefaultIfEmpty(0).Average();
                 double avgEP = aiEconPrices.DefaultIfEmpty(0).Average();
                 double avgBP = aiBusPrices.DefaultIfEmpty(0).Average();
                 double avgFP = aiFirstPrices.DefaultIfEmpty(0).Average();
                 double avgDistPrice = ((avgEP*0.7) + (avgBP*0.2) + (avgFP*0.1))/distance;
                 double avgDiff = avgDistPrice - avgPPD;
-                ppdDifference.Add(airline, avgDiff);
+                ppdDifference.Add(carrier, avgDiff);
             }
             return ppdDifference;
         }
 
-        public static IDictionary<Airline, double> GetRatingScale(
-            IDictionary<Airline, double> valueDictionary,
+        public static IDictionary<Carrier, double> GetRatingScale(
+            IDictionary<Carrier, double> valueDictionary,
             double lower = 1,
             double upper = 100)
         {
-            foreach (Airline airline in valueDictionary.Keys.ToArray())
+            foreach (Carrier carrier in valueDictionary.Keys.ToArray())
             {
-                if (double.IsNaN(valueDictionary[airline]))
+                if (double.IsNaN(valueDictionary[carrier]))
                 {
-                    valueDictionary[airline] = 0;
+                    valueDictionary[carrier] = 0;
                 }
             }
 
-            var scaleValues = new Dictionary<Airline, double>();
+            var scaleValues = new Dictionary<Carrier, double>();
             double max = valueDictionary.Values.DefaultIfEmpty(0).Max();
             double min = valueDictionary.Values.DefaultIfEmpty(0).Min();
             double avg = valueDictionary.Values.DefaultIfEmpty(0).Sum()/valueDictionary.Values.Count;
@@ -308,104 +308,104 @@ namespace TheBusProject.Helpers
         //returns a dictionary of unassigned pilots
 
         //just a helper method to get a score for a given year
-        public static int GetScore(Airline airline, int year)
+        public static int GetScore(Carrier carrier, int year)
         {
-            return airline.GameScores.Where(score => score.Key.Year == year).Sum(score => score.Value);
+            return carrier.GameScores.Where(score => score.Key.Year == year).Sum(score => score.Value);
         }
 
         //helper method to get a score for a given month of a given year
-        public static int GetScore(Airline airline, int year, int month)
+        public static int GetScore(Carrier carrier, int year, int month)
         {
-            return airline.GameScores.Where(score => score.Key.Month == month && score.Key.Year == year).Sum(score => score.Value);
+            return carrier.GameScores.Where(score => score.Key.Month == month && score.Key.Year == year).Sum(score => score.Value);
         }
 
         //helper method to get the score inclusively for a provided date range
 
-        public static int GetScore(Airline airline)
+        public static int GetScore(Carrier carrier)
         {
-            return airline.GameScores.Sum(score => score.Value);
+            return carrier.GameScores.Sum(score => score.Value);
         }
 
-        public static Dictionary<Airline, double> GetTotalOnTime()
+        public static Dictionary<Carrier, double> GetTotalOnTime()
         {
-            var totalOnTime = new Dictionary<Airline, double>();
-            foreach (Airline airline in Airlines.GetAllAirlines())
+            var totalOnTime = new Dictionary<Carrier, double>();
+            foreach (Carrier carrier in Carriers.GetAllCarriers())
             {
-                double otp = FlightStatistics.OnTimePercent(airline);
-                totalOnTime.Add(airline, otp);
+                double otp = TripStatistics.OnTimePercent(carrier);
+                totalOnTime.Add(carrier, otp);
             }
             return totalOnTime;
         }
 
-        public static Dictionary<Airline, double> GetTotalPPD()
+        public static Dictionary<Carrier, double> GetTotalPPD()
         {
             var ticketPPD = new List<double>();
-            var uDistPrice = new Dictionary<Airline, double>();
-            foreach (Airline airline in Airlines.GetAllAirlines())
+            var uDistPrice = new Dictionary<Carrier, double>();
+            foreach (Carrier carrier in Carriers.GetAllCarriers())
             {
-                List<double> econPrices = (from r in airline.Routes
+                List<double> econPrices = (from r in carrier.Routes
                                            where r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed
-                                           select ((PassengerRoute) r).GetFarePrice(AirlinerClass.ClassType.EconomyClass)).ToList();
-                List<double> busPrices = (from r in airline.Routes
+                                           select ((PassengerRoute) r).GetFarePrice(CoachClass.ClassType.EconomyClass)).ToList();
+                List<double> busPrices = (from r in carrier.Routes
                                           where r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed
-                                          select ((PassengerRoute) r).GetFarePrice(AirlinerClass.ClassType.BusinessClass)).ToList();
-                List<double> firstPrices = (from r in airline.Routes
+                                          select ((PassengerRoute) r).GetFarePrice(CoachClass.ClassType.BusinessClass)).ToList();
+                List<double> firstPrices = (from r in carrier.Routes
                                             where r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed
-                                            select ((PassengerRoute) r).GetFarePrice(AirlinerClass.ClassType.FirstClass)).ToList();
+                                            select ((PassengerRoute) r).GetFarePrice(CoachClass.ClassType.FirstClass)).ToList();
                 List<double> distance =
-                    (from r in airline.Routes select MathHelpers.GetDistance(r.Destination1, r.Destination2)).ToList();
+                    (from r in carrier.Routes select MathHelpers.GetDistance(r.Destination1, r.Destination2)).ToList();
                 double avgDistPrice = ((econPrices.DefaultIfEmpty(0).Average()*0.7)
                                        + (busPrices.DefaultIfEmpty(0).Average()*0.2)
                                        + (firstPrices.DefaultIfEmpty(0).Average()*0.1))
                                       /distance.DefaultIfEmpty(0).Average();
-                uDistPrice.Add(airline, avgDistPrice);
+                uDistPrice.Add(carrier, avgDistPrice);
             }
             return uDistPrice;
         }
 
-        public static Dictionary<Airline, double> GetUnassignedPilots()
+        public static Dictionary<Carrier, double> GetUnassignedPilots()
         {
-            var unassignedPilots = new Dictionary<Airline, double>();
-            foreach (Airline airline in Airlines.GetAllAirlines())
+            var unassignedPilots = new Dictionary<Carrier, double>();
+            foreach (Carrier carrier in Carriers.GetAllCarriers())
             {
-                double unPilots = airline.Pilots.Count(p => p.Airliner == null);
-                unassignedPilots.Add(airline, unPilots);
+                double unPilots = carrier.Pilots.Count(p => p.Coach == null);
+                unassignedPilots.Add(carrier, unPilots);
             }
             return unassignedPilots;
         }
 
-        public static int GetWeeklyScore(Airline airline)
+        public static int GetWeeklyScore(Carrier carrier)
         {
             int score = 0;
 
             //some base score weights:
-            //fleet: 5 per airliner
+            //fleet: 5 per coach
             // destinations: 2 per destination
             // cash: 1 per $1,000,000
             // happiness: raw value
             // employee happiness: raw value
             // maint, security, safety: raw values
 
-            int fleet = airline.Fleet.Count();
-            int destinations = airline.Airports.Count();
-            int cash = (int) airline.Money/1000000;
-            double happiness = airline.Ratings.CustomerHappinessRating;
+            int fleet = carrier.Fleet.Count();
+            int destinations = carrier.Stations.Count();
+            int cash = (int) carrier.Money/1000000;
+            double happiness = carrier.Ratings.CustomerHappinessRating;
             happiness = Math.Pow(happiness, 2)/2;
-            double empHappiness = airline.Ratings.EmployeeHappinessRating;
+            double empHappiness = carrier.Ratings.EmployeeHappinessRating;
             empHappiness = Math.Pow(empHappiness, 2)/4;
-            double maint = airline.Ratings.MaintenanceRating;
-            double security = airline.Ratings.SecurityRating;
-            double safety = airline.Ratings.SafetyRating;
+            double maint = carrier.Ratings.MaintenanceRating;
+            double security = carrier.Ratings.SecurityRating;
+            double safety = carrier.Ratings.SafetyRating;
 
             score +=
                 (int) ((fleet*5) + (destinations*2) + cash + happiness + empHappiness + maint + safety + security);
-            airline.CountedScores++;
+            carrier.CountedScores++;
             return score;
         }
 
-        public static int GetYearScore(Airline airline, int startYear, int endYear)
+        public static int GetYearScore(Carrier carrier, int startYear, int endYear)
         {
-            return airline.GameScores.Where(score => score.Key.Year >= startYear && score.Key.Year <= endYear).Sum(score => score.Value);
+            return carrier.GameScores.Where(score => score.Key.Year >= startYear && score.Key.Year <= endYear).Sum(score => score.Value);
         }
 
         public static double NextGaussian(this Random r, double mean = 0, double stdv = 1)
@@ -423,31 +423,31 @@ namespace TheBusProject.Helpers
             return randNormal;
         }
 
-        public static Dictionary<Country, double> GetCountryAirportsServed()
+        public static Dictionary<Country, double> GetCountryStationsServed()
 
         {
-            var countryAirports = new Dictionary<Country, double>();
+            var countryStations = new Dictionary<Country, double>();
             foreach (
                 Country country in
-                    GameObject.GetInstance().HumanAirline.Airports.Select(a => a.Profile.Country).Distinct())
+                    GameObject.GetInstance().HumanCarrier.Stations.Select(a => a.Profile.Country).Distinct())
             {
-                double c = Airports.GetAirports(country).Count();
-                double cHuman = GameObject.GetInstance().HumanAirline.Airports.Count(a => a.Profile.Country == country);
-                countryAirports.Add(country, (c/cHuman));
+                double c = Stations.GetStations(country).Count();
+                double cHuman = GameObject.GetInstance().HumanCarrier.Stations.Count(a => a.Profile.Country == country);
+                countryStations.Add(country, (c/cHuman));
             }
-            return countryAirports;
+            return countryStations;
         }
 
-        public static double GetWorldAirportsServed()
+        public static double GetWorldStationsServed()
         {
-            double hAirports = GameObject.GetInstance().HumanAirline.Airports.Count();
-            return hAirports/Airports.GetAllAirports().Count();
+            double hStations = GameObject.GetInstance().HumanCarrier.Stations.Count();
+            return hStations/Stations.GetAllStations().Count();
         }
 
         #endregion
 
         //generate a 1-100 scale for a list of values
 
-        //returns the airlines best year in terms of score
+        //returns the carriers best year in terms of score
     }
 }

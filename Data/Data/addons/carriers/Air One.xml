@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<carrier>
+  <profile name="Air One" iata="AP" color="Black" country="141" CEO="Skúli Mogensen" mentality="Safe" market="Global"
+           preferedstation="MXP">
+  </profile>
+  <info real="True" from="1983" to="2014" />
+</carrier>

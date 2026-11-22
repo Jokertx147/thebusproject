@@ -4,7 +4,7 @@
              x:Class="TheBusProject.Desktop.Views.SharesView">
   <Grid ColumnDefinitions="*,16,*" Margin="0,10,0,0">
 
-    <!-- your airline and your shares -->
+    <!-- your carrier and your shares -->
     <ScrollViewer>
       <StackPanel Spacing="8" Margin="0,0,8,0">
         <Border Background="#262626" CornerRadius="6" Padding="12">
@@ -38,7 +38,7 @@
         </Border>
         <TextBlock Text="{Binding Status}" TextWrapping="Wrap" />
 
-        <TextBlock Text="Your shares in other airlines" FontSize="16" FontWeight="SemiBold" Margin="0,6,0,0" />
+        <TextBlock Text="Your shares in other carriers" FontSize="16" FontWeight="SemiBold" Margin="0,6,0,0" />
         <TextBlock Text="{Binding PortfolioText}" Opacity="0.8" TextWrapping="Wrap" />
         <ListBox ItemsSource="{Binding PortfolioRows}" SelectedItem="{Binding SelectedHolding}" MaxHeight="220">
           <ListBox.ItemTemplate>
@@ -56,8 +56,8 @@
 
     <!-- the market -->
     <Grid Grid.Column="2" RowDefinitions="Auto,Auto,*,Auto">
-      <TextBlock Text="Airlines on the market" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,6" />
-      <TextBox Grid.Row="1" Text="{Binding Search}" Watermark="airline name, code or country (most valuable first)" Margin="0,0,0,6" />
+      <TextBlock Text="Carriers on the market" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,6" />
+      <TextBox Grid.Row="1" Text="{Binding Search}" Watermark="carrier name, code or country (most valuable first)" Margin="0,0,0,6" />
       <ListBox Grid.Row="2" ItemsSource="{Binding Market}" SelectedItem="{Binding Selected}">
         <ListBox.ItemTemplate>
           <DataTemplate>

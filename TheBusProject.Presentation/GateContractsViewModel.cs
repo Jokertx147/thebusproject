@@ -4,19 +4,19 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 using TheBusProject.Helpers;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 
 namespace TheBusProject.Presentation
 {
-    /// <summary>One airport contract in the list.</summary>
+    /// <summary>One station contract in the list.</summary>
     public class GateContractRow
     {
-        public GateContractRow(AirportContract c)
+        public GateContractRow(StationContract c)
         {
             Contract = c;
             int months = GateContractService.MonthsLeft(c);
-            var p = c.Airport.Profile;
+            var p = c.Station.Profile;
             Title = p.IATACode + "  " + p.Name + ", " + p.Country?.Name;
             Numbers = string.Format(
                 "{0}  |  {1} {2} gate(s)  |  {3}/year  |  {4} route(s)",
@@ -29,7 +29,7 @@ namespace TheBusProject.Presentation
             Warning = !c.AutoRenew && months <= 6 ? "Expires soon and is not renewed: your routes there would be cancelled." : null;
         }
 
-        public AirportContract Contract { get; }
+        public StationContract Contract { get; }
         public string Title { get; }
         public string Numbers { get; }
         public string Expiry { get; }
@@ -38,7 +38,7 @@ namespace TheBusProject.Presentation
         public bool HasWarning => Warning != null;
     }
 
-    /// <summary>Airports > Contracts: all the airline's gate contracts with extend, auto renew, gates and end.</summary>
+    /// <summary>Stations > Contracts: all the carrier's gate contracts with extend, auto renew, gates and end.</summary>
     public class GateContractsViewModel : ObservableObject
     {
         private readonly Action _changed;
@@ -55,25 +55,25 @@ namespace TheBusProject.Presentation
             _changed = changed;
             Rows = new ObservableCollection<GateContractRow>();
             Filters = new List<string> { "All", "Ending within 6 months", "Not renewed", "Passenger", "Cargo" };
-            SortOptions = new List<string> { "Ends first", "Airport", "Most expensive", "Most gates" };
+            SortOptions = new List<string> { "Ends first", "Station", "Most expensive", "Most gates" };
             ExtendCommand = new RelayCommand(AskExtend, () => _selected != null);
             AddGatesCommand = new RelayCommand(AskAddGates, () => _selected != null);
             RemoveGatesCommand = new RelayCommand(AskRemoveGates, () => _selected != null);
             EndCommand = new RelayCommand(AskEnd, () => _selected != null);
             RenewAllCommand = new RelayCommand(() =>
                 {
-                    int n = GateContractService.SetAutoRenewAll(GameObject.GetInstance().HumanAirline, true);
+                    int n = GateContractService.SetAutoRenewAll(GameObject.GetInstance().HumanCarrier, true);
                     Status = n == 0 ? "All contracts already renew by themselves." : n + " contract(s) now renew by themselves.";
                     Reload();
                 });
-            OpenAirportCommand = new RelayCommand(() => { if (_selected != null) OpenAirport?.Invoke(_selected.Contract.Airport); }, () => _selected != null);
+            OpenStationCommand = new RelayCommand(() => { if (_selected != null) OpenStation?.Invoke(_selected.Contract.Station); }, () => _selected != null);
             ConfirmCommand = new RelayCommand(() => { var a = _pending; SetPending(null, null); a?.Invoke(); });
             CancelCommand = new RelayCommand(() => SetPending(null, null));
             Reload();
         }
 
-        /// <summary>Set by the airline page: shows the airport on the Manage tab.</summary>
-        public Action<Airport> OpenAirport { get; set; }
+        /// <summary>Set by the carrier page: shows the station on the Manage tab.</summary>
+        public Action<Station> OpenStation { get; set; }
 
         public ObservableCollection<GateContractRow> Rows { get; }
         public List<string> Filters { get; }
@@ -86,7 +86,7 @@ namespace TheBusProject.Presentation
         public ICommand RemoveGatesCommand { get; }
         public ICommand EndCommand { get; }
         public ICommand RenewAllCommand { get; }
-        public ICommand OpenAirportCommand { get; }
+        public ICommand OpenStationCommand { get; }
         public ICommand ConfirmCommand { get; }
         public ICommand CancelCommand { get; }
 
@@ -110,7 +110,7 @@ namespace TheBusProject.Presentation
                 if (SetProperty(ref _selected, value))
                 {
                     SetPending(null, null);
-                    foreach (var c in new[] { ExtendCommand, AddGatesCommand, RemoveGatesCommand, EndCommand, OpenAirportCommand })
+                    foreach (var c in new[] { ExtendCommand, AddGatesCommand, RemoveGatesCommand, EndCommand, OpenStationCommand })
                         (c as RelayCommand)?.RaiseCanExecuteChanged();
                     OnPropertyChanged(nameof(HasSelection));
                     OnPropertyChanged(nameof(AutoRenew));
@@ -180,10 +180,10 @@ namespace TheBusProject.Presentation
             {
                 if (_selected == null) return "";
                 var c = _selected.Contract;
-                int free = c.Airport.Terminals.GetFreeGates(c.TerminalType);
+                int free = c.Station.Terminals.GetFreeGates(c.TerminalType);
                 return string.Format(
                     "{0} free gate(s) at {1}. {2} more cost {3} a year.",
-                    free, c.Airport.Profile.IATACode, _gates, Money(GateContractService.AddGatesPrice(c, _gates)));
+                    free, c.Station.Profile.IATACode, _gates, Money(GateContractService.AddGatesPrice(c, _gates)));
             }
         }
 
@@ -221,11 +221,11 @@ namespace TheBusProject.Presentation
 
         public void Reload()
         {
-            var airline = GameObject.GetInstance()?.HumanAirline;
-            if (airline == null) return;
-            var all = GateContractService.GetContracts(airline);
+            var carrier = GameObject.GetInstance()?.HumanCarrier;
+            if (carrier == null) return;
+            var all = GateContractService.GetContracts(carrier);
 
-            IEnumerable<AirportContract> list = all;
+            IEnumerable<StationContract> list = all;
             switch (_filter)
             {
                 case "Ending within 6 months": list = list.Where(c => GateContractService.MonthsLeft(c) <= 6); break;
@@ -235,7 +235,7 @@ namespace TheBusProject.Presentation
             }
             switch (_sortBy)
             {
-                case "Airport": list = list.OrderBy(c => c.Airport.Profile.IATACode); break;
+                case "Station": list = list.OrderBy(c => c.Station.Profile.IATACode); break;
                 case "Most expensive": list = list.OrderByDescending(c => c.YearlyPayment); break;
                 case "Most gates": list = list.OrderByDescending(c => c.NumberOfGates); break;
                 default: list = list.OrderBy(c => c.ExpireDate); break;
@@ -250,8 +250,8 @@ namespace TheBusProject.Presentation
 
             int soon = all.Count(c => !c.AutoRenew && GateContractService.MonthsLeft(c) <= 6);
             Summary = string.Format(
-                "{0} contract(s) at {1} airport(s)  |  {2} gates  |  {3} a year{4}",
-                all.Count, all.Select(c => c.Airport).Distinct().Count(), all.Sum(c => c.NumberOfGates),
+                "{0} contract(s) at {1} station(s)  |  {2} gates  |  {3} a year{4}",
+                all.Count, all.Select(c => c.Station).Distinct().Count(), all.Sum(c => c.NumberOfGates),
                 Money(all.Sum(c => c.YearlyPayment)),
                 soon > 0 ? "  |  " + soon + " ending soon without renewal" : "");
         }
@@ -274,7 +274,7 @@ namespace TheBusProject.Presentation
             if (row == null) return;
             int years = _years;
             SetPending(
-                "Extend the contract at " + row.Contract.Airport.Profile.IATACode + " by " + years + " year(s)? " + ExtendText,
+                "Extend the contract at " + row.Contract.Station.Profile.IATACode + " by " + years + " year(s)? " + ExtendText,
                 () => { string m; After(GateContractService.Extend(row.Contract, years, out m), m); });
         }
 
@@ -290,7 +290,7 @@ namespace TheBusProject.Presentation
                 return;
             }
             SetPending(
-                "Add " + gates + " gate(s) at " + row.Contract.Airport.Profile.IATACode + " for " + Money(GateContractService.AddGatesPrice(row.Contract, gates)) + " more a year?",
+                "Add " + gates + " gate(s) at " + row.Contract.Station.Profile.IATACode + " for " + Money(GateContractService.AddGatesPrice(row.Contract, gates)) + " more a year?",
                 () => { string m; After(GateContractService.AddGates(row.Contract, gates, out m), m); });
         }
 
@@ -306,7 +306,7 @@ namespace TheBusProject.Presentation
                 return;
             }
             SetPending(
-                "Give back " + gates + " gate(s) at " + row.Contract.Airport.Profile.IATACode + "? The rent goes down with them.",
+                "Give back " + gates + " gate(s) at " + row.Contract.Station.Profile.IATACode + "? The rent goes down with them.",
                 () => { string m; After(GateContractService.RemoveGates(row.Contract, gates, out m), m); });
         }
 
@@ -321,7 +321,7 @@ namespace TheBusProject.Presentation
                 return;
             }
             SetPending(
-                "End the contract at " + row.Contract.Airport.Profile.IATACode + "? The penalty is " + Money(GateContractService.EndPenalty(row.Contract)) + ".",
+                "End the contract at " + row.Contract.Station.Profile.IATACode + "? The penalty is " + Money(GateContractService.EndPenalty(row.Contract)) + ".",
                 () => { string m; After(GateContractService.End(row.Contract, out m), m); });
         }
     }

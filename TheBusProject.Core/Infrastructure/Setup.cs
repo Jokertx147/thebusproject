@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 using System.Xml;
 using TheBusProject.Helpers;
 using TheBusProject.Infrastructure.Enums;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airlines.AirlineCooperation;
-using TheBusProject.Models.Airlines.Subsidiary;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Carriers.CarrierCooperation;
+using TheBusProject.Models.Carriers.Subsidiary;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Countries;
 using TheBusProject.Models.General.Countries.Towns;
@@ -36,7 +36,7 @@ namespace TheBusProject.Infrastructure
     {
         #region Static Fields
 
-        // Random.Shared is safe to use from the parallel airline threads (a shared new Random() is not)
+        // Random.Shared is safe to use from the parallel carrier threads (a shared new Random() is not)
         private static Random Rnd => Random.Shared;
 
         // the loaders catch and swallow their own exceptions, so also write them to startup.log where they can be found
@@ -65,7 +65,7 @@ namespace TheBusProject.Infrastructure
 
         #region Public Methods and Operators
 
-        public static Airline LoadAirline(string path)
+        public static Carrier LoadCarrier(string path)
         {
             var doc = new XmlDocument();
             doc.Load(path);
@@ -88,11 +88,11 @@ namespace TheBusProject.Infrastructure
                 //Country country = Countries.GetCountry(profileElement.Attributes["country"].Value);
                 string ceo = profileElement.Attributes["CEO"].Value;
                 var mentality =
-                    (Airline.AirlineMentality)
-                        DataParsing.ParseEnum(typeof (Airline.AirlineMentality), profileElement.Attributes["mentality"].Value);
+                    (Carrier.CarrierMentality)
+                        DataParsing.ParseEnum(typeof (Carrier.CarrierMentality), profileElement.Attributes["mentality"].Value);
                 var market =
-                    (AirlineFocus)
-                        DataParsing.ParseEnum(typeof (AirlineFocus), profileElement.Attributes["market"].Value);
+                    (CarrierFocus)
+                        DataParsing.ParseEnum(typeof (CarrierFocus), profileElement.Attributes["market"].Value);
 
                 var routeFocus = Route.RouteType.Passenger;
 
@@ -122,49 +122,49 @@ namespace TheBusProject.Infrastructure
                     folded = Convert.ToInt16(infoElement.Attributes["to"].Value);
                 }
 
-                var license = Airline.AirlineLicense.Regional;
+                var license = Carrier.CarrierLicense.Regional;
 
-                if (market == AirlineFocus.Global)
+                if (market == CarrierFocus.Global)
                 {
-                    license = mentality == Airline.AirlineMentality.Aggressive ? Airline.AirlineLicense.LongHaul : Airline.AirlineLicense.Domestic;
+                    license = mentality == Carrier.CarrierMentality.Aggressive ? Carrier.CarrierLicense.LongHaul : Carrier.CarrierLicense.Domestic;
                 }
 
-                if (market == AirlineFocus.Regional)
+                if (market == CarrierFocus.Regional)
                 {
-                    license = Airline.AirlineLicense.Regional;
+                    license = Carrier.CarrierLicense.Regional;
                 }
 
-                var airline = new Airline(
-                    new AirlineProfile(name, iata, color, ceo, isReal, founded, folded),
+                var carrier = new Carrier(
+                    new CarrierProfile(name, iata, color, ceo, isReal, founded, folded),
                     mentality,
                     market,
                     license,
                     routeFocus) {Profile = {Countries = countries}};
-                airline.Profile.Country = airline.Profile.Countries[0];
-                airline.Profile.LogoName = logoImage;
+                carrier.Profile.Country = carrier.Profile.Countries[0];
+                carrier.Profile.LogoName = logoImage;
 
                 var preferedsElement = (XmlElement) root.SelectSingleNode("prefereds");
 
                 if (preferedsElement != null)
                 {
-                    if (preferedsElement.HasAttribute("aircrafts"))
+                    if (preferedsElement.HasAttribute("coaches"))
                     {
-                        string[] preferedAircrafts = preferedsElement.Attributes["aircrafts"].Value.Split(',');
+                        string[] preferedCoaches = preferedsElement.Attributes["coaches"].Value.Split(',');
 
-                        foreach (string preferedAircraft in preferedAircrafts)
+                        foreach (string preferedCoach in preferedCoaches)
                         {
-                            AirlinerType pAircraft = AirlinerTypes.GetType(preferedAircraft);
-                            airline.Profile.AddPreferedAircraft(pAircraft);
+                            CoachType pCoach = CoachTypes.GetType(preferedCoach);
+                            carrier.Profile.AddPreferedCoach(pCoach);
                         }
                     }
                     if (preferedsElement.HasAttribute("primarypurchasing"))
                     {
                         var primarypurchasing =
-                            (AirlineProfile.PreferedPurchasing)
+                            (CarrierProfile.PreferedPurchasing)
                                 DataParsing.ParseEnum(
-                                    typeof (AirlineProfile.PreferedPurchasing),
+                                    typeof (CarrierProfile.PreferedPurchasing),
                                     preferedsElement.Attributes["primarypurchasing"].Value);
-                        airline.Profile.PrimaryPurchasing = primarypurchasing;
+                        carrier.Profile.PrimaryPurchasing = primarypurchasing;
                     }
                 }
 
@@ -175,16 +175,16 @@ namespace TheBusProject.Infrastructure
                     {
                         int logoFromYear = Convert.ToInt16(logoElement.Attributes["from"].Value);
                         int logoToYear = Convert.ToInt16(logoElement.Attributes["to"].Value);
-                        string logoPath = AppSettings.GetDataPath() + "/graphics/airlinelogos/multilogos/"
+                        string logoPath = AppSettings.GetDataPath() + "/graphics/carrierlogos/multilogos/"
                                           + logoElement.Attributes["path"].Value + ".png";
 
-                        airline.Profile.AddLogo(new AirlineLogo(logoFromYear, logoToYear, logoPath));
+                        carrier.Profile.AddLogo(new CarrierLogo(logoFromYear, logoToYear, logoPath));
                     }
 
-                if (profileElement.HasAttribute("preferedairport"))
+                if (profileElement.HasAttribute("preferedstation"))
                 {
-                    Airport preferedAirport = Airports.GetAirport(profileElement.Attributes["preferedairport"].Value);
-                    airline.Profile.PreferedAirport = preferedAirport;
+                    Station preferedStation = Stations.GetStation(profileElement.Attributes["preferedstation"].Value);
+                    carrier.Profile.PreferedStation = preferedStation;
                 }
 
                 XmlNodeList subsidiariesList = root.SelectNodes("subsidiaries/subsidiary");
@@ -194,36 +194,36 @@ namespace TheBusProject.Infrastructure
                     {
                         string subName = subsidiaryElement.Attributes["name"].Value;
                         string subIATA = subsidiaryElement.Attributes["IATA"].Value;
-                        Airport subAirport = Airports.GetAirport(subsidiaryElement.Attributes["homebase"].Value);
+                        Station subStation = Stations.GetStation(subsidiaryElement.Attributes["homebase"].Value);
                         var subMentality =
-                            (Airline.AirlineMentality)
+                            (Carrier.CarrierMentality)
                                 DataParsing.ParseEnum(
-                                    typeof (Airline.AirlineMentality),
+                                    typeof (Carrier.CarrierMentality),
                                     subsidiaryElement.Attributes["mentality"].Value);
                         var subMarket =
-                            (AirlineFocus)
-                                DataParsing.ParseEnum(typeof (AirlineFocus), subsidiaryElement.Attributes["market"].Value);
+                            (CarrierFocus)
+                                DataParsing.ParseEnum(typeof (CarrierFocus), subsidiaryElement.Attributes["market"].Value);
 
-                        string subLogo = AppSettings.GetDataPath() + "/graphics/airlinelogos/"
+                        string subLogo = AppSettings.GetDataPath() + "/graphics/carrierlogos/"
                                          + subsidiaryElement.Attributes["logo"].Value + ".png";
 
-                        var airlineRouteFocus = Route.RouteType.Passenger;
+                        var carrierRouteFocus = Route.RouteType.Passenger;
 
                         if (subsidiaryElement.HasAttribute("routefocus"))
                         {
-                            airlineRouteFocus =
+                            carrierRouteFocus =
                                 (Route.RouteType)
                                     DataParsing.ParseEnum(typeof (Route.RouteType), subsidiaryElement.Attributes["routefocus"].Value);
                         }
 
-                        airline.FutureAirlines.Add(
-                            new FutureSubsidiaryAirline(
+                        carrier.FutureCarriers.Add(
+                            new FutureSubsidiaryCarrier(
                                 subName,
                                 subIATA,
-                                subAirport,
+                                subStation,
                                 subMentality,
                                 subMarket,
-                                airlineRouteFocus,
+                                carrierRouteFocus,
                                 subLogo));
                     }
                 }
@@ -231,7 +231,7 @@ namespace TheBusProject.Infrastructure
                 var startDataElement = (XmlElement) root.SelectSingleNode("startdata");
                 if (startDataElement != null)
                 {
-                    var startData = new AirlineStartData(airline);
+                    var startData = new CarrierStartData(carrier);
 
                     XmlNodeList routesList = startDataElement.SelectNodes("routes/route");
                     if (routesList != null)
@@ -242,7 +242,7 @@ namespace TheBusProject.Infrastructure
                             int opened = Convert.ToInt16(routeElement.Attributes["opened"].Value);
                             int closed = Convert.ToInt16(routeElement.Attributes["closed"].Value);
 
-                            Route.RouteType routetype = airline.AirlineRouteFocus;
+                            Route.RouteType routetype = carrier.CarrierRouteFocus;
 
                             if (routeElement.HasAttribute("routetype"))
                             {
@@ -254,22 +254,22 @@ namespace TheBusProject.Infrastructure
                             var sdr = new StartDataRoute(dest1, dest2, opened, closed, routetype);
                             startData.AddRoute(sdr);
 
-                            if (routeElement.HasAttribute("airliner"))
+                            if (routeElement.HasAttribute("coach"))
                             {
-                                AirlinerType airlinerType = AirlinerTypes.GetType(routeElement.Attributes["airliner"].Value);
-                                sdr.Type = airlinerType;
+                                CoachType coachType = CoachTypes.GetType(routeElement.Attributes["coach"].Value);
+                                sdr.Type = coachType;
                             }
                         }
 
-                    XmlNodeList airlinersList = startDataElement.SelectNodes("airliners/airliner");
+                    XmlNodeList coachesList = startDataElement.SelectNodes("coaches/coach");
 
-                    foreach (XmlElement airlinerElement in airlinersList)
+                    foreach (XmlElement coachElement in coachesList)
                     {
-                        string type = airlinerElement.Attributes["type"].Value;
-                        int early = Convert.ToInt16(airlinerElement.Attributes["early"].Value);
-                        int late = Convert.ToInt16(airlinerElement.Attributes["late"].Value);
+                        string type = coachElement.Attributes["type"].Value;
+                        int early = Convert.ToInt16(coachElement.Attributes["early"].Value);
+                        int late = Convert.ToInt16(coachElement.Attributes["late"].Value);
 
-                        startData.AddAirliners(new StartDataAirliners(type, early, late));
+                        startData.AddCoaches(new StartDataCoaches(type, early, late));
                     }
 
                     XmlNodeList randomRoutesList = startDataElement.SelectNodes("random_routes/routes");
@@ -282,7 +282,7 @@ namespace TheBusProject.Infrastructure
                             (GeneralHelpers.Size)
                                 DataParsing.ParseEnum(typeof (GeneralHelpers.Size), routeElement.Attributes["minimumsize"].Value);
 
-                        Route.RouteType routetype = airline.AirlineRouteFocus;
+                        Route.RouteType routetype = carrier.CarrierRouteFocus;
 
                         if (routeElement.HasAttribute("routetype"))
                         {
@@ -303,56 +303,56 @@ namespace TheBusProject.Infrastructure
                         startData.AddOriginRoutes(routes);
                     }
 
-                    AirlineStartDatas.AddStartData(startData);
+                    CarrierStartDatas.AddStartData(startData);
                 }
 
-                airline.Profile.Narrative = narrative;
+                carrier.Profile.Narrative = narrative;
 
-                Airlines.AddAirline(airline);
+                Carriers.AddCarrier(carrier);
 
-                return airline;
+                return carrier;
             }
             return null;
         }
 
-        /// <summary>The codes of every airport in the data files when they were last read (saved with a game).</summary>
-        public static HashSet<string> DataAirportCodes { get; private set; }
+        /// <summary>The codes of every station in the data files when they were last read (saved with a game).</summary>
+        public static HashSet<string> DataStationCodes { get; private set; }
 
-        public static void LoadAirports()
+        public static void LoadStations()
         {
-            //LoadAirports(AppSettings.getDataPath() + "/airports.xml");
+            //LoadStations(AppSettings.getDataPath() + "/stations.xml");
             try
             {
-                var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/addons/airports");
+                var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/addons/stations");
 
-                // "north america MX.xml" is an older copy of many of the airports in "north america.xml":
+                // "north america MX.xml" is an older copy of many of the stations in "north america.xml":
                 // it is loaded last so the newer definitions are the ones that are kept
                 foreach (FileInfo file in dir.GetFiles("*.xml")
                                              .OrderBy(f => f.Name.EndsWith(" MX.xml", StringComparison.OrdinalIgnoreCase) ? 1 : 0)
                                              .ThenBy(f => f.Name, StringComparer.OrdinalIgnoreCase))
                 {
-                    LoadAirports(file.FullName);
+                    LoadStations(file.FullName);
                 }
             }
             catch (Exception e)
             {
                 var file = new StreamWriter(
-                    AppSettings.GetCommonApplicationDataPath() + "/theairlinestartup.log",
+                    AppSettings.GetCommonApplicationDataPath() + "/thecarrierstartup.log",
                     true);
-                file.WriteLine("Airport failing");
+                file.WriteLine("Station failing");
                 file.WriteLine(e.ToString());
                 file.WriteLine(e.StackTrace);
                 file.Close();
             }
-            DataAirportCodes = new HashSet<string>(Airports.GetAllAirports().Select(a => a.Profile.IATACode));
-            Airports.RememberWorld();
-            Airports.CountSizes();
+            DataStationCodes = new HashSet<string>(Stations.GetAllStations().Select(a => a.Profile.IATACode));
+            Stations.RememberWorld();
+            Stations.CountSizes();
             foreach (GeneralHelpers.Size size in Enum.GetValues(typeof (GeneralHelpers.Size)))
             {
-                if (!Airports.CargoAirportsSizes.ContainsKey(size))
+                if (!Stations.CargoStationsSizes.ContainsKey(size))
                 {
                     GeneralHelpers.Size size1 = size;
-                    Airports.CargoAirportsSizes.Add(size, Airports.GetAirports(a => a.Profile.Cargo == size1).Count);
+                    Stations.CargoStationsSizes.Add(size, Stations.GetStations(a => a.Profile.Cargo == size1).Count);
                 }
             }
         }
@@ -372,7 +372,7 @@ namespace TheBusProject.Infrastructure
                 int activeMembers =
                     alliance.Members.Count(
                         m =>
-                        Airlines.ContainsAirline(m.Airline) && !m.Airline.IsHuman
+                        Carriers.ContainsCarrier(m.Carrier) && !m.Carrier.IsHuman
                         && m.JoinedDate <= GameObject.GetInstance().GameTime
                         && m.ExitedDate > GameObject.GetInstance().GameTime);
 
@@ -384,7 +384,7 @@ namespace TheBusProject.Infrastructure
                         AllianceMember member in
                             members.Where(
                                 m =>
-                                !Airlines.GetAllAirlines().Contains(m.Airline)
+                                !Carriers.GetAllCarriers().Contains(m.Carrier)
                                 || m.JoinedDate > GameObject.GetInstance().GameTime
                                 || GameObject.GetInstance().GameTime > m.ExitedDate))
                     {
@@ -435,22 +435,22 @@ namespace TheBusProject.Infrastructure
 
                 CreateContinents();
 
-                LoadAirports();
-                LoadAirportLogos();
-                LoadAirportMaps();
-                LoadAirportFacilities();
+                LoadStations();
+                LoadStationLogos();
+                LoadStationMaps();
+                LoadStationFacilities();
                 LoadCooperations();
                 LoadMajorDestinations();
 
-                LoadAirlineFacilities();
+                LoadCarrierFacilities();
 
                 LoadManufacturers();
                 LoadManufacturerLogos();
-                LoadAirliners();
-                LoadAirlinerImages();
-                LoadAirlinerFacilities();
+                LoadCoaches();
+                LoadCoachImages();
+                LoadCoachFacilities();
                 LoadEngineTypes();
-                LoadFlightRestrictions();
+                LoadTripRestrictions();
                 LoadInflationYears();
                 LoadHolidays();
                 LoadHistoricEvents();
@@ -460,14 +460,14 @@ namespace TheBusProject.Infrastructure
 
                 CreateAdvertisementTypes();
                 CreateFeeTypes();
-                CreateFlightFacilities();
-                CreateTrainingAircraftTypes();
+                CreateTripFacilities();
+                CreateTrainingCoachTypes();
                 CreatePilotRatings();
 
                 LoadStandardConfigurations();
-                LoadAirlinerTypeConfigurations();
+                LoadCoachTypeConfigurations();
 
-                LoadAirlines();
+                LoadCarriers();
                 LoadAlliances();
 
                 LoadScenarios();
@@ -475,7 +475,7 @@ namespace TheBusProject.Infrastructure
             catch (Exception e)
             {
                 //var file = new StreamWriter(
-                //    AppSettings.GetCommonApplicationDataPath() + "/theairlinestartup.log",
+                //    AppSettings.GetCommonApplicationDataPath() + "/thecarrierstartup.log",
                 //    true);
                 //file.WriteLine("Game start failing");
                 //file.WriteLine(e.ToString());
@@ -488,16 +488,16 @@ namespace TheBusProject.Infrastructure
             }
 
 
-            IEnumerable<Airport> noRunways = Airports.GetAllAirports().Where(a => a.Runways.Count == 0);
+            IEnumerable<Station> noRunways = Stations.GetAllStations().Where(a => a.Runways.Count == 0);
 
-            foreach (Airport airport in noRunways)
-                Console.WriteLine(@"{0}, {1} in {2} has no runways", airport.Profile.Name, airport.Profile.IATACode, airport.Profile.Country.Name);
+            foreach (Station station in noRunways)
+                Console.WriteLine(@"{0}, {1} in {2} has no runways", station.Profile.Name, station.Profile.IATACode, station.Profile.Country.Name);
 
-            Console.WriteLine(@"Airports: " + Airports.GetAllAirports().Count);
-            Console.WriteLine(@"Airlines: " + Airlines.GetAllAirlines().Count);
+            Console.WriteLine(@"Stations: " + Stations.GetAllStations().Count);
+            Console.WriteLine(@"Carriers: " + Carriers.GetAllCarriers().Count);
 
-            Airport lbb = Airports.GetAirport("LBB");
-            Airport dfw = Airports.GetAirport("DFW");
+            Station lbb = Stations.GetStation("LBB");
+            Station dfw = Stations.GetStation("DFW");
 
             if (lbb != null && dfw != null)
             {
@@ -505,51 +505,51 @@ namespace TheBusProject.Infrastructure
             }
 
             /*
-            System.IO.StreamWriter aFile = new System.IO.StreamWriter("c:/bbm/airports.csv");
+            System.IO.StreamWriter aFile = new System.IO.StreamWriter("c:/bbm/stations.csv");
 
             string lines = "Name;IATA;ICAO;Type;Season;Town;Country;GMT;DST;Latitude;Longitude;Size;Pax;Cargosize;Cargo;Terminals[Name%Gates];Runways[Name%Surface%Lenght]";
             
             aFile.WriteLine(lines);
 
-            foreach (Airport airport in Airports.GetAllAirports())
+            foreach (Station station in Stations.GetAllStations())
             {
-                string airportLine = airport.Profile.Name;
-                airportLine += ";" + airport.Profile.IATACode;
-                airportLine += ";" + airport.Profile.ICAOCode;
-                airportLine += ";" + airport.Profile.Type.ToString();
-                airportLine += ";" + airport.Profile.Season.ToString(); 
-                airportLine += ";" + airport.Profile.Town.Name;
-                airportLine += ";" + airport.Profile.Country.Name;
-                airportLine += ";" + airport.Profile.OffsetGMT.ToString();
-                airportLine += ";" + airport.Profile.OffsetDST.ToString();
-                airportLine += ";" + airport.Profile.Coordinates.Latitude.ToString();
-                airportLine += ";" + airport.Profile.Coordinates.Longitude.ToString();
-                airportLine += ";" + airport.Profile.Size.ToString();
-                airportLine += ";" + airport.Profile.Pax.ToString();
-                airportLine += ";" + airport.Profile.Cargo.ToString();
-                airportLine += ";" + airport.Profile.CargoVolume.ToString();
+                string stationLine = station.Profile.Name;
+                stationLine += ";" + station.Profile.IATACode;
+                stationLine += ";" + station.Profile.ICAOCode;
+                stationLine += ";" + station.Profile.Type.ToString();
+                stationLine += ";" + station.Profile.Season.ToString(); 
+                stationLine += ";" + station.Profile.Town.Name;
+                stationLine += ";" + station.Profile.Country.Name;
+                stationLine += ";" + station.Profile.OffsetGMT.ToString();
+                stationLine += ";" + station.Profile.OffsetDST.ToString();
+                stationLine += ";" + station.Profile.Coordinates.Latitude.ToString();
+                stationLine += ";" + station.Profile.Coordinates.Longitude.ToString();
+                stationLine += ";" + station.Profile.Size.ToString();
+                stationLine += ";" + station.Profile.Pax.ToString();
+                stationLine += ";" + station.Profile.Cargo.ToString();
+                stationLine += ";" + station.Profile.CargoVolume.ToString();
 
                 string runwaysLine="";
                 string terminalsLine="";
 
-                foreach (Terminal terminal in airport.Terminals.AirportTerminals)
+                foreach (Terminal terminal in station.Terminals.StationTerminals)
                 {
                     terminalsLine += "[" + terminal.Name + "%" + terminal.Gates.NumberOfGates.ToString() + "]";
                 }
 
-                foreach (Runway runway in airport.Runways)
+                foreach (Runway runway in station.Runways)
                 {
                     runwaysLine +=  "[" + runway.Name + "%" + runway.Surface.ToString() + "%" + runway.Length + "]";
                 }
 
-                airportLine += ";" + terminalsLine;
-                airportLine += ";" + runwaysLine;
+                stationLine += ";" + terminalsLine;
+                stationLine += ";" + runwaysLine;
 
-                aFile.WriteLine(airportLine);
+                aFile.WriteLine(stationLine);
             
                     
                     
-                    //string.Format("{0};{1};{2};{3};{4};{5};{6};{7};{8};{9};{10};{11};{12};{13};{14};{15};{16}", airport.Profile.Name, airport.Profile.IATACode, airport.Profile.ICAOCode, airport.Profile.Type.ToString(), airport.Profile.Season.ToString(),airport.Profile.Town.Name,airport.Profile.Town.Country.Name,airport.Profile.OffsetGMT.ToString(),airport.Profile.OffsetDST.ToString());
+                    //string.Format("{0};{1};{2};{3};{4};{5};{6};{7};{8};{9};{10};{11};{12};{13};{14};{15};{16}", station.Profile.Name, station.Profile.IATACode, station.Profile.ICAOCode, station.Profile.Type.ToString(), station.Profile.Season.ToString(),station.Profile.Town.Name,station.Profile.Town.Country.Name,station.Profile.OffsetGMT.ToString(),station.Profile.OffsetDST.ToString());
 
                
             }
@@ -557,50 +557,50 @@ namespace TheBusProject.Infrastructure
         */
             /*
                 var townGroups =
-                    from a in Airports.GetAllAirports() where a.Profile.Town.Name.Trim().Length == 0
+                    from a in Stations.GetAllStations() where a.Profile.Town.Name.Trim().Length == 0
                     group a by a.Profile.Country.Region into g
-                    select new { Region = g.Key, Airports = g };
+                    select new { Region = g.Key, Stations = g };
 
                 foreach (var g in townGroups)
                 {
                     Console.WriteLine(g.Region.Name);
-                    foreach (var a in g.Airports)
+                    foreach (var a in g.Stations)
                     {
                         Console.WriteLine("      {0} ({1}), {2}",a.Profile.Name,a.Profile.IATACode,a.Profile.Country.Name);
                     }
                 } */
 
             /*
-            var aircraftFamilies = AirlinerTypes.GetAllTypes().Select(a => a.AirlinerFamily).Distinct();
+            var coachFamilies = CoachTypes.GetAllTypes().Select(a => a.CoachFamily).Distinct();
 
-            foreach (string family in aircraftFamilies)
+            foreach (string family in coachFamilies)
                 Console.WriteLine(family);
 
             /*
-            var airlineRegionGroups =
-                from a in Airlines.GetAllAirlines()
+            var carrierRegionGroups =
+                from a in Carriers.GetAllCarriers()
                 group a by a.Profile.Country.Region into g
-                select new { Region = g.Key, Airports = g };
+                select new { Region = g.Key, Stations = g };
 
-            foreach (var g in airlineRegionGroups)
+            foreach (var g in carrierRegionGroups)
             {
-                Console.WriteLine("{0} has {1} airports", g.Region.Name,g.Airports.Count());
+                Console.WriteLine("{0} has {1} stations", g.Region.Name,g.Stations.Count());
                 
              
             }
 
 
-            var airlines = Airlines.GetAllAirlines().FindAll(a => a.Profile.PreferedAirport == null);
-            var airlineLogos = Airlines.GetAllAirlines().FindAll(a => a.Profile.Logos.Count==0);
+            var carriers = Carriers.GetAllCarriers().FindAll(a => a.Profile.PreferedStation == null);
+            var carrierLogos = Carriers.GetAllCarriers().FindAll(a => a.Profile.Logos.Count==0);
 
-            foreach (Airline noLogoAirline in airlineLogos)
-                Console.WriteLine(noLogoAirline.Profile.Name);
+            foreach (Carrier noLogoCarrier in carrierLogos)
+                Console.WriteLine(noLogoCarrier.Profile.Name);
 
-            var noRunwayAirports = Airports.GetAirports(a => a.Runways.Count == 0);
-            var cargoAirliners = AirlinerTypes.GetAllTypes().FindAll(a => a.TypeAirliner == AirlinerType.TypeOfAirliner.Cargo);
+            var noRunwayStations = Stations.GetStations(a => a.Runways.Count == 0);
+            var cargoCoaches = CoachTypes.GetAllTypes().FindAll(a => a.TypeCoach == CoachType.TypeOfCoach.Cargo);
 
-            foreach (Airport airport in noRunwayAirports)
-                Console.WriteLine(airport.Profile.Name);
+            foreach (Station station in noRunwayStations)
+                Console.WriteLine(station.Profile.Name);
 
             */
         }
@@ -621,29 +621,29 @@ namespace TheBusProject.Infrastructure
             CreateContinents();
         }
 
-        public static void SetupMainGame(List<Airline> opponents, int totalOpponents)
+        public static void SetupMainGame(List<Carrier> opponents, int totalOpponents)
         {
             int year = GameObject.GetInstance().GameTime.Year;
 
-            List<Airline> notAvailableAirlines =
-                Airlines.GetAirlines(a => !(a.Profile.Founded <= year && a.Profile.Folded > year));
+            List<Carrier> notAvailableCarriers =
+                Carriers.GetCarriers(a => !(a.Profile.Founded <= year && a.Profile.Folded > year));
 
-            foreach (Airline airline in notAvailableAirlines)
+            foreach (Carrier carrier in notAvailableCarriers)
             {
-                Airlines.RemoveAirline(airline);
+                Carriers.RemoveCarrier(carrier);
             }
 
-            var airlines =
-                new List<Airline>(
-                    Airlines.GetAirlines(
+            var carriers =
+                new List<Carrier>(
+                    Carriers.GetCarriers(
                         a =>
                         !a.IsHuman && !opponents.Contains(a) && a.Profile.Founded <= year && a.Profile.Folded > year));
 
-            airlines = MathHelpers.Shuffle(airlines);
+            carriers = MathHelpers.Shuffle(carriers);
 
-            for (int i = 0; i < airlines.Count + opponents.Count - totalOpponents; i++)
+            for (int i = 0; i < carriers.Count + opponents.Count - totalOpponents; i++)
             {
-                Airlines.RemoveAirline(airlines[i]);
+                Carriers.RemoveCarrier(carriers[i]);
             }
 
             SetupMainGame();
@@ -651,26 +651,26 @@ namespace TheBusProject.Infrastructure
 
         public static void SetupMainGame(int opponents, bool sameRegion)
         {
-            StartupLog.Write("SetupMainGame: removing airlines");
-            RemoveAirlines(opponents, sameRegion);
-            StartupLog.Write("SetupMainGame: airlines reduced to " + Airlines.GetAllAirlines().Count);
+            StartupLog.Write("SetupMainGame: removing carriers");
+            RemoveCarriers(opponents, sameRegion);
+            StartupLog.Write("SetupMainGame: carriers reduced to " + Carriers.GetAllCarriers().Count);
 
             SetupMainGame();
         }
 
         public static void SetupMergers()
         {
-            AirlineMergers.Clear();
-            LoadAirlineMergers();
+            CarrierMergers.Clear();
+            LoadCarrierMergers();
 
-            var mergers = new List<AirlineMerger>(AirlineMergers.GetAirlineMergers());
+            var mergers = new List<CarrierMerger>(CarrierMergers.GetCarrierMergers());
 
-            foreach (AirlineMerger merger in mergers)
+            foreach (CarrierMerger merger in mergers)
             {
-                if (!Airlines.ContainsAirline(merger.Airline1) || !Airlines.ContainsAirline(merger.Airline2)
-                    || merger.Airline2.IsHuman || merger.Airline1.IsHuman)
+                if (!Carriers.ContainsCarrier(merger.Carrier1) || !Carriers.ContainsCarrier(merger.Carrier2)
+                    || merger.Carrier2.IsHuman || merger.Carrier1.IsHuman)
                 {
-                    AirlineMergers.RemoveAirlineMerger(merger);
+                    CarrierMergers.RemoveCarrierMerger(merger);
                 }
             }
         }
@@ -686,13 +686,13 @@ namespace TheBusProject.Infrastructure
             TimeZones.Clear();
             SpecialContractTypes.Clear();
             TemporaryCountries.Clear();
-            Airports.Clear();
-            AirportFacilities.Clear();
-            AirlineFacilities.Clear();
+            Stations.Clear();
+            StationFacilities.Clear();
+            CarrierFacilities.Clear();
             Manufacturers.Clear();
-            Airliners.Clear();
-            Airlines.Clear();
-            AirlinerFacilities.Clear();
+            Coaches.Clear();
+            Carriers.Clear();
+            CoachFacilities.Clear();
             RouteFacilities.Clear();
             StatisticsTypes.Clear();
             Continents.Clear();
@@ -700,12 +700,12 @@ namespace TheBusProject.Infrastructure
             Countries.Clear();
             States.Clear();
             Unions.Clear();
-            AirlinerTypes.Clear();
+            CoachTypes.Clear();
             EngineTypes.Clear();
             FeeTypes.Clear();
             PilotRatings.Clear();
             Alliances.Clear();
-            FlightRestrictions.Clear();
+            TripRestrictions.Clear();
             Inflations.Clear();
             Holidays.Clear();
             Configurations.Clear();
@@ -715,10 +715,10 @@ namespace TheBusProject.Infrastructure
             DifficultyLevels.Clear();
             Pilots.Clear();
             Instructors.Clear();
-            TrainingAircraftTypes.Clear();
+            TrainingCoachTypes.Clear();
             Scenarios.Clear();
-            // kept the previous game's airlines (and their whole world) in memory
-            AirlineStartDatas.Clear();
+            // kept the previous game's carriers (and their whole world) in memory
+            CarrierStartDatas.Clear();
             HubTypes.Clear();
             CooperationTypes.Clear();
         }
@@ -732,62 +732,62 @@ namespace TheBusProject.Infrastructure
         public static void CreateAdvertisementTypes()
         {
             AdvertisementTypes.AddAdvertisementType(
-                new AdvertisementType(AdvertisementType.AirlineAdvertisementType.Internet, "No Advertisement", 0, 0));
+                new AdvertisementType(AdvertisementType.CarrierAdvertisementType.Internet, "No Advertisement", 0, 0));
             AdvertisementTypes.AddAdvertisementType(
-                new AdvertisementType(AdvertisementType.AirlineAdvertisementType.Internet, "Local", 5000, 1));
+                new AdvertisementType(AdvertisementType.CarrierAdvertisementType.Internet, "Local", 5000, 1));
             AdvertisementTypes.AddAdvertisementType(
-                new AdvertisementType(AdvertisementType.AirlineAdvertisementType.Internet, "National", 10000, 2));
+                new AdvertisementType(AdvertisementType.CarrierAdvertisementType.Internet, "National", 10000, 2));
             AdvertisementTypes.AddAdvertisementType(
-                new AdvertisementType(AdvertisementType.AirlineAdvertisementType.Internet, "Global", 25000, 3));
+                new AdvertisementType(AdvertisementType.CarrierAdvertisementType.Internet, "Global", 25000, 3));
             AdvertisementTypes.AddAdvertisementType(
-                new AdvertisementType(AdvertisementType.AirlineAdvertisementType.Newspaper, "No Advertisement", 0, 0));
+                new AdvertisementType(AdvertisementType.CarrierAdvertisementType.Newspaper, "No Advertisement", 0, 0));
             AdvertisementTypes.AddAdvertisementType(
-                new AdvertisementType(AdvertisementType.AirlineAdvertisementType.Newspaper, "Local", 5000, 1));
+                new AdvertisementType(AdvertisementType.CarrierAdvertisementType.Newspaper, "Local", 5000, 1));
             AdvertisementTypes.AddAdvertisementType(
-                new AdvertisementType(AdvertisementType.AirlineAdvertisementType.Newspaper, "National", 10000, 2));
+                new AdvertisementType(AdvertisementType.CarrierAdvertisementType.Newspaper, "National", 10000, 2));
             AdvertisementTypes.AddAdvertisementType(
-                new AdvertisementType(AdvertisementType.AirlineAdvertisementType.Newspaper, "Global", 25000, 3));
+                new AdvertisementType(AdvertisementType.CarrierAdvertisementType.Newspaper, "Global", 25000, 3));
             AdvertisementTypes.AddAdvertisementType(
-                new AdvertisementType(AdvertisementType.AirlineAdvertisementType.Radio, "No Advertisement", 0, 0));
+                new AdvertisementType(AdvertisementType.CarrierAdvertisementType.Radio, "No Advertisement", 0, 0));
             AdvertisementTypes.AddAdvertisementType(
-                new AdvertisementType(AdvertisementType.AirlineAdvertisementType.Radio, "Local", 5000, 1));
+                new AdvertisementType(AdvertisementType.CarrierAdvertisementType.Radio, "Local", 5000, 1));
             AdvertisementTypes.AddAdvertisementType(
-                new AdvertisementType(AdvertisementType.AirlineAdvertisementType.Radio, "National", 10000, 2));
+                new AdvertisementType(AdvertisementType.CarrierAdvertisementType.Radio, "National", 10000, 2));
             AdvertisementTypes.AddAdvertisementType(
-                new AdvertisementType(AdvertisementType.AirlineAdvertisementType.Radio, "Global", 25000, 3));
+                new AdvertisementType(AdvertisementType.CarrierAdvertisementType.Radio, "Global", 25000, 3));
             AdvertisementTypes.AddAdvertisementType(
-                new AdvertisementType(AdvertisementType.AirlineAdvertisementType.Tv, "No Advertisement", 0, 0));
+                new AdvertisementType(AdvertisementType.CarrierAdvertisementType.Tv, "No Advertisement", 0, 0));
             AdvertisementTypes.AddAdvertisementType(
-                new AdvertisementType(AdvertisementType.AirlineAdvertisementType.Tv, "Local", 5000, 1));
+                new AdvertisementType(AdvertisementType.CarrierAdvertisementType.Tv, "Local", 5000, 1));
             AdvertisementTypes.AddAdvertisementType(
-                new AdvertisementType(AdvertisementType.AirlineAdvertisementType.Tv, "National", 10000, 2));
+                new AdvertisementType(AdvertisementType.CarrierAdvertisementType.Tv, "National", 10000, 2));
             AdvertisementTypes.AddAdvertisementType(
-                new AdvertisementType(AdvertisementType.AirlineAdvertisementType.Tv, "Global", 25000, 3));
+                new AdvertisementType(AdvertisementType.CarrierAdvertisementType.Tv, "Global", 25000, 3));
         }
 
-        private static void CreateAirlineLogos()
+        private static void CreateCarrierLogos()
         {
-            foreach (Airline airline in Airlines.GetAllAirlines())
+            foreach (Carrier carrier in Carriers.GetAllCarriers())
             {
-                string logoName = airline.Profile.IATACode;
-                if (airline.Profile.LogoName.Length > 0)
+                string logoName = carrier.Profile.IATACode;
+                if (carrier.Profile.LogoName.Length > 0)
                 {
-                    logoName = airline.Profile.LogoName;
+                    logoName = carrier.Profile.LogoName;
                 }
 
-                airline.Profile.AddLogo(
-                    File.Exists(AppSettings.GetDataPath() + "/graphics/airlinelogos/" + logoName + ".png")
-                        ? new AirlineLogo(AppSettings.GetDataPath() + "/graphics/airlinelogos/" + logoName + ".png")
-                        : new AirlineLogo(AppSettings.GetDataPath() + "/graphics/airlinelogos/default.png"));
+                carrier.Profile.AddLogo(
+                    File.Exists(AppSettings.GetDataPath() + "/graphics/carrierlogos/" + logoName + ".png")
+                        ? new CarrierLogo(AppSettings.GetDataPath() + "/graphics/carrierlogos/" + logoName + ".png")
+                        : new CarrierLogo(AppSettings.GetDataPath() + "/graphics/carrierlogos/default.png"));
             }
         }
 
-        private static void CreateAirlineStartData(Airline airline, AirlineStartData startData)
+        private static void CreateCarrierStartData(Carrier carrier, CarrierStartData startData)
         {
-            AirportFacility checkinFacility =
-                AirportFacilities.GetFacilities(AirportFacility.FacilityType.CheckIn).Find(f => f.TypeLevel == 1);
-            AirportFacility cargoTerminal =
-                AirportFacilities.GetFacilities(AirportFacility.FacilityType.Cargo).Find(f => f.TypeLevel > 0);
+            StationFacility checkinFacility =
+                StationFacilities.GetFacilities(StationFacility.FacilityType.CheckIn).Find(f => f.TypeLevel == 1);
+            StationFacility cargoTerminal =
+                StationFacilities.GetFacilities(StationFacility.FacilityType.Cargo).Find(f => f.TypeLevel > 0);
 
             //  int difficultyFactor = GameObject.GetInstance().Difficulty.AILevel > 1 ? 2 : 1; //level easy
 
@@ -798,7 +798,7 @@ namespace TheBusProject.Infrastructure
                     r.Opened <= GameObject.GetInstance().GameTime.Year
                     && r.Closed >= GameObject.GetInstance().GameTime.Year);
 
-            Terminal.TerminalType terminaltype = airline.AirlineRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger;
+            Terminal.TerminalType terminaltype = carrier.CarrierRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger;
             //creates the routes
             List<StartDataRoute> sRoutes = startroutes.GetRange(0, startroutes.Count/startDataFactor);
             Parallel.ForEach(
@@ -806,33 +806,33 @@ namespace TheBusProject.Infrastructure
                 new ParallelOptions { MaxDegreeOfParallelism = 1 },
                 startRoute =>
                     {
-                        Airport dest1 = Airports.GetAirport(startRoute.Destination1);
-                        Airport dest2 = Airports.GetAirport(startRoute.Destination2);
+                        Station dest1 = Stations.GetStation(startRoute.Destination1);
+                        Station dest2 = Stations.GetStation(startRoute.Destination2);
 
                         if (dest1 != null && dest2 != null)
                         {
-                            if (dest1.GetAirportFacility(airline, AirportFacility.FacilityType.Cargo).TypeLevel == 0
-                                && dest1.GetAirportFacility(null, AirportFacility.FacilityType.Cargo).TypeLevel == 0
-                                && airline.AirlineRouteFocus == Route.RouteType.Cargo)
+                            if (dest1.GetStationFacility(carrier, StationFacility.FacilityType.Cargo).TypeLevel == 0
+                                && dest1.GetStationFacility(null, StationFacility.FacilityType.Cargo).TypeLevel == 0
+                                && carrier.CarrierRouteFocus == Route.RouteType.Cargo)
                             {
-                                dest1.AddAirportFacility(airline, cargoTerminal, GameObject.GetInstance().GameTime);
+                                dest1.AddStationFacility(carrier, cargoTerminal, GameObject.GetInstance().GameTime);
                             }
 
-                            if (dest2.GetAirportFacility(airline, AirportFacility.FacilityType.Cargo).TypeLevel == 0
-                                && dest2.GetAirportFacility(null, AirportFacility.FacilityType.Cargo).TypeLevel == 0
-                                && airline.AirlineRouteFocus == Route.RouteType.Cargo)
+                            if (dest2.GetStationFacility(carrier, StationFacility.FacilityType.Cargo).TypeLevel == 0
+                                && dest2.GetStationFacility(null, StationFacility.FacilityType.Cargo).TypeLevel == 0
+                                && carrier.CarrierRouteFocus == Route.RouteType.Cargo)
                             {
-                                dest2.AddAirportFacility(airline, cargoTerminal, GameObject.GetInstance().GameTime);
+                                dest2.AddStationFacility(carrier, cargoTerminal, GameObject.GetInstance().GameTime);
                             }
 
-                            if (!AirportHelpers.HasFreeGates(dest1, airline, terminaltype))
+                            if (!StationHelpers.HasFreeGates(dest1, carrier, terminaltype))
                             {
-                                AirportHelpers.RentGates(dest1, airline, AirportContract.ContractType.LowService, terminaltype);
+                                StationHelpers.RentGates(dest1, carrier, StationContract.ContractType.LowService, terminaltype);
                             }
 
-                            if (!AirportHelpers.HasFreeGates(dest2, airline, terminaltype))
+                            if (!StationHelpers.HasFreeGates(dest2, carrier, terminaltype))
                             {
-                                AirportHelpers.RentGates(dest2, airline, AirportContract.ContractType.LowService, terminaltype);
+                                StationHelpers.RentGates(dest2, carrier, StationContract.ContractType.LowService, terminaltype);
                             }
 
                             Guid id = Guid.NewGuid();
@@ -862,55 +862,55 @@ namespace TheBusProject.Infrastructure
                                     PassengerHelpers.GetCargoPrice(dest1, dest2));
                             }
 
-                            KeyValuePair<Airliner, bool>? airliner = null;
+                            KeyValuePair<Coach, bool>? coach = null;
                             if (startRoute.Type != null)
                             {
                                 double distance = MathHelpers.GetDistance(dest1, dest2);
 
                                 if (startRoute.Type.Range > distance)
                                 {
-                                    airliner =
-                                        new KeyValuePair<Airliner, bool>(
-                                            Airliners.GetAirlinersForSale(a => a.Type == startRoute.Type).FirstOrDefault(),
+                                    coach =
+                                        new KeyValuePair<Coach, bool>(
+                                            Coaches.GetCoachesForSale(a => a.Type == startRoute.Type).FirstOrDefault(),
                                             true);
 
-                                    if (airliner.Value.Key == null)
+                                    if (coach.Value.Key == null)
                                     {
                                         id = Guid.NewGuid();
-                                        var nAirliner = new Airliner(
+                                        var nCoach = new Coach(
                                             id.ToString(),
                                             startRoute.Type,
-                                            airline.Profile.Country.TailNumbers.GetNextTailNumber(airline),
+                                            carrier.Profile.Country.TailNumbers.GetNextTailNumber(carrier),
                                             GameObject.GetInstance().GameTime);
-                                        Airliners.AddAirliner(nAirliner);
+                                        Coaches.AddCoach(nCoach);
 
-                                        nAirliner.ClearAirlinerClasses();
+                                        nCoach.ClearCoachClasses();
 
-                                        AirlinerHelpers.CreateAirlinerClasses(nAirliner);
+                                        CoachHelpers.CreateCoachClasses(nCoach);
 
-                                        airliner = new KeyValuePair<Airliner, bool>(nAirliner, true);
+                                        coach = new KeyValuePair<Coach, bool>(nCoach, true);
                                     }
                                 }
                             }
 
-                            bool leaseAircraft = airline.Profile.PrimaryPurchasing
-                                                    == AirlineProfile.PreferedPurchasing.Leasing;
+                            bool leaseCoach = carrier.Profile.PrimaryPurchasing
+                                                    == CarrierProfile.PreferedPurchasing.Leasing;
 
-                            if (airliner == null)
+                            if (coach == null)
                             {
-                                airliner = AIHelpers.GetAirlinerForRoute(
-                                    airline,
+                                coach = AIHelpers.GetCoachForRoute(
+                                    carrier,
                                     dest2,
                                     dest1,
-                                    leaseAircraft,
+                                    leaseCoach,
                                     startRoute.RouteType,
                                     true);
 
-                                if (airliner == null
-                                    && airline.Profile.PrimaryPurchasing == AirlineProfile.PreferedPurchasing.Random)
+                                if (coach == null
+                                    && carrier.Profile.PrimaryPurchasing == CarrierProfile.PreferedPurchasing.Random)
                                 {
-                                    AIHelpers.GetAirlinerForRoute(
-                                        airline,
+                                    AIHelpers.GetCoachForRoute(
+                                        carrier,
                                         dest2,
                                         dest1,
                                         true,
@@ -919,16 +919,16 @@ namespace TheBusProject.Infrastructure
                                 }
                             }
 
-                            if (airliner != null)
+                            if (coach != null)
                             {
-                                FleetAirliner fAirliner = AirlineHelpers.AddAirliner(
-                                    airline,
-                                    airliner.Value.Key,
-                                    airline.Airports[0],
-                                    leaseAircraft);
-                                fAirliner.AddRoute(route);
-                                fAirliner.Status = FleetAirliner.AirlinerStatus.ToRouteStart;
-                                AirlineHelpers.HireAirlinerPilots(fAirliner);
+                                FleetCoach fCoach = CarrierHelpers.AddCoach(
+                                    carrier,
+                                    coach.Value.Key,
+                                    carrier.Stations[0],
+                                    leaseCoach);
+                                fCoach.AddRoute(route);
+                                fCoach.Status = FleetCoach.CoachStatus.ToRouteStart;
+                                CarrierHelpers.HireCoachPilots(fCoach);
 
                                 if (route != null)
                                 {
@@ -937,59 +937,59 @@ namespace TheBusProject.Infrastructure
                                     if (startRoute.RouteType == Route.RouteType.Mixed
                                         || startRoute.RouteType == Route.RouteType.Passenger)
                                     {
-                                        AirlinerHelpers.CreateAirlinerClasses(fAirliner.Airliner);
+                                        CoachHelpers.CreateCoachClasses(fCoach.Coach);
 
                                         RouteClassesConfiguration configuration =
                                             AIHelpers.GetRouteConfiguration((PassengerRoute) route);
 
                                         foreach (RouteClassConfiguration classConfiguration in configuration.GetClasses())
                                         {
-                                            ((PassengerRoute) route).GetRouteAirlinerClass(classConfiguration.Type).FarePrice =
+                                            ((PassengerRoute) route).GetRouteCoachClass(classConfiguration.Type).FarePrice =
                                                 price*GeneralHelpers.ClassToPriceFactor(classConfiguration.Type);
 
                                             foreach (RouteFacility rFacility in classConfiguration.GetFacilities())
                                             {
-                                                ((PassengerRoute) route).GetRouteAirlinerClass(classConfiguration.Type)
+                                                ((PassengerRoute) route).GetRouteCoachClass(classConfiguration.Type)
                                                                         .AddFacility(rFacility);
                                             }
                                         }
 
-                                        AIHelpers.CreateRouteTimeTable(route, fAirliner);
+                                        AIHelpers.CreateRouteTimeTable(route, fCoach);
                                     }
                                     if (startRoute.RouteType == Route.RouteType.Cargo)
                                     {
-                                        AIHelpers.CreateCargoRouteTimeTable(route, fAirliner);
+                                        AIHelpers.CreateCargoRouteTimeTable(route, fCoach);
                                     }
                                 }
                             }
-                            airline.AddRoute(route);
+                            carrier.AddRoute(route);
                         }
                     });
-            //adds the airliners
+            //adds the coaches
             Parallel.ForEach(
-                startData.Airliners,
+                startData.Coaches,
                 new ParallelOptions { MaxDegreeOfParallelism = 1 },
-                airliners =>
+                coaches =>
                     {
-                        AirlinerType type = AirlinerTypes.GetType(airliners.Type); //B747-200
+                        CoachType type = CoachTypes.GetType(coaches.Type); //B747-200
 
                         const int totalSpan = 2010 - 1960;
                         int yearSpan = GameObject.GetInstance().GameTime.Year - 1960;
-                        double valueSpan = Convert.ToDouble(airliners.AirlinersLate - airliners.AirlinersEarly);
+                        double valueSpan = Convert.ToDouble(coaches.CoachesLate - coaches.CoachesEarly);
                         double span = valueSpan/Convert.ToDouble(totalSpan);
 
                         int numbers = Math.Max(1, Convert.ToInt16(span*yearSpan)/startDataFactor);
 
                         if (type == null)
                         {
-                            string tAirline = airline.Profile.Name;
-                            string typeNull = airliners.Type;
+                            string tCarrier = carrier.Profile.Name;
+                            string typeNull = coaches.Type;
 
-                            Console.WriteLine(tAirline + @" " + typeNull);
+                            Console.WriteLine(tCarrier + @" " + typeNull);
                         }
                         if (type != null && type.Produced.From <= GameObject.GetInstance().GameTime)
                         {
-                            for (int i = 0; i < Math.Max(numbers, airliners.AirlinersEarly); i++)
+                            for (int i = 0; i < Math.Max(numbers, coaches.CoachesEarly); i++)
                             {
                                 Guid id = Guid.NewGuid();
 
@@ -1000,35 +1000,35 @@ namespace TheBusProject.Infrastructure
                                     type.Produced.From.Year,
                                     Math.Min(GameObject.GetInstance().GameTime.Year - 1, type.Produced.To.Year));
 
-                                var airliner = new Airliner(
+                                var coach = new Coach(
                                     id.ToString(),
                                     type,
                                     country.TailNumbers.GetNextTailNumber(),
                                     new DateTime(builtYear, 1, 1));
 
-                                int age = MathHelpers.CalculateAge(airliner.BuiltDate, GameObject.GetInstance().GameTime);
+                                int age = MathHelpers.CalculateAge(coach.BuiltDate, GameObject.GetInstance().GameTime);
 
                                 long kmPerYear = Rnd.Next(100000, 1000000);
                                 long km = kmPerYear*age;
 
-                                airliner.Flown = km;
+                                coach.Flown = km;
 
-                                airliner.EngineType = EngineTypes.GetStandardEngineType(airliner.Type, airliner.BuiltDate.Year);
+                                coach.EngineType = EngineTypes.GetStandardEngineType(coach.Type, coach.BuiltDate.Year);
 
-                                Airliners.AddAirliner(airliner);
+                                Coaches.AddCoach(coach);
 
-                                bool leaseAircraft = airline.Profile.PrimaryPurchasing
-                                                        == AirlineProfile.PreferedPurchasing.Leasing;
+                                bool leaseCoach = carrier.Profile.PrimaryPurchasing
+                                                        == CarrierProfile.PreferedPurchasing.Leasing;
 
-                                FleetAirliner fAirliner = AirlineHelpers.AddAirliner(
-                                    airline,
-                                    airliner,
-                                    airline.Airports[0],
-                                    leaseAircraft);
-                                fAirliner.Status = FleetAirliner.AirlinerStatus.Stopped;
-                                AirlineHelpers.HireAirlinerPilots(fAirliner);
+                                FleetCoach fCoach = CarrierHelpers.AddCoach(
+                                    carrier,
+                                    coach,
+                                    carrier.Stations[0],
+                                    leaseCoach);
+                                fCoach.Status = FleetCoach.CoachStatus.Stopped;
+                                CarrierHelpers.HireCoachPilots(fCoach);
 
-                                AirlinerHelpers.CreateAirlinerClasses(fAirliner.Airliner);
+                                CoachHelpers.CreateCoachClasses(fCoach.Coach);
                             }
                         }
                     });
@@ -1039,32 +1039,32 @@ namespace TheBusProject.Infrastructure
                 new ParallelOptions { MaxDegreeOfParallelism = 1 },
                 routes =>
                     {
-                        Airport origin = Airports.GetAirport(routes.Origin);
+                        Station origin = Stations.GetStation(routes.Origin);
 
                         if (origin != null)
                         {
-                            Terminal.TerminalType terminalType = airline.AirlineRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger;
+                            Terminal.TerminalType terminalType = carrier.CarrierRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger;
 
                             for (int i = 0;
                                  i < Math.Min(routes.Destinations/startDataFactor, origin.Terminals.GetFreeGates(terminalType));
                                  i++)
                             {
-                                //if (origin.getAirportFacility(airline, AirportFacility.FacilityType.CheckIn).TypeLevel == 0)
-                                //origin.addAirportFacility(airline, checkinFacility, GameObject.GetInstance().GameTime);
+                                //if (origin.getStationFacility(carrier, StationFacility.FacilityType.CheckIn).TypeLevel == 0)
+                                //origin.addStationFacility(carrier, checkinFacility, GameObject.GetInstance().GameTime);
 
-                                if (!AirportHelpers.HasFreeGates(origin, airline, terminalType))
+                                if (!StationHelpers.HasFreeGates(origin, carrier, terminalType))
                                 {
-                                    AirportHelpers.RentGates(origin, airline, AirportContract.ContractType.LowService, terminalType);
+                                    StationHelpers.RentGates(origin, carrier, StationContract.ContractType.LowService, terminalType);
                                 }
 
-                                Airport destination = GetStartDataRoutesDestination(routes);
+                                Station destination = GetStartDataRoutesDestination(routes);
 
-                                //if (destination.getAirportFacility(airline, AirportFacility.FacilityType.CheckIn).TypeLevel == 0)
-                                //destination.addAirportFacility(airline, checkinFacility, GameObject.GetInstance().GameTime);
+                                //if (destination.getStationFacility(carrier, StationFacility.FacilityType.CheckIn).TypeLevel == 0)
+                                //destination.addStationFacility(carrier, checkinFacility, GameObject.GetInstance().GameTime);
 
-                                if (!AirportHelpers.HasFreeGates(destination, airline, terminalType))
+                                if (!StationHelpers.HasFreeGates(destination, carrier, terminalType))
                                 {
-                                    AirportHelpers.RentGates(destination, airline, AirportContract.ContractType.LowService, terminalType);
+                                    StationHelpers.RentGates(destination, carrier, StationContract.ContractType.LowService, terminalType);
                                 }
 
                                 Guid id = Guid.NewGuid();
@@ -1094,22 +1094,22 @@ namespace TheBusProject.Infrastructure
                                         PassengerHelpers.GetCargoPrice(origin, destination));
                                 }
 
-                                bool leaseAircraft = airline.Profile.PrimaryPurchasing
-                                                        == AirlineProfile.PreferedPurchasing.Leasing;
+                                bool leaseCoach = carrier.Profile.PrimaryPurchasing
+                                                        == CarrierProfile.PreferedPurchasing.Leasing;
 
-                                KeyValuePair<Airliner, bool>? airliner = AIHelpers.GetAirlinerForRoute(
-                                    airline,
+                                KeyValuePair<Coach, bool>? coach = AIHelpers.GetCoachForRoute(
+                                    carrier,
                                     origin,
                                     destination,
-                                    leaseAircraft,
+                                    leaseCoach,
                                     routes.RouteType,
                                     true);
 
-                                if (airliner == null
-                                    && airline.Profile.PrimaryPurchasing == AirlineProfile.PreferedPurchasing.Random)
+                                if (coach == null
+                                    && carrier.Profile.PrimaryPurchasing == CarrierProfile.PreferedPurchasing.Random)
                                 {
-                                    airliner = AIHelpers.GetAirlinerForRoute(
-                                        airline,
+                                    coach = AIHelpers.GetCoachForRoute(
+                                        carrier,
                                         origin,
                                         destination,
                                         true,
@@ -1119,16 +1119,16 @@ namespace TheBusProject.Infrastructure
 
                                 double distance = MathHelpers.GetDistance(origin, destination);
 
-                                if (airliner != null)
+                                if (coach != null)
                                 {
-                                    FleetAirliner fAirliner = AirlineHelpers.AddAirliner(
-                                        airline,
-                                        airliner.Value.Key,
-                                        airline.Airports[0],
-                                        leaseAircraft);
-                                    fAirliner.AddRoute(route);
-                                    fAirliner.Status = FleetAirliner.AirlinerStatus.ToRouteStart;
-                                    AirlineHelpers.HireAirlinerPilots(fAirliner);
+                                    FleetCoach fCoach = CarrierHelpers.AddCoach(
+                                        carrier,
+                                        coach.Value.Key,
+                                        carrier.Stations[0],
+                                        leaseCoach);
+                                    fCoach.AddRoute(route);
+                                    fCoach.Status = FleetCoach.CoachStatus.ToRouteStart;
+                                    CarrierHelpers.HireCoachPilots(fCoach);
 
                                     if (route != null)
                                     {
@@ -1137,31 +1137,31 @@ namespace TheBusProject.Infrastructure
                                         if (routes.RouteType == Route.RouteType.Passenger
                                             || routes.RouteType == Route.RouteType.Mixed)
                                         {
-                                            AirlinerHelpers.CreateAirlinerClasses(fAirliner.Airliner);
+                                            CoachHelpers.CreateCoachClasses(fCoach.Coach);
 
                                             RouteClassesConfiguration configuration =
                                                 AIHelpers.GetRouteConfiguration((PassengerRoute) route);
 
                                             foreach (RouteClassConfiguration classConfiguration in configuration.GetClasses())
                                             {
-                                                ((PassengerRoute) route).GetRouteAirlinerClass(classConfiguration.Type).FarePrice
+                                                ((PassengerRoute) route).GetRouteCoachClass(classConfiguration.Type).FarePrice
                                                     = price*GeneralHelpers.ClassToPriceFactor(classConfiguration.Type);
 
                                                 foreach (RouteFacility rFacility in classConfiguration.GetFacilities())
                                                 {
-                                                    ((PassengerRoute) route).GetRouteAirlinerClass(classConfiguration.Type)
+                                                    ((PassengerRoute) route).GetRouteCoachClass(classConfiguration.Type)
                                                                             .AddFacility(rFacility);
                                                 }
                                             }
 
-                                            AIHelpers.CreateRouteTimeTable(route, fAirliner);
+                                            AIHelpers.CreateRouteTimeTable(route, fCoach);
                                         }
                                         if (routes.RouteType == Route.RouteType.Cargo)
                                         {
-                                            AIHelpers.CreateCargoRouteTimeTable(route, fAirliner);
+                                            AIHelpers.CreateCargoRouteTimeTable(route, fCoach);
                                         }
 
-                                        airline.AddRoute(route);
+                                        carrier.AddRoute(route);
                                     }
                                 }
                             }
@@ -1169,102 +1169,102 @@ namespace TheBusProject.Infrastructure
                     });
         }
 
-        private static void CreateComputerRoutes(Airline airline)
+        private static void CreateComputerRoutes(Carrier carrier)
         {
-            bool leaseAircraft = airline.Profile.PrimaryPurchasing == AirlineProfile.PreferedPurchasing.Leasing;
+            bool leaseCoach = carrier.Profile.PrimaryPurchasing == CarrierProfile.PreferedPurchasing.Leasing;
 
-            Airport airportHomeBase = FindComputerHomeBase(airline);
+            Station stationHomeBase = FindComputerHomeBase(carrier);
 
-            AirportFacility serviceFacility =
-                AirportFacilities.GetFacilities(AirportFacility.FacilityType.Service).Find(f => f.TypeLevel == 1);
-            AirportFacility checkinFacility =
-                AirportFacilities.GetFacilities(AirportFacility.FacilityType.CheckIn).Find(f => f.TypeLevel == 1);
-            AirportFacility cargoTerminal =
-                AirportFacilities.GetFacilities(AirportFacility.FacilityType.Cargo).Find(f => f.TypeLevel > 0);
+            StationFacility serviceFacility =
+                StationFacilities.GetFacilities(StationFacility.FacilityType.Service).Find(f => f.TypeLevel == 1);
+            StationFacility checkinFacility =
+                StationFacilities.GetFacilities(StationFacility.FacilityType.CheckIn).Find(f => f.TypeLevel == 1);
+            StationFacility cargoTerminal =
+                StationFacilities.GetFacilities(StationFacility.FacilityType.Cargo).Find(f => f.TypeLevel > 0);
 
-            airportHomeBase.AddAirportFacility(airline, serviceFacility, GameObject.GetInstance().GameTime);
-            airportHomeBase.AddAirportFacility(airline, checkinFacility, GameObject.GetInstance().GameTime);
+            stationHomeBase.AddStationFacility(carrier, serviceFacility, GameObject.GetInstance().GameTime);
+            stationHomeBase.AddStationFacility(carrier, checkinFacility, GameObject.GetInstance().GameTime);
 
-            if (airline.AirlineRouteFocus == Route.RouteType.Cargo)
+            if (carrier.CarrierRouteFocus == Route.RouteType.Cargo)
             {
-                airportHomeBase.AddAirportFacility(airline, cargoTerminal, GameObject.GetInstance().GameTime);
+                stationHomeBase.AddStationFacility(carrier, cargoTerminal, GameObject.GetInstance().GameTime);
             }
 
-            AirlineStartData startData = AirlineStartDatas.GetAirlineStartData(airline);
+            CarrierStartData startData = CarrierStartDatas.GetCarrierStartData(carrier);
 
-            //creates the start data for an airline
+            //creates the start data for an carrier
             if (startData != null)
             {
-                AirportHelpers.RentGates(airportHomeBase, airline, AirportContract.ContractType.Full);
+                StationHelpers.RentGates(stationHomeBase, carrier, StationContract.ContractType.Full);
 
-                CreateAirlineStartData(airline, startData);
+                CreateCarrierStartData(carrier, startData);
             }
             else
             {
-                List<Airport> airportDestinations = AIHelpers.GetDestinationAirports(airline, airportHomeBase);
+                List<Station> stationDestinations = AIHelpers.GetDestinationStations(carrier, stationHomeBase);
 
-                if (airportDestinations.Count == 0)
+                if (stationDestinations.Count == 0)
                 {
-                    airportDestinations =
-                        Airports.GetAirports(
+                    stationDestinations =
+                        Stations.GetStations(
                             a =>
-                            a.Profile.Country.Region == airportHomeBase.Profile.Country.Region
-                            && a != airportHomeBase);
+                            a.Profile.Country.Region == stationHomeBase.Profile.Country.Region
+                            && a != stationHomeBase);
                 }
 
-                KeyValuePair<Airliner, bool>? airliner = null;
-                Airport airportDestination = null;
+                KeyValuePair<Coach, bool>? coach = null;
+                Station stationDestination = null;
 
                 int counter = 0;
 
-                while ((airportDestination == null || airliner == null || !airliner.HasValue)
-                       && airportDestinations.Count > counter)
+                while ((stationDestination == null || coach == null || !coach.HasValue)
+                       && stationDestinations.Count > counter)
                 {
-                    airportDestination = airportDestinations[counter];
+                    stationDestination = stationDestinations[counter];
 
-                    airliner = AIHelpers.GetAirlinerForRoute(
-                        airline,
-                        airportHomeBase,
-                        airportDestination,
-                        leaseAircraft,
-                        airline.AirlineRouteFocus,
+                    coach = AIHelpers.GetCoachForRoute(
+                        carrier,
+                        stationHomeBase,
+                        stationDestination,
+                        leaseCoach,
+                        carrier.CarrierRouteFocus,
                         true);
 
                     counter++;
                 }
 
-                if (airportDestination == null || !airliner.HasValue)
+                if (stationDestination == null || !coach.HasValue)
                 {
-                    CreateComputerRoutes(airline);
+                    CreateComputerRoutes(carrier);
                 }
                 else
                 {
-                    AirportHelpers.AddAirlineContract(
-                        new AirportContract(
-                            airline,
-                            airportHomeBase,
-                            AirportContract.ContractType.Full,
-                            airline.AirlineRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger,
+                    StationHelpers.AddCarrierContract(
+                        new StationContract(
+                            carrier,
+                            stationHomeBase,
+                            StationContract.ContractType.Full,
+                            carrier.CarrierRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger,
                             GameObject.GetInstance().GameTime,
                             2,
                             25,
                             0,
                             true));
 
-                    AirportHelpers.RentGates(airportDestination, airline, AirportContract.ContractType.LowService);
-                    //airportDestination.addAirportFacility(airline, checkinFacility, GameObject.GetInstance().GameTime);
+                    StationHelpers.RentGates(stationDestination, carrier, StationContract.ContractType.LowService);
+                    //stationDestination.addStationFacility(carrier, checkinFacility, GameObject.GetInstance().GameTime);
 
                     Guid id = Guid.NewGuid();
 
-                    double price = PassengerHelpers.GetPassengerPrice(airportDestination, airline.Airports[0]);
+                    double price = PassengerHelpers.GetPassengerPrice(stationDestination, carrier.Stations[0]);
 
                     Route route = null;
-                    if (airline.AirlineRouteFocus == Route.RouteType.Passenger)
+                    if (carrier.CarrierRouteFocus == Route.RouteType.Passenger)
                     {
                         route = new PassengerRoute(
                             id.ToString(),
-                            airportDestination,
-                            airline.Airports[0],
+                            stationDestination,
+                            carrier.Stations[0],
                             GameObject.GetInstance().GameTime,
                             price);
 
@@ -1272,7 +1272,7 @@ namespace TheBusProject.Infrastructure
 
                         foreach (RouteClassConfiguration classConfiguration in configuration.GetClasses())
                         {
-                            ((PassengerRoute) route).GetRouteAirlinerClass(classConfiguration.Type).FarePrice = price
+                            ((PassengerRoute) route).GetRouteCoachClass(classConfiguration.Type).FarePrice = price
                                                                                                                 *GeneralHelpers
                                                                                                                      .ClassToPriceFactor
                                                                                                                      (
@@ -1281,17 +1281,17 @@ namespace TheBusProject.Infrastructure
 
                             foreach (RouteFacility rFacility in classConfiguration.GetFacilities())
                             {
-                                ((PassengerRoute) route).GetRouteAirlinerClass(classConfiguration.Type)
+                                ((PassengerRoute) route).GetRouteCoachClass(classConfiguration.Type)
                                                         .AddFacility(rFacility);
                             }
                         }
                     }
-                    if (airline.AirlineRouteFocus == Route.RouteType.Helicopter)
+                    if (carrier.CarrierRouteFocus == Route.RouteType.Helicopter)
                     {
                         route = new HelicopterRoute(
                             id.ToString(),
-                            airportDestination,
-                            airline.Airports[0],
+                            stationDestination,
+                            carrier.Stations[0],
                             GameObject.GetInstance().GameTime,
                             price);
 
@@ -1299,7 +1299,7 @@ namespace TheBusProject.Infrastructure
 
                         foreach (RouteClassConfiguration classConfiguration in configuration.GetClasses())
                         {
-                            ((HelicopterRoute) route).GetRouteAirlinerClass(classConfiguration.Type).FarePrice = price
+                            ((HelicopterRoute) route).GetRouteCoachClass(classConfiguration.Type).FarePrice = price
                                                                                                                  *GeneralHelpers
                                                                                                                       .ClassToPriceFactor
                                                                                                                       (
@@ -1308,64 +1308,64 @@ namespace TheBusProject.Infrastructure
 
                             foreach (RouteFacility rFacility in classConfiguration.GetFacilities())
                             {
-                                ((HelicopterRoute) route).GetRouteAirlinerClass(classConfiguration.Type)
+                                ((HelicopterRoute) route).GetRouteCoachClass(classConfiguration.Type)
                                                          .AddFacility(rFacility);
                             }
                         }
                     }
-                    if (airline.AirlineRouteFocus == Route.RouteType.Cargo)
+                    if (carrier.CarrierRouteFocus == Route.RouteType.Cargo)
                     {
                         route = new CargoRoute(
                             id.ToString(),
-                            airportDestination,
-                            airline.Airports[0],
+                            stationDestination,
+                            carrier.Stations[0],
                             GameObject.GetInstance().GameTime,
-                            PassengerHelpers.GetCargoPrice(airportDestination, airline.Airports[0]));
+                            PassengerHelpers.GetCargoPrice(stationDestination, carrier.Stations[0]));
 
-                        airportDestination.AddAirportFacility(airline, cargoTerminal, GameObject.GetInstance().GameTime);
+                        stationDestination.AddStationFacility(carrier, cargoTerminal, GameObject.GetInstance().GameTime);
                     }
-                    if (leaseAircraft)
+                    if (leaseCoach)
                     {
-                        AirlineHelpers.AddAirlineInvoice(
-                            airline,
+                        CarrierHelpers.AddCarrierInvoice(
+                            carrier,
                             GameObject.GetInstance().GameTime,
                             Invoice.InvoiceType.Rents,
-                            -airliner.Value.Key.LeasingPrice*2);
+                            -coach.Value.Key.LeasingPrice*2);
                     }
                     else
                     {
-                        AirlineHelpers.AddAirlineInvoice(
-                            airline,
+                        CarrierHelpers.AddCarrierInvoice(
+                            carrier,
                             GameObject.GetInstance().GameTime,
                             Invoice.InvoiceType.Purchases,
-                            -airliner.Value.Key.GetPrice());
+                            -coach.Value.Key.GetPrice());
                     }
 
-                    var fAirliner =
-                        new FleetAirliner(
-                            leaseAircraft ? FleetAirliner.PurchasedType.Leased : FleetAirliner.PurchasedType.Bought,
+                    var fCoach =
+                        new FleetCoach(
+                            leaseCoach ? FleetCoach.PurchasedType.Leased : FleetCoach.PurchasedType.Bought,
                             GameObject.GetInstance().GameTime,
-                            airline,
-                            airliner.Value.Key,
-                            airportHomeBase) {Status = FleetAirliner.AirlinerStatus.ToRouteStart};
-                    fAirliner.AddRoute(route);
-                    AirlinerHelpers.CreateAirlinerClasses(fAirliner.Airliner);
-                    AirlineHelpers.HireAirlinerPilots(fAirliner);
+                            carrier,
+                            coach.Value.Key,
+                            stationHomeBase) {Status = FleetCoach.CoachStatus.ToRouteStart};
+                    fCoach.AddRoute(route);
+                    CoachHelpers.CreateCoachClasses(fCoach.Coach);
+                    CarrierHelpers.HireCoachPilots(fCoach);
 
-                    airline.AddAirliner(fAirliner);
+                    carrier.AddCoach(fCoach);
 
-                    airline.AddRoute(route);
+                    carrier.AddRoute(route);
                     if (route != null)
                     {
                         route.LastUpdated = GameObject.GetInstance().GameTime;
 
                         if (route.Type == Route.RouteType.Passenger || route.Type == Route.RouteType.Mixed)
                         {
-                            AIHelpers.CreateRouteTimeTable(route, fAirliner);
+                            AIHelpers.CreateRouteTimeTable(route, fCoach);
                         }
                         if (route.Type == Route.RouteType.Cargo)
                         {
-                            AIHelpers.CreateCargoRouteTimeTable(route, fAirliner);
+                            AIHelpers.CreateCargoRouteTimeTable(route, fCoach);
                         }
                     }
                 }
@@ -1448,7 +1448,7 @@ namespace TheBusProject.Infrastructure
             FeeTypes.AddType(new FeeType(FeeType.EFeeType.Discount, "Military Discount", 0, 0, 100, 1));
         }
 
-        private static void CreateFlightFacilities()
+        private static void CreateTripFacilities()
         {
             RouteFacilities.AddFacility(
                 new RouteFacility(
@@ -1576,7 +1576,7 @@ namespace TheBusProject.Infrastructure
                     RouteFacility.ExpenseType.Random,
                     0.5,
                     FeeTypes.GetType("WiFi"),
-                    AirlineFacilities.GetFacility("107")));
+                    CarrierFacilities.GetFacility("107")));
             RouteFacilities.AddFacility(
                 new RouteFacility(
                     "114",
@@ -1586,7 +1586,7 @@ namespace TheBusProject.Infrastructure
                     RouteFacility.ExpenseType.Fixed,
                     0.5,
                     null,
-                    AirlineFacilities.GetFacility("107")));
+                    CarrierFacilities.GetFacility("107")));
             RouteFacilities.AddFacility(
                 new RouteFacility(
                     "115",
@@ -1605,7 +1605,7 @@ namespace TheBusProject.Infrastructure
                     RouteFacility.ExpenseType.Fixed,
                     0,
                     null,
-                    AirlineFacilities.GetFacility("101")));
+                    CarrierFacilities.GetFacility("101")));
             RouteFacilities.AddFacility(
                 new RouteFacility(
                     "117",
@@ -1624,7 +1624,7 @@ namespace TheBusProject.Infrastructure
                     RouteFacility.ExpenseType.Fixed,
                     0,
                     null,
-                    AirlineFacilities.GetFacility("102")));
+                    CarrierFacilities.GetFacility("102")));
         }
 
         private static void CreateHubTypes()
@@ -1638,35 +1638,35 @@ namespace TheBusProject.Infrastructure
         private static void CreatePilotRatings()
         {
             var ratingA = new PilotRating("A", 70, 3);
-            ratingA.AddAircraft(TrainingAircraftTypes.GetAircraftType("Cessna 172"));
-            ratingA.AddAircraft(TrainingAircraftTypes.GetAircraftType("Beechcraft King Air 350"));
+            ratingA.AddCoach(TrainingCoachTypes.GetCoachType("Cessna 172"));
+            ratingA.AddCoach(TrainingCoachTypes.GetCoachType("Beechcraft King Air 350"));
             PilotRatings.AddRating(ratingA);
 
             var ratingB = new PilotRating("B", 85, 4);
-            ratingB.AddAircraft(TrainingAircraftTypes.GetAircraftType("Cessna 172"));
-            ratingB.AddAircraft(TrainingAircraftTypes.GetAircraftType("Beechcraft King Air 350"));
+            ratingB.AddCoach(TrainingCoachTypes.GetCoachType("Cessna 172"));
+            ratingB.AddCoach(TrainingCoachTypes.GetCoachType("Beechcraft King Air 350"));
             PilotRatings.AddRating(ratingB);
 
             var ratingC = new PilotRating("C", 95, 5);
-            ratingC.AddAircraft(TrainingAircraftTypes.GetAircraftType("Beechcraft King Air 350"));
+            ratingC.AddCoach(TrainingCoachTypes.GetCoachType("Beechcraft King Air 350"));
             PilotRatings.AddRating(ratingC);
 
             var ratingD = new PilotRating("D", 120, 7);
-            ratingD.AddAircraft(TrainingAircraftTypes.GetAircraftType("Beechcraft King Air 350"));
+            ratingD.AddCoach(TrainingCoachTypes.GetCoachType("Beechcraft King Air 350"));
             PilotRatings.AddRating(ratingD);
 
             var ratingE = new PilotRating("E", 150, 10);
-            ratingE.AddAircraft(TrainingAircraftTypes.GetAircraftType("Beechcraft King Air 350"));
+            ratingE.AddCoach(TrainingCoachTypes.GetCoachType("Beechcraft King Air 350"));
             PilotRatings.AddRating(ratingE);
         }
 
         private static void CreatePilots()
         {
-            int pilotsPool = 100*Airlines.GetAllAirlines().Count;
+            int pilotsPool = 100*Carriers.GetAllCarriers().Count;
 
             GeneralHelpers.CreatePilots(pilotsPool);
 
-            int instructorsPool = 75*Airlines.GetAllAirlines().Count;
+            int instructorsPool = 75*Carriers.GetAllCarriers().Count;
 
             GeneralHelpers.CreateInstructors(instructorsPool);
         }
@@ -1709,85 +1709,85 @@ namespace TheBusProject.Infrastructure
             TimeZones.AddTimeZone(new GameTimeZone("Tonga Standard Time", "TST", new TimeSpan(13, 0, 0)));
         }
 
-        private static void CreateTrainingAircraftTypes()
+        private static void CreateTrainingCoachTypes()
         {
-            TrainingAircraftTypes.AddAircraftType(new TrainingAircraftType("Cessna 172", 26705, 2, 1));
-            TrainingAircraftTypes.AddAircraftType(new TrainingAircraftType("Beechcraft King Air 350", 129520, 12, 2));
+            TrainingCoachTypes.AddCoachType(new TrainingCoachType("Cessna 172", 26705, 2, 1));
+            TrainingCoachTypes.AddCoachType(new TrainingCoachType("Beechcraft King Air 350", 129520, 12, 2));
         }
 
-        private static Airport FindComputerHomeBase(Airline airline)
+        private static Station FindComputerHomeBase(Carrier carrier)
         {
-            Terminal.TerminalType terminaltype = airline.AirlineRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger;
-            if (airline.Profile.PreferedAirport != null
-                && GeneralHelpers.IsAirportActive(airline.Profile.PreferedAirport)
-                && airline.Profile.PreferedAirport.Terminals.GetFreeGates(terminaltype) > 1)
+            Terminal.TerminalType terminaltype = carrier.CarrierRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger;
+            if (carrier.Profile.PreferedStation != null
+                && GeneralHelpers.IsStationActive(carrier.Profile.PreferedStation)
+                && carrier.Profile.PreferedStation.Terminals.GetFreeGates(terminaltype) > 1)
             {
-                return airline.Profile.PreferedAirport;
+                return carrier.Profile.PreferedStation;
             }
-            List<Airport> airports =
-                Airports.GetAirports(airline.Profile.Country).FindAll(a => a.Terminals.GetFreeGates(terminaltype) > 1);
+            List<Station> stations =
+                Stations.GetStations(carrier.Profile.Country).FindAll(a => a.Terminals.GetFreeGates(terminaltype) > 1);
 
-            if (airports.Count < 4)
+            if (stations.Count < 4)
             {
-                airports =
-                    Airports.GetAirports(airline.Profile.Country.Region).FindAll(a => a.Terminals.GetFreeGates(terminaltype) > 1);
+                stations =
+                    Stations.GetStations(carrier.Profile.Country.Region).FindAll(a => a.Terminals.GetFreeGates(terminaltype) > 1);
             }
 
-            var list = new Dictionary<Airport, int>();
-            airports.ForEach(
-                a => list.Add(a, ((int) a.Profile.Size)*(AirportHelpers.GetAirportsNearAirport(a, 1000).Count) + 1));
+            var list = new Dictionary<Station, int>();
+            stations.ForEach(
+                a => list.Add(a, ((int) a.Profile.Size)*(StationHelpers.GetStationsNearStation(a, 1000).Count) + 1));
 
             return AIHelpers.GetRandomItem(list);
         }
 
-        private static Airport GetStartDataRoutesDestination(StartDataRoutes routes)
+        private static Station GetStartDataRoutesDestination(StartDataRoutes routes)
         {
             double maxRange =
-                (AirlinerTypes.GetTypes(
+                (CoachTypes.GetTypes(
                     t =>
                     t.Produced.From <= GameObject.GetInstance().GameTime
                     && t.Produced.To > GameObject.GetInstance().GameTime).Max(t => t.Range))*0.8;
 
-            var airports = new List<Airport>();
+            var stations = new List<Station>();
 
             if (routes.RouteType == Route.RouteType.Cargo)
             {
-                airports =
-                    Airports.GetAirports(
+                stations =
+                    Stations.GetStations(
                         a =>
                         routes.Countries.Contains(a.Profile.Country)
-                        && MathHelpers.GetDistance(Airports.GetAirport(routes.Origin), a) < maxRange
-                        && a != Airports.GetAirport(routes.Origin)
+                        && MathHelpers.GetDistance(Stations.GetStation(routes.Origin), a) < maxRange
+                        && a != Stations.GetStation(routes.Origin)
                         && ((int) a.Profile.Cargo) >= ((int) routes.MinimumSize) && a.Terminals.GetFreeGates(Terminal.TerminalType.Cargo) > 0);
             }
 
             if (routes.RouteType == Route.RouteType.Passenger || routes.RouteType == Route.RouteType.Mixed)
             {
-                airports =
-                    Airports.GetAirports(
+                stations =
+                    Stations.GetStations(
                         a =>
                         routes.Countries.Contains(a.Profile.Country)
-                        && MathHelpers.GetDistance(Airports.GetAirport(routes.Origin), a) < maxRange
-                        && a != Airports.GetAirport(routes.Origin)
+                        && MathHelpers.GetDistance(Stations.GetStation(routes.Origin), a) < maxRange
+                        && a != Stations.GetStation(routes.Origin)
                         && ((int) a.Profile.Size) >= ((int) routes.MinimumSize) && a.Terminals.GetFreeGates(Terminal.TerminalType.Passenger) > 0);
             }
 
-            return airports[Rnd.Next(airports.Count)];
+            return stations[Rnd.Next(stations.Count)];
         }
 
         /*!loads the different scenarios
          */
 
-        /*! loads the airline facilities.
+        /*! loads the carrier facilities.
          */
 
-        private static void LoadAirlineFacilities()
+        private static void LoadCarrierFacilities()
         {
             var doc = new XmlDocument();
-            doc.Load(AppSettings.GetDataPath() + "/airlinefacilities.xml");
+            doc.Load(AppSettings.GetDataPath() + "/carrierfacilities.xml");
             XmlElement root = doc.DocumentElement;
 
-            XmlNodeList facilitiesList = root?.SelectNodes("//airlinefacility");
+            XmlNodeList facilitiesList = root?.SelectNodes("//carrierfacility");
 
             if (facilitiesList != null)
                 foreach (XmlElement element in facilitiesList)
@@ -1804,8 +1804,8 @@ namespace TheBusProject.Infrastructure
                         int service = Convert.ToInt32(levelElement.Attributes["service"].Value);
                         int luxury = Convert.ToInt32(levelElement.Attributes["luxury"].Value);
 
-                        AirlineFacilities.AddFacility(
-                            new AirlineFacility(section, uid, price, monthlycost, fromyear, service, luxury));
+                        CarrierFacilities.AddFacility(
+                            new CarrierFacility(section, uid, price, monthlycost, fromyear, service, luxury));
                     }
 
                     if (element.SelectSingleNode("translations") != null)
@@ -1819,10 +1819,10 @@ namespace TheBusProject.Infrastructure
                 }
         }
 
-        private static void LoadAirlineMergers()
+        private static void LoadCarrierMergers()
         {
             var doc = new XmlDocument();
-            doc.Load(AppSettings.GetDataPath() + "/addons/airlines/mergers/mergers.xml");
+            doc.Load(AppSettings.GetDataPath() + "/addons/carriers/mergers/mergers.xml");
             XmlElement root = doc.DocumentElement;
 
             XmlNodeList mergersList = root?.SelectNodes("//merger");
@@ -1831,21 +1831,21 @@ namespace TheBusProject.Infrastructure
                 foreach (XmlElement element in mergersList)
                 {
                     string mergerName = element.Attributes["name"].Value;
-                    Airline airline1 = Airlines.GetAirline(element.Attributes["airline1"].Value);
-                    Airline airline2 = Airlines.GetAirline(element.Attributes["airline2"].Value);
+                    Carrier carrier1 = Carriers.GetCarrier(element.Attributes["carrier1"].Value);
+                    Carrier carrier2 = Carriers.GetCarrier(element.Attributes["carrier2"].Value);
                     var mergerType =
-                        (AirlineMerger.MergerType)
-                            DataParsing.ParseEnum(typeof (AirlineMerger.MergerType), element.Attributes["type"].Value);
+                        (CarrierMerger.MergerType)
+                            DataParsing.ParseEnum(typeof (CarrierMerger.MergerType), element.Attributes["type"].Value);
                     DateTime mergerDate = DataParsing.ParseDate(element.Attributes["date"].Value, new CultureInfo("en-US", false));
 
-                    var merger = new AirlineMerger(mergerName, airline1, airline2, mergerDate, mergerType);
+                    var merger = new CarrierMerger(mergerName, carrier1, carrier2, mergerDate, mergerType);
 
                     if (element.HasAttribute("newname"))
                     {
                         merger.NewName = element.Attributes["newname"].Value;
                     }
 
-                    AirlineMergers.AddAirlineMerger(merger);
+                    CarrierMergers.AddCarrierMerger(merger);
                 }
         }
 
@@ -1853,9 +1853,9 @@ namespace TheBusProject.Infrastructure
 
         // some configuration files point at a facility id that does not exist for that type (for example Video="100",
         // which is an audio facility); use the basic facility of the type instead
-        private static AirlinerFacility GetFacilityOrBasic(AirlinerFacility.FacilityType type, string uid)
+        private static CoachFacility GetFacilityOrBasic(CoachFacility.FacilityType type, string uid)
         {
-            var facility = AirlinerFacilities.GetFacility(type, uid);
+            var facility = CoachFacilities.GetFacility(type, uid);
             if (facility != null)
             {
                 return facility;
@@ -1865,10 +1865,10 @@ namespace TheBusProject.Infrastructure
             {
                 StartupLog.Write("Data note: no " + type + " facility with id " + uid + ", using the basic " + type + " facility");
             }
-            return AirlinerFacilities.GetBasicFacility(type);
+            return CoachFacilities.GetBasicFacility(type);
         }
 
-        private static AirlinerConfiguration LoadAirlinerConfiguration(XmlElement element)
+        private static CoachConfiguration LoadCoachConfiguration(XmlElement element)
         {
             string name = element.Attributes["name"].Value;
             string id = element.Attributes["id"].Value;
@@ -1876,7 +1876,7 @@ namespace TheBusProject.Infrastructure
 
             XmlNodeList classesList = element.SelectNodes("classes/class");
 
-            var configuration = new AirlinerConfiguration(name, minimumSeats, true) {ID = id};
+            var configuration = new CoachConfiguration(name, minimumSeats, true) {ID = id};
 
             if (classesList != null)
                 foreach (XmlElement classElement in classesList)
@@ -1884,16 +1884,16 @@ namespace TheBusProject.Infrastructure
                     int seating = Convert.ToInt16(classElement.Attributes["seating"].Value);
                     int regularseating = Convert.ToInt16(classElement.Attributes["regularseating"].Value);
                     var classType =
-                        (AirlinerClass.ClassType)
-                        DataParsing.ParseEnum(typeof (AirlinerClass.ClassType), classElement.Attributes["type"].Value);
+                        (CoachClass.ClassType)
+                        DataParsing.ParseEnum(typeof (CoachClass.ClassType), classElement.Attributes["type"].Value);
 
-                    var classConf = new AirlinerClassConfiguration(classType, seating, regularseating);
-                    foreach (AirlinerFacility.FacilityType facType in Enum.GetValues(typeof (AirlinerFacility.FacilityType)))
+                    var classConf = new CoachClassConfiguration(classType, seating, regularseating);
+                    foreach (CoachFacility.FacilityType facType in Enum.GetValues(typeof (CoachFacility.FacilityType)))
                     {
                         string facUid = DataParsing.AttributeValue(classElement, facType.ToString());
                         if (facUid == null)
                         {
-                            LogError("Missing airliner facility " + facType + " in a class of " + element.Attributes["name"]?.Value);
+                            LogError("Missing coach facility " + facType + " in a class of " + element.Attributes["name"]?.Value);
                             continue;
                         }
 
@@ -1906,21 +1906,21 @@ namespace TheBusProject.Infrastructure
             return configuration;
         }
 
-        public static void LoadAirlinerFacilities()
+        public static void LoadCoachFacilities()
         {
             var doc = new XmlDocument();
-            doc.Load(AppSettings.GetDataPath() + "/airlinerfacilities.xml");
+            doc.Load(AppSettings.GetDataPath() + "/coachfacilities.xml");
             XmlElement root = doc.DocumentElement;
 
-            XmlNodeList facilitiesList = root?.SelectNodes("//airlinerfacility");
+            XmlNodeList facilitiesList = root?.SelectNodes("//coachfacility");
             if (facilitiesList != null)
                 foreach (XmlElement element in facilitiesList)
                 {
                     string section = root.Name;
                     string uid = element.Attributes["uid"].Value;
                     var type =
-                        (AirlinerFacility.FacilityType)
-                            DataParsing.ParseEnum(typeof (AirlinerFacility.FacilityType), element.Attributes["type"].Value);
+                        (CoachFacility.FacilityType)
+                            DataParsing.ParseEnum(typeof (CoachFacility.FacilityType), element.Attributes["type"].Value);
                     int fromyear = Convert.ToInt16(element.Attributes["fromyear"].Value);
 
                     var levelElement = (XmlElement) element.SelectSingleNode("level");
@@ -1935,8 +1935,8 @@ namespace TheBusProject.Infrastructure
                             double seatsPrice = XmlConvert.ToDouble(seatsElement.Attributes["price"].Value);
                             double seatuse = XmlConvert.ToDouble(seatsElement.Attributes["uses"].Value);
 
-                            AirlinerFacilities.AddFacility(
-                                new AirlinerFacility(section, uid, type, fromyear, service, seatsPercent, seatsPrice, seatuse));
+                            CoachFacilities.AddFacility(
+                                new CoachFacility(section, uid, type, fromyear, service, seatsPercent, seatsPrice, seatuse));
                         }
                     }
 
@@ -1951,31 +1951,31 @@ namespace TheBusProject.Infrastructure
                 }
         }
 
-        private static void LoadAirlinerImages()
+        private static void LoadCoachImages()
         {
-            string file = AppSettings.GetDataPath() + "/graphics/airlinerimages/images.xml";
+            string file = AppSettings.GetDataPath() + "/graphics/coachimages/images.xml";
 
             var doc = new XmlDocument();
             doc.Load(file);
             XmlElement root = doc.DocumentElement;
 
-            XmlNodeList imagesList = root?.SelectNodes("//airlinerimage");
+            XmlNodeList imagesList = root?.SelectNodes("//coachimage");
 
             if (imagesList != null)
                 foreach (XmlElement image in imagesList)
                 {
                     string imageFile =
-                        $"{AppSettings.GetDataPath()}/graphics/airlinerimages/{image.Attributes["image"].Value}.png";
+                        $"{AppSettings.GetDataPath()}/graphics/coachimages/{image.Attributes["image"].Value}.png";
 
                     string[] types = image.Attributes["types"].Value.Split(',');
 
                     foreach (string type in types)
                     {
-                        AirlinerType airlinerType = AirlinerTypes.GetType(type);
+                        CoachType coachType = CoachTypes.GetType(type);
 
-                        if (airlinerType != null)
+                        if (coachType != null)
                         {
-                            airlinerType.Image = imageFile;
+                            coachType.Image = imageFile;
                         }
                     }
                 }
@@ -1984,7 +1984,7 @@ namespace TheBusProject.Infrastructure
         /*! loads the regions.
          */
 
-        private static void LoadAirlinerTypeConfiguration(string file)
+        private static void LoadCoachTypeConfiguration(string file)
         {
             var doc = new XmlDocument();
             doc.Load(file);
@@ -1997,14 +1997,14 @@ namespace TheBusProject.Infrastructure
                 {
                     string name = element.Attributes["name"].Value;
                     string id = element.Attributes["id"].Value;
-                    AirlinerType type = AirlinerTypes.GetType(element.Attributes["airliner"].Value);
+                    CoachType type = CoachTypes.GetType(element.Attributes["coach"].Value);
                     int fromYear = Convert.ToInt16(element.Attributes["yearfrom"].Value);
                     int toYear = Convert.ToInt16(element.Attributes["yearto"].Value);
-                    /*airliner="Boeing 747-400" name="Boeing 747-400 (1998)" yearfrom="1998" yearto="2199" id="301"*/
+                    /*coach="Boeing 747-400" name="Boeing 747-400 (1998)" yearfrom="1998" yearto="2199" id="301"*/
 
                     XmlNodeList classesList = element.SelectNodes("classes/class");
 
-                    var configuration = new AirlinerTypeConfiguration(
+                    var configuration = new CoachTypeConfiguration(
                         name,
                         type,
                         new Period<DateTime>(new DateTime(fromYear, 1, 1), new DateTime(toYear, 12, 31)),
@@ -2015,17 +2015,17 @@ namespace TheBusProject.Infrastructure
                         {
                             int seating = Convert.ToInt16(classElement.Attributes["seating"].Value);
                             var classType =
-                                (AirlinerClass.ClassType)
-                                    DataParsing.ParseEnum(typeof (AirlinerClass.ClassType), classElement.Attributes["type"].Value);
+                                (CoachClass.ClassType)
+                                    DataParsing.ParseEnum(typeof (CoachClass.ClassType), classElement.Attributes["type"].Value);
 
-                            var classConf = new AirlinerClassConfiguration(classType, seating, seating);
+                            var classConf = new CoachClassConfiguration(classType, seating, seating);
                             foreach (
-                                AirlinerFacility.FacilityType facType in Enum.GetValues(typeof (AirlinerFacility.FacilityType)))
+                                CoachFacility.FacilityType facType in Enum.GetValues(typeof (CoachFacility.FacilityType)))
                             {
                                 string facUid = DataParsing.AttributeValue(classElement, facType.ToString());
                         if (facUid == null)
                         {
-                            LogError("Missing airliner facility " + facType + " in a class of " + element.Attributes["name"]?.Value);
+                            LogError("Missing coach facility " + facType + " in a class of " + element.Attributes["name"]?.Value);
                             continue;
                         }
 
@@ -2039,49 +2039,49 @@ namespace TheBusProject.Infrastructure
                 }
         }
 
-        private static void LoadAirlinerTypeConfigurations()
+        private static void LoadCoachTypeConfigurations()
         {
             try
             {
-                var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/addons/airliners/configurations");
+                var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/addons/coaches/configurations");
 
                 foreach (FileInfo file in dir.GetFiles("*.xml"))
                 {
-                    LoadAirlinerTypeConfiguration(file.FullName);
+                    LoadCoachTypeConfiguration(file.FullName);
                 }
             }
             catch (Exception e)
             {
-                LogError("Error loading Airliner configurations", e);
+                LogError("Error loading Coach configurations", e);
             }
         }
 
         /*!loads the engine types
          */
 
-        /*!loads the airliners.
+        /*!loads the coaches.
          */
 
-        private static void LoadAirliners()
+        private static void LoadCoaches()
         {
             try
             {
-                var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/addons/airliners");
+                var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/addons/coaches");
 
                 foreach (FileInfo file in dir.GetFiles("*.xml"))
                 {
-                    LoadAirliners(file.FullName);
+                    LoadCoaches(file.FullName);
                 }
             }
             catch (Exception e)
             {
-                LogError("Error loading airliners", e);
+                LogError("Error loading coaches", e);
             }
         }
 
-        private static void LoadAirliners(string file)
+        private static void LoadCoaches(string file)
         {
-            string dir = AppSettings.GetDataPath() + "/graphics/airlinerimages/";
+            string dir = AppSettings.GetDataPath() + "/graphics/coachimages/";
             string id = "";
             try
             {
@@ -2089,26 +2089,26 @@ namespace TheBusProject.Infrastructure
                 doc.Load(file);
                 XmlElement root = doc.DocumentElement;
 
-                XmlNodeList airlinersList = root?.SelectNodes("//airliner");
+                XmlNodeList coachesList = root?.SelectNodes("//coach");
 
-                if (airlinersList != null)
-                    foreach (XmlElement airliner in airlinersList)
+                if (coachesList != null)
+                    foreach (XmlElement coach in coachesList)
                     {
-                        AirlinerType.TypeOfAirliner airlinerType = airliner.HasAttribute("type")
-                            ? (AirlinerType.TypeOfAirliner)
-                                DataParsing.ParseEnum(typeof (AirlinerType.TypeOfAirliner), airliner.Attributes["type"].Value)
-                            : AirlinerType.TypeOfAirliner.Passenger;
+                        CoachType.TypeOfCoach coachType = coach.HasAttribute("type")
+                            ? (CoachType.TypeOfCoach)
+                                DataParsing.ParseEnum(typeof (CoachType.TypeOfCoach), coach.Attributes["type"].Value)
+                            : CoachType.TypeOfCoach.Passenger;
 
-                        string manufacturerName = airliner.Attributes["manufacturer"].Value;
+                        string manufacturerName = coach.Attributes["manufacturer"].Value;
                         Manufacturer manufacturer = Manufacturers.GetManufacturer(manufacturerName);
 
-                        string name = airliner.Attributes["name"].Value;
+                        string name = coach.Attributes["name"].Value;
 
                         string family;
 
-                        if (airliner.HasAttribute("family"))
+                        if (coach.HasAttribute("family"))
                         {
-                            family = airliner.Attributes["family"].Value;
+                            family = coach.Attributes["family"].Value;
                         }
                         else
                         {
@@ -2117,15 +2117,15 @@ namespace TheBusProject.Infrastructure
 
                         bool isConvertable;
 
-                        if (airliner.HasAttribute("convertable"))
+                        if (coach.HasAttribute("convertable"))
                         {
-                            isConvertable = Convert.ToBoolean(airliner.Attributes["convertable"].Value);
+                            isConvertable = Convert.ToBoolean(coach.Attributes["convertable"].Value);
                         }
                         else
                         {
-                            if (airlinerType == AirlinerType.TypeOfAirliner.Cargo
-                                || airlinerType == AirlinerType.TypeOfAirliner.Mixed
-                                || airlinerType == AirlinerType.TypeOfAirliner.Helicopter)
+                            if (coachType == CoachType.TypeOfCoach.Cargo
+                                || coachType == CoachType.TypeOfCoach.Mixed
+                                || coachType == CoachType.TypeOfCoach.Helicopter)
                             {
                                 isConvertable = false;
                             }
@@ -2135,24 +2135,24 @@ namespace TheBusProject.Infrastructure
                             }
                         }
 
-                        long price = Convert.ToInt64(airliner.Attributes["price"].Value);
+                        long price = Convert.ToInt64(coach.Attributes["price"].Value);
 
                         id = name;
 
-                        var typeElement = (XmlElement) airliner.SelectSingleNode("type");
+                        var typeElement = (XmlElement) coach.SelectSingleNode("type");
                         var body =
-                            (AirlinerType.BodyType)
-                                DataParsing.ParseEnum(typeof (AirlinerType.BodyType), typeElement.Attributes["body"].Value);
+                            (CoachType.BodyType)
+                                DataParsing.ParseEnum(typeof (CoachType.BodyType), typeElement.Attributes["body"].Value);
 
 
                         var rangeType =
-                            (AirlinerType.TypeRange)
-                                DataParsing.ParseEnum(typeof (AirlinerType.TypeRange), typeElement.Attributes["rangetype"].Value);
+                            (CoachType.TypeRange)
+                                DataParsing.ParseEnum(typeof (CoachType.TypeRange), typeElement.Attributes["rangetype"].Value);
                         var engine =
-                            (AirlinerType.TypeOfEngine)
-                                DataParsing.ParseEnum(typeof (AirlinerType.TypeOfEngine), typeElement.Attributes["engine"].Value);
+                            (CoachType.TypeOfEngine)
+                                DataParsing.ParseEnum(typeof (CoachType.TypeOfEngine), typeElement.Attributes["engine"].Value);
 
-                        var specsElement = (XmlElement) airliner.SelectSingleNode("specs");
+                        var specsElement = (XmlElement) coach.SelectSingleNode("specs");
                         double wingspan = XmlConvert.ToDouble(specsElement.Attributes["wingspan"].Value);
                         double length = XmlConvert.ToDouble(specsElement.Attributes["length"].Value);
                         long range = Convert.ToInt64(specsElement.Attributes["range"].Value);
@@ -2162,11 +2162,11 @@ namespace TheBusProject.Infrastructure
                         double fuel = XmlConvert.ToDouble(specsElement.Attributes["consumption"].Value);
                         long runwaylenght = XmlConvert.ToInt64(specsElement.Attributes["runwaylengthrequired"].Value);
 
-                        double weight = specsElement.HasAttribute("weight") ? Convert.ToDouble(specsElement.Attributes["weight"].Value) : AirlinerHelpers.GetCalculatedWeight(wingspan, length, fuelcapacity);
+                        double weight = specsElement.HasAttribute("weight") ? Convert.ToDouble(specsElement.Attributes["weight"].Value) : CoachHelpers.GetCalculatedWeight(wingspan, length, fuelcapacity);
 
-                        var capacityElement = (XmlElement) airliner.SelectSingleNode("capacity");
+                        var capacityElement = (XmlElement) coach.SelectSingleNode("capacity");
 
-                        var producedElement = (XmlElement) airliner.SelectSingleNode("produced");
+                        var producedElement = (XmlElement) coach.SelectSingleNode("produced");
                         int fromYear = Convert.ToInt16(producedElement.Attributes["from"].Value);
                         int toYear = Convert.ToInt16(producedElement.Attributes["to"].Value);
                         int prodRate = producedElement.HasAttribute("rate")
@@ -2176,15 +2176,15 @@ namespace TheBusProject.Infrastructure
                         var from = new DateTime(fromYear, 1, 2);
                         var to = new DateTime(toYear, 12, 31);
 
-                        AirlinerType type = null;
+                        CoachType type = null;
 
-                        if (airlinerType == AirlinerType.TypeOfAirliner.Helicopter)
+                        if (coachType == CoachType.TypeOfCoach.Helicopter)
                         {
                             int passengers = Convert.ToInt16(capacityElement.Attributes["passengers"].Value);
                             int cockpitcrew = Convert.ToInt16(capacityElement.Attributes["cockpitcrew"].Value);
                             int cabincrew = Convert.ToInt16(capacityElement.Attributes["cabincrew"].Value);
                             int maxClasses = Convert.ToInt16(capacityElement.Attributes["maxclasses"].Value);
-                            type = new AirlinerPassengerType(
+                            type = new CoachPassengerType(
                                 manufacturer,
                                 name,
                                 family,
@@ -2206,16 +2206,16 @@ namespace TheBusProject.Infrastructure
                                 engine,
                                 new Period<DateTime>(@from, to),
                                 prodRate,
-                                isConvertable) {TypeAirliner = AirlinerType.TypeOfAirliner.Helicopter};
+                                isConvertable) {TypeCoach = CoachType.TypeOfCoach.Helicopter};
                         }
 
-                        if (airlinerType == AirlinerType.TypeOfAirliner.Passenger)
+                        if (coachType == CoachType.TypeOfCoach.Passenger)
                         {
                             int passengers = Convert.ToInt16(capacityElement.Attributes["passengers"].Value);
                             int cockpitcrew = Convert.ToInt16(capacityElement.Attributes["cockpitcrew"].Value);
                             int cabincrew = Convert.ToInt16(capacityElement.Attributes["cabincrew"].Value);
                             int maxClasses = Convert.ToInt16(capacityElement.Attributes["maxclasses"].Value);
-                            type = new AirlinerPassengerType(
+                            type = new CoachPassengerType(
                                 manufacturer,
                                 name,
                                 family,
@@ -2239,13 +2239,13 @@ namespace TheBusProject.Infrastructure
                                 prodRate,
                                 isConvertable);
                         }
-                        if (airlinerType == AirlinerType.TypeOfAirliner.Cargo)
+                        if (coachType == CoachType.TypeOfCoach.Cargo)
                         {
                             int cockpitcrew = Convert.ToInt16(capacityElement.Attributes["cockpitcrew"].Value);
                             double cargo = Convert.ToDouble(
                                 capacityElement.Attributes["cargo"].Value,
                                 CultureInfo.GetCultureInfo("en-US").NumberFormat);
-                            type = new AirlinerCargoType(
+                            type = new CoachCargoType(
                                 manufacturer,
                                 name,
                                 family,
@@ -2267,7 +2267,7 @@ namespace TheBusProject.Infrastructure
                                 prodRate,
                                 isConvertable);
                         }
-                        if (airlinerType == AirlinerType.TypeOfAirliner.Mixed)
+                        if (coachType == CoachType.TypeOfCoach.Mixed)
                         {
                             int passengers = Convert.ToInt16(capacityElement.Attributes["passengers"].Value);
                             int cockpitcrew = Convert.ToInt16(capacityElement.Attributes["cockpitcrew"].Value);
@@ -2277,7 +2277,7 @@ namespace TheBusProject.Infrastructure
                             int cabincrew = Convert.ToInt16(capacityElement.Attributes["cabincrew"].Value);
                             int maxClasses = Convert.ToInt16(capacityElement.Attributes["maxclasses"].Value);
 
-                            type = new AirlinerCombiType(
+                            type = new CoachCombiType(
                                 manufacturer,
                                 name,
                                 family,
@@ -2303,60 +2303,60 @@ namespace TheBusProject.Infrastructure
                                 isConvertable);
                         }
 
-                        //if (airliner.HasAttribute("image") && airliner.Attributes["image"].Value.Length > 1)
-                        //type.Image = dir + airliner.Attributes["image"].Value + ".png";
+                        //if (coach.HasAttribute("image") && coach.Attributes["image"].Value.Length > 1)
+                        //type.Image = dir + coach.Attributes["image"].Value + ".png";
 
                         if (type != null)
                         {
-                            AirlinerTypes.AddType(type);
+                            CoachTypes.AddType(type);
                         }
                     }
             }
             catch (Exception e)
             {
-                LogError("Error loading airliner {0}", id);
+                LogError("Error loading coach {0}", id);
                 LogError(e);
             }
         }
 
-        private static void LoadAirlines()
+        private static void LoadCarriers()
         {
             string f = "";
             try
             {
-                var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/addons/airlines");
+                var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/addons/carriers");
 
                 foreach (FileInfo file in dir.GetFiles("*.xml"))
                 {
                     f = file.Name;
-                    LoadAirline(file.FullName);
+                    LoadCarrier(file.FullName);
                 }
-                GameObject.GetInstance().SetHumanAirline(Airlines.GetAllAirlines()[0]);
-                GameObject.GetInstance().MainAirline = GameObject.GetInstance().HumanAirline;
+                GameObject.GetInstance().SetHumanCarrier(Carriers.GetAllCarriers()[0]);
+                GameObject.GetInstance().MainCarrier = GameObject.GetInstance().HumanCarrier;
 
-                CreateAirlineLogos();
+                CreateCarrierLogos();
             }
             catch (Exception e)
             {
                 //var file = new StreamWriter(
-                //    AppSettings.GetCommonApplicationDataPath() + "/theairlinestartup.log",
+                //    AppSettings.GetCommonApplicationDataPath() + "/thecarrierstartup.log",
                 //    true);
-                //file.WriteLine("Airlines failing: " + f);
+                //file.WriteLine("Carriers failing: " + f);
                 //file.WriteLine(e.ToString());
                 //file.WriteLine(e.StackTrace);
                 //file.Close();
-                LogError("Error loading airline: {0}", f);
+                LogError("Error loading carrier: {0}", f);
                 LogError(e);
             }
         }
 
-        private static void LoadAirportFacilities()
+        private static void LoadStationFacilities()
         {
             var doc = new XmlDocument();
-            doc.Load(AppSettings.GetDataPath() + "/airportfacilities.xml");
+            doc.Load(AppSettings.GetDataPath() + "/stationfacilities.xml");
             XmlElement root = doc.DocumentElement;
 
-            XmlNodeList facilitiesList = root?.SelectNodes("//airportfacility");
+            XmlNodeList facilitiesList = root?.SelectNodes("//stationfacility");
 
             if (facilitiesList != null)
                 foreach (XmlElement element in facilitiesList)
@@ -2365,8 +2365,8 @@ namespace TheBusProject.Infrastructure
                     string uid = element.Attributes["uid"].Value;
                     string shortname = element.Attributes["shortname"].Value;
                     var type =
-                        (AirportFacility.FacilityType)
-                            DataParsing.ParseEnum(typeof (AirportFacility.FacilityType), element.Attributes["type"].Value);
+                        (StationFacility.FacilityType)
+                            DataParsing.ParseEnum(typeof (StationFacility.FacilityType), element.Attributes["type"].Value);
                     int typeLevel = Convert.ToInt16(element.Attributes["typelevel"].Value);
 
                     double price = XmlConvert.ToDouble(element.Attributes["price"].Value);
@@ -2378,7 +2378,7 @@ namespace TheBusProject.Infrastructure
                         int service = Convert.ToInt32(levelElement.Attributes["service"].Value);
                         int luxury = Convert.ToInt32(levelElement.Attributes["luxury"].Value);
 
-                        var facility = new AirportFacility(
+                        var facility = new StationFacility(
                             section,
                             uid,
                             shortname,
@@ -2389,15 +2389,15 @@ namespace TheBusProject.Infrastructure
                             service,
                             luxury);
 
-                        AirportFacilities.AddFacility(facility);
+                        StationFacilities.AddFacility(facility);
 
                         var employeesElement = (XmlElement) element.SelectSingleNode("employees");
 
                         if (employeesElement != null)
                         {
                             var employeestype =
-                                (AirportFacility.EmployeeTypes)
-                                    DataParsing.ParseEnum(typeof (AirportFacility.EmployeeTypes), employeesElement.Attributes["type"].Value);
+                                (StationFacility.EmployeeTypes)
+                                    DataParsing.ParseEnum(typeof (StationFacility.EmployeeTypes), employeesElement.Attributes["type"].Value);
                             int numberofemployees = Convert.ToInt16(employeesElement.Attributes["numberofemployees"].Value);
 
                             facility.EmployeeType = employeestype;
@@ -2416,38 +2416,38 @@ namespace TheBusProject.Infrastructure
                 }
         }
 
-        private static void LoadAirportLogos()
+        private static void LoadStationLogos()
         {
-            var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/graphics/airportlogos");
+            var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/graphics/stationlogos");
 
             foreach (FileInfo file in dir.GetFiles("*.png"))
             {
                 string code = file.Name.Split('.')[0].ToUpper();
-                Airport airport = Airports.GetAirport(code);
+                Station station = Stations.GetStation(code);
 
-                if (airport != null)
+                if (station != null)
                 {
-                    airport.Profile.Logo = file.FullName;
+                    station.Profile.Logo = file.FullName;
                 }
                 else
                 {
-                    Console.WriteLine(@"The logo {0} doesn't match any airports", code);
+                    Console.WriteLine(@"The logo {0} doesn't match any stations", code);
                 }
             }
         }
 
-        private static void LoadAirportMaps()
+        private static void LoadStationMaps()
         {
-            var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/graphics/airportmaps");
+            var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/graphics/stationmaps");
 
             foreach (FileInfo file in dir.GetFiles("*.png"))
             {
                 string code = file.Name.Split('.')[0].ToUpper();
-                Airport airport = Airports.GetAirport(code);
+                Station station = Stations.GetStation(code);
 
-                if (airport != null)
+                if (station != null)
                 {
-                    airport.Profile.Map = file.FullName;
+                    station.Profile.Map = file.FullName;
                 }
                 else
                 {
@@ -2456,10 +2456,10 @@ namespace TheBusProject.Infrastructure
             }
         }
 
-        /*!loads the airliner images
+        /*!loads the coach images
          */
 
-        private static void LoadAirports(string filename)
+        private static void LoadStations(string filename)
         {
             string id = "";
             try
@@ -2468,50 +2468,50 @@ namespace TheBusProject.Infrastructure
                 doc.Load(filename);
                 XmlElement root = doc.DocumentElement;
 
-                XmlNodeList airportsList = root?.SelectNodes("//airport");
+                XmlNodeList stationsList = root?.SelectNodes("//station");
 
-                if (airportsList != null)
-                    foreach (XmlElement airportElement in airportsList)
+                if (stationsList != null)
+                    foreach (XmlElement stationElement in stationsList)
                     {
-                        string name = airportElement.Attributes["name"].Value;
-                        string icao = airportElement.Attributes["icao"].Value;
-                        string iata = airportElement.Attributes["iata"].Value;
+                        string name = stationElement.Attributes["name"].Value;
+                        string icao = stationElement.Attributes["icao"].Value;
+                        string iata = stationElement.Attributes["iata"].Value;
 
                         id = name + " iata: " + iata;
 
                         var type =
-                            (AirportProfile.AirportType)
-                                DataParsing.ParseEnum(typeof (AirportProfile.AirportType), airportElement.Attributes["type"].Value);
+                            (StationProfile.StationType)
+                                DataParsing.ParseEnum(typeof (StationProfile.StationType), stationElement.Attributes["type"].Value);
                         var season =
-                            (Weather.Season) DataParsing.ParseEnum(typeof (Weather.Season), airportElement.Attributes["season"].Value);
+                            (Weather.Season) DataParsing.ParseEnum(typeof (Weather.Season), stationElement.Attributes["season"].Value);
 
-                        var periodElement = (XmlElement) airportElement.SelectSingleNode("period");
+                        var periodElement = (XmlElement) stationElement.SelectSingleNode("period");
 
-                        Period<DateTime> airportPeriod;
+                        Period<DateTime> stationPeriod;
                         if (periodElement != null)
                         {
-                            DateTime airportFrom = DataParsing.ParseDate(
+                            DateTime stationFrom = DataParsing.ParseDate(
                                 periodElement.Attributes["from"].Value,
                                 new CultureInfo("en-US", false));
-                            DateTime airportTo = DataParsing.ParseDate(
+                            DateTime stationTo = DataParsing.ParseDate(
                                 periodElement.Attributes["to"].Value,
                                 new CultureInfo("en-US", false));
 
-                            airportPeriod = new Period<DateTime>(airportFrom, airportTo);
+                            stationPeriod = new Period<DateTime>(stationFrom, stationTo);
                         }
                         else
                         {
-                            airportPeriod = new Period<DateTime>(new DateTime(1959, 12, 31), new DateTime(2199, 12, 31));
+                            stationPeriod = new Period<DateTime>(new DateTime(1959, 12, 31), new DateTime(2199, 12, 31));
                         }
 
-                        var townElement = (XmlElement) airportElement.SelectSingleNode("town");
+                        var townElement = (XmlElement) stationElement.SelectSingleNode("town");
                         string town = townElement.Attributes["town"].Value;
                         string country = townElement.Attributes["country"].Value;
                         TimeSpan gmt = TimeSpan.Parse(townElement.Attributes["GMT"].Value);
                         TimeSpan dst = TimeSpan.Parse(townElement.Attributes["DST"].Value);
 
-                        var latitudeElement = (XmlElement) airportElement.SelectSingleNode("coordinates/latitude");
-                        var longitudeElement = (XmlElement) airportElement.SelectSingleNode("coordinates/longitude");
+                        var latitudeElement = (XmlElement) stationElement.SelectSingleNode("coordinates/latitude");
+                        var longitudeElement = (XmlElement) stationElement.SelectSingleNode("coordinates/longitude");
                         string[] latitude = latitudeElement.Attributes["value"].Value.Split(
                             new[] {'°', '\''},
                             StringSplitOptions.RemoveEmptyEntries);
@@ -2567,7 +2567,7 @@ namespace TheBusProject.Infrastructure
 
                         //double longitude = Coordinate.Parse(longitudeElement.Attributes["value"].Value);
 
-                        var sizeElement = (XmlElement) airportElement.SelectSingleNode("size");
+                        var sizeElement = (XmlElement) stationElement.SelectSingleNode("size");
 
                         var paxValues = new List<PaxValue>();
 
@@ -2580,7 +2580,7 @@ namespace TheBusProject.Infrastructure
                                 ? Convert.ToInt32(sizeElement.Attributes["pax"].Value)
                                 : 0;
 
-                            paxValues.Add(new PaxValue(airportPeriod.From.Year, airportPeriod.To.Year, size, pax));
+                            paxValues.Add(new PaxValue(stationPeriod.From.Year, stationPeriod.To.Year, size, pax));
                         }
                         else
                         {
@@ -2659,12 +2659,12 @@ namespace TheBusProject.Infrastructure
                             eTown = new Town(town, Countries.GetCountry(country));
                         }
 
-                        var profile = new AirportProfile(
+                        var profile = new StationProfile(
                             name,
                             iata,
                             icao,
                             type,
-                            airportPeriod,
+                            stationPeriod,
                             eTown,
                             gmt,
                             dst,
@@ -2673,9 +2673,9 @@ namespace TheBusProject.Infrastructure
                             cargovolume,
                             season) {PaxValues = paxValues};
 
-                        var airport = new Airport(profile);
+                        var station = new Station(profile);
 
-                        var destinationsElement = (XmlElement) airportElement.SelectSingleNode("destinations");
+                        var destinationsElement = (XmlElement) stationElement.SelectSingleNode("destinations");
 
                         if (destinationsElement != null)
                         {
@@ -2685,16 +2685,16 @@ namespace TheBusProject.Infrastructure
 
                             foreach (XmlElement majorDestinationNode in majorDestinationsList)
                             {
-                                string majorDestination = majorDestinationNode.Attributes["airport"].Value;
+                                string majorDestination = majorDestinationNode.Attributes["station"].Value;
                                 int majorDestinationPax = Convert.ToInt32(majorDestinationNode.Attributes["pax"].Value);
 
                                 majorDestinations.Add(majorDestination, majorDestinationPax);
                             }
 
-                            airport.Profile.MajorDestionations = majorDestinations;
+                            station.Profile.MajorDestionations = majorDestinations;
                         }
 
-                        XmlNodeList terminalList = airportElement.SelectNodes("terminals/terminal");
+                        XmlNodeList terminalList = stationElement.SelectNodes("terminals/terminal");
 
                         foreach (XmlElement terminalNode in terminalList)
                         {
@@ -2710,11 +2710,11 @@ namespace TheBusProject.Infrastructure
                             else
                                 terminalType = Terminal.TerminalType.Passenger;
 
-                            airport.Terminals.AddTerminal(
-                                new Terminal(airport, null, terminalName, terminalGates, new DateTime(1950, 1, 1), terminalType));
+                            station.Terminals.AddTerminal(
+                                new Terminal(station, null, terminalName, terminalGates, new DateTime(1950, 1, 1), terminalType));
                         }
 
-                        XmlNodeList runwaysList = airportElement.SelectNodes("runways/runway");
+                        XmlNodeList runwaysList = stationElement.SelectNodes("runways/runway");
 
                         foreach (XmlElement runwayNode in runwaysList)
                         {
@@ -2733,17 +2733,17 @@ namespace TheBusProject.Infrastructure
                                         DataParsing.ParseEnum(typeof (Runway.RunwayType), runwayNode.Attributes["type"].Value);
                             }
 
-                            airport.Runways.Add(
+                            station.Runways.Add(
                                 new Runway(runwayName, runwayLength, runwayType, surface, new DateTime(1900, 1, 1), true));
                         }
 
-                        XmlNodeList expansionsList = airportElement.SelectNodes("expansions/expansion");
+                        XmlNodeList expansionsList = stationElement.SelectNodes("expansions/expansion");
 
                         foreach (XmlElement expansionNode in expansionsList)
                         {
                             var expansionType =
-                                (AirportExpansion.ExpansionType)
-                                    DataParsing.ParseEnum(typeof (AirportExpansion.ExpansionType), expansionNode.Attributes["type"].Value);
+                                (StationExpansion.ExpansionType)
+                                    DataParsing.ParseEnum(typeof (StationExpansion.ExpansionType), expansionNode.Attributes["type"].Value);
 
                             DateTime expansionDate = DataParsing.ParseDate(
                                 expansionNode.Attributes["date"].Value,
@@ -2751,15 +2751,15 @@ namespace TheBusProject.Infrastructure
 
                             bool expansionNotify = Convert.ToBoolean(expansionNode.Attributes["notify"].Value);
 
-                            var expansion = new AirportExpansion(expansionType, expansionDate, expansionNotify);
+                            var expansion = new StationExpansion(expansionType, expansionDate, expansionNotify);
 
-                            if (expansionType == AirportExpansion.ExpansionType.Name)
+                            if (expansionType == StationExpansion.ExpansionType.Name)
                             {
                                 string expansionName = expansionNode.Attributes["name"].Value;
 
                                 expansion.Name = expansionName;
                             }
-                            if (expansionType == AirportExpansion.ExpansionType.RunwayLength)
+                            if (expansionType == StationExpansion.ExpansionType.RunwayLength)
                             {
                                 string expansionName = expansionNode.Attributes["name"].Value;
                                 long length = Convert.ToInt64(expansionNode.Attributes["length"].Value);
@@ -2767,7 +2767,7 @@ namespace TheBusProject.Infrastructure
                                 expansion.Name = expansionName;
                                 expansion.Length = length;
                             }
-                            if (expansionType == AirportExpansion.ExpansionType.NewRunway)
+                            if (expansionType == StationExpansion.ExpansionType.NewRunway)
                             {
                                 string expansionName = expansionNode.Attributes["name"].Value;
                                 long length = Convert.ToInt64(expansionNode.Attributes["length"].Value);
@@ -2781,7 +2781,7 @@ namespace TheBusProject.Infrastructure
                                 expansion.Surface = surface;
                             }
 
-                            if (expansionType == AirportExpansion.ExpansionType.NewTerminal)
+                            if (expansionType == StationExpansion.ExpansionType.NewTerminal)
                             {
                                 string expansionName = expansionNode.Attributes["name"].Value;
                                 int gates = Convert.ToInt16(expansionNode.Attributes["gates"].Value);
@@ -2799,7 +2799,7 @@ namespace TheBusProject.Infrastructure
                                 expansion.Gates = gates;
                                 expansion.TerminalType = terminalType;
                             }
-                            if (expansionType == AirportExpansion.ExpansionType.ExtraGates)
+                            if (expansionType == StationExpansion.ExpansionType.ExtraGates)
                             {
                                 string expansionName = expansionNode.Attributes["name"].Value;
                                 int gates = Convert.ToInt16(expansionNode.Attributes["gates"].Value);
@@ -2807,7 +2807,7 @@ namespace TheBusProject.Infrastructure
                                 expansion.Name = expansionName;
                                 expansion.Gates = gates;
                             }
-                            if (expansionType == AirportExpansion.ExpansionType.CloseTerminal)
+                            if (expansionType == StationExpansion.ExpansionType.CloseTerminal)
                             {
                                 string expansionName = expansionNode.Attributes["name"].Value;
                                 int gates = Convert.ToInt16(expansionNode.Attributes["gates"].Value);
@@ -2815,41 +2815,41 @@ namespace TheBusProject.Infrastructure
                                 expansion.Name = expansionName;
                                 expansion.Gates = gates;
                             }
-                            airport.Profile.AddExpansion(expansion);
+                            station.Profile.AddExpansion(expansion);
                         }
 
                         //30.06.14: Added for loading of landing fees
 
-                        double landingFee = airportElement.HasAttribute("landingfee") ? Convert.ToDouble(airportElement.Attributes["landingfee"].Value, new CultureInfo("en-US", false)) : AirportHelpers.GetStandardLandingFee(airport);
+                        double landingFee = stationElement.HasAttribute("landingfee") ? Convert.ToDouble(stationElement.Attributes["landingfee"].Value, new CultureInfo("en-US", false)) : StationHelpers.GetStandardLandingFee(station);
 
-                        airport.LandingFee = landingFee;
+                        station.LandingFee = landingFee;
 
-                        // an airport that is defined twice (same code, same ICAO and the same period) is only added once;
-                        // an airport that replaced an older one with the same code (other period) is kept
-                        bool alreadyLoaded = Airports.GetAirport(
-                            a => a.Profile.ID == airport.Profile.ID
-                                 || (a.Profile.IATACode == airport.Profile.IATACode
-                                     && a.Profile.ICAOCode == airport.Profile.ICAOCode
-                                     && a.Profile.Period.From == airport.Profile.Period.From
-                                     && a.Profile.Period.To == airport.Profile.Period.To)) != null;
+                        // an station that is defined twice (same code, same ICAO and the same period) is only added once;
+                        // an station that replaced an older one with the same code (other period) is kept
+                        bool alreadyLoaded = Stations.GetStation(
+                            a => a.Profile.ID == station.Profile.ID
+                                 || (a.Profile.IATACode == station.Profile.IATACode
+                                     && a.Profile.ICAOCode == station.Profile.ICAOCode
+                                     && a.Profile.Period.From == station.Profile.Period.From
+                                     && a.Profile.Period.To == station.Profile.Period.To)) != null;
 
                         if (!alreadyLoaded)
                         {
-                            Airports.AddAirport(airport);
+                            Stations.AddStation(station);
                         }
                     }
             }
             catch (Exception e)
             {
                 /*
-                System.IO.StreamWriter file = new System.IO.StreamWriter(AppSettings.getCommonApplicationDataPath() + "/theairlinestartup.log", true);
-                file.WriteLine("Airport failing: " + id);
+                System.IO.StreamWriter file = new System.IO.StreamWriter(AppSettings.getCommonApplicationDataPath() + "/thecarrierstartup.log", true);
+                file.WriteLine("Station failing: " + id);
                 file.WriteLine(e.ToString());
                 file.WriteLine(e.StackTrace);
                 file.Close();
                  * */
 
-                LogError("Airport {0} failing to load", id);
+                LogError("Station {0} failing to load", id);
                 LogError(e);
             }
         }
@@ -2871,7 +2871,7 @@ namespace TheBusProject.Infrastructure
                         root.Attributes["formation"].Value,
                         new CultureInfo("en-US", false));
 
-                    Airport headquarter = Airports.GetAirport(root.Attributes["headquarter"].Value);
+                    Station headquarter = Stations.GetStation(root.Attributes["headquarter"].Value);
 
                     var alliance = new Alliance(formationDate, allianceName, headquarter) {Logo = logo};
 
@@ -2880,12 +2880,12 @@ namespace TheBusProject.Infrastructure
                     if (membersList != null)
                         foreach (XmlElement memberNode in membersList)
                         {
-                            Airline memberAirline = Airlines.GetAirline(memberNode.Attributes["airline"].Value);
+                            Carrier memberCarrier = Carriers.GetCarrier(memberNode.Attributes["carrier"].Value);
                             DateTime joinedDate = DataParsing.ParseDate(
                                 memberNode.Attributes["joined"].Value,
                                 new CultureInfo("en-US", false));
 
-                            var member = new AllianceMember(memberAirline, joinedDate);
+                            var member = new AllianceMember(memberCarrier, joinedDate);
                             if (memberNode.HasAttribute("exited"))
                             {
                                 member.ExitedDate = DataParsing.ParseDate(
@@ -2902,7 +2902,7 @@ namespace TheBusProject.Infrastructure
             catch (Exception e)
             {
                 /*
-                System.IO.StreamWriter file = new System.IO.StreamWriter(AppSettings.getCommonApplicationDataPath() + "/theairlinestartup.log", true);
+                System.IO.StreamWriter file = new System.IO.StreamWriter(AppSettings.getCommonApplicationDataPath() + "/thecarrierstartup.log", true);
                 file.WriteLine("Alliance failing: " + path);
                 file.WriteLine(e.ToString());
                 file.WriteLine(e.StackTrace);
@@ -2928,7 +2928,7 @@ namespace TheBusProject.Infrastructure
         private static void LoadCooperations()
         {
             var doc = new XmlDocument();
-            doc.Load(AppSettings.GetDataPath() + "/airlinecooperations.xml");
+            doc.Load(AppSettings.GetDataPath() + "/carriercooperations.xml");
             XmlElement root = doc.DocumentElement;
 
             XmlNodeList cooperationsList = root?.SelectNodes("//cooperation");
@@ -3151,10 +3151,10 @@ namespace TheBusProject.Infrastructure
                                 int from = Convert.ToInt16(producedElement.Attributes["from"].Value);
                                 int to = Convert.ToInt16(producedElement.Attributes["to"].Value);
 
-                                var aircraftElement = (XmlElement) engineElement.SelectSingleNode("aircraft");
-                                if (aircraftElement != null)
+                                var coachElement = (XmlElement) engineElement.SelectSingleNode("coach");
+                                if (coachElement != null)
                                 {
-                                    string modelsElement = aircraftElement.Attributes["models"].Value;
+                                    string modelsElement = coachElement.Attributes["models"].Value;
 
                                     var engine = new EngineType(
                                         name,
@@ -3173,14 +3173,14 @@ namespace TheBusProject.Infrastructure
 
                                     foreach (string model in models)
                                     {
-                                        AirlinerType airlinerType = AirlinerTypes.GetAllTypes().FirstOrDefault(a => a.Name == model.Trim());
+                                        CoachType coachType = CoachTypes.GetAllTypes().FirstOrDefault(a => a.Name == model.Trim());
 
-                                        if (airlinerType != null)
+                                        if (coachType != null)
                                         {
-                                            engine.AddAirlinerType(airlinerType);
+                                            engine.AddCoachType(coachType);
                                         }
                                         else
-                                            Console.WriteLine(@"Missing airliner type for engine: " + model);
+                                            Console.WriteLine(@"Missing coach type for engine: " + model);
                                     }
 
                                     EngineTypes.AddEngineType(engine);
@@ -3191,10 +3191,10 @@ namespace TheBusProject.Infrastructure
                 }
         }
 
-        private static void LoadFlightRestrictions()
+        private static void LoadTripRestrictions()
         {
             var doc = new XmlDocument();
-            doc.Load(AppSettings.GetDataPath() + "/flightrestrictions.xml");
+            doc.Load(AppSettings.GetDataPath() + "/triprestrictions.xml");
             XmlElement root = doc.DocumentElement;
 
             XmlNodeList restrictionsList = root?.SelectNodes("//restriction");
@@ -3202,8 +3202,8 @@ namespace TheBusProject.Infrastructure
                 foreach (XmlElement element in restrictionsList)
                 {
                     var type =
-                        (FlightRestriction.RestrictionType)
-                            DataParsing.ParseEnum(typeof (FlightRestriction.RestrictionType), element.Attributes["type"].Value);
+                        (TripRestriction.RestrictionType)
+                            DataParsing.ParseEnum(typeof (TripRestriction.RestrictionType), element.Attributes["type"].Value);
 
                     DateTime startDate = DataParsing.ParseDate(
                         element.Attributes["start"].Value,
@@ -3232,7 +3232,7 @@ namespace TheBusProject.Infrastructure
                         if (countriesElement != null) to = Unions.GetUnion(countriesElement.Attributes["to"].Value);
                     }
 
-                    FlightRestrictions.AddRestriction(new FlightRestriction(type, startDate, endDate, @from, to));
+                    TripRestrictions.AddRestriction(new TripRestriction(type, startDate, endDate, @from, to));
                 }
         }
 
@@ -3433,7 +3433,7 @@ namespace TheBusProject.Infrastructure
         {
             try
             {
-                var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/addons/airports/majordestinations");
+                var dir = new DirectoryInfo(AppSettings.GetDataPath() + "/addons/stations/majordestinations");
 
                 foreach (FileInfo file in dir.GetFiles("*.xml"))
                 {
@@ -3445,13 +3445,13 @@ namespace TheBusProject.Infrastructure
                 LogError("Error loading destinations", e);
             }
 
-            foreach (Airport airport in Airports.GetAllAirports())
+            foreach (Station station in Stations.GetAllStations())
             {
-                int majorPax = airport.Profile.MajorDestionations.Sum(d => d.Value);
+                int majorPax = station.Profile.MajorDestionations.Sum(d => d.Value);
 
                 if (majorPax > 0)
                 {
-                    airport.Profile.SetPaxValue(Math.Max(airport.Profile.Pax, majorPax));
+                    station.Profile.SetPaxValue(Math.Max(station.Profile.Pax, majorPax));
                 }
             }
         }
@@ -3464,31 +3464,31 @@ namespace TheBusProject.Infrastructure
 
             if (root != null)
             {
-                XmlNodeList airportsList = root.SelectNodes("//majordestination");
+                XmlNodeList stationsList = root.SelectNodes("//majordestination");
                 string id = "";
                 try
                 {
-                    if (airportsList != null)
-                        foreach (XmlElement airportElement in airportsList)
+                    if (stationsList != null)
+                        foreach (XmlElement stationElement in stationsList)
                         {
-                            Airport airport = Airports.GetAirport(airportElement.Attributes["airport"].Value);
+                            Station station = Stations.GetStation(stationElement.Attributes["station"].Value);
 
-                            if (airport == null)
+                            if (station == null)
                             {
-                                continue; // the airport failed to load
+                                continue; // the station failed to load
                             }
 
-                            id = airport.Profile.IATACode;
+                            id = station.Profile.IATACode;
 
-                            XmlNodeList destinationsList = airportElement.SelectNodes("destinations/destination");
+                            XmlNodeList destinationsList = stationElement.SelectNodes("destinations/destination");
 
                             if (destinationsList != null)
                                 foreach (XmlElement destinationElement in destinationsList)
                                 {
-                                    string destination = destinationElement.Attributes["airport"].Value;
+                                    string destination = destinationElement.Attributes["station"].Value;
                                     int pax = Convert.ToInt32(destinationElement.Attributes["pax"].Value);
 
-                                    airport.AddMajorDestination(destination, pax);
+                                    station.AddMajorDestination(destination, pax);
                                 }
                         }
                 }
@@ -3603,9 +3603,9 @@ namespace TheBusProject.Infrastructure
                         if (routesList != null)
                             foreach (XmlElement routeElement in routesList)
                             {
-                                // public SpecialContractRoute(Airport destination1, Airport destination2, long passengers,Boolean bothways)
-                                Airport departure = Airports.GetAirport(routeElement.Attributes["departure"].Value);
-                                Airport destination = Airports.GetAirport(routeElement.Attributes["destination"].Value);
+                                // public SpecialContractRoute(Station destination1, Station destination2, long passengers,Boolean bothways)
+                                Station departure = Stations.GetStation(routeElement.Attributes["departure"].Value);
+                                Station destination = Stations.GetStation(routeElement.Attributes["destination"].Value);
                                 bool bothways = Convert.ToBoolean(routeElement.Attributes["bothways"].Value);
                                 long passengers = Convert.ToInt64(routeElement.Attributes["passengers"].Value);
 
@@ -3628,7 +3628,7 @@ namespace TheBusProject.Infrastructure
                                 {
                                     var parameter = new ContractRequirement(ContractRequirement.RequirementType.Destination);
 
-                                    Airport departure = Airports.GetAirport(parameterElement.Attributes["departure"].Value);
+                                    Station departure = Stations.GetStation(parameterElement.Attributes["departure"].Value);
 
                                     parameter.Departure = departure;
 
@@ -3645,7 +3645,7 @@ namespace TheBusProject.Infrastructure
                                     }
                                     else
                                     {
-                                        parameter.Destination = Airports.GetAirport(destinationText);
+                                        parameter.Destination = Stations.GetStation(destinationText);
 
                                         scType.Requirements.Add(parameter);
                                     }
@@ -3655,8 +3655,8 @@ namespace TheBusProject.Infrastructure
                                     var parameter = new ContractRequirement(ContractRequirement.RequirementType.ClassType);
 
                                     var type =
-                                        (AirlinerClass.ClassType)
-                                            DataParsing.ParseEnum(typeof (AirlinerClass.ClassType), parameterElement.Attributes["classtype"].Value);
+                                        (CoachClass.ClassType)
+                                            DataParsing.ParseEnum(typeof (CoachClass.ClassType), parameterElement.Attributes["classtype"].Value);
 
                                     int seats = Convert.ToInt32(parameterElement.Attributes["minseats"].Value);
 
@@ -3716,16 +3716,16 @@ namespace TheBusProject.Infrastructure
 
                     switch (focus)
                     {
-                        case "Airline":
-                            eventFocus = RandomEvent.Focus.Airline;
+                        case "Carrier":
+                            eventFocus = RandomEvent.Focus.Carrier;
                             break;
 
-                        case "Aircraft":
-                            eventFocus = RandomEvent.Focus.Aircraft;
+                        case "Coach":
+                            eventFocus = RandomEvent.Focus.Coach;
                             break;
 
-                        case "Airport":
-                            eventFocus = RandomEvent.Focus.Airport;
+                        case "Station":
+                            eventFocus = RandomEvent.Focus.Station;
                             break;
                     }
 
@@ -3752,14 +3752,14 @@ namespace TheBusProject.Infrastructure
                         int ehEffect = effects.HasAttribute("employeeHappiness")
                             ? int.Parse(effects.Attributes["employeeHappiness"].Value)
                             : 0;
-                        int aSecurityEffect = effects.HasAttribute("airlineSecurity")
-                            ? int.Parse(effects.Attributes["airlineSecurity"].Value)
+                        int aSecurityEffect = effects.HasAttribute("carrierSecurity")
+                            ? int.Parse(effects.Attributes["carrierSecurity"].Value)
                             : 0;
-                        int aSafetyEffect = effects.HasAttribute("airlineSafety")
-                            ? int.Parse(effects.Attributes["airlineSafety"].Value)
+                        int aSafetyEffect = effects.HasAttribute("carrierSafety")
+                            ? int.Parse(effects.Attributes["carrierSafety"].Value)
                             : 0;
-                        int damageEffect = effects.HasAttribute("aircraftDamage")
-                            ? int.Parse(effects.Attributes["aircraftDamage"].Value)
+                        int damageEffect = effects.HasAttribute("coachDamage")
+                            ? int.Parse(effects.Attributes["coachDamage"].Value)
                             : 0;
                         int financial = effects.HasAttribute("financial") ? int.Parse(effects.Attributes["financial"].Value) : 0;
                         double paxDemand = demand != null && demand.HasAttribute("passenger")
@@ -3834,8 +3834,8 @@ namespace TheBusProject.Infrastructure
                 foreach (XmlElement classElement in classesList)
                 {
                     var type =
-                        (AirlinerClass.ClassType)
-                        DataParsing.ParseEnum(typeof (AirlinerClass.ClassType), classElement.Attributes["type"].Value);
+                        (CoachClass.ClassType)
+                        DataParsing.ParseEnum(typeof (CoachClass.ClassType), classElement.Attributes["type"].Value);
 
                     var classConfiguration = new RouteClassConfiguration(type);
 
@@ -3883,20 +3883,20 @@ namespace TheBusProject.Infrastructure
 
                         if (startElement != null)
                         {
-                            Airline startAirline = Airlines.GetAirline(startElement.Attributes["airline"].Value);
-                            Airport homebase = Airports.GetAirport(startElement.Attributes["homeBase"].Value);
+                            Carrier startCarrier = Carriers.GetCarrier(startElement.Attributes["carrier"].Value);
+                            Station homebase = Stations.GetStation(startElement.Attributes["homeBase"].Value);
 
                             if (startElement.HasAttribute("license"))
                             {
-                                startAirline.License =
-                                    (Airline.AirlineLicense)
-                                        DataParsing.ParseEnum(typeof (Airline.AirlineLicense), startElement.Attributes["license"].Value);
+                                startCarrier.License =
+                                    (Carrier.CarrierLicense)
+                                        DataParsing.ParseEnum(typeof (Carrier.CarrierLicense), startElement.Attributes["license"].Value);
                             }
 
                             var scenario = new Scenario(
                                 scenarioName,
                                 description,
-                                startAirline,
+                                startCarrier,
                                 homebase,
                                 startYear,
                                 endYear,
@@ -3914,14 +3914,14 @@ namespace TheBusProject.Infrastructure
                             if (humanRoutesList != null)
                                 foreach (XmlElement humanRouteElement in humanRoutesList)
                                 {
-                                    Airport routeDestination1 = Airports.GetAirport(humanRouteElement.Attributes["departure"].Value);
-                                    Airport routeDestination2 = Airports.GetAirport(humanRouteElement.Attributes["destination"].Value);
-                                    AirlinerType routeAirlinerType =
-                                        AirlinerTypes.GetType(humanRouteElement.Attributes["airliner"].Value);
+                                    Station routeDestination1 = Stations.GetStation(humanRouteElement.Attributes["departure"].Value);
+                                    Station routeDestination2 = Stations.GetStation(humanRouteElement.Attributes["destination"].Value);
+                                    CoachType routeCoachType =
+                                        CoachTypes.GetType(humanRouteElement.Attributes["coach"].Value);
                                     int routeQuantity = Convert.ToInt32(humanRouteElement.Attributes["quantity"].Value);
 
                                     scenario.AddRoute(
-                                        new ScenarioAirlineRoute(routeDestination1, routeDestination2, routeAirlinerType, routeQuantity));
+                                        new ScenarioCarrierRoute(routeDestination1, routeDestination2, routeCoachType, routeQuantity));
                                 }
 
                             XmlNodeList destinationsList = startElement.SelectNodes("destinations/destination");
@@ -3929,52 +3929,52 @@ namespace TheBusProject.Infrastructure
                             if (destinationsList != null)
                                 foreach (XmlElement destinationElement in destinationsList)
                                 {
-                                    scenario.AddDestination(Airports.GetAirport(destinationElement.Attributes["airport"].Value));
+                                    scenario.AddDestination(Stations.GetStation(destinationElement.Attributes["station"].Value));
                                 }
 
-                            XmlNodeList fleetList = startElement.SelectNodes("fleet/aircraft");
+                            XmlNodeList fleetList = startElement.SelectNodes("fleet/coach");
 
                             if (fleetList != null)
                                 foreach (XmlElement fleetElement in fleetList)
                                 {
-                                    AirlinerType fleetAirlinerType = AirlinerTypes.GetType(fleetElement.Attributes["name"].Value);
+                                    CoachType fleetCoachType = CoachTypes.GetType(fleetElement.Attributes["name"].Value);
 
                                     int fleetQuantity = Convert.ToInt32(fleetElement.Attributes["quantity"].Value);
 
-                                    scenario.AddFleet(fleetAirlinerType, fleetQuantity);
+                                    scenario.AddFleet(fleetCoachType, fleetQuantity);
                                 }
 
-                            XmlNodeList aiNodeList = startElement.SelectNodes("AI/airline");
+                            XmlNodeList aiNodeList = startElement.SelectNodes("AI/carrier");
 
                             if (aiNodeList != null)
                                 foreach (XmlElement aiElement in aiNodeList)
                                 {
-                                    Airline aiAirline = Airlines.GetAirline(aiElement.Attributes["name"].Value, startYear);
-                                    Airport aiHomebase = Airports.GetAirport(aiElement.Attributes["homeBase"].Value);
+                                    Carrier aiCarrier = Carriers.GetCarrier(aiElement.Attributes["name"].Value, startYear);
+                                    Station aiHomebase = Stations.GetStation(aiElement.Attributes["homeBase"].Value);
 
-                                    var scenarioAirline = new ScenarioAirline(aiAirline, aiHomebase);
+                                    var scenarioCarrier = new ScenarioCarrier(aiCarrier, aiHomebase);
 
                                     XmlNodeList aiRoutesList = aiElement.SelectNodes("route");
 
                                     if (aiRoutesList != null)
                                         foreach (XmlElement aiRouteElement in aiRoutesList)
                                         {
-                                            Airport aiRouteDestination1 = Airports.GetAirport(aiRouteElement.Attributes["departure"].Value);
-                                            Airport aiRouteDestination2 = Airports.GetAirport(
+                                            Station aiRouteDestination1 = Stations.GetStation(aiRouteElement.Attributes["departure"].Value);
+                                            Station aiRouteDestination2 = Stations.GetStation(
                                                 aiRouteElement.Attributes["destination"].Value);
-                                            AirlinerType routeAirlinerType =
-                                                AirlinerTypes.GetType(aiRouteElement.Attributes["airliner"].Value);
+                                            CoachType routeCoachType =
+                                                CoachTypes.GetType(aiRouteElement.Attributes["coach"].Value);
                                             int routeQuantity = Convert.ToInt32(aiRouteElement.Attributes["quantity"].Value);
 
-                                            scenarioAirline.AddRoute(
-                                                new ScenarioAirlineRoute(
+                                            scenarioCarrier.AddRoute(
+                                                new ScenarioCarrierRoute(
                                                     aiRouteDestination1,
                                                     aiRouteDestination2,
-                                                    routeAirlinerType,
+                                                    routeCoachType,
                                                     routeQuantity));
                                         }
 
-                                    scenario.AddOpponentAirline(scenarioAirline);
+                                    scenario.AddOpponentCarrier(scenarioCarrier);
                                 }
 
                             XmlNodeList modifiersList = element.SelectNodes("modifiers/paxDemand");
@@ -3983,16 +3983,16 @@ namespace TheBusProject.Infrastructure
                                 foreach (XmlElement paxElement in modifiersList)
                                 {
                                     Country country = null;
-                                    Airport airport = null;
+                                    Station station = null;
 
                                     if (paxElement.HasAttribute("country"))
                                     {
                                         country = Countries.GetCountry(paxElement.Attributes["country"].Value);
                                     }
 
-                                    if (paxElement.HasAttribute("airport"))
+                                    if (paxElement.HasAttribute("station"))
                                     {
-                                        airport = Airports.GetAirport(paxElement.Attributes["airport"].Value);
+                                        station = Stations.GetStation(paxElement.Attributes["station"].Value);
                                     }
 
                                     double factor = Convert.ToDouble(
@@ -4002,7 +4002,7 @@ namespace TheBusProject.Infrastructure
                                     var enddate =
                                         new DateTime(scenario.StartYear + Convert.ToInt32(paxElement.Attributes["length"].Value), 1, 1);
 
-                                    scenario.AddPassengerDemand(new ScenarioPassengerDemand(factor, enddate, country, airport));
+                                    scenario.AddPassengerDemand(new ScenarioPassengerDemand(factor, enddate, country, station));
                                 }
 
                             XmlNodeList parametersList = element.SelectNodes("parameters/failure");
@@ -4077,9 +4077,9 @@ namespace TheBusProject.Infrastructure
                         {
                             Configurations.AddConfiguration(LoadRouteClassesConfiguration(element));
                         }
-                        if (type == "Airliner")
+                        if (type == "Coach")
                         {
-                            Configurations.AddConfiguration(LoadAirlinerConfiguration(element));
+                            Configurations.AddConfiguration(LoadCoachConfiguration(element));
                         }
                     }
             }
@@ -4287,7 +4287,7 @@ namespace TheBusProject.Infrastructure
                 }
         }
 
-        /*! load the airliner facilities.
+        /*! load the coach facilities.
          */
 
         /*! loads all weather averages
@@ -4313,7 +4313,7 @@ namespace TheBusProject.Infrastructure
             XmlElement root = doc.DocumentElement;
 
             Country country = null;
-            Airport airport = null;
+            Station station = null;
             Town town = null;
 
             if (root != null)
@@ -4331,9 +4331,9 @@ namespace TheBusProject.Infrastructure
                     town = Towns.GetTown(value);
                 }
 
-                if (type == "airport")
+                if (type == "station")
                 {
-                    airport = Airports.GetAirport(value);
+                    station = Stations.GetStation(value);
                 }
             }
 
@@ -4375,10 +4375,10 @@ namespace TheBusProject.Infrastructure
                                     new WeatherAverage(month, minTemp, maxTemp, precipitation, minWind, maxWind, town));
                             }
 
-                            if (airport != null)
+                            if (station != null)
                             {
                                 WeatherAverages.AddWeatherAverage(
-                                    new WeatherAverage(month, minTemp, maxTemp, precipitation, minWind, maxWind, airport));
+                                    new WeatherAverage(month, minTemp, maxTemp, precipitation, minWind, maxWind, station));
                             }
                         }
                     }
@@ -4401,43 +4401,43 @@ namespace TheBusProject.Infrastructure
             }
         }
 
-        private static void RemoveAirlines(int opponnents, bool sameRegion)
+        private static void RemoveCarriers(int opponnents, bool sameRegion)
         {
-            Airport humanAirport = GameObject.GetInstance().HumanAirline.Airports[0];
+            Station humanStation = GameObject.GetInstance().HumanCarrier.Stations[0];
             int year = GameObject.GetInstance().GameTime.Year;
 
-            List<Airline> notAvailableAirlines =
-                Airlines.GetAirlines(a => !(a.Profile.Founded <= year && a.Profile.Folded > year));
+            List<Carrier> notAvailableCarriers =
+                Carriers.GetCarriers(a => !(a.Profile.Founded <= year && a.Profile.Folded > year));
 
-            foreach (Airline airline in notAvailableAirlines)
+            foreach (Carrier carrier in notAvailableCarriers)
             {
-                Airlines.RemoveAirline(airline);
+                Carriers.RemoveCarrier(carrier);
             }
 
             int count =
-                Airlines.GetAirlines(a => !a.IsHuman && a.Profile.Founded <= year && a.Profile.Folded > year).Count;
+                Carriers.GetCarriers(a => !a.IsHuman && a.Profile.Founded <= year && a.Profile.Folded > year).Count;
 
-            var airlines =
-                new List<Airline>(
-                    Airlines.GetAirlines(a => !a.IsHuman && a.Profile.Founded <= year && a.Profile.Folded > year));
+            var carriers =
+                new List<Carrier>(
+                    Carriers.GetCarriers(a => !a.IsHuman && a.Profile.Founded <= year && a.Profile.Folded > year));
 
             if (sameRegion)
             {
-                airlines =
-                    airlines.OrderByDescending(
+                carriers =
+                    carriers.OrderByDescending(
                         a =>
-                        a.Profile.PreferedAirport == null
+                        a.Profile.PreferedStation == null
                             ? double.MaxValue
-                            : MathHelpers.GetDistance(a.Profile.PreferedAirport, humanAirport)).ToList();
+                            : MathHelpers.GetDistance(a.Profile.PreferedStation, humanStation)).ToList();
             }
             else
             {
-                airlines = MathHelpers.Shuffle(airlines);
+                carriers = MathHelpers.Shuffle(carriers);
             }
 
             for (int i = 0; i < count - opponnents; i++)
             {
-                Airlines.RemoveAirline(airlines[i]);
+                Carriers.RemoveCarrier(carriers[i]);
             }
         }
 
@@ -4464,19 +4464,19 @@ namespace TheBusProject.Infrastructure
             StartupLog.Write("SetupMainGame: pilots done");
 
             //creates the facilities for pilot training
-            IEnumerable<string> aircraftFamilies =
-                AirlinerTypes.GetTypes(
+            IEnumerable<string> coachFamilies =
+                CoachTypes.GetTypes(
                     t =>
                     t.Produced.From.Year < GameObject.GetInstance().GameTime.Year
                     && t.Produced.To > GameObject.GetInstance().GameTime.AddYears(-30))
-                             .Select(a => a.AirlinerFamily)
+                             .Select(a => a.CoachFamily)
                              .Distinct();
 
-            foreach (string family in aircraftFamilies)
+            foreach (string family in coachFamilies)
             {
-                AirlineFacilities.AddFacility(
+                CarrierFacilities.AddFacility(
                     new PilotTrainingFacility(
-                        "airlinefacilities",
+                        "carrierfacilities",
                         family,
                         9000,
                         1000,
@@ -4486,97 +4486,97 @@ namespace TheBusProject.Infrastructure
                         family));
             }
 
-            StartupLog.Write("SetupMainGame: pilot training facilities done, setting airport facilities for " + Airports.GetAllAirports().Count + " airports and " + Airlines.GetAllAirlines().Count + " airlines");
-            //sets all the facilities at an airport to none for all airlines
+            StartupLog.Write("SetupMainGame: pilot training facilities done, setting station facilities for " + Stations.GetAllStations().Count + " stations and " + Carriers.GetAllCarriers().Count + " carriers");
+            //sets all the facilities at an station to none for all carriers
             Parallel.ForEach(
-                Airports.GetAllAirports(),
-                airport =>
+                Stations.GetAllStations(),
+                station =>
                     {
-                        foreach (Airline airline in Airlines.GetAllAirlines())
+                        foreach (Carrier carrier in Carriers.GetAllCarriers())
                         {
                             foreach (
-                                AirportFacility.FacilityType type in Enum.GetValues(typeof (AirportFacility.FacilityType)))
+                                StationFacility.FacilityType type in Enum.GetValues(typeof (StationFacility.FacilityType)))
                             {
-                                AirportFacility noneFacility =
-                                    AirportFacilities.GetFacilities(type)
+                                StationFacility noneFacility =
+                                    StationFacilities.GetFacilities(type)
                                                      .Find((facility => facility.TypeLevel == 0));
 
-                                airport.AddAirportFacility(airline, noneFacility, GameObject.GetInstance().GameTime);
+                                station.AddStationFacility(carrier, noneFacility, GameObject.GetInstance().GameTime);
                             }
                         }
-                        if (airport.Profile.Size == GeneralHelpers.Size.Largest
-                            || airport.Profile.Size == GeneralHelpers.Size.VeryLarge
-                            || airport.Profile.Size == GeneralHelpers.Size.Large)
+                        if (station.Profile.Size == GeneralHelpers.Size.Largest
+                            || station.Profile.Size == GeneralHelpers.Size.VeryLarge
+                            || station.Profile.Size == GeneralHelpers.Size.Large)
                         {
-                            if (!airport.Runways.Exists(r => r.Type == Runway.RunwayType.Helipad))
+                            if (!station.Runways.Exists(r => r.Type == Runway.RunwayType.Helipad))
                             {
                                 var helipad = new Runway("H1", Rnd.Next(17, 25), Runway.RunwayType.Helipad, Runway.SurfaceType.Concrete, GameObject.GetInstance().GameTime, true);
 
-                                airport.Runways.Add(helipad);
+                                station.Runways.Add(helipad);
                             }
                         }
-                        if (airport.Profile.Cargo == GeneralHelpers.Size.VeryLarge
-                            || airport.Profile.Cargo == GeneralHelpers.Size.Largest
-                            || airport.Profile.Size == GeneralHelpers.Size.Largest
-                            || airport.Profile.Size == GeneralHelpers.Size.VeryLarge)
+                        if (station.Profile.Cargo == GeneralHelpers.Size.VeryLarge
+                            || station.Profile.Cargo == GeneralHelpers.Size.Largest
+                            || station.Profile.Size == GeneralHelpers.Size.Largest
+                            || station.Profile.Size == GeneralHelpers.Size.VeryLarge)
                         {
-                            AirportFacility cargoTerminal =
-                                AirportFacilities.GetFacilities(AirportFacility.FacilityType.Cargo)
+                            StationFacility cargoTerminal =
+                                StationFacilities.GetFacilities(StationFacility.FacilityType.Cargo)
                                                  .Find(f => f.TypeLevel > 0);
 
-                            airport.AddAirportFacility(null, cargoTerminal, GameObject.GetInstance().GameTime);
+                            station.AddStationFacility(null, cargoTerminal, GameObject.GetInstance().GameTime);
 
-                            if (!airport.Terminals.AirportTerminals.Exists(t => t.Type == Terminal.TerminalType.Cargo))
+                            if (!station.Terminals.StationTerminals.Exists(t => t.Type == Terminal.TerminalType.Cargo))
                             {
-                                airport.Terminals.AddTerminal(new Terminal(airport, "Cargo Terminal", ((int) airport.Profile.Cargo) + 5, GameObject.GetInstance().GameTime, Terminal.TerminalType.Cargo));
+                                station.Terminals.AddTerminal(new Terminal(station, "Cargo Terminal", ((int) station.Profile.Cargo) + 5, GameObject.GetInstance().GameTime, Terminal.TerminalType.Cargo));
                             }
                         }
 
-                        AirportHelpers.CreateAirportWeather(airport);
+                        StationHelpers.CreateStationWeather(station);
 
                         //creates the already existing expansions
-                        IEnumerable<AirportExpansion> expansions = airport.Profile.Expansions.Where(e => GameObject.GetInstance().GameTime > e.Date);
+                        IEnumerable<StationExpansion> expansions = station.Profile.Expansions.Where(e => GameObject.GetInstance().GameTime > e.Date);
 
-                        foreach (AirportExpansion expansion in expansions)
-                            AirportHelpers.SetAirportExpansion(airport, expansion, true);
+                        foreach (StationExpansion expansion in expansions)
+                            StationHelpers.SetStationExpansion(station, expansion, true);
                     });
 
-            StartupLog.Write("SetupMainGame: airport facilities done");
-            foreach (Airline airline in Airlines.GetAllAirlines())
+            StartupLog.Write("SetupMainGame: station facilities done");
+            foreach (Carrier carrier in Carriers.GetAllCarriers())
             {
-                StartupLog.Write("SetupMainGame: setting up airline " + airline.Profile.IATACode);
-                airline.Money = GameObject.GetInstance().StartMoney;
+                StartupLog.Write("SetupMainGame: setting up carrier " + carrier.Profile.IATACode);
+                carrier.Money = GameObject.GetInstance().StartMoney;
 
-                if (airline.IsHuman)
+                if (carrier.IsHuman)
                 {
-                    GameObject.GetInstance().HumanMoney = airline.Money;
+                    GameObject.GetInstance().HumanMoney = carrier.Money;
                 }
 
-                airline.StartMoney = airline.Money;
-                airline.Fees = new AirlineFees();
-                airline.AddAirlinePolicy(new AirlinePolicy("Cancellation Minutes", 150));
+                carrier.StartMoney = carrier.Money;
+                carrier.Fees = new CarrierFees();
+                carrier.AddCarrierPolicy(new CarrierPolicy("Cancellation Minutes", 150));
 
-                // (the old 10,000 share objects aren't made any more: SharesService's Holdings say who owns the airline)
+                // (the old 10,000 share objects aren't made any more: SharesService's Holdings say who owns the carrier)
 
-                if (!airline.IsHuman)
+                if (!carrier.IsHuman)
                 {
-                    airline.Profile.Country = airline.Profile.Countries[Rnd.Next(airline.Profile.Countries.Count)];
+                    carrier.Profile.Country = carrier.Profile.Countries[Rnd.Next(carrier.Profile.Countries.Count)];
 
-                    CreateComputerRoutes(airline);
+                    CreateComputerRoutes(carrier);
                 }
             }
 
             /*
-            Airports.GetAirport("BOS").Terminals.rentGate(GameObject.GetInstance().HumanAirline);
-            Airports.GetAirport("AAR").Terminals.rentGate(GameObject.GetInstance().HumanAirline);
-            Airports.GetAirport("CPH").Terminals.rentGate(GameObject.GetInstance().HumanAirline);
-            Airports.GetAirport("CPH").Terminals.rentGate(GameObject.GetInstance().HumanAirline);
-            Airports.GetAirport("SBY").Terminals.rentGate(GameObject.GetInstance().HumanAirline);
+            Stations.GetStation("BOS").Terminals.rentGate(GameObject.GetInstance().HumanCarrier);
+            Stations.GetStation("AAR").Terminals.rentGate(GameObject.GetInstance().HumanCarrier);
+            Stations.GetStation("CPH").Terminals.rentGate(GameObject.GetInstance().HumanCarrier);
+            Stations.GetStation("CPH").Terminals.rentGate(GameObject.GetInstance().HumanCarrier);
+            Stations.GetStation("SBY").Terminals.rentGate(GameObject.GetInstance().HumanCarrier);
 
-            Airliner airliner = Airliners.GetAirlinersForSale(a => a.Type.Name == "Boeing 737-900ER").First();
-            AirlineHelpers.BuyAirliner(GameObject.GetInstance().HumanAirline, airliner, GameObject.GetInstance().HumanAirline.Airports[0]);
+            Coach coach = Coaches.GetCoachesForSale(a => a.Type.Name == "Boeing 737-900ER").First();
+            CarrierHelpers.BuyCoach(GameObject.GetInstance().HumanCarrier, coach, GameObject.GetInstance().HumanCarrier.Stations[0]);
             */
-            StartupLog.Write("SetupMainGame: airlines done, setting up alliances");
+            StartupLog.Write("SetupMainGame: carriers done, setting up alliances");
             SetupAlliances();
             SetupMergers();
             StartupLog.Write("SetupMainGame: finished");
@@ -4587,13 +4587,13 @@ namespace TheBusProject.Infrastructure
             StatisticsTypes.AddStatisticsType(new StatisticsType("Arrivals", "Arrivals"));
             StatisticsTypes.AddStatisticsType(new StatisticsType("Departures", "Departures"));
             StatisticsTypes.AddStatisticsType(new StatisticsType("Cargo", "Cargo"));
-            StatisticsTypes.AddStatisticsType(new StatisticsType("Cargo per flight", "Cargo%"));
+            StatisticsTypes.AddStatisticsType(new StatisticsType("Cargo per trip", "Cargo%"));
             StatisticsTypes.AddStatisticsType(new StatisticsType("Passengers", "Passengers"));
-            StatisticsTypes.AddStatisticsType(new StatisticsType("Passengers per flight", "Passengers%"));
+            StatisticsTypes.AddStatisticsType(new StatisticsType("Passengers per trip", "Passengers%"));
             StatisticsTypes.AddStatisticsType(new StatisticsType("Passenger Capacity", "Capacity"));
-            StatisticsTypes.AddStatisticsType(new StatisticsType("Airliner Income", "Airliner_Income"));
-            StatisticsTypes.AddStatisticsType(new StatisticsType("On-Time flights", "On-Time"));
-            StatisticsTypes.AddStatisticsType(new StatisticsType("Flights On-Time", "On-Time%"));
+            StatisticsTypes.AddStatisticsType(new StatisticsType("Coach Income", "Coach_Income"));
+            StatisticsTypes.AddStatisticsType(new StatisticsType("On-Time trips", "On-Time"));
+            StatisticsTypes.AddStatisticsType(new StatisticsType("Trips On-Time", "On-Time%"));
             StatisticsTypes.AddStatisticsType(new StatisticsType("Cancellations", "Cancellations"));
             StatisticsTypes.AddStatisticsType(new StatisticsType("Cancellation Percent", "Cancellation%"));
         }
@@ -4608,6 +4608,6 @@ namespace TheBusProject.Infrastructure
          * Resets game´s environment.
          */
 
-        //sets up the airline mergers
+        //sets up the carrier mergers
     }
 }

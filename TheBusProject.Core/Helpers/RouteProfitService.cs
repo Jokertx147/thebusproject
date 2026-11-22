@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using TheBusProject.Models.Airliners;
+using TheBusProject.Models.Coaches;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Finances;
 using TheBusProject.Models.Routes;
@@ -22,13 +22,13 @@ namespace TheBusProject.Helpers
 
         public double Load { get; set; }
         public int CarriedLastMonth { get; set; }
-        public int WeeklyFlights { get; set; }
+        public int WeeklyTrips { get; set; }
 
         /// <summary>The route's price over the market price (economy fare, or cargo rate); 0 when unknown.</summary>
         public double FareRatio { get; set; }
 
-        public double ProfitPerFlight { get; set; }
-        public string Aircraft { get; set; }
+        public double ProfitPerTrip { get; set; }
+        public string Coach { get; set; }
         public string Advice { get; set; }
 
         /// <summary>More or fewer round trips a day that the forecast says earn clearly more (null when none, or not known).</summary>
@@ -39,7 +39,7 @@ namespace TheBusProject.Helpers
     /// <summary>
     ///     Profit per route: what each route earned last month, this month so far and in the last 12 months, with its
     ///     load, the fare against the market and a hint on what to do. The figures are the route's own income and costs
-    ///     (tickets, in-flight sales, fuel and handling, crew, maintenance, fees), before what the aircraft themselves
+    ///     (tickets, in-trip sales, fuel and handling, crew, maintenance, fees), before what the coach themselves
     ///     cost to own or lease.
     /// </summary>
     public static class RouteProfitService
@@ -88,12 +88,12 @@ namespace TheBusProject.Helpers
             switch (t)
             {
                 case Invoice.InvoiceType.Tickets: return "Tickets and cargo";
-                case Invoice.InvoiceType.OnFlightIncome: return "In-flight sales";
-                case Invoice.InvoiceType.FlightExpenses: return "Fuel, handling and overhead";
+                case Invoice.InvoiceType.OnTripIncome: return "In-trip sales";
+                case Invoice.InvoiceType.TripExpenses: return "Fuel, handling and overhead";
                 case Invoice.InvoiceType.Maintenances: return "Maintenance";
                 case Invoice.InvoiceType.Wages: return "Crew";
                 case Invoice.InvoiceType.Fees: return "Fees";
-                case Invoice.InvoiceType.AirlineExpenses: return "Other expenses";
+                case Invoice.InvoiceType.CarrierExpenses: return "Other expenses";
                 default: return t.ToString();
             }
         }
@@ -118,15 +118,15 @@ namespace TheBusProject.Helpers
             int connecting, all;
             ConnectionService.LastMonth(route, out connecting, out all);
             f.CarriedLastMonth = all;
-            f.WeeklyFlights = route.TimeTable.Entries.Count;
-            double flightsLastMonth = f.WeeklyFlights*DateTime.DaysInMonth(last.Year, last.Month)/7.0;
-            f.ProfitPerFlight = flightsLastMonth > 0 && f.Months > 0 ? f.LastMonth/flightsLastMonth : 0;
+            f.WeeklyTrips = route.TimeTable.Entries.Count;
+            double tripsLastMonth = f.WeeklyTrips*DateTime.DaysInMonth(last.Year, last.Month)/7.0;
+            f.ProfitPerTrip = tripsLastMonth > 0 && f.Months > 0 ? f.LastMonth/tripsLastMonth : 0;
 
             try
             {
                 if (route is PassengerRoute pr)
                 {
-                    double market = PricingService.MarketFare(route.Destination1, route.Destination2, AirlinerClass.ClassType.EconomyClass);
+                    double market = PricingService.MarketFare(route.Destination1, route.Destination2, CoachClass.ClassType.EconomyClass);
                     f.FareRatio = market > 0 ? AIPricingService.EconomyFare(pr)/market : 0;
                 }
                 else if (route is CargoRoute)
@@ -140,12 +140,12 @@ namespace TheBusProject.Helpers
                 f.FareRatio = 0;
             }
 
-            var aircraft = route.GetAirliners();
-            f.Aircraft = aircraft.Count == 0 ? "no aircraft" : string.Join(", ", aircraft.Select(a => a.Name + " (" + a.Airliner.Type.Name + ")"));
-            f.Advice = Advice(f, aircraft.Count, now - started);
+            var coach = route.GetCoaches();
+            f.Coach = coach.Count == 0 ? "no coach" : string.Join(", ", coach.Select(a => a.Name + " (" + a.Coach.Type.Name + ")"));
+            f.Advice = Advice(f, coach.Count, now - started);
             try
             {
-                var trips = route.Airline != null ? RouteForecastService.AdviseTrips(route.Airline, route) : null;
+                var trips = route.Carrier != null ? RouteForecastService.AdviseTrips(route.Carrier, route) : null;
                 if (trips != null && trips.Change && (now - started).TotalDays >= 14)
                 {
                     f.Trips = trips;
@@ -159,30 +159,30 @@ namespace TheBusProject.Helpers
             return f;
         }
 
-        private static string Advice(RouteFigures f, int aircraft, TimeSpan age)
+        private static string Advice(RouteFigures f, int coach, TimeSpan age)
         {
             string fare = f.IsCargo ? "rate" : "fare";
-            if (aircraft == 0) return "No aircraft flies it: put one on it, or delete the route.";
+            if (coach == 0) return "No coach runs it: put one on it, or delete the route.";
             if (age.TotalDays < 31) return "New route: the numbers are still building up.";
             bool losing = (f.Months > 0 ? f.LastMonth : f.ThisMonth) < 0;
             if (losing)
             {
                 if (f.Load > 0 && f.Load < 0.5 && f.FareRatio > 1.1) return "Losing money with few " + (f.IsCargo ? "loads" : "passengers") + " and a " + fare + " above the market: lower the " + fare + ".";
-                if (f.Load > 0 && f.Load < 0.5) return "Losing money with few " + (f.IsCargo ? "loads" : "passengers") + ": a smaller aircraft or fewer flights would cost less.";
+                if (f.Load > 0 && f.Load < 0.5) return "Losing money with few " + (f.IsCargo ? "loads" : "passengers") + ": a smaller coach or fewer trips would cost less.";
                 if (f.Load >= 0.9) return "Full but losing money: raise the " + fare + ".";
                 if (f.FareRatio > 0 && f.FareRatio < 0.9) return "Losing money with a " + fare + " below the market: raise the " + fare + ".";
-                return "Costs more than it earns: check the " + fare + ", or fly it with a cheaper aircraft.";
+                return "Costs more than it earns: check the " + fare + ", or run it with a cheaper coach.";
             }
-            if (f.Load >= 0.92) return "Nearly full: room for a higher " + fare + " or a bigger aircraft.";
+            if (f.Load >= 0.92) return "Nearly full: room for a higher " + fare + " or a bigger coach.";
             if (f.FareRatio > 0 && f.FareRatio < 0.85) return "The " + fare + " is well below the market: you could ask more.";
-            if (f.Load > 0 && f.Load < 0.5) return "Profitable, but more than half the seats are empty: a smaller aircraft could earn more.";
+            if (f.Load > 0 && f.Load < 0.5) return "Profitable, but more than half the seats are empty: a smaller coach could earn more.";
             return "Doing fine.";
         }
 
-        /// <summary>The figures of all the airline's routes.</summary>
-        public static List<RouteFigures> All(Models.Airlines.Airline airline)
+        /// <summary>The figures of all the carrier's routes.</summary>
+        public static List<RouteFigures> All(Models.Carriers.Carrier carrier)
         {
-            return airline.Routes.ToList().Select(Figures).ToList();
+            return carrier.Routes.ToList().Select(Figures).ToList();
         }
     }
 }

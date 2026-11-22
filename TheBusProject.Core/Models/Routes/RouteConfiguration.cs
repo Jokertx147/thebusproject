@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airliners;
+using TheBusProject.Models.Coaches;
 
 namespace TheBusProject.Models.Routes
 {
@@ -67,7 +67,7 @@ namespace TheBusProject.Models.Routes
     {
         #region Constructors and Destructors
 
-        public RouteClassConfiguration(AirlinerClass.ClassType type)
+        public RouteClassConfiguration(CoachClass.ClassType type)
         {
             Type = type;
             Facilities = new List<RouteFacility>();
@@ -87,7 +87,7 @@ namespace TheBusProject.Models.Routes
         public List<RouteFacility> Facilities { get; set; }
 
         [Versioning("type")]
-        public AirlinerClass.ClassType Type { get; set; }
+        public CoachClass.ClassType Type { get; set; }
 
         #endregion
 

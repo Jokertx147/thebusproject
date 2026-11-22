@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<carrier>
+  <profile name="Nok Air" iata="DD" color="Black" country="175" CEO="Mr. Patee Sarasin" mentality="Safe"
+           market="Global" preferedstation="DMK">
+  </profile>
+  <info real="True" from="2004" to="2199" />
+</carrier>

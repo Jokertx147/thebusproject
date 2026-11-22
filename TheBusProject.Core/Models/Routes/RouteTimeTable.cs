@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using TheBusProject.Helpers;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Environment;
 
@@ -52,12 +52,12 @@ namespace TheBusProject.Models.Routes
             base.GetObjectData(info, context);
         }
 
-        //adds entries for a specific destination and time for each day of the week assigned to an airliner
-        public void AddDailyEntries(RouteEntryDestination destination, TimeSpan time, FleetAirliner airliner)
+        //adds entries for a specific destination and time for each day of the week assigned to an coach
+        public void AddDailyEntries(RouteEntryDestination destination, TimeSpan time, FleetCoach coach)
         {
             foreach (DayOfWeek day in Enum.GetValues(typeof (DayOfWeek)))
             {
-                var entry = new RouteTimeTableEntry(this, day, time, destination) {Airliner = airliner};
+                var entry = new RouteTimeTableEntry(this, day, time, destination) {Coach = coach};
 
                 Entries.Add(entry);
             }
@@ -74,14 +74,14 @@ namespace TheBusProject.Models.Routes
             Entries.Add(entry);
         }
 
-        //adds entries for a specific destination and for each weekday of the week assinged to an airliner
+        //adds entries for a specific destination and for each weekday of the week assinged to an coach
         public void AddWeekDailyEntries(RouteEntryDestination destination, TimeSpan time)
         {
             foreach (DayOfWeek day in Enum.GetValues(typeof (DayOfWeek)))
             {
                 if (day != DayOfWeek.Saturday && day != DayOfWeek.Sunday)
                 {
-                    var entry = new RouteTimeTableEntry(this, day, time, destination) {Airliner = null};
+                    var entry = new RouteTimeTableEntry(this, day, time, destination) {Coach = null};
 
                     Entries.Add(entry);
                 }
@@ -89,15 +89,15 @@ namespace TheBusProject.Models.Routes
         }
 
         /*
-        //returns all entries for a specific airliner
-        public List<RouteTimeTableEntry> getEntries(FleetAirliner airliner)
+        //returns all entries for a specific coach
+        public List<RouteTimeTableEntry> getEntries(FleetCoach coach)
         {
-            return this.Entries.FindAll(e => e.Airliner == airliner);
+            return this.Entries.FindAll(e => e.Coach == coach);
         }*/
         //returns all entries for a specific destination
-        public List<RouteTimeTableEntry> GetEntries(Airport destination)
+        public List<RouteTimeTableEntry> GetEntries(Station destination)
         {
-            return Entries.FindAll(e => e.Destination.Airport == destination);
+            return Entries.FindAll(e => e.Destination.Station == destination);
         }
 
         //returns all entries for a specific day
@@ -123,15 +123,15 @@ namespace TheBusProject.Models.Routes
             return GetEntries(day).Find(e => e.Time >= startTime && e.Time <= endTime);
         }
 
-        //returns the next entry after a specific date and with a specific airliner
-        public RouteTimeTableEntry GetNextEntry(DateTime time, FleetAirliner airliner)
+        //returns the next entry after a specific date and with a specific coach
+        public RouteTimeTableEntry GetNextEntry(DateTime time, FleetCoach coach)
         {
             var dt = new DateTime(time.Year, time.Month, time.Day, time.Hour, time.Minute, time.Second);
 
             int counter = 0;
             while (counter < 8)
             {
-                List<RouteTimeTableEntry> entries = GetEntries(dt.DayOfWeek).FindAll(e => airliner == e.Airliner);
+                List<RouteTimeTableEntry> entries = GetEntries(dt.DayOfWeek).FindAll(e => coach == e.Coach);
 
                 foreach (RouteTimeTableEntry dEntry in (from e in entries orderby e.Time select e))
                 {
@@ -145,12 +145,12 @@ namespace TheBusProject.Models.Routes
                 counter++;
             }
 
-            RouteTimeTableEntry entry = Entries.Find(e => e.Airliner == airliner);
+            RouteTimeTableEntry entry = Entries.Find(e => e.Coach == coach);
             return entry;
         }
 
-        //returns the next entry after a specific date and not to a specific coordinates (airport)
-        public RouteTimeTableEntry GetNextEntry(DateTime time, Airport airport)
+        //returns the next entry after a specific date and not to a specific coordinates (station)
+        public RouteTimeTableEntry GetNextEntry(DateTime time, Station station)
         {
             DayOfWeek day = time.DayOfWeek;
 
@@ -163,7 +163,7 @@ namespace TheBusProject.Models.Routes
                 foreach (RouteTimeTableEntry dEntry in (from e in entries orderby e.Time select e))
                 {
                     if (!((dEntry.Day == time.DayOfWeek && dEntry.Time <= time.TimeOfDay))
-                        && dEntry.Destination.Airport != airport)
+                        && dEntry.Destination.Station != station)
                     {
                         return dEntry;
                     }
@@ -250,10 +250,10 @@ namespace TheBusProject.Models.Routes
 
             foreach (RouteTimeTableEntry entry in Entries)
             {
-                if (!codes.Contains(entry.Destination.FlightCode))
+                if (!codes.Contains(entry.Destination.TripCode))
                 {
                     destinations.Add(entry.Destination);
-                    codes.Add(entry.Destination.FlightCode);
+                    codes.Add(entry.Destination.TripCode);
                 }
             }
 

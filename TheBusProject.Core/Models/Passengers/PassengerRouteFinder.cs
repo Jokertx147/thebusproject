@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using TheBusProject.Helpers;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Stations;
 
 namespace TheBusProject.Models.Passengers
 {
@@ -13,15 +13,15 @@ namespace TheBusProject.Models.Passengers
         /// <summary>
         ///     Constructor
         /// </summary>
-        /// <param name="nodes">All airports</param>
-        public PassengerRouteFinder(List<Airport> nodes)
+        /// <param name="nodes">All stations</param>
+        public PassengerRouteFinder(List<Station> nodes)
         {
             Nodes = nodes;
-            Basis = new List<Airport>();
+            Basis = new List<Station>();
             Dist = new Dictionary<string, double>();
-            Previous = new Dictionary<string, Airport>();
+            Previous = new Dictionary<string, Station>();
 
-            foreach (Airport n in Nodes)
+            foreach (Station n in Nodes)
             {
                 Previous.Add(n.Profile.IATACode, null);
                 Basis.Add(n);
@@ -33,13 +33,13 @@ namespace TheBusProject.Models.Passengers
 
         #region Public Properties
 
-        public List<Airport> Basis { get; set; }
+        public List<Station> Basis { get; set; }
 
         public Dictionary<string, double> Dist { get; set; }
 
-        public List<Airport> Nodes { get; set; }
+        public List<Station> Nodes { get; set; }
 
-        public Dictionary<string, Airport> Previous { get; set; }
+        public Dictionary<string, Station> Previous { get; set; }
 
         #endregion
 
@@ -47,23 +47,23 @@ namespace TheBusProject.Models.Passengers
 
         /// <summary>
         ///     Calculates the distance from
-        ///     the start airport to all other airports
+        ///     the start station to all other stations
         /// </summary>
         /// <param name="start">Startknoten</param>
-        public void CalculateDistance(Airport start)
+        public void CalculateDistance(Station start)
         {
             Dist[start.Profile.IATACode] = 0;
 
             while (Basis.Count > 0)
             {
-                Airport u = GetNodeWithSmallestDistance();
+                Station u = GetNodeWithSmallestDistance();
                 if (u == null)
                 {
                     Basis.Clear();
                 }
                 else
                 {
-                    foreach (Airport v in GetNeighbors(u))
+                    foreach (Station v in GetNeighbors(u))
                     {
                         double alt = Dist[u.Profile.IATACode] + getDistanceBetween(u, v);
                         if (alt < Dist[v.Profile.IATACode])
@@ -78,15 +78,15 @@ namespace TheBusProject.Models.Passengers
         }
 
         /// <summary>
-        ///     Returns the airport with the smallest distance
+        ///     Returns the station with the smallest distance
         /// </summary>
         /// <returns></returns>
-        public Airport GetNodeWithSmallestDistance()
+        public Station GetNodeWithSmallestDistance()
         {
             double distance = double.MaxValue;
-            Airport smallest = null;
+            Station smallest = null;
 
-            foreach (Airport n in Basis)
+            foreach (Station n in Basis)
             {
                 if (Dist[n.Profile.IATACode] < distance)
                 {
@@ -99,15 +99,15 @@ namespace TheBusProject.Models.Passengers
         }
 
         /// <summary>
-        ///     Gets the path to an airport
+        ///     Gets the path to an station
         /// </summary>
         /// <param name="d">
         ///     Destination
         /// </param>
         /// <returns></returns>
-        public List<Airport> GetPathTo(Airport d)
+        public List<Station> GetPathTo(Station d)
         {
-            var path = new List<Airport>();
+            var path = new List<Station>();
 
             path.Insert(0, d);
 
@@ -125,14 +125,14 @@ namespace TheBusProject.Models.Passengers
         #region Methods
 
         /// <summary>
-        ///     Returns the distance between two airports
+        ///     Returns the distance between two stations
         /// </summary>
-        /// <param name="o">Start airport</param>
-        /// <param name="d">Destination airport</param>
+        /// <param name="o">Start station</param>
+        /// <param name="d">Destination station</param>
         /// <returns></returns>
-        private double getDistanceBetween(Airport o, Airport d)
+        private double getDistanceBetween(Station o, Station d)
         {
-            if (AirportHelpers.GetAirportRoutes(o).Find(r => r.Destination1 == d || r.Destination2 == d) != null)
+            if (StationHelpers.GetStationRoutes(o).Find(r => r.Destination1 == d || r.Destination2 == d) != null)
             {
                 return 1;
             }
@@ -140,13 +140,13 @@ namespace TheBusProject.Models.Passengers
         }
 
         /// <summary>
-        ///     Returns all airports with a route from the an airport
+        ///     Returns all stations with a route from the an station
         /// </summary>
-        /// <param name="n">Airport</param>
+        /// <param name="n">Station</param>
         /// <returns></returns>
-        private IEnumerable<Airport> GetNeighbors(Airport n)
+        private IEnumerable<Station> GetNeighbors(Station n)
         {
-            return AirportHelpers.GetAirportRoutes(n).Select(route => route.Destination1 == n ? route.Destination2 : route.Destination1).Where(destination => Basis.Contains(n)).ToList();
+            return StationHelpers.GetStationRoutes(n).Select(route => route.Destination1 == n ? route.Destination2 : route.Destination1).Where(destination => Basis.Contains(n)).ToList();
         }
 
         #endregion

@@ -98,9 +98,9 @@ namespace TheBusProject.Presentation
             Navigate(new LoadGameViewModel(this));
         }
 
-        public void ShowAirline()
+        public void ShowCarrier()
         {
-            Navigate(new AirlineViewModel(this));
+            Navigate(new CarrierViewModel(this));
         }
     }
 }

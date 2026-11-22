@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.Serialization;
 using TheBusProject.Infrastructure;
 
@@ -38,15 +38,15 @@ namespace TheBusProject.Models.General.Finances
 
             Tickets,
 
-            AirlineExpenses,
+            CarrierExpenses,
 
             Fees,
 
             Maintenances,
 
-            FlightExpenses,
+            TripExpenses,
 
-            OnFlightIncome,
+            OnTripIncome,
 
             Total
         }

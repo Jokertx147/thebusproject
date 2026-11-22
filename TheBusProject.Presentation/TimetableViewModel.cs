@@ -4,17 +4,17 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 using TheBusProject.Helpers;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.Routes;
 
 namespace TheBusProject.Presentation
 {
-    public class AircraftOption
+    public class CoachOption
     {
-        public FleetAirliner Airliner { get; set; }
+        public FleetCoach Coach { get; set; }
         public string Text { get; set; }
     }
 
@@ -24,17 +24,17 @@ namespace TheBusProject.Presentation
         public string Text { get; set; }
     }
 
-    public class AirportOption
+    public class StationOption
     {
-        public Airport Airport { get; set; }
+        public Station Station { get; set; }
         public string Text { get; set; }
     }
 
-    /// <summary>One aircraft's week, kept so a change to it can be taken back.</summary>
+    /// <summary>One coach's week, kept so a change to it can be taken back.</summary>
     internal class TimetableMemo
     {
         public string Label { get; set; }
-        public FleetAirliner Airliner { get; set; }
+        public FleetCoach Coach { get; set; }
         public List<MemoLine> Lines { get; set; }
     }
 
@@ -44,7 +44,7 @@ namespace TheBusProject.Presentation
         public DayOfWeek Day { get; set; }
         public TimeSpan Time { get; set; }
         public string Code { get; set; }
-        public Airport To { get; set; }
+        public Station To { get; set; }
     }
 
     public class DayChoice
@@ -78,12 +78,12 @@ namespace TheBusProject.Presentation
         public string Day { get; set; }
         public string Time { get; set; }
         public string Arrives { get; set; }
-        public string Flight { get; set; }
+        public string Trip { get; set; }
         public string Route { get; set; }
         public ICommand RemoveCommand { get; set; }
     }
 
-    /// <summary>A flight drawn on the weekly timeline: a day, a start and an end in minutes of that day.</summary>
+    /// <summary>A trip drawn on the weekly timeline: a day, a start and an end in minutes of that day.</summary>
     public class TimelineBlock
     {
         public int Day { get; set; }
@@ -95,29 +95,29 @@ namespace TheBusProject.Presentation
         public bool IsPreview { get; set; }
         public RouteTimeTableEntry Entry { get; set; }
 
-        /// <summary>The whole flight's length, which a block cut in two at midnight does not show.</summary>
+        /// <summary>The whole trip's length, which a block cut in two at midnight does not show.</summary>
         public double DurationMinutes { get; set; }
 
         /// <summary>
-        ///     A stretch of ground time rather than a flight: the aircraft is at the gate being turned round, and
-        ///     cannot leave again until it has passed. Drawn faint behind the flights.
+        ///     A stretch of ground time rather than a trip: the coach is at the gate being turned round, and
+        ///     cannot leave again until it has passed. Drawn faint behind the trips.
         /// </summary>
         public bool IsGround { get; set; }
     }
 
-    /// <summary>Edit the weekly schedule of one aircraft: add or remove flights on its routes.</summary>
+    /// <summary>Edit the weekly schedule of one coach: add or remove trips on its routes.</summary>
     public class TimetableViewModel : ObservableObject
     {
         private readonly Action _changed;
-        private AircraftOption _aircraft;
+        private CoachOption _coach;
         private RouteOption _route;
-        private AirportOption _from;
+        private StationOption _from;
         private TimeChoice _time;
         private int _turnaround = 45;
-        private string _flightCode = "";
+        private string _tripCode = "";
         private string _status;
         private string _summary;
-        private List<AirportOption> _directions = new List<AirportOption>();
+        private List<StationOption> _directions = new List<StationOption>();
         private List<TimelineBlock> _blocks = new List<TimelineBlock>();
         private List<TimelineBlock> _preview = new List<TimelineBlock>();
         private List<TimelineBlock> _ground = new List<TimelineBlock>();
@@ -127,27 +127,27 @@ namespace TheBusProject.Presentation
         private readonly HashSet<RouteTimeTableEntry> _selected = new HashSet<RouteTimeTableEntry>();
 
         // What the player last chose to add, which is not the same as what is chosen right now. Rebuilding the
-        // aircraft list empties the box bound to it, and the empty box writes its own null back before the list is
-        // filled again, which wiped the choice and sent the route box back to the first route after every flight
-        // added. These hold the choice across that, so adding four flights on one route needs the route picked once.
+        // coach list empties the box bound to it, and the empty box writes its own null back before the list is
+        // filled again, which wiped the choice and sent the route box back to the first route after every trip
+        // added. These hold the choice across that, so adding four trips on one route needs the route picked once.
         private Route _wantRoute;
-        private Airport _wantFrom;
+        private Station _wantFrom;
 
-        // One step back is this aircraft's whole week, which is a short list and makes every change undoable the same
-        // way, whether it added, moved, renumbered, copied or removed flights.
+        // One step back is this coach's whole week, which is a short list and makes every change undoable the same
+        // way, whether it added, moved, renumbered, copied or removed trips.
         private readonly List<TimetableMemo> _memos = new List<TimetableMemo>();
         private const int MemoDepth = 25;
         private TimetableRow _selectedRow;
         private DayChoice _editDay;
         private TimeChoice _editTime;
         private List<TimeChoice> _editTimes = new List<TimeChoice>();
-        private string _editFlightCode = "";
+        private string _editTripCode = "";
         private bool _syncing;
 
         public TimetableViewModel(Action changed = null)
         {
             _changed = changed;
-            Aircraft = new ObservableCollection<AircraftOption>();
+            Coach = new ObservableCollection<CoachOption>();
             Rows = new ObservableCollection<TimetableRow>();
             Routes = new ObservableCollection<RouteOption>();
             Days = new List<DayFlag>();
@@ -174,11 +174,11 @@ namespace TheBusProject.Presentation
             TurnaroundOptions = RouteCreator.TurnaroundOptions;
             DayChoices = Days.Select(d => new DayChoice { Day = d.Day, Text = d.Day.ToString() }).ToList();
 
-            AddRoundTripCommand = new RelayCommand(() => Add(true), () => _aircraft != null && _route != null);
-            AddOneWayCommand = new RelayCommand(() => Add(false), () => _aircraft != null && _route != null);
-            RemoveRouteFlightsCommand = new RelayCommand(RemoveRouteFlights, () => _aircraft != null && _route != null);
-            RemoveAllFlightsCommand = new RelayCommand(AskRemoveAll);
-            ConfirmRemoveAllCommand = new RelayCommand(RemoveAllFlights);
+            AddRoundTripCommand = new RelayCommand(() => Add(true), () => _coach != null && _route != null);
+            AddOneWayCommand = new RelayCommand(() => Add(false), () => _coach != null && _route != null);
+            RemoveRouteTripsCommand = new RelayCommand(RemoveRouteTrips, () => _coach != null && _route != null);
+            RemoveAllTripsCommand = new RelayCommand(AskRemoveAll);
+            ConfirmRemoveAllCommand = new RelayCommand(RemoveAllTrips);
             CancelRemoveAllCommand = new RelayCommand(() => RemoveAllText = null);
             RemoveSelectedCommand = new RelayCommand(RemoveSelected, () => _selected.Count > 0);
             ApplyEditCommand = new RelayCommand(ApplyEdit, () => _selected.Count == 1 && _selectedBlock?.Entry != null);
@@ -190,10 +190,10 @@ namespace TheBusProject.Presentation
             MwfCommand = new RelayCommand(() => SetDays(DayOfWeek.Monday, DayOfWeek.Wednesday, DayOfWeek.Friday));
             TtsCommand = new RelayCommand(() => SetDays(DayOfWeek.Tuesday, DayOfWeek.Thursday, DayOfWeek.Saturday));
 
-            ReloadAircraft();
+            ReloadCoach();
         }
 
-        public ObservableCollection<AircraftOption> Aircraft { get; }
+        public ObservableCollection<CoachOption> Coach { get; }
         public ObservableCollection<TimetableRow> Rows { get; }
         public ObservableCollection<RouteOption> Routes { get; }
         public List<DayFlag> Days { get; }
@@ -203,8 +203,8 @@ namespace TheBusProject.Presentation
 
         public ICommand AddRoundTripCommand { get; }
         public ICommand AddOneWayCommand { get; }
-        public ICommand RemoveRouteFlightsCommand { get; }
-        public ICommand RemoveAllFlightsCommand { get; }
+        public ICommand RemoveRouteTripsCommand { get; }
+        public ICommand RemoveAllTripsCommand { get; }
         public ICommand ConfirmRemoveAllCommand { get; }
         public ICommand CancelRemoveAllCommand { get; }
         private string _removeAllText;
@@ -218,30 +218,30 @@ namespace TheBusProject.Presentation
 
         private void AskRemoveAll()
         {
-            if (_aircraft == null) return;
-            var f = _aircraft.Airliner;
-            int n = f.Routes.Sum(r => r.TimeTable.Entries.Count(e => e.Airliner == f));
+            if (_coach == null) return;
+            var f = _coach.Coach;
+            int n = f.Routes.Sum(r => r.TimeTable.Entries.Count(e => e.Coach == f));
             if (n == 0)
             {
-                Status = f.Name + " has no flights in a timetable.";
+                Status = f.Name + " has no trips in a timetable.";
                 return;
             }
-            RemoveAllText = "Remove all " + n + " flight(s) of " + f.Name + " on its " + f.Routes.Count + " route(s)? The aircraft is stopped and keeps no schedule. The routes stay and can be flown by another aircraft.";
+            RemoveAllText = "Remove all " + n + " trip(s) of " + f.Name + " on its " + f.Routes.Count + " route(s)? The coach is stopped and keeps no schedule. The routes stay and can be run by another coach.";
         }
 
-        private void RemoveAllFlights()
+        private void RemoveAllTrips()
         {
             RemoveAllText = null;
-            if (_aircraft == null) return;
-            var f = _aircraft.Airliner;
-            int n = f.Routes.Sum(r => r.TimeTable.Entries.Count(e => e.Airliner == f));
+            if (_coach == null) return;
+            var f = _coach.Coach;
+            int n = f.Routes.Sum(r => r.TimeTable.Entries.Count(e => e.Coach == f));
             var memo = Snapshot("clearing " + f.Name + "'s week");
             foreach (var route in f.Routes.ToList())
             {
                 f.RemoveRoute(route);
             }
             Remember(memo);
-            Finish(n + " flight(s) removed from " + f.Name + ".");
+            Finish(n + " trip(s) removed from " + f.Name + ".");
         }
         public ICommand RemoveSelectedCommand { get; }
         public ICommand ApplyEditCommand { get; }
@@ -252,12 +252,12 @@ namespace TheBusProject.Presentation
         public ICommand MwfCommand { get; }
         public ICommand TtsCommand { get; }
 
-        public AircraftOption SelectedAircraft
+        public CoachOption SelectedCoach
         {
-            get { return _aircraft; }
+            get { return _coach; }
             set
             {
-                if (SetProperty(ref _aircraft, value))
+                if (SetProperty(ref _coach, value))
                 {
                     LoadRoutes();
                     LoadRows();
@@ -272,16 +272,16 @@ namespace TheBusProject.Presentation
         public List<TimelineBlock> Blocks => _blocks;
         public List<TimelineBlock> Preview => _preview;
 
-        /// <summary>The time each flight spends at the gate afterwards, drawn behind the flights.</summary>
+        /// <summary>The time each trip spends at the gate afterwards, drawn behind the trips.</summary>
         public List<TimelineBlock> Ground => _ground;
 
         public List<TimelineBlock> PreviewGround => _previewGround;
 
-        /// <summary>How long the chosen aircraft needs on the ground between flights.</summary>
-        public int GroundMinutes => _aircraft == null ? 0 : (int) FleetAirlinerHelpers.GetMinTimeBetweenFlights(_aircraft.Airliner).TotalMinutes;
+        /// <summary>How long the chosen coach needs on the ground between trips.</summary>
+        public int GroundMinutes => _coach == null ? 0 : (int) FleetCoachHelpers.GetMinTimeBetweenTrips(_coach.Coach).TotalMinutes;
 
         /// <summary>
-        ///     The flight the edit boxes act on: the last one clicked. Setting it picks that flight alone, as a plain
+        ///     The trip the edit boxes act on: the last one clicked. Setting it picks that trip alone, as a plain
         ///     click does; SelectAlso and SelectRange build a selection of several.
         /// </summary>
         public TimelineBlock SelectedBlock
@@ -298,22 +298,22 @@ namespace TheBusProject.Presentation
             }
         }
 
-        /// <summary>Every flight picked, which a drag moves together and the remove button removes together.</summary>
+        /// <summary>Every trip picked, which a drag moves together and the remove button removes together.</summary>
         public IReadOnlyCollection<RouteTimeTableEntry> SelectedEntries => _selected;
 
         public int SelectedCount => _selected.Count;
 
         public bool HasSelection => _selected.Count > 0;
 
-        /// <summary>The remove button says how many flights it would take away.</summary>
-        public string RemoveSelectedText => _selected.Count > 1 ? "Remove these " + _selected.Count + " flights" : "Remove this flight";
+        /// <summary>The remove button says how many trips it would take away.</summary>
+        public string RemoveSelectedText => _selected.Count > 1 ? "Remove these " + _selected.Count + " trips" : "Remove this trip";
 
         public bool IsSelected(RouteTimeTableEntry entry)
         {
             return entry != null && _selected.Contains(entry);
         }
 
-        /// <summary>Adds a flight to the picked ones, or takes it out again: what ctrl-clicking does.</summary>
+        /// <summary>Adds a trip to the picked ones, or takes it out again: what ctrl-clicking does.</summary>
         public void SelectAlso(TimelineBlock block)
         {
             var entry = block?.Entry;
@@ -333,7 +333,7 @@ namespace TheBusProject.Presentation
             TimelineChanged?.Invoke();
         }
 
-        /// <summary>Picks everything between the flight already picked and this one, as shift-clicking does.</summary>
+        /// <summary>Picks everything between the trip already picked and this one, as shift-clicking does.</summary>
         public void SelectRange(TimelineBlock block)
         {
             if (block?.Entry == null) return;
@@ -346,10 +346,10 @@ namespace TheBusProject.Presentation
 
             double a = WeekMinutes(from), b = WeekMinutes(block.Entry);
             double lo = Math.Min(a, b), hi = Math.Max(a, b);
-            Replace(AircraftEntries().Where(e => WeekMinutes(e) >= lo && WeekMinutes(e) <= hi), block);
+            Replace(CoachEntries().Where(e => WeekMinutes(e) >= lo && WeekMinutes(e) <= hi), block);
         }
 
-        /// <summary>Picks exactly these flights: what a rubber band drawn over the timeline leaves picked.</summary>
+        /// <summary>Picks exactly these trips: what a rubber band drawn over the timeline leaves picked.</summary>
         public void SelectBlocks(IEnumerable<RouteTimeTableEntry> entries, bool addToSelection)
         {
             var list = (entries ?? Enumerable.Empty<RouteTimeTableEntry>()).Where(e => e != null).ToList();
@@ -368,7 +368,7 @@ namespace TheBusProject.Presentation
             TimelineChanged?.Invoke();
         }
 
-        /// <summary>Where a flight sits in the week, counting from Monday morning, so flights can be put in order.</summary>
+        /// <summary>Where a trip sits in the week, counting from Monday morning, so trips can be put in order.</summary>
         public static double WeekMinutes(RouteTimeTableEntry entry)
         {
             return DayIndex(entry.Day)*1440.0 + entry.Time.TotalMinutes;
@@ -384,15 +384,15 @@ namespace TheBusProject.Presentation
                 return;
             }
 
-            var memo = Snapshot("removing " + going.Count + " flights");
+            var memo = Snapshot("removing " + going.Count + " trips");
             foreach (var e in going) RemoveEntryQuietly(e);
             Remember(memo);
             _selected.Clear();
             _selectedBlock = null;
-            Finish(going.Count + " flights removed.");
+            Finish(going.Count + " trips removed.");
         }
 
-        /// <summary>The flight picked in the list below the timeline; the two pick the same flight.</summary>
+        /// <summary>The trip picked in the list below the timeline; the two pick the same trip.</summary>
         public TimetableRow SelectedRow
         {
             get { return _selectedRow; }
@@ -407,14 +407,14 @@ namespace TheBusProject.Presentation
 
         public bool CanEditSelected => _selected.Count == 1 && _selectedBlock?.Entry != null;
 
-        /// <summary>The day the selected flight would move to.</summary>
+        /// <summary>The day the selected trip would move to.</summary>
         public DayChoice EditDay
         {
             get { return _editDay; }
             set { SetProperty(ref _editDay, value); }
         }
 
-        /// <summary>Every quarter hour, plus the selected flight's own time when it falls between two.</summary>
+        /// <summary>Every quarter hour, plus the selected trip's own time when it falls between two.</summary>
         public List<TimeChoice> EditTimes
         {
             get { return _editTimes; }
@@ -427,10 +427,10 @@ namespace TheBusProject.Presentation
             set { SetProperty(ref _editTime, value); }
         }
 
-        public string EditFlightCode
+        public string EditTripCode
         {
-            get { return _editFlightCode; }
-            set { SetProperty(ref _editFlightCode, value ?? ""); }
+            get { return _editTripCode; }
+            set { SetProperty(ref _editTripCode, value ?? ""); }
         }
 
         // the edit boxes follow whatever is picked, on the timeline or in the list
@@ -445,7 +445,7 @@ namespace TheBusProject.Presentation
                            .OrderBy(t => t.Time).ToList();
                 EditDay = DayChoices.FirstOrDefault(d => d.Day == entry.Day);
                 EditTime = EditTimes.FirstOrDefault(t => t.Time == entry.Time);
-                EditFlightCode = entry.Destination.FlightCode ?? "";
+                EditTripCode = entry.Destination.TripCode ?? "";
             }
 
             if (!_syncing)
@@ -468,19 +468,19 @@ namespace TheBusProject.Presentation
         {
             get
             {
-                if (_selected.Count > 1) return _selected.Count + " flights picked. Drag any of them to move them all, or hold shift while dragging to copy them all, keeping their days and times apart.";
+                if (_selected.Count > 1) return _selected.Count + " trips picked. Drag any of them to move them all, or hold shift while dragging to copy them all, keeping their days and times apart.";
                 if (_selectedBlock == null)
-                    return "Click a flight to pick it, or drag across empty space to pick several; ctrl-click adds one, shift-click picks everything between. Drag a flight to move it. The dashed blocks show the flights you are about to add.";
+                    return "Click a trip to pick it, or drag across empty space to pick several; ctrl-click adds one, shift-click picks everything between. Drag a trip to move it. The dashed blocks show the trips you are about to add.";
                 return _selectedBlock.Detail;
             }
         }
 
-        /// <summary>Flights are placed on the quarter hour, as the Add panel offers, so a drag snaps to one.</summary>
+        /// <summary>Trips are placed on the quarter hour, as the Add panel offers, so a drag snaps to one.</summary>
         public const int SnapMinutes = 15;
 
         /// <summary>
-        ///     How far a drag of so many minutes really shifts a flight: to the nearest quarter hour. A group is
-        ///     shifted by this one amount rather than each flight snapping on its own, so the flights in it stay
+        ///     How far a drag of so many minutes really shifts a trip: to the nearest quarter hour. A group is
+        ///     shifted by this one amount rather than each trip snapping on its own, so the trips in it stay
         ///     exactly as far apart as they were.
         /// </summary>
         public static double SnapShift(double minutesMoved)
@@ -489,8 +489,8 @@ namespace TheBusProject.Presentation
         }
 
         /// <summary>
-        ///     Where a flight lands when it is dragged across so many day rows and so many minutes. The whole week
-        ///     moves with the pointer, so a flight dragged off Sunday evening comes back on Monday, and times snap to
+        ///     Where a trip lands when it is dragged across so many day rows and so many minutes. The whole week
+        ///     moves with the pointer, so a trip dragged off Sunday evening comes back on Monday, and times snap to
         ///     the quarter hour, which is what the Add panel offers.
         /// </summary>
         public static void DragTarget(DayOfWeek day, TimeSpan time, int daysMoved, double minutesMoved, out DayOfWeek newDay, out TimeSpan newTime, bool snapToQuarter = true)
@@ -509,18 +509,18 @@ namespace TheBusProject.Presentation
         /// <summary>What the undo button offers to take back, named so it is clear what will happen.</summary>
         public string UndoText => _memos.Count == 0 ? "Nothing to undo" : "Undo " + _memos[_memos.Count - 1].Label;
 
-        // this aircraft's week as it stands, to go back to
+        // this coach's week as it stands, to go back to
         private TimetableMemo Snapshot(string label)
         {
-            if (_aircraft == null) return null;
+            if (_coach == null) return null;
             return new TimetableMemo
             {
                 Label = label,
-                Airliner = _aircraft.Airliner,
-                Lines = AircraftEntries().Select(e => new MemoLine
+                Coach = _coach.Coach,
+                Lines = CoachEntries().Select(e => new MemoLine
                 {
                     Route = e.TimeTable.Route, Day = e.Day, Time = e.Time,
-                    Code = e.Destination.FlightCode, To = e.Destination.Airport
+                    Code = e.Destination.TripCode, To = e.Destination.Station
                 }).ToList()
             };
         }
@@ -547,17 +547,17 @@ namespace TheBusProject.Presentation
             var memo = _memos[_memos.Count - 1];
             _memos.RemoveAt(_memos.Count - 1);
 
-            var option = Aircraft.FirstOrDefault(a => a.Airliner == memo.Airliner);
+            var option = Coach.FirstOrDefault(a => a.Coach == memo.Coach);
             if (option == null)
             {
-                Status = "That aircraft has left the fleet, so this cannot be undone.";
+                Status = "That coach has left the fleet, so this cannot be undone.";
                 RaiseUndo();
                 return;
             }
 
-            SelectedAircraft = option; // the change may have been made to another aircraft
-            var f = memo.Airliner;
-            foreach (var e in AircraftEntries().ToList()) RemoveEntryQuietly(e);
+            SelectedCoach = option; // the change may have been made to another coach
+            var f = memo.Coach;
+            foreach (var e in CoachEntries().ToList()) RemoveEntryQuietly(e);
 
             int gone = 0;
             foreach (var line in memo.Lines)
@@ -569,37 +569,37 @@ namespace TheBusProject.Presentation
                 }
 
                 var entry = new RouteTimeTableEntry(line.Route.TimeTable, line.Day, line.Time,
-                                                    new RouteEntryDestination(line.To, line.Code)) { Airliner = f };
+                                                    new RouteEntryDestination(line.To, line.Code)) { Coach = f };
                 line.Route.TimeTable.AddEntry(entry);
                 if (!f.Routes.Contains(line.Route)) f.AddRoute(line.Route);
             }
 
             _justAdded = new List<RouteTimeTableEntry>();
-            Finish("Undone: " + memo.Label + "." + (gone > 0 ? " " + gone + " flight(s) could not come back: their route has closed." : ""));
+            Finish("Undone: " + memo.Label + "." + (gone > 0 ? " " + gone + " trip(s) could not come back: their route has closed." : ""));
             RaiseUndo();
         }
 
         /// <summary>
-        ///     Leaves a flight where it is and puts a copy of it at another day and time, with the next free flight
-        ///     number: what dragging a flight with shift held does. Returns null when the copy fits, or why it does not.
+        ///     Leaves a trip where it is and puts a copy of it at another day and time, with the next free trip
+        ///     number: what dragging a trip with shift held does. Returns null when the copy fits, or why it does not.
         /// </summary>
         public string CopyEntry(RouteTimeTableEntry entry, DayOfWeek day, TimeSpan time)
         {
-            if (_aircraft == null || entry == null) return "Pick an aircraft first.";
-            var f = _aircraft.Airliner;
+            if (_coach == null || entry == null) return "Pick a coach first.";
+            var f = _coach.Coach;
             var route = entry.TimeTable.Route;
-            var memo = Snapshot("copying " + entry.Destination.FlightCode);
-            string code = Human.GetNextFlightCode(0);
+            var memo = Snapshot("copying " + entry.Destination.TripCode);
+            string code = Human.GetNextTripCode(0);
             var copy = new RouteTimeTableEntry(route.TimeTable, day, time,
-                                               new RouteEntryDestination(entry.Destination.Airport, code)) { Airliner = f };
+                                               new RouteEntryDestination(entry.Destination.Station, code)) { Coach = f };
             route.TimeTable.AddEntry(copy);
 
-            if (!TimeTableHelpers.IsTimeTableValid(f, AircraftEntries().ToList()))
+            if (!TimeTableHelpers.IsTimeTableValid(f, CoachEntries().ToList()))
             {
                 route.TimeTable.RemoveEntry(copy);
-                string why = "No copy of " + entry.Destination.FlightCode + " on " + day + " at " + time.ToString(@"hh\:mm")
-                             + ": it would overlap another flight of " + f.Name + " (which needs the flight time plus its "
-                             + "time on the ground), or the airport has no free gate time then.";
+                string why = "No copy of " + entry.Destination.TripCode + " on " + day + " at " + time.ToString(@"hh\:mm")
+                             + ": it would overlap another trip of " + f.Name + " (which needs the trip time plus its "
+                             + "time on the ground), or the station has no free gate time then.";
                 Status = why;
                 return why;
             }
@@ -607,18 +607,18 @@ namespace TheBusProject.Presentation
             if (!f.Routes.Contains(route)) f.AddRoute(route);
             Remember(memo);
             _justAdded = new List<RouteTimeTableEntry> { copy };
-            Finish("Flight " + entry.Destination.FlightCode + " copied to " + day + " at " + time.ToString(@"hh\:mm") + " as " + code + ".");
+            Finish("Trip " + entry.Destination.TripCode + " copied to " + day + " at " + time.ToString(@"hh\:mm") + " as " + code + ".");
             return null;
         }
 
         /// <summary>
-        ///     Copies every flight given, each landing the same number of day rows and minutes from where it is, so
+        ///     Copies every trip given, each landing the same number of day rows and minutes from where it is, so
         ///     the copies keep the shape of the group: a whole day's flying can be copied onto another day at once.
-        ///     Each copy gets its own free flight number. Either all of them are made or none is.
+        ///     Each copy gets its own free trip number. Either all of them are made or none is.
         /// </summary>
         public string CopyEntries(IEnumerable<RouteTimeTableEntry> entries, int daysMoved, double minutesMoved)
         {
-            if (_aircraft == null) return "Pick an aircraft first.";
+            if (_coach == null) return "Pick a coach first.";
             var going = (entries ?? Enumerable.Empty<RouteTimeTableEntry>()).Where(e => e != null).Distinct().OrderBy(WeekMinutes).ToList();
             if (going.Count == 0) return null;
             if (going.Count == 1)
@@ -628,12 +628,12 @@ namespace TheBusProject.Presentation
                 return CopyEntry(going[0], one, at);
             }
 
-            var f = _aircraft.Airliner;
-            var free = Human.GetFlightCodes();
+            var f = _coach.Coach;
+            var free = Human.GetTripCodes();
             if (free.Count < going.Count)
-                return "There are not enough free flight numbers left to copy " + going.Count + " flights.";
+                return "There are not enough free trip numbers left to copy " + going.Count + " trips.";
 
-            var memo = Snapshot("copying " + going.Count + " flights");
+            var memo = Snapshot("copying " + going.Count + " trips");
             double shift = SnapShift(minutesMoved);
             var copies = new List<Tuple<Route, RouteTimeTableEntry>>();
             for (int i = 0; i < going.Count; i++)
@@ -643,17 +643,17 @@ namespace TheBusProject.Presentation
                 DragTarget(e.Day, e.Time, daysMoved, shift, out day, out time, false);
                 var route = e.TimeTable.Route;
                 var copy = new RouteTimeTableEntry(route.TimeTable, day, time,
-                                                   new RouteEntryDestination(e.Destination.Airport, free[i])) { Airliner = f };
+                                                   new RouteEntryDestination(e.Destination.Station, free[i])) { Coach = f };
                 route.TimeTable.AddEntry(copy);
                 copies.Add(Tuple.Create(route, copy));
             }
 
-            if (!TimeTableHelpers.IsTimeTableValid(f, AircraftEntries().ToList()))
+            if (!TimeTableHelpers.IsTimeTableValid(f, CoachEntries().ToList()))
             {
                 foreach (var c in copies) c.Item1.TimeTable.RemoveEntry(c.Item2);
-                string why = "No copies made: those " + going.Count + " flights would overlap each other or another "
-                             + "flight of " + f.Name + " where they landed (each needs the flight time plus its time "
-                             + "on the ground), or an airport has no free gate time then.";
+                string why = "No copies made: those " + going.Count + " trips would overlap each other or another "
+                             + "trip of " + f.Name + " where they landed (each needs the trip time plus its time "
+                             + "on the ground), or a station has no free gate time then.";
                 Status = why;
                 return why;
             }
@@ -665,18 +665,18 @@ namespace TheBusProject.Presentation
 
             Remember(memo);
             _justAdded = copies.Select(c => c.Item2).OrderBy(WeekMinutes).ToList();
-            Finish(going.Count + " flights copied, numbered " + free[0] + " to " + free[going.Count - 1] + ".");
+            Finish(going.Count + " trips copied, numbered " + free[0] + " to " + free[going.Count - 1] + ".");
             return null;
         }
 
         /// <summary>
-        ///     Moves every flight given by the same number of day rows and minutes, which is what dragging a picked
+        ///     Moves every trip given by the same number of day rows and minutes, which is what dragging a picked
         ///     group does: they keep their days and times apart from one another. Either all of them move or none
-        ///     does, so a group that would put two flights on top of each other is refused whole.
+        ///     does, so a group that would put two trips on top of each other is refused whole.
         /// </summary>
         public string MoveEntries(IEnumerable<RouteTimeTableEntry> entries, int daysMoved, double minutesMoved)
         {
-            if (_aircraft == null) return "Pick an aircraft first.";
+            if (_coach == null) return "Pick a coach first.";
             var going = (entries ?? Enumerable.Empty<RouteTimeTableEntry>()).Where(e => e != null).Distinct().ToList();
             if (going.Count == 0) return null;
             if (going.Count == 1)
@@ -686,10 +686,10 @@ namespace TheBusProject.Presentation
                 return MoveEntry(going[0], one, at);
             }
 
-            // where each one lands, worked out before any of them moves. The drag snaps once and every flight is
+            // where each one lands, worked out before any of them moves. The drag snaps once and every trip is
             // shifted by that same amount, so the group keeps its own shape.
             double shift = SnapShift(minutesMoved);
-            var memo = Snapshot("moving " + going.Count + " flights");
+            var memo = Snapshot("moving " + going.Count + " trips");
             var was = going.Select(e => Tuple.Create(e, e.Day, e.Time)).ToList();
             var to = new List<Tuple<RouteTimeTableEntry, DayOfWeek, TimeSpan>>();
             foreach (var e in going)
@@ -707,7 +707,7 @@ namespace TheBusProject.Presentation
                 x.Item1.Time = x.Item3;
             }
 
-            if (!TimeTableHelpers.IsTimeTableValid(_aircraft.Airliner, AircraftEntries().ToList()))
+            if (!TimeTableHelpers.IsTimeTableValid(_coach.Coach, CoachEntries().ToList()))
             {
                 foreach (var x in was)
                 {
@@ -715,85 +715,85 @@ namespace TheBusProject.Presentation
                     x.Item1.Time = x.Item3;
                 }
 
-                string why = "Those " + going.Count + " flights stay where they are: moved together they would overlap "
-                             + "another flight of " + _aircraft.Airliner.Name + " (which needs the flight time plus its "
-                             + "time on the ground), or an airport has no free gate time then.";
+                string why = "Those " + going.Count + " trips stay where they are: moved together they would overlap "
+                             + "another trip of " + _coach.Coach.Name + " (which needs the trip time plus its "
+                             + "time on the ground), or a station has no free gate time then.";
                 Status = why;
                 return why;
             }
 
             Remember(memo);
             _justAdded = going.OrderBy(WeekMinutes).ToList();
-            Finish(going.Count + " flights moved.");
+            Finish(going.Count + " trips moved.");
             return null;
         }
 
         /// <summary>
-        ///     Moves one flight to another day and time, which is what dragging a block does. The flight is put back
+        ///     Moves one trip to another day and time, which is what dragging a block does. The trip is put back
         ///     where it was when it would not fit, and the reason is returned; null means it moved.
         /// </summary>
         public string MoveEntry(RouteTimeTableEntry entry, DayOfWeek day, TimeSpan time)
         {
-            if (_aircraft == null || entry == null) return "Pick an aircraft first.";
+            if (_coach == null || entry == null) return "Pick a coach first.";
             if (entry.Day == day && entry.Time == time) return null;
 
-            var f = _aircraft.Airliner;
-            var memo = Snapshot("moving " + entry.Destination.FlightCode);
+            var f = _coach.Coach;
+            var memo = Snapshot("moving " + entry.Destination.TripCode);
             DayOfWeek wasDay = entry.Day;
             TimeSpan wasTime = entry.Time;
             entry.Day = day;
             entry.Time = time;
-            if (!TimeTableHelpers.IsTimeTableValid(f, AircraftEntries().ToList()))
+            if (!TimeTableHelpers.IsTimeTableValid(f, CoachEntries().ToList()))
             {
                 entry.Day = wasDay;
                 entry.Time = wasTime;
-                string why = "That leaves " + entry.Destination.FlightCode + " where it was: on " + day + " at "
-                             + time.ToString(@"hh\:mm") + " it would overlap another flight of " + f.Name
-                             + " (which needs the flight time plus its time on the ground), or the airport has no free gate time then.";
+                string why = "That leaves " + entry.Destination.TripCode + " where it was: on " + day + " at "
+                             + time.ToString(@"hh\:mm") + " it would overlap another trip of " + f.Name
+                             + " (which needs the trip time plus its time on the ground), or the station has no free gate time then.";
                 Status = why;
                 return why;
             }
 
             Remember(memo);
             _justAdded = new List<RouteTimeTableEntry> { entry };
-            Finish("Flight " + entry.Destination.FlightCode + " moved to " + day + " at " + time.ToString(@"hh\:mm") + ".");
+            Finish("Trip " + entry.Destination.TripCode + " moved to " + day + " at " + time.ToString(@"hh\:mm") + ".");
             return null;
         }
 
-        // the edit panel's button: the day, the time and the flight number of the picked flight at once
+        // the edit panel's button: the day, the time and the trip number of the picked trip at once
         private void ApplyEdit()
         {
             var entry = _selectedBlock?.Entry;
             if (entry == null || _editDay == null || _editTime == null) return;
 
-            string code = _editFlightCode.Trim();
-            string wasCode = entry.Destination.FlightCode;
+            string code = _editTripCode.Trim();
+            string wasCode = entry.Destination.TripCode;
             bool codeChanged = code.Length > 0 && code != wasCode;
             if (codeChanged)
             {
-                var clash = AircraftEntries().FirstOrDefault(e => e != entry && e.Destination.FlightCode == code);
-                if (clash == null && Human.Routes.SelectMany(r => r.TimeTable.Entries).Any(e => e != entry && e.Destination.FlightCode == code))
+                var clash = CoachEntries().FirstOrDefault(e => e != entry && e.Destination.TripCode == code);
+                if (clash == null && Human.Routes.SelectMany(r => r.TimeTable.Entries).Any(e => e != entry && e.Destination.TripCode == code))
                 {
-                    Status = "Flight number " + code + " is already used by another of your flights.";
+                    Status = "Trip number " + code + " is already used by another of your trips.";
                     return;
                 }
                 if (clash != null)
                 {
-                    Status = "Flight number " + code + " is already used by this aircraft.";
+                    Status = "Trip number " + code + " is already used by this coach.";
                     return;
                 }
-                entry.Destination.FlightCode = code;
+                entry.Destination.TripCode = code;
             }
 
             if (entry.Day == _editDay.Day && entry.Time == _editTime.Time)
             {
                 if (codeChanged)
                 {
-                    entry.Destination.FlightCode = wasCode;
+                    entry.Destination.TripCode = wasCode;
                     var memoC = Snapshot("renumbering " + wasCode);
-                    entry.Destination.FlightCode = code;
+                    entry.Destination.TripCode = code;
                     Remember(memoC);
-                    Finish("Flight " + wasCode + " is now " + code + ".");
+                    Finish("Trip " + wasCode + " is now " + code + ".");
                 }
 
                 return;
@@ -801,7 +801,7 @@ namespace TheBusProject.Presentation
 
             if (MoveEntry(entry, _editDay.Day, _editTime.Time) != null && codeChanged)
             {
-                entry.Destination.FlightCode = wasCode; // the move was refused, so the number goes back too
+                entry.Destination.TripCode = wasCode; // the move was refused, so the number goes back too
             }
         }
 
@@ -820,18 +820,18 @@ namespace TheBusProject.Presentation
             }
         }
 
-        public List<AirportOption> Directions
+        public List<StationOption> Directions
         {
             get { return _directions; }
             private set { SetProperty(ref _directions, value); }
         }
 
-        public AirportOption SelectedFrom
+        public StationOption SelectedFrom
         {
             get { return _from; }
             set
             {
-                if (value?.Airport != null) _wantFrom = value.Airport;
+                if (value?.Station != null) _wantFrom = value.Station;
                 if (SetProperty(ref _from, value)) BuildPreview();
             }
         }
@@ -848,11 +848,11 @@ namespace TheBusProject.Presentation
             set { if (SetProperty(ref _turnaround, value)) BuildPreview(); }
         }
 
-        /// <summary>Flight number of the outbound flight; empty picks the next free numbers.</summary>
-        public string FlightCode
+        /// <summary>Trip number of the outbound trip; empty picks the next free numbers.</summary>
+        public string TripCode
         {
-            get { return _flightCode; }
-            set { SetProperty(ref _flightCode, value ?? ""); }
+            get { return _tripCode; }
+            set { SetProperty(ref _tripCode, value ?? ""); }
         }
 
         public string Status
@@ -867,16 +867,16 @@ namespace TheBusProject.Presentation
             private set { SetProperty(ref _summary, value); }
         }
 
-        private static Airline Human
+        private static Carrier Human
         {
-            get { return GameObject.GetInstance().HumanAirline; }
+            get { return GameObject.GetInstance().HumanCarrier; }
         }
 
         private void RaiseCanExecute()
         {
             (AddRoundTripCommand as RelayCommand)?.RaiseCanExecuteChanged();
             (AddOneWayCommand as RelayCommand)?.RaiseCanExecuteChanged();
-            (RemoveRouteFlightsCommand as RelayCommand)?.RaiseCanExecuteChanged();
+            (RemoveRouteTripsCommand as RelayCommand)?.RaiseCanExecuteChanged();
         }
 
         private void SetDays(params DayOfWeek[] days)
@@ -887,43 +887,43 @@ namespace TheBusProject.Presentation
             }
         }
 
-        /// <summary>Opens the schedule of an aircraft.</summary>
-        public void Select(FleetAirliner f)
+        /// <summary>Opens the schedule of an coach.</summary>
+        public void Select(FleetCoach f)
         {
-            ReloadAircraft();
-            var option = Aircraft.FirstOrDefault(a => a.Airliner == f);
+            ReloadCoach();
+            var option = Coach.FirstOrDefault(a => a.Coach == f);
             if (option != null)
             {
-                SelectedAircraft = option;
+                SelectedCoach = option;
             }
         }
 
-        /// <summary>Refreshes the lists after something changed elsewhere (new aircraft, new route).</summary>
-        public void ReloadAircraft()
+        /// <summary>Refreshes the lists after something changed elsewhere (new coach, new route).</summary>
+        public void ReloadCoach()
         {
-            var keep = _aircraft?.Airliner;
+            var keep = _coach?.Coach;
             var list = Human.DeliveredFleet
                             .Where(
-                                f => f.Airliner.Type.TypeAirliner == AirlinerType.TypeOfAirliner.Passenger
-                                     || f.Airliner.Type.TypeAirliner == AirlinerType.TypeOfAirliner.Mixed
-                                     || f.Airliner.Type.TypeAirliner == AirlinerType.TypeOfAirliner.Cargo)
+                                f => f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Passenger
+                                     || f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Mixed
+                                     || f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Cargo)
                             .OrderBy(f => f.Name)
                             .ToList();
 
-            Aircraft.Clear();
+            Coach.Clear();
             foreach (var f in list)
             {
-                Aircraft.Add(
-                    new AircraftOption
+                Coach.Add(
+                    new CoachOption
                     {
-                        Airliner = f,
-                        Text = f.Name + "  |  " + f.Airliner.Type.Name + "  |  "
-                               + f.Routes.SelectMany(r => r.TimeTable.Entries).Count(e => e.Airliner == f) + " flights/week"
+                        Coach = f,
+                        Text = f.Name + "  |  " + f.Coach.Type.Name + "  |  "
+                               + f.Routes.SelectMany(r => r.TimeTable.Entries).Count(e => e.Coach == f) + " trips/week"
                     });
             }
 
-            _aircraft = Aircraft.FirstOrDefault(a => a.Airliner == keep) ?? Aircraft.FirstOrDefault();
-            OnPropertyChanged(nameof(SelectedAircraft));
+            _coach = Coach.FirstOrDefault(a => a.Coach == keep) ?? Coach.FirstOrDefault();
+            OnPropertyChanged(nameof(SelectedCoach));
             LoadRoutes();
             LoadRows();
             RaiseCanExecute();
@@ -934,15 +934,15 @@ namespace TheBusProject.Presentation
             var keep = _route?.Route;
             Routes.Clear();
 
-            if (_aircraft != null)
+            if (_coach != null)
             {
-                var type = _aircraft.Airliner.Airliner.Type;
-                bool cargoAircraft = type.TypeAirliner == AirlinerType.TypeOfAirliner.Cargo;
-                foreach (var r in Human.Routes.Where(r => r.IsCargoRoute == cargoAircraft).OrderBy(r => r.Destination1.Profile.IATACode))
+                var type = _coach.Coach.Coach.Type;
+                bool cargoCoach = type.TypeCoach == CoachType.TypeOfCoach.Cargo;
+                foreach (var r in Human.Routes.Where(r => r.IsCargoRoute == cargoCoach).OrderBy(r => r.Destination1.Profile.IATACode))
                 {
                     double distance = r.GetDistance();
                     long runway = Math.Min(r.Destination1.GetMaxRunwayLength(), r.Destination2.GetMaxRunwayLength());
-                    if (_aircraft.Airliner.Airliner.Range < distance || _aircraft.Airliner.Airliner.MinRunwaylength > runway)
+                    if (_coach.Coach.Coach.Range < distance || _coach.Coach.Coach.MinRunwaylength > runway)
                     {
                         continue;
                     }
@@ -956,7 +956,7 @@ namespace TheBusProject.Presentation
                                 r.Destination1.Profile.IATACode,
                                 r.Destination2.Profile.IATACode,
                                 DistanceFormatter.Km(distance),
-                                FormatSpan(r.GetFlightTime(type)))
+                                FormatSpan(r.GetTripTime(type)))
                         });
                 }
             }
@@ -971,19 +971,19 @@ namespace TheBusProject.Presentation
 
         private void LoadDirections()
         {
-            var keep = _from?.Airport ?? _wantFrom;
+            var keep = _from?.Station ?? _wantFrom;
             if (_route == null)
             {
-                Directions = new List<AirportOption>();
+                Directions = new List<StationOption>();
                 SelectedFrom = null;
                 return;
             }
 
             Directions = new[] { _route.Route.Destination1, _route.Route.Destination2 }
-                .Select(a => new AirportOption { Airport = a, Text = a.Profile.IATACode + "  " + a.Profile.Name })
+                .Select(a => new StationOption { Station = a, Text = a.Profile.IATACode + "  " + a.Profile.Name })
                 .ToList();
-            SelectedFrom = Directions.FirstOrDefault(d => d.Airport == keep) ?? Directions[0];
-            if (_from?.Airport != null) _wantFrom = _from.Airport;
+            SelectedFrom = Directions.FirstOrDefault(d => d.Station == keep) ?? Directions[0];
+            if (_from?.Station != null) _wantFrom = _from.Station;
         }
 
         private static string FormatSpan(TimeSpan t)
@@ -996,34 +996,34 @@ namespace TheBusProject.Presentation
             return ((int) d + 6) % 7; // Monday first
         }
 
-        private IEnumerable<RouteTimeTableEntry> AircraftEntries()
+        private IEnumerable<RouteTimeTableEntry> CoachEntries()
         {
-            var f = _aircraft.Airliner;
-            return f.Routes.SelectMany(r => r.TimeTable.Entries.Where(e => e.Airliner == f)).ToList();
+            var f = _coach.Coach;
+            return f.Routes.SelectMany(r => r.TimeTable.Entries.Where(e => e.Coach == f)).ToList();
         }
 
         private void LoadRows()
         {
             Rows.Clear();
-            if (_aircraft == null)
+            if (_coach == null)
             {
-                Summary = "You have no delivered aircraft.";
+                Summary = "You have no delivered coach.";
                 _blocks = new List<TimelineBlock>();
                 SelectedBlock = null;
                 BuildPreview();
                 return;
             }
 
-            var f = _aircraft.Airliner;
-            var entries = AircraftEntries()
+            var f = _coach.Coach;
+            var entries = CoachEntries()
                 .OrderBy(e => DayIndex(e.Day)).ThenBy(e => e.Time).ToList();
             double airMinutes = 0;
 
             foreach (var e in entries)
             {
-                TimeSpan flight = e.TimeTable.Route.GetFlightTime(f.Airliner.Type);
-                airMinutes += flight.TotalMinutes;
-                TimeSpan arrive = e.Time.Add(flight);
+                TimeSpan trip = e.TimeTable.Route.GetTripTime(f.Coach.Type);
+                airMinutes += trip.TotalMinutes;
+                TimeSpan arrive = e.Time.Add(trip);
                 var entry = e;
                 Rows.Add(
                     new TimetableRow
@@ -1033,8 +1033,8 @@ namespace TheBusProject.Presentation
                         Time = e.Time.ToString(@"hh\:mm"),
                         Arrives = new TimeSpan(arrive.Hours, arrive.Minutes, 0).ToString(@"hh\:mm")
                                   + (arrive.Days > 0 ? " +" + arrive.Days : ""),
-                        Flight = e.Destination.FlightCode,
-                        Route = e.DepartureAirport.Profile.IATACode + " > " + e.Destination.Airport.Profile.IATACode,
+                        Trip = e.Destination.TripCode,
+                        Route = e.DepartureStation.Profile.IATACode + " > " + e.Destination.Station.Profile.IATACode,
                         RemoveCommand = new RelayCommand(() => RemoveEntry(entry))
                     });
             }
@@ -1043,9 +1043,9 @@ namespace TheBusProject.Presentation
             BuildPreview();
 
             Summary = entries.Count == 0
-                ? string.Format("{0} has no flights yet. It needs {1} minutes at the gate between one flight and the next.", f.Name, GroundMinutes)
+                ? string.Format("{0} has no trips yet. It needs {1} minutes at the gate between one trip and the next.", f.Name, GroundMinutes)
                 : string.Format(
-                    "{0}: {1} flights a week, about {2:0} hours in the air. The faint band after each flight is the {3} minutes it needs at the gate before it can leave again.",
+                    "{0}: {1} trips a week, about {2:0} hours in the air. The faint band after each trip is the {3} minutes it needs at the gate before it can leave again.",
                     f.Name, entries.Count, airMinutes/60, GroundMinutes);
         }
 
@@ -1065,7 +1065,7 @@ namespace TheBusProject.Presentation
                 b.DurationMinutes = length;
             });
 
-            // the time at the gate after it lands, which the aircraft needs before it can leave again
+            // the time at the gate after it lands, which the coach needs before it can leave again
             if (groundList == null || groundMinutes <= 0) return;
             Span(groundList, d, startMinutes + length, groundMinutes, b =>
             {
@@ -1097,30 +1097,30 @@ namespace TheBusProject.Presentation
 
         private void BuildBlocks(List<RouteTimeTableEntry> entries)
         {
-            var f = _aircraft.Airliner;
+            var f = _coach.Coach;
             var routes = f.Routes.ToList();
             var keep = _selectedBlock?.Entry;
             var list = new List<TimelineBlock>();
             var ground = new List<TimelineBlock>();
-            double groundMinutes = FleetAirlinerHelpers.GetMinTimeBetweenFlights(f).TotalMinutes;
+            double groundMinutes = FleetCoachHelpers.GetMinTimeBetweenTrips(f).TotalMinutes;
             foreach (var e in entries)
             {
-                TimeSpan flight = e.TimeTable.Route.GetFlightTime(f.Airliner.Type);
-                string route = e.DepartureAirport.Profile.IATACode + " > " + e.Destination.Airport.Profile.IATACode;
-                TimeSpan arrive = e.Time.Add(flight);
+                TimeSpan trip = e.TimeTable.Route.GetTripTime(f.Coach.Type);
+                string route = e.DepartureStation.Profile.IATACode + " > " + e.Destination.Station.Profile.IATACode;
+                TimeSpan arrive = e.Time.Add(trip);
                 string detail = string.Format(
                     "{0} {1}  |  {2}  |  leaves {3}, arrives {4}{5}  |  {6}",
-                    e.Day, e.Destination.FlightCode, route, e.Time.ToString(@"hh\:mm"),
-                    new TimeSpan(arrive.Hours, arrive.Minutes, 0).ToString(@"hh\:mm"), arrive.Days > 0 ? " (+" + arrive.Days + ")" : "", FormatSpan(flight));
-                AddBlocks(list, ground, e.Day, e.Time.TotalMinutes, flight.TotalMinutes, groundMinutes,
-                          e.Destination.FlightCode + " " + route, detail,
+                    e.Day, e.Destination.TripCode, route, e.Time.ToString(@"hh\:mm"),
+                    new TimeSpan(arrive.Hours, arrive.Minutes, 0).ToString(@"hh\:mm"), arrive.Days > 0 ? " (+" + arrive.Days + ")" : "", FormatSpan(trip));
+                AddBlocks(list, ground, e.Day, e.Time.TotalMinutes, trip.TotalMinutes, groundMinutes,
+                          e.Destination.TripCode + " " + route, detail,
                           Math.Max(0, routes.IndexOf(e.TimeTable.Route)), false, e);
             }
 
             _blocks = list;
             _ground = ground;
             // what was just placed or moved is picked, so it can be seen and moved again straight away; otherwise
-            // whatever was picked before stays picked, less any flight that has gone
+            // whatever was picked before stays picked, less any trip that has gone
             TimelineBlock pick = null;
             foreach (var e in _justAdded)
             {
@@ -1153,28 +1153,28 @@ namespace TheBusProject.Presentation
             AfterSelectionChanged();
         }
 
-        /// <summary>The dashed flights that "Add round trips" would put on the timeline.</summary>
+        /// <summary>The dashed trips that "Add round trips" would put on the timeline.</summary>
         private void BuildPreview()
         {
             var list = new List<TimelineBlock>();
             var ground = new List<TimelineBlock>();
-            if (_aircraft != null && _route != null && _from != null && Days != null)
+            if (_coach != null && _route != null && _from != null && Days != null)
             {
-                var f = _aircraft.Airliner;
+                var f = _coach.Coach;
                 var route = _route.Route;
-                Airport from = _from.Airport;
-                Airport to = from == route.Destination1 ? route.Destination2 : route.Destination1;
-                TimeSpan flight = route.GetFlightTime(f.Airliner.Type);
-                TimeSpan back = _time.Time.Add(flight).Add(new TimeSpan(0, _turnaround, 0));
+                Station from = _from.Station;
+                Station to = from == route.Destination1 ? route.Destination2 : route.Destination1;
+                TimeSpan trip = route.GetTripTime(f.Coach.Type);
+                TimeSpan back = _time.Time.Add(trip).Add(new TimeSpan(0, _turnaround, 0));
                 int color = Math.Max(0, f.Routes.ToList().IndexOf(route));
-                double groundMinutes = FleetAirlinerHelpers.GetMinTimeBetweenFlights(f).TotalMinutes;
+                double groundMinutes = FleetCoachHelpers.GetMinTimeBetweenTrips(f).TotalMinutes;
                 foreach (var day in Days.Where(d => d.IsChecked).Select(d => d.Day))
                 {
-                    AddBlocks(list, ground, day, _time.Time.TotalMinutes, flight.TotalMinutes, groundMinutes,
-                              from.Profile.IATACode + " > " + to.Profile.IATACode, "New flight", color, true, null);
+                    AddBlocks(list, ground, day, _time.Time.TotalMinutes, trip.TotalMinutes, groundMinutes,
+                              from.Profile.IATACode + " > " + to.Profile.IATACode, "New trip", color, true, null);
                     DayOfWeek backDay = (DayOfWeek) (((int) day + back.Days) % 7);
-                    AddBlocks(list, ground, backDay, back.Hours * 60 + back.Minutes, flight.TotalMinutes, groundMinutes,
-                              to.Profile.IATACode + " > " + from.Profile.IATACode, "New flight", color, true, null);
+                    AddBlocks(list, ground, backDay, back.Hours * 60 + back.Minutes, trip.TotalMinutes, groundMinutes,
+                              to.Profile.IATACode + " > " + from.Profile.IATACode, "New trip", color, true, null);
                 }
             }
 
@@ -1183,66 +1183,66 @@ namespace TheBusProject.Presentation
             TimelineChanged?.Invoke();
         }
 
-        private void StopIfFlying(FleetAirliner f)
+        private void StopIfFlying(FleetCoach f)
         {
-            if (f.Status != FleetAirliner.AirlinerStatus.Stopped)
+            if (f.Status != FleetCoach.CoachStatus.Stopped)
             {
-                f.Status = FleetAirliner.AirlinerStatus.Stopped;
-                Status += " " + f.Name + " was stopped; start it again under Flights > Fleet.";
+                f.Status = FleetCoach.CoachStatus.Stopped;
+                Status += " " + f.Name + " was stopped; start it again under Trips > Fleet.";
             }
         }
 
         private void Finish(string message)
         {
             Status = message;
-            StopIfFlying(_aircraft.Airliner);
-            ReloadAircraft();
+            StopIfFlying(_coach.Coach);
+            ReloadCoach();
             _changed?.Invoke();
         }
 
         private void RemoveEntry(RouteTimeTableEntry entry)
         {
-            if (_aircraft == null) return;
-            string code = entry.Destination.FlightCode;
+            if (_coach == null) return;
+            string code = entry.Destination.TripCode;
             var memo = Snapshot("removing " + code);
             RemoveEntryQuietly(entry);
             Remember(memo);
-            Finish("Flight " + code + " removed.");
+            Finish("Trip " + code + " removed.");
         }
 
-        // takes the flight out without reloading or saying so, for removing several at once
+        // takes the trip out without reloading or saying so, for removing several at once
         private void RemoveEntryQuietly(RouteTimeTableEntry entry)
         {
-            if (_aircraft == null) return;
-            var f = _aircraft.Airliner;
+            if (_coach == null) return;
+            var f = _coach.Coach;
             var route = entry.TimeTable.Route;
             route.TimeTable.RemoveEntry(entry); // entries made by the route creator can still point at a temporary timetable
             entry.TimeTable.RemoveEntry(entry);
 
-            if (!route.TimeTable.Entries.Any(e => e.Airliner == f))
+            if (!route.TimeTable.Entries.Any(e => e.Coach == f))
             {
                 f.RemoveRoute(route);
             }
         }
 
-        private void RemoveRouteFlights()
+        private void RemoveRouteTrips()
         {
-            if (_aircraft == null || _route == null)
+            if (_coach == null || _route == null)
             {
                 return;
             }
 
-            var f = _aircraft.Airliner;
-            int n = _route.Route.TimeTable.Entries.Count(e => e.Airliner == f);
+            var f = _coach.Coach;
+            int n = _route.Route.TimeTable.Entries.Count(e => e.Coach == f);
             var memo = Snapshot("clearing " + _route.Route.Destination1.Profile.IATACode + "-" + _route.Route.Destination2.Profile.IATACode);
             f.RemoveRoute(_route.Route);
             Remember(memo);
-            Finish(n + " flight(s) removed from " + _route.Text + ".");
+            Finish(n + " trip(s) removed from " + _route.Text + ".");
         }
 
         private void Add(bool roundTrip)
         {
-            if (_aircraft == null || _route == null || _from == null)
+            if (_coach == null || _route == null || _from == null)
             {
                 return;
             }
@@ -1254,29 +1254,29 @@ namespace TheBusProject.Presentation
                 return;
             }
 
-            var f = _aircraft.Airliner;
+            var f = _coach.Coach;
             var route = _route.Route;
-            Airport from = _from.Airport;
-            Airport to = from == route.Destination1 ? route.Destination2 : route.Destination1;
-            var memo = Snapshot("adding flights");
+            Station from = _from.Station;
+            Station to = from == route.Destination1 ? route.Destination2 : route.Destination1;
+            var memo = Snapshot("adding trips");
 
-            // flight numbers: typed by the player, or the next free ones
-            string code1 = _flightCode.Trim();
-            var free = Human.GetFlightCodes();
+            // trip numbers: typed by the player, or the next free ones
+            string code1 = _tripCode.Trim();
+            var free = Human.GetTripCodes();
             if (code1.Length == 0)
             {
                 code1 = free[0];
             }
 
             string code2 = free.FirstOrDefault(c => c != code1) ?? free[0];
-            if (!string.IsNullOrEmpty(_flightCode.Trim()))
+            if (!string.IsNullOrEmpty(_tripCode.Trim()))
             {
                 int idx = free.IndexOf(code1);
                 code2 = idx >= 0 && idx + 1 < free.Count ? free[idx + 1] : free.First(c => c != code1);
             }
 
-            TimeSpan flightTime = route.GetFlightTime(f.Airliner.Type);
-            TimeSpan back = _time.Time.Add(flightTime).Add(new TimeSpan(0, _turnaround, 0));
+            TimeSpan tripTime = route.GetTripTime(f.Coach.Type);
+            TimeSpan back = _time.Time.Add(tripTime).Add(new TimeSpan(0, _turnaround, 0));
 
             var rt = new RouteTimeTable(route);
             foreach (var day in days)
@@ -1284,7 +1284,7 @@ namespace TheBusProject.Presentation
                 rt.AddEntry(
                     new RouteTimeTableEntry(route.TimeTable, day, _time.Time, new RouteEntryDestination(to, code1))
                     {
-                        Airliner = f
+                        Coach = f
                     });
 
                 if (roundTrip)
@@ -1297,16 +1297,16 @@ namespace TheBusProject.Presentation
                             new TimeSpan(back.Hours, back.Minutes, 0),
                             new RouteEntryDestination(from, code2))
                         {
-                            Airliner = f
+                            Coach = f
                         });
                 }
             }
 
-            var existing = AircraftEntries().ToList();
+            var existing = CoachEntries().ToList();
             if (!TimeTableHelpers.IsRoutePlannerTimeTableValid(rt, f, existing))
             {
-                Status = "These flights don't fit: they overlap another flight of " + f.Name
-                         + " (it needs the flight time plus time on the ground), or one of the airports has no free gate time then. Try another time or fewer days.";
+                Status = "These trips don't fit: they overlap another trip of " + f.Name
+                         + " (it needs the trip time plus time on the ground), or one of the stations has no free gate time then. Try another time or fewer days.";
                 return;
             }
 
@@ -1320,10 +1320,10 @@ namespace TheBusProject.Presentation
                 f.AddRoute(route);
             }
 
-            memo.Label = "adding " + rt.Entries.Count + " flight(s)";
+            memo.Label = "adding " + rt.Entries.Count + " trip(s)";
             Remember(memo);
             _justAdded = rt.Entries.OrderBy(e => DayIndex(e.Day)).ThenBy(e => e.Time).ToList();
-            Finish(string.Format("{0} flight(s) added ({1}).", rt.Entries.Count, roundTrip ? "round trips" : "one way"));
+            Finish(string.Format("{0} trip(s) added ({1}).", rt.Entries.Count, roundTrip ? "round trips" : "one way"));
         }
     }
 }

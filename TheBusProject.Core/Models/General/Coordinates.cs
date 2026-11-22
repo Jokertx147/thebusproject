@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Device.Location;
 using System.Runtime.Serialization;
 using TheBusProject.Helpers;
@@ -48,7 +48,7 @@ namespace TheBusProject.Models.General
             return Latitude + " " + Longitude;
         }
 
-        // the position in degrees, worked out once (distances and flight times ask for it all the time); made again
+        // the position in degrees, worked out once (distances and trip times ask for it all the time); made again
         // if the latitude or longitude is replaced. Callers only read it.
         [NonSerialized]
         private GeoCoordinate _geo;

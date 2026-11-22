@@ -48,8 +48,8 @@ jobs:
 
       - name: Add the Linux launcher and make the tarball
         run: |
-          cp Linux/theairline.sh Linux/install.sh Linux/README.md package/
-          chmod +x package/theairline.sh package/install.sh
+          cp Linux/thecarrier.sh Linux/install.sh Linux/README.md package/
+          chmod +x package/thecarrier.sh package/install.sh
           tar -czf TheBusProjectProject-Linux-Wine.tar.gz --transform 's,^package,TheBusProjectProject,' package
 
       - uses: actions/upload-artifact@v4

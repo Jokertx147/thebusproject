@@ -14,7 +14,7 @@ using TheBusProject.Presentation;
 
 namespace TheBusProject.Desktop.Views
 {
-    /// <summary>Draws the Web Mercator world map (the level 3 tiles of the game data) with the airline's airports, routes and aircraft. Drag to pan, wheel to zoom, click an aircraft to select it.</summary>
+    /// <summary>Draws the Web Mercator world map (the level 3 tiles of the game data) with the carrier's stations, routes and coach. Drag to pan, wheel to zoom, click an coach to select it.</summary>
     public class WorldMapControl : Control
     {
         private const int TileLevel = 3;
@@ -32,7 +32,7 @@ namespace TheBusProject.Desktop.Views
         private static readonly IBrush Sea = new SolidColorBrush(Color.Parse("#b5d0d0"));
         private static readonly Pen RoutePen = new Pen(new SolidColorBrush(Color.FromArgb(150, 20, 90, 200)), 1.4);
         private static readonly Pen CargoPen = new Pen(new SolidColorBrush(Color.FromArgb(170, 220, 120, 0)), 1.4, new DashStyle(new double[] { 4, 3 }, 0));
-        private static readonly IBrush AirportBrush = new SolidColorBrush(Color.Parse("#1d3f8a"));
+        private static readonly IBrush StationBrush = new SolidColorBrush(Color.Parse("#1d3f8a"));
         private static readonly IBrush HubBrush = new SolidColorBrush(Color.Parse("#c01818"));
         private static readonly IBrush FlyBrush = new SolidColorBrush(Color.Parse("#e8a800"));
         private static readonly IBrush GroundBrush = new SolidColorBrush(Color.Parse("#555555"));
@@ -43,7 +43,7 @@ namespace TheBusProject.Desktop.Views
         private static readonly IBrush FlowBrush = new SolidColorBrush(Color.FromArgb(210, 255, 255, 255));
         private static readonly Pen PathPen = new Pen(new SolidColorBrush(Color.FromArgb(200, 200, 30, 30)), 2, new DashStyle(new double[] { 5, 4 }, 0));
 
-        // about 30 frames a second while aircraft are moving
+        // about 30 frames a second while coach are moving
         private readonly DispatcherTimer _frames = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(33) };
 
         // the route lines in screen points, made again only when the view or the routes change
@@ -90,7 +90,7 @@ namespace TheBusProject.Desktop.Views
             DataContextChanged += (s, e) => Attach();
             _frames.Tick += (s, e) =>
             {
-                if (_vm != null && _vm.Animate && (_vm.ShowAircraft || _vm.ShowRoutes) && _vm.Clock.Running && IsVisible) InvalidateVisual();
+                if (_vm != null && _vm.Animate && (_vm.ShowCoach || _vm.ShowRoutes) && _vm.Clock.Running && IsVisible) InvalidateVisual();
             };
             AttachedToVisualTree += (s, e) => _frames.Start();
             DetachedFromVisualTree += (s, e) => _frames.Stop();
@@ -180,7 +180,7 @@ namespace TheBusProject.Desktop.Views
             InvalidateVisual();
         }
 
-        /// <summary>Back to the view that fits the airline's network.</summary>
+        /// <summary>Back to the view that fits the carrier's network.</summary>
         public void FitView()
         {
             Fit();
@@ -190,7 +190,7 @@ namespace TheBusProject.Desktop.Views
         private DateTime _frameNow;
         private bool _wasFollowing;
 
-        // following: the selected aircraft in the middle, where this frame draws it (zoomed in a little when following
+        // following: the selected coach in the middle, where this frame draws it (zoomed in a little when following
         // starts on a wide view)
         private void FollowSelected()
         {
@@ -214,7 +214,7 @@ namespace TheBusProject.Desktop.Views
             if (_vm != null && _vm.Follow) _vm.Follow = false;
         }
 
-        /// <summary>Centres the view on the selected aircraft and zooms in a little if the view is wide.</summary>
+        /// <summary>Centres the view on the selected coach and zooms in a little if the view is wide.</summary>
         public void CenterOnSelected()
         {
             if (_vm?.Selected == null) return;
@@ -367,10 +367,10 @@ namespace TheBusProject.Desktop.Views
             bool animate = _vm.Animate;
             DateTime now = _frameNow;
 
-            // dashes flowing along each route that has an aircraft in the air, the way it flies
+            // dashes flowing along each route that has an coach in the air, the way it flies
             if (animate && _vm.ShowRoutes) DrawFlow(ctx, now);
 
-            if (_vm.ShowAirports)
+            if (_vm.ShowStations)
             {
                 foreach (var pl in _vm.Places.ToList().OrderByDescending(x => x.IsRivalOnly))
                 {
@@ -388,7 +388,7 @@ namespace TheBusProject.Desktop.Views
                     }
 
                     double r = pl.IsHub ? 5 : 3.2;
-                    ctx.DrawEllipse(pl.IsHub ? HubBrush : AirportBrush, Outline, p, r, r);
+                    ctx.DrawEllipse(pl.IsHub ? HubBrush : StationBrush, Outline, p, r, r);
                     if (pl.IsHub || _scale > MinScale * 1.8)
                     {
                         var t = new FormattedText(pl.Label ?? "", CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Face, 11, Brushes.Black);
@@ -397,11 +397,11 @@ namespace TheBusProject.Desktop.Views
                 }
             }
 
-            if (_vm.ShowAircraft)
+            if (_vm.ShowCoach)
             {
-                var aircraft = _vm.Aircraft.ToList();
+                var coach = _vm.Coach.ToList();
 
-                // the selected aircraft's whole flight
+                // the selected coach's whole trip
                 var sel = _vm.Selected;
                 if (sel?.Path != null && sel.Fraction(now) > 0 && sel.Fraction(now) < 1)
                 {
@@ -420,11 +420,11 @@ namespace TheBusProject.Desktop.Views
                     }
                 }
 
-                // the rivals' aircraft first, the player's on top
-                foreach (var a in aircraft.Where(x => !x.IsMine).Concat(aircraft.Where(x => x.IsMine)))
+                // the rivals' coach first, the player's on top
+                foreach (var a in coach.Where(x => !x.IsMine).Concat(coach.Where(x => x.IsMine)))
                 {
                     double u = a.U, v = a.V, heading = a.Heading;
-                    bool flying = a.InFlight;
+                    bool flying = a.InTrip;
                     if (animate) flying = a.At(now, out u, out v, out heading);
 
                     Point p = ToScreen(u, v);
@@ -466,7 +466,7 @@ namespace TheBusProject.Desktop.Views
             }
         }
 
-        // the flights' paths in screen points, made again only when the view changes
+        // the trips' paths in screen points, made again only when the view changes
         private readonly Dictionary<(double, double, double, double), List<StreamGeometry>> _flowGeo = new Dictionary<(double, double, double, double), List<StreamGeometry>>();
         private (double, double, double, double, double) _flowView;
 
@@ -487,13 +487,13 @@ namespace TheBusProject.Desktop.Views
             double offset = -((WorldMapViewModel.WallSeconds * FlowSpeed / thickness) % 4.8); // one dash and gap: 1.6 + 3.2
             var pen = new Pen(FlowBrush, thickness, new DashStyle(new double[] { 1.6, 3.2 }, offset), PenLineCap.Round);
             var drawn = new HashSet<(double, double, double, double)>();
-            foreach (var a in _vm.Aircraft.ToList())
+            foreach (var a in _vm.Coach.ToList())
             {
-                if (!a.HasFlight || !a.IsMine) continue;
+                if (!a.HasTrip || !a.IsMine) continue;
                 double fr = a.Fraction(now);
                 if (fr <= 0 || fr >= 1) continue;
                 var key = (a.Lat1, a.Lon1, a.Lat2, a.Lon2);
-                if (!drawn.Add(key)) continue; // one flow a direction, however many aircraft fly it
+                if (!drawn.Add(key)) continue; // one flow a direction, however many coach fly it
                 List<StreamGeometry> pieces;
                 if (!_flowGeo.TryGetValue(key, out pieces))
                 {
@@ -519,17 +519,17 @@ namespace TheBusProject.Desktop.Views
             }
         }
 
-        // a short fading line behind a flying aircraft: a few segments, lighter towards the tail
-        private void DrawTrail(DrawingContext ctx, MapAircraft a, DateTime now)
+        // a short fading line behind a flying coach: a few segments, lighter towards the tail
+        private void DrawTrail(DrawingContext ctx, MapCoach a, DateTime now)
         {
-            // about 40 screen points long, whatever the zoom and the flight's length
-            double flightPx = 0;
+            // about 40 screen points long, whatever the zoom and the trip's length
+            double tripPx = 0;
             var ends = new[] { WorldMapViewModel.Project(a.Lat1, a.Lon1), WorldMapViewModel.Project(a.Lat2, a.Lon2) };
             double du = Math.Abs(ends[1][0] - ends[0][0]);
             if (du > 0.5) du = 1 - du;
-            flightPx = Math.Sqrt(du * du + Math.Pow(ends[1][1] - ends[0][1], 2)) * _scale;
-            if (flightPx < 1) return;
-            double back = Math.Min(0.5, 40 / flightPx);
+            tripPx = Math.Sqrt(du * du + Math.Pow(ends[1][1] - ends[0][1], 2)) * _scale;
+            if (tripPx < 1) return;
+            double back = Math.Min(0.5, 40 / tripPx);
             var points = a.Trail(now, back, 6);
             for (int i = 1; i < points.Count; i++)
             {
@@ -592,7 +592,7 @@ namespace TheBusProject.Desktop.Views
             if (!_moved && _vm != null && _leftDrag)
             {
                 Point p = e.GetPosition(this);
-                var hit = _vm.Aircraft.ToList()
+                var hit = _vm.Coach.ToList()
                              .Select(a => new { a, d = Distance(ToScreen(a.ScreenU, a.ScreenV), p) })
                              .Where(x => x.d < 14)
                              .OrderBy(x => x.d)
@@ -601,29 +601,29 @@ namespace TheBusProject.Desktop.Views
             }
         }
 
-        /// <summary>Shows the tooltip of the aircraft or airport under the pointer (aircraft first), and a hand cursor over them.</summary>
+        /// <summary>Shows the tooltip of the coach or station under the pointer (coach first), and a hand cursor over them.</summary>
         private void UpdateTip(Point p)
         {
             string key = null, text = null;
             if (_vm != null)
             {
-                if (_vm.ShowAircraft)
+                if (_vm.ShowCoach)
                 {
-                    var plane = _vm.Aircraft.ToList().Select(a => new { a, d = Distance(ToScreen(a.ScreenU, a.ScreenV), p) }).Where(x => x.d < 12).OrderBy(x => x.d).FirstOrDefault();
+                    var plane = _vm.Coach.ToList().Select(a => new { a, d = Distance(ToScreen(a.ScreenU, a.ScreenV), p) }).Where(x => x.d < 12).OrderBy(x => x.d).FirstOrDefault();
                     if (plane != null)
                     {
-                        key = "a:" + plane.a.Aircraft.Name + plane.a.Info;
-                        if (key != _hoverKey) text = _vm.AircraftTip(plane.a);
+                        key = "a:" + plane.a.Coach.Name + plane.a.Info;
+                        if (key != _hoverKey) text = _vm.CoachTip(plane.a);
                     }
                 }
 
-                if (key == null && _vm.ShowAirports)
+                if (key == null && _vm.ShowStations)
                 {
                     var place = _vm.Places.ToList().Select(a => new { a, d = Distance(ToScreen(a.U, a.V), p) }).Where(x => x.d < (x.a.IsHub ? 9 : 7)).OrderBy(x => x.d).FirstOrDefault();
                     if (place != null)
                     {
                         key = "p:" + place.a.Label + _vm.Caption;
-                        if (key != _hoverKey) text = _vm.AirportTip(place.a);
+                        if (key != _hoverKey) text = _vm.StationTip(place.a);
                     }
                 }
             }

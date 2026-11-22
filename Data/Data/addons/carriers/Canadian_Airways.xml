@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+
+<carrier>
+  <profile name="Canadian Airways" iata="CAA" color="Red" country="113" CEO="Mark Benson" mentality="Aggressive"
+           market="Global" preferedstation="YYZ">
+    <narrative narrative="Canadian Airways is fictional for our purposed, however used to operate in the 1930s."></narrative>
+  </profile>
+</carrier>

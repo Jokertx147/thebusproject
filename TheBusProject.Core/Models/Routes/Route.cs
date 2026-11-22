@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using TheBusProject.Helpers;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General.Environment;
 using TheBusProject.Models.General.Finances;
 
@@ -24,7 +24,7 @@ namespace TheBusProject.Models.Routes
 
         #region Constructors and Destructors
 
-        protected Route(RouteType type, string id, Airport destination1, Airport destination2, DateTime startDate)
+        protected Route(RouteType type, string id, Station destination1, Station destination2, DateTime startDate)
         {
             Type = type;
             Id = id;
@@ -68,8 +68,8 @@ namespace TheBusProject.Models.Routes
 
         #region Public Properties
 
-        [Versioning("airline")]
-        public Airline Airline { get; set; }
+        [Versioning("carrier")]
+        public Carrier Carrier { get; set; }
 
         public double Balance => GetBalance();
 
@@ -77,10 +77,10 @@ namespace TheBusProject.Models.Routes
         public bool Banned { get; set; }
 
         [Versioning("destination1")]
-        public Airport Destination1 { get; set; }
+        public Station Destination1 { get; set; }
 
         [Versioning("destination2")]
-        public Airport Destination2 { get; set; }
+        public Station Destination2 { get; set; }
 
         public double FillingDegree => GetFillingDegree();
 
@@ -170,25 +170,25 @@ namespace TheBusProject.Models.Routes
         //removes a stop over from the route
 
         //returns if the route contains a specific destination
-        public bool ContainsDestination(Airport destination)
+        public bool ContainsDestination(Station destination)
         {
             return Destination1 == destination || Destination2 == destination;
         }
 
-        /// <summary>The aircraft flying the route: those of its timetable entries, then those of their main entries (each once, in that order).</summary>
-        public List<FleetAirliner> GetAirliners()
+        /// <summary>The coach flying the route: those of its timetable entries, then those of their main entries (each once, in that order).</summary>
+        public List<FleetCoach> GetCoaches()
         {
             RouteTimeTableEntry[] entries = Entries();
-            var result = new List<FleetAirliner>();
-            var seen = new HashSet<FleetAirliner>();
+            var result = new List<FleetCoach>();
+            var seen = new HashSet<FleetCoach>();
             foreach (var e in entries)
             {
-                var a = e?.Airliner;
+                var a = e?.Coach;
                 if (a != null && seen.Add(a)) result.Add(a);
             }
             foreach (var e in entries)
             {
-                var a = e?.MainEntry?.Airliner;
+                var a = e?.MainEntry?.Coach;
                 if (a != null && seen.Add(a)) result.Add(a);
             }
             return result;
@@ -212,8 +212,8 @@ namespace TheBusProject.Models.Routes
             }
         }
 
-        /// <summary>Whether any aircraft flies the route (as GetAirliners().Count > 0, without building the list).</summary>
-        public bool HasAirliner
+        /// <summary>Whether any coach flies the route (as GetCoaches().Count > 0, without building the list).</summary>
+        public bool HasCoach
         {
             get
             {
@@ -224,14 +224,14 @@ namespace TheBusProject.Models.Routes
                     for (int i = 0; i < list.Count; i++)
                     {
                         var e = list[i];
-                        if (e?.Airliner != null || e?.MainEntry?.Airliner != null) return true;
+                        if (e?.Coach != null || e?.MainEntry?.Coach != null) return true;
                     }
                     return false;
                 }
                 catch (ArgumentOutOfRangeException)
                 {
                     // the list got shorter while reading
-                    return GetAirliners().Count > 0;
+                    return GetCoaches().Count > 0;
                 }
             }
         }
@@ -241,16 +241,16 @@ namespace TheBusProject.Models.Routes
             return GetRouteInvoiceAmount(Invoice.InvoiceType.Total, startTime, endTime);
         }
 
-        public FleetAirliner GetCurrentAirliner()
+        public FleetCoach GetCurrentCoach()
         {
             return
-                GetAirliners().Find(f => f.CurrentFlight != null && f.CurrentFlight.Entry.TimeTable.Route == this);
+                GetCoaches().Find(f => f.CurrentTrip != null && f.CurrentTrip.Entry.TimeTable.Route == this);
         }
 
         //returns the list of destinations
-        public List<Airport> GetDestinations()
+        public List<Station> GetDestinations()
         {
-            var dests = new List<Airport> {Destination1, Destination2};
+            var dests = new List<Station> {Destination1, Destination2};
 
             return dests;
         }
@@ -268,19 +268,19 @@ namespace TheBusProject.Models.Routes
 
         public abstract double GetFillingDegree();
 
-        public TimeSpan GetFlightTime(AirlinerType type)
+        public TimeSpan GetTripTime(CoachType type)
         {
             if (HasStopovers)
             {
                 double totalMinutes = Stopovers.SelectMany(s => s.Legs)
-                                               .Sum(l => l.GetFlightTime(type).TotalMinutes);
-                double totalRestTime = FleetAirlinerHelpers.GetMinTimeBetweenFlights(type).TotalMinutes
+                                               .Sum(l => l.GetTripTime(type).TotalMinutes);
+                double totalRestTime = FleetCoachHelpers.GetMinTimeBetweenTrips(type).TotalMinutes
                                        *(Stopovers.SelectMany(s => s.Legs).Count() - 1);
                 var time = (int) (totalRestTime + totalMinutes);
 
                 return new TimeSpan(0, time, 0);
             }
-            return MathHelpers.GetFlightTime(Destination1, Destination2, type);
+            return MathHelpers.GetTripTime(Destination1, Destination2, type);
         }
 
         //returns all invoices for the route
@@ -344,10 +344,10 @@ namespace TheBusProject.Models.Routes
             var types = new List<Invoice.InvoiceType>
                 {
                     Invoice.InvoiceType.Tickets,
-                    Invoice.InvoiceType.OnFlightIncome,
+                    Invoice.InvoiceType.OnTripIncome,
                     Invoice.InvoiceType.Fees,
                     Invoice.InvoiceType.Maintenances,
-                    Invoice.InvoiceType.FlightExpenses,
+                    Invoice.InvoiceType.TripExpenses,
                     Invoice.InvoiceType.Wages,
                     Invoice.InvoiceType.Total
                 };
@@ -355,7 +355,7 @@ namespace TheBusProject.Models.Routes
             return types;
         }
 
-        public void RemoveStopover(Airport stopover)
+        public void RemoveStopover(Station stopover)
         {
             Stopovers.Remove(Stopovers.Find(s => s.Stopover == stopover));
         }
@@ -380,6 +380,6 @@ namespace TheBusProject.Models.Routes
 
         //get the balance for the route 
 
-        //returns all airliners assigned to the route
+        //returns all coaches assigned to the route
     }
 }

@@ -4,12 +4,12 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 using TheBusProject.Helpers;
-using TheBusProject.Models.Airliners;
+using TheBusProject.Models.Coaches;
 using TheBusProject.Models.General;
 
 namespace TheBusProject.Presentation
 {
-    public class CharterAircraftItem
+    public class CharterCoachItem
     {
         public string Text { get; set; }
         public ICommand SendCommand { get; set; }
@@ -19,13 +19,13 @@ namespace TheBusProject.Presentation
     {
         public string Name { get; set; }
         public string Terms { get; set; }
-        public string NoAircraft { get; set; }
-        public bool HasNoAircraft => NoAircraft != null;
-        public List<CharterAircraftItem> Aircraft { get; set; }
+        public string NoCoach { get; set; }
+        public bool HasNoCoach => NoCoach != null;
+        public List<CharterCoachItem> Coach { get; set; }
         public ICommand DeclineCommand { get; set; }
     }
 
-    /// <summary>Charter flights: one-off jobs for aircraft that have no routes.</summary>
+    /// <summary>Charter trips: one-off jobs for coach that have no routes.</summary>
     public class CharterViewModel : ObservableObject
     {
         private readonly Action _changed;
@@ -83,15 +83,15 @@ namespace TheBusProject.Presentation
 
         public void Reload()
         {
-            var airline = GameObject.GetInstance().HumanAirline;
-            if (airline == null) return;
+            var carrier = GameObject.GetInstance().HumanCarrier;
+            if (carrier == null) return;
 
             CharterService.Refresh();
             Offers.Clear();
             foreach (var offer in CharterService.Offers.ToList())
             {
                 var o = offer;
-                var quotes = CharterService.Candidates(airline, o).Take(6).ToList();
+                var quotes = CharterService.Candidates(carrier, o).Take(6).ToList();
                 var item = new CharterOfferItem
                 {
                     Name = o.Title,
@@ -99,25 +99,25 @@ namespace TheBusProject.Presentation
                         "{0} {1} for {2}  |  {3} to {4}, {5}  |  pays {6}  |  answer by {7}",
                         o.Amount, o.IsCargo ? "cargo units" : "passengers", o.Customer, o.From.Profile.Name, o.To.Profile.Name,
                         DistanceFormatter.Km(o.Distance), Money(o.Fee), DateFormatter.Date(o.Deadline)),
-                    Aircraft = new List<CharterAircraftItem>(),
+                    Coach = new List<CharterCoachItem>(),
                     DeclineCommand = new RelayCommand(() => { CharterService.Decline(o); Status = "You turned down " + o.Title + "."; Reload(); })
                 };
                 foreach (var q in quotes)
                 {
                     var qq = q;
-                    item.Aircraft.Add(
-                        new CharterAircraftItem
+                    item.Coach.Add(
+                        new CharterCoachItem
                         {
                             Text = string.Format(
                                 "{0} ({1}) at {2}{3}  |  {4} days  |  costs about {5}  |  profit about {6}",
-                                qq.Aircraft.Name, qq.Aircraft.Airliner.Type.Name, qq.Aircraft.CurrentPosition.Profile.IATACode,
+                                qq.Coach.Name, qq.Coach.Coach.Type.Name, qq.Coach.CurrentPosition.Profile.IATACode,
                                 qq.FerryDistance > 1 ? ", ferry " + DistanceFormatter.Km(qq.FerryDistance) : "", qq.Days, Money(qq.Cost), Money(qq.Profit)),
                             SendCommand = new RelayCommand(() => AskSend(o, qq))
                         });
                 }
                 if (quotes.Count == 0)
                 {
-                    item.NoAircraft = "None of your aircraft can do this: it needs " + (o.IsCargo ? "a cargo aircraft" : "a passenger aircraft")
+                    item.NoCoach = "None of your coach can do this: it needs " + (o.IsCargo ? "a cargo coach" : "a passenger coach")
                                       + " without routes, with a full crew, enough room and range.";
                 }
                 Offers.Add(item);
@@ -125,13 +125,13 @@ namespace TheBusProject.Presentation
 
             Active.Clear();
             var game = GameObject.GetInstance();
-            foreach (var f in airline.Fleet.Where(x => CharterService.IsOnCharter(x)))
+            foreach (var f in carrier.Fleet.Where(x => CharterService.IsOnCharter(x)))
             {
                 Active.Add(string.Format("{0}: {1}, back {2}, pays {3}", f.Name, f.CharterText, DateFormatter.Date(f.CharterUntil), Money(f.CharterPay)));
             }
 
             OffersTitle = Offers.Count == 0 ? "No charter offers right now. New ones come about every week." : "Charter offers";
-            ActiveTitle = Active.Count == 0 ? "No aircraft are out on a charter." : "Out on charter";
+            ActiveTitle = Active.Count == 0 ? "No coach are out on a charter." : "Out on charter";
             OnPropertyChanged(nameof(OffersTitle));
             OnPropertyChanged(nameof(ActiveTitle));
         }
@@ -140,12 +140,12 @@ namespace TheBusProject.Presentation
         {
             SetPending(
                 string.Format(
-                    "Send {0} on \"{1}\"? It is away {2} days. You get {3} when it lands, and the flight costs about {4}.",
-                    q.Aircraft.Name, o.Title, q.Days, Money(o.Fee), Money(q.Cost)),
+                    "Send {0} on \"{1}\"? It is away {2} days. You get {3} when it lands, and the trip costs about {4}.",
+                    q.Coach.Name, o.Title, q.Days, Money(o.Fee), Money(q.Cost)),
                 () =>
                 {
                     string message;
-                    CharterService.Accept(GameObject.GetInstance().HumanAirline, o, q.Aircraft, out message);
+                    CharterService.Accept(GameObject.GetInstance().HumanCarrier, o, q.Coach, out message);
                     Status = message;
                     Reload();
                     _changed();

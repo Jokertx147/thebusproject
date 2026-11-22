@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using TheBusProject.Helpers;
-using TheBusProject.Models.Airlines;
+using TheBusProject.Models.Carriers;
 
 namespace TheBusProject.Models.General.Statistics
 {
@@ -9,74 +9,74 @@ namespace TheBusProject.Models.General.Statistics
     {
         #region Public Methods and Operators
 
-        public static double GetCustomerHappiness(Airline airline)
+        public static double GetCustomerHappiness(Carrier carrier)
         {
             const int negInt = -1;
-            Dictionary<Airline, double> fillAverages = StatisticsHelpers.GetFillAverages();
-            Dictionary<Airline, double> onTimePercent = StatisticsHelpers.GetTotalOnTime();
-            Dictionary<Airline, double> ticketPPD = StatisticsHelpers.GetTotalPPD();
-            IDictionary<Airline, double> scaleAvgFill = StatisticsHelpers.GetRatingScale(fillAverages);
-            IDictionary<Airline, double> scaleOnTimeP = StatisticsHelpers.GetRatingScale(onTimePercent);
-            IDictionary<Airline, double> scalePPD = StatisticsHelpers.GetRatingScale(ticketPPD);
-            IDictionary<Airline, double> scaleLuxury = StatisticsHelpers.GetRatingScale(GetAirlinesLuxuryLevels());
+            Dictionary<Carrier, double> fillAverages = StatisticsHelpers.GetFillAverages();
+            Dictionary<Carrier, double> onTimePercent = StatisticsHelpers.GetTotalOnTime();
+            Dictionary<Carrier, double> ticketPPD = StatisticsHelpers.GetTotalPPD();
+            IDictionary<Carrier, double> scaleAvgFill = StatisticsHelpers.GetRatingScale(fillAverages);
+            IDictionary<Carrier, double> scaleOnTimeP = StatisticsHelpers.GetRatingScale(onTimePercent);
+            IDictionary<Carrier, double> scalePPD = StatisticsHelpers.GetRatingScale(ticketPPD);
+            IDictionary<Carrier, double> scaleLuxury = StatisticsHelpers.GetRatingScale(GetCarriersLuxuryLevels());
 
-            double airlineAvgFill = scaleAvgFill[airline];
-            double airlineOTP = scaleOnTimeP[airline];
-            double airlinePPD = scalePPD[airline];
-            double airlineLuxury = scaleLuxury[airline];
+            double carrierAvgFill = scaleAvgFill[carrier];
+            double carrierOTP = scaleOnTimeP[carrier];
+            double carrierPPD = scalePPD[carrier];
+            double carrierLuxury = scaleLuxury[carrier];
 
-            return ((airlinePPD*negInt + 100)*0.4) + (airlineAvgFill*0.2) + (airlineOTP*0.2)
-                   + (airlineLuxury*0.2);
+            return ((carrierPPD*negInt + 100)*0.4) + (carrierAvgFill*0.2) + (carrierOTP*0.2)
+                   + (carrierLuxury*0.2);
         }
 
-        //returns all airline luxury levels
+        //returns all carrier luxury levels
 
         //calculates employee happiness as a function of wages, discounts, and free pilots (relative to workload)
-        public static double GetEmployeeHappiness(Airline airline)
+        public static double GetEmployeeHappiness(Carrier carrier)
         {
-            Dictionary<Airline, double> wages = StatisticsHelpers.GetEmployeeWages();
-            Dictionary<Airline, double> discounts = StatisticsHelpers.GetEmployeeDiscounts();
-            Dictionary<Airline, double> unassignedPilots = StatisticsHelpers.GetUnassignedPilots();
-            IDictionary<Airline, double> scaleWages = StatisticsHelpers.GetRatingScale(wages);
-            IDictionary<Airline, double> scaleDiscounts = StatisticsHelpers.GetRatingScale(discounts);
-            IDictionary<Airline, double> scaleUPilots = StatisticsHelpers.GetRatingScale(unassignedPilots);
+            Dictionary<Carrier, double> wages = StatisticsHelpers.GetEmployeeWages();
+            Dictionary<Carrier, double> discounts = StatisticsHelpers.GetEmployeeDiscounts();
+            Dictionary<Carrier, double> unassignedPilots = StatisticsHelpers.GetUnassignedPilots();
+            IDictionary<Carrier, double> scaleWages = StatisticsHelpers.GetRatingScale(wages);
+            IDictionary<Carrier, double> scaleDiscounts = StatisticsHelpers.GetRatingScale(discounts);
+            IDictionary<Carrier, double> scaleUPilots = StatisticsHelpers.GetRatingScale(unassignedPilots);
 
-            double airlineWages = scaleWages[airline];
-            double airlineDiscounts = scaleDiscounts[airline];
-            double airlineUnassignedPilots = scaleUPilots[airline];
+            double carrierWages = scaleWages[carrier];
+            double carrierDiscounts = scaleDiscounts[carrier];
+            double carrierUnassignedPilots = scaleUPilots[carrier];
 
-            return (airlineWages*0.7) + (airlineUnassignedPilots*0.2) + (airlineDiscounts*0.1);
+            return (carrierWages*0.7) + (carrierUnassignedPilots*0.2) + (carrierDiscounts*0.1);
         }
 
         #endregion
 
         #region Methods
 
-        private static double GetAirlineLuxuryLevel(Airline airline)
+        private static double GetCarrierLuxuryLevel(Carrier carrier)
         {
             int luxuryLevel;
 
-            if (airline.Alliances.Count > 0)
+            if (carrier.Alliances.Count > 0)
             {
                 luxuryLevel =
-                    airline.Alliances.SelectMany(a => a.Members)
-                           .Select(m => m.Airline)
-                           .Max(m => airline.Facilities.Sum(f => f.LuxuryLevel));
+                    carrier.Alliances.SelectMany(a => a.Members)
+                           .Select(m => m.Carrier)
+                           .Max(m => carrier.Facilities.Sum(f => f.LuxuryLevel));
             }
             else
             {
-                luxuryLevel = airline.Facilities.Sum(f => f.LuxuryLevel);
+                luxuryLevel = carrier.Facilities.Sum(f => f.LuxuryLevel);
             }
             return luxuryLevel;
         }
 
-        private static Dictionary<Airline, double> GetAirlinesLuxuryLevels()
+        private static Dictionary<Carrier, double> GetCarriersLuxuryLevels()
         {
-            return Airlines.Airlines.GetAllAirlines().ToDictionary(airline => airline, GetAirlineLuxuryLevel);
+            return Carriers.Carriers.GetAllCarriers().ToDictionary(carrier => carrier, GetCarrierLuxuryLevel);
         }
 
         #endregion
 
-        //calculates customer happiness as a function of average ticket price, crowding on flights, and on-time % - for an airline
+        //calculates customer happiness as a function of average ticket price, crowding on trips, and on-time % - for an carrier
     }
 }

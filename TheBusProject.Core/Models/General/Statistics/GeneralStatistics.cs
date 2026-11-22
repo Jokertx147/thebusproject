@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -39,11 +39,11 @@ namespace TheBusProject.Models.General.Statistics
             base.GetObjectData(info, context);
         }
 
-        // An airline's own flights are simulated on one thread, but an aircraft leased to another airline, and the
-        // flights an airline's subsidiaries fly, are counted from that other airline's thread. Finding the line and
+        // An carrier's own trips are simulated on one thread, but an coach leased to another carrier, and the
+        // trips an carrier's subsidiaries fly, are counted from that other carrier's thread. Finding the line and
         // then adding to it is a read, a change and a write: without the lock two threads could both find none and
         // both add a line (only the first of which is ever read again), or both read the same total and write it back
-        // once, and either way flights are quietly lost.
+        // once, and either way trips are quietly lost.
         public void AddStatisticsValue(int year, StatisticsType type, double value)
         {
             lock (StatValues)

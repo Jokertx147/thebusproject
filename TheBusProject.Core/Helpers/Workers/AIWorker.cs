@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 using System.ComponentModel;
-using TheBusProject.Models.Airlines;
+using TheBusProject.Models.Carriers;
 
 namespace TheBusProject.Helpers.Workers
 {
@@ -62,7 +62,7 @@ namespace TheBusProject.Helpers.Workers
 
         private void bw_DoWork(object sender, DoWorkEventArgs e)
         {
-            foreach (Airline airline in Airlines.GetAllAirlines())
+            foreach (Carrier carrier in Carriers.GetAllCarriers())
             {
                 if (_worker.CancellationPending)
                 {
@@ -70,9 +70,9 @@ namespace TheBusProject.Helpers.Workers
                 }
                 else
                 {
-                    if (!airline.IsHuman)
+                    if (!carrier.IsHuman)
                     {
-                        AIHelpers.UpdateCPUAirline(airline);
+                        AIHelpers.UpdateCPUCarrier(carrier);
                     }
                 }
             }

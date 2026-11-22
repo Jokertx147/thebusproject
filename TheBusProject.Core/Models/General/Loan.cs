@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.Serialization;
 using TheBusProject.Helpers;
 using TheBusProject.Infrastructure;
@@ -65,7 +65,7 @@ namespace TheBusProject.Models.General
 
         public double GetMonthlyPayment()
         {
-            // the difficulty already scales the rate (GeneralHelpers.GetAirlineLoanRate), so it is not applied again here
+            // the difficulty already scales the rate (GeneralHelpers.GetCarrierLoanRate), so it is not applied again here
             return MathHelpers.GetMonthlyPayment(Amount, Rate, Length);
         }
 

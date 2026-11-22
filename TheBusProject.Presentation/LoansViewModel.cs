@@ -92,9 +92,9 @@ namespace TheBusProject.Presentation
             return Convert.ToString(new ValueCurrencyFormatter().Convert(v));
         }
 
-        private static Models.Airlines.Airline Human
+        private static Models.Carriers.Carrier Human
         {
-            get { return GameObject.GetInstance().HumanAirline; }
+            get { return GameObject.GetInstance().HumanCarrier; }
         }
 
         private bool TryAmount(out double amount)
@@ -105,21 +105,21 @@ namespace TheBusProject.Presentation
 
         private Loan NewLoan(double amount)
         {
-            return new Loan(GameObject.GetInstance().GameTime, amount, _years * 12, GeneralHelpers.GetAirlineLoanRate(Human));
+            return new Loan(GameObject.GetInstance().GameTime, amount, _years * 12, GeneralHelpers.GetCarrierLoanRate(Human));
         }
 
         public void Reload()
         {
-            var airline = Human;
-            if (airline == null)
+            var carrier = Human;
+            if (carrier == null)
             {
                 return;
             }
 
-            double rate = GeneralHelpers.GetAirlineLoanRate(airline);
-            double max = AirlineHelpers.GetMaxLoanAmount(airline);
-            double debt = airline.Loans.Where(l => l.IsActive).Sum(l => l.Balance);
-            double total = airline.Loans.Sum(l => l.Amount);
+            double rate = GeneralHelpers.GetCarrierLoanRate(carrier);
+            double max = CarrierHelpers.GetMaxLoanAmount(carrier);
+            double debt = carrier.Loans.Where(l => l.IsActive).Sum(l => l.Balance);
+            double total = carrier.Loans.Sum(l => l.Amount);
 
             Summary = string.Format(
                 "Interest rate {0:0.0}%  |  you can borrow up to {1} in total (loans taken so far: {2})  |  still to pay back: {3}",
@@ -129,7 +129,7 @@ namespace TheBusProject.Presentation
 
             var keep = Loans.ToDictionary(l => l.Loan, l => l.PayText);
             Loans.Clear();
-            foreach (var loan in airline.Loans.Where(l => l.IsActive))
+            foreach (var loan in carrier.Loans.Where(l => l.IsActive))
             {
                 var captured = loan;
                 var item = new LoanItem
@@ -167,19 +167,19 @@ namespace TheBusProject.Presentation
                 return;
             }
 
-            var airline = Human;
+            var carrier = Human;
             var loan = NewLoan(amount);
 
-            if (!AirlineHelpers.CanApplyForLoan(airline, loan))
+            if (!CarrierHelpers.CanApplyForLoan(carrier, loan))
             {
-                Status = "The bank refuses: your total loans would pass " + Money(AirlineHelpers.GetMaxLoanAmount(airline))
+                Status = "The bank refuses: your total loans would pass " + Money(CarrierHelpers.GetMaxLoanAmount(carrier))
                          + ". Borrow less or pay back existing loans first.";
                 return;
             }
 
-            airline.AddLoan(loan);
-            AirlineHelpers.AddAirlineInvoice(
-                airline, GameObject.GetInstance().GameTime, Invoice.InvoiceType.Loans, loan.Amount);
+            carrier.AddLoan(loan);
+            CarrierHelpers.AddCarrierInvoice(
+                carrier, GameObject.GetInstance().GameTime, Invoice.InvoiceType.Loans, loan.Amount);
 
             Status = "You borrowed " + Money(amount) + " for " + _years + " years.";
             Reload();
@@ -201,22 +201,22 @@ namespace TheBusProject.Presentation
 
         private void PayAmount(Loan loan, double amount)
         {
-            var airline = Human;
+            var carrier = Human;
             double paying = Math.Min(amount, loan.Balance);
 
-            if (paying > airline.Money)
+            if (paying > carrier.Money)
             {
                 Status = "You don't have " + Money(paying) + " available.";
                 return;
             }
 
             paying = loan.PayPrincipal(paying);
-            AirlineHelpers.AddAirlineInvoice(
-                airline, GameObject.GetInstance().GameTime, Invoice.InvoiceType.Loans, -paying);
+            CarrierHelpers.AddCarrierInvoice(
+                carrier, GameObject.GetInstance().GameTime, Invoice.InvoiceType.Loans, -paying);
 
             if (loan.PaymentLeft <= 0)
             {
-                airline.Loans.Remove(loan);
+                carrier.Loans.Remove(loan);
                 Status = "Loan paid off.";
             }
             else

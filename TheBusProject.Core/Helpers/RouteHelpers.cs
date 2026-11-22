@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airlines;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Carriers;
 using TheBusProject.Models.General;
 using TheBusProject.Models.Routes;
 
@@ -17,7 +17,7 @@ namespace TheBusProject.Helpers
         {
             double basePrice = PassengerHelpers.GetPassengerPrice(route.Destination1, route.Destination2);
 
-            double price = ((PassengerRoute) route).GetFarePrice(AirlinerClass.ClassType.EconomyClass);
+            double price = ((PassengerRoute) route).GetFarePrice(CoachClass.ClassType.EconomyClass);
 
             double priceFactor = price/basePrice;
 
@@ -30,26 +30,26 @@ namespace TheBusProject.Helpers
 
         public static double GetRouteSeatsScore(Route route)
         {
-            TimeSpan flightTime = MathHelpers.GetFlightTime(route.Destination1, route.Destination2, route.GetAirliners()[0].Airliner.Type);
+            TimeSpan tripTime = MathHelpers.GetTripTime(route.Destination1, route.Destination2, route.GetCoaches()[0].Coach.Type);
 
-            AirlinerFacility seats = route.GetAirliners()[0].Airliner.GetAirlinerClass(AirlinerClass.ClassType.EconomyClass).GetFacility(AirlinerFacility.FacilityType.Seat);
+            CoachFacility seats = route.GetCoaches()[0].Coach.GetCoachClass(CoachClass.ClassType.EconomyClass).GetFacility(CoachFacility.FacilityType.Seat);
 
-            IOrderedEnumerable<AirlinerFacility> seatfacilities =
-                AirlinerFacilities.GetFacilities(AirlinerFacility.FacilityType.Seat).Where(f => f.FromYear >= GameObject.GetInstance().GameTime.Year).OrderBy(f => f.ServiceLevel);
+            IOrderedEnumerable<CoachFacility> seatfacilities =
+                CoachFacilities.GetFacilities(CoachFacility.FacilityType.Seat).Where(f => f.FromYear >= GameObject.GetInstance().GameTime.Year).OrderBy(f => f.ServiceLevel);
 
             int facilitynumber = seatfacilities.Count() - seatfacilities.ToList().IndexOf(seats) - 1; //max == 6
 
             double seatlevel;
 
-            if (flightTime.Hours < 1)
+            if (tripTime.Hours < 1)
             {
                 seatlevel = 13 - facilitynumber;
             }
-            else if (flightTime.Hours >= 1 && flightTime.Hours < 3)
+            else if (tripTime.Hours >= 1 && tripTime.Hours < 3)
             {
                 seatlevel = 12 - facilitynumber;
             }
-            else if (flightTime.Hours >= 3 && flightTime.Hours < 7)
+            else if (tripTime.Hours >= 3 && tripTime.Hours < 7)
             {
                 seatlevel = 11 - facilitynumber;
             }
@@ -65,9 +65,9 @@ namespace TheBusProject.Helpers
 
         public static double GetRouteMealScore(Route route)
         {
-            TimeSpan flightTime = MathHelpers.GetFlightTime(route.Destination1, route.Destination2, route.GetAirliners()[0].Airliner.Type);
+            TimeSpan tripTime = MathHelpers.GetTripTime(route.Destination1, route.Destination2, route.GetCoaches()[0].Coach.Type);
 
-            RouteFacility food = ((PassengerRoute) route).GetRouteAirlinerClass(AirlinerClass.ClassType.EconomyClass).GetFacility(RouteFacility.FacilityType.Food);
+            RouteFacility food = ((PassengerRoute) route).GetRouteCoachClass(CoachClass.ClassType.EconomyClass).GetFacility(RouteFacility.FacilityType.Food);
 
             //routes made before a facility existed (or without one) have none
             if (food == null)
@@ -75,21 +75,21 @@ namespace TheBusProject.Helpers
 
             double foodlevel;
 
-            if (flightTime.Hours < 1)
+            if (tripTime.Hours < 1)
             {
                 if (food.ServiceLevel < 0)
                     foodlevel = 5;
                 else
                     foodlevel = 5 + (food.ServiceLevel/10);
             }
-            else if (flightTime.Hours >= 1 && flightTime.Hours < 3)
+            else if (tripTime.Hours >= 1 && tripTime.Hours < 3)
             {
                 if (food.ServiceLevel < 0)
                     foodlevel = 4;
                 else
                     foodlevel = 4 + (food.ServiceLevel/10);
             }
-            else if (flightTime.Hours >= 3 && flightTime.Hours < 7)
+            else if (tripTime.Hours >= 3 && tripTime.Hours < 7)
             {
                 if (food.ServiceLevel < 0)
                     foodlevel = 2;
@@ -111,43 +111,43 @@ namespace TheBusProject.Helpers
 
         public static double GetRoutePlaneTypeScore(Route route)
         {
-            TimeSpan flightTime = MathHelpers.GetFlightTime(route.Destination1, route.Destination2, route.GetAirliners()[0].Airliner.Type);
+            TimeSpan tripTime = MathHelpers.GetTripTime(route.Destination1, route.Destination2, route.GetCoaches()[0].Coach.Type);
 
-            AirlinerType airlinertype = route.GetAirliners()[0].Airliner.Type;
+            CoachType coachtype = route.GetCoaches()[0].Coach.Type;
 
-            int oldTypeFactor = airlinertype.Produced.To < GameObject.GetInstance().GameTime ? 1 : 0;
+            int oldTypeFactor = coachtype.Produced.To < GameObject.GetInstance().GameTime ? 1 : 0;
 
-            int airlinerLevel;
+            int coachLevel;
 
-            int paxLevel = ((AirlinerPassengerType) airlinertype).MaxSeatingCapacity/40; //maks 10??
+            int paxLevel = ((CoachPassengerType) coachtype).MaxSeatingCapacity/40; //maks 10??
 
-            if (flightTime.Hours < 1)
+            if (tripTime.Hours < 1)
             {
-                airlinerLevel = 4 + paxLevel - oldTypeFactor;
+                coachLevel = 4 + paxLevel - oldTypeFactor;
             }
-            else if (flightTime.Hours >= 1 && flightTime.Hours < 3)
+            else if (tripTime.Hours >= 1 && tripTime.Hours < 3)
             {
-                airlinerLevel = 3 + paxLevel - oldTypeFactor;
+                coachLevel = 3 + paxLevel - oldTypeFactor;
             }
-            else if (flightTime.Hours >= 3 && flightTime.Hours < 7)
+            else if (tripTime.Hours >= 3 && tripTime.Hours < 7)
             {
-                airlinerLevel = 2 + paxLevel - oldTypeFactor;
+                coachLevel = 2 + paxLevel - oldTypeFactor;
             }
             else
             {
-                airlinerLevel = 1 + paxLevel - oldTypeFactor;
+                coachLevel = 1 + paxLevel - oldTypeFactor;
             }
 
-            return Math.Min(10, airlinerLevel);
+            return Math.Min(10, coachLevel);
         }
 
         /*returns the plane age score for the route*/
 
         public static double GetPlaneAgeScore(Route route)
         {
-            FleetAirliner airliner = route.GetAirliners()[0];
+            FleetCoach coach = route.GetCoaches()[0];
 
-            int age = airliner.Airliner.Age;
+            int age = coach.Coach.Age;
 
             double score = 10 - (age/2);
 
@@ -158,7 +158,7 @@ namespace TheBusProject.Helpers
 
         public static double GetRouteLuggageScore(Route route)
         {
-            double bagFee = GameObject.GetInstance().HumanAirline.Fees.GetValue(FeeTypes.GetType("1 Bag"));
+            double bagFee = GameObject.GetInstance().HumanCarrier.Fees.GetValue(FeeTypes.GetType("1 Bag"));
 
             if (bagFee.Equals(0))
                 return 8;
@@ -169,7 +169,7 @@ namespace TheBusProject.Helpers
 
         public static double GetRouteTotalScore(Route route)
         {
-            double score = GetPlaneAgeScore(route) + GetRouteInflightScore(route) + GetRouteMealScore(route) + GetRoutePlaneTypeScore(route) + GetRoutePriceScore(route) + GetRouteSeatsScore(route) +
+            double score = GetPlaneAgeScore(route) + GetRouteIntripScore(route) + GetRouteMealScore(route) + GetRoutePlaneTypeScore(route) + GetRoutePriceScore(route) + GetRouteSeatsScore(route) +
                            GetRouteLuggageScore(route);
 
             if ((int) RouteFacility.FacilityType.WiFi <= GameObject.GetInstance().GameTime.Year)
@@ -183,46 +183,46 @@ namespace TheBusProject.Helpers
             return score/7;
         }
 
-        /*returns the inflight demand score for the route*/
+        /*returns the intrip demand score for the route*/
 
-        public static double GetRouteInflightScore(Route route)
+        public static double GetRouteIntripScore(Route route)
         {
-            TimeSpan flightTime = MathHelpers.GetFlightTime(route.Destination1, route.Destination2, route.GetAirliners()[0].Airliner.Type);
+            TimeSpan tripTime = MathHelpers.GetTripTime(route.Destination1, route.Destination2, route.GetCoaches()[0].Coach.Type);
 
-            AirlinerFacility inflight = route.GetAirliners()[0].Airliner.GetAirlinerClass(AirlinerClass.ClassType.EconomyClass).GetFacility(AirlinerFacility.FacilityType.Video);
+            CoachFacility intrip = route.GetCoaches()[0].Coach.GetCoachClass(CoachClass.ClassType.EconomyClass).GetFacility(CoachFacility.FacilityType.Video);
 
-            IOrderedEnumerable<AirlinerFacility> videofacilities =
-                AirlinerFacilities.GetFacilities(AirlinerFacility.FacilityType.Video).Where(f => f.FromYear >= GameObject.GetInstance().GameTime.Year).OrderBy(f => f.ServiceLevel);
+            IOrderedEnumerable<CoachFacility> videofacilities =
+                CoachFacilities.GetFacilities(CoachFacility.FacilityType.Video).Where(f => f.FromYear >= GameObject.GetInstance().GameTime.Year).OrderBy(f => f.ServiceLevel);
 
-            int facilitynumber = videofacilities.Count() - videofacilities.ToList().IndexOf(inflight) - 1;
+            int facilitynumber = videofacilities.Count() - videofacilities.ToList().IndexOf(intrip) - 1;
 
-            double inflightlevel;
+            double intriplevel;
 
-            if (flightTime.Hours < 1)
+            if (tripTime.Hours < 1)
             {
-                inflightlevel = 9 - facilitynumber;
+                intriplevel = 9 - facilitynumber;
             }
-            else if (flightTime.Hours >= 1 && flightTime.Hours < 3)
+            else if (tripTime.Hours >= 1 && tripTime.Hours < 3)
             {
-                inflightlevel = 8 - facilitynumber;
+                intriplevel = 8 - facilitynumber;
             }
-            else if (flightTime.Hours >= 3 && flightTime.Hours < 7)
+            else if (tripTime.Hours >= 3 && tripTime.Hours < 7)
             {
-                inflightlevel = 7 - facilitynumber;
+                intriplevel = 7 - facilitynumber;
             }
             else
             {
-                inflightlevel = 10 - (2*facilitynumber);
+                intriplevel = 10 - (2*facilitynumber);
             }
 
-            return Math.Min(10, inflightlevel);
+            return Math.Min(10, intriplevel);
         }
 
         /*returns the wifi score for the route*/
 
         public static double GetRouteWifiScore(Route route)
         {
-            RouteFacility wifi = ((PassengerRoute) route).GetRouteAirlinerClass(AirlinerClass.ClassType.EconomyClass).GetFacility(RouteFacility.FacilityType.WiFi);
+            RouteFacility wifi = ((PassengerRoute) route).GetRouteCoachClass(CoachClass.ClassType.EconomyClass).GetFacility(RouteFacility.FacilityType.WiFi);
 
             if (wifi == null)
                 return 3;

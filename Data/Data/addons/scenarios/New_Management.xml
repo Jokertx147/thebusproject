@@ -5,52 +5,52 @@
     text="After years of mismanagement, Pacific Airways has been strained heavily financially and has accumulated significant debt. After the Board removed the previous CEO, they have elected you to get the company back on solid financial footing. Heavy competition will hinder you in your efforts. You know this task will not be easy but the fate of the entire company lies in your hands. Good Luck!" />
   <success
     text="Congratulations! You have successfully saved the company from bankruptcy and you may just have a job for some time into the future." />
-  <start airline="PCA" homeBase="SFO" debt="500000000">
+  <start carrier="PCA" homeBase="SFO" debt="500000000">
     <routes>
-      <route departure="SFO" destination="JFK" airliner="Boeing 767-200" quantity="1" />
-      <route departure="SFO" destination="LAX" airliner="Boeing 737-800" quantity="1" />
-      <route departure="SFO" destination="ORD" airliner="Boeing 737-800" quantity="1" />
-      <route departure="SFO" destination="ORD" airliner="Boeing 737-900" quantity="1" />
-      <route departure="SFO" destination="SEA" airliner="Boeing 757-200" quantity="1" />
-      <route departure="SFO" destination="DEN" airliner="Boeing 737-700" quantity="1" />
-      <route departure="SFO" destination="DEN" airliner="Boeing 737-800" quantity="1" />
-      <route departure="SFO" destination="MSP" airliner="Boeing 737-800" quantity="1" />
-      <route departure="SFO" destination="MIA" airliner="Boeing 757-200" quantity="1" />
-      <route departure="SFO" destination="HNL" airliner="Boeing 767-300" quantity="1" />
-      <route departure="SFO" destination="PHX" airliner="Boeing 737-800" quantity="1" />
-      <route departure="SFO" destination="RNO" airliner="Bombardier CRJ700" quantity="1" />
-      <route departure="SFO" destination="HND" airliner="Boeing 777-200ER" quantity="2" />
-      <route departure="SFO" destination="PEK" airliner="Boeing 777-200ER" quantity="2" />
-      <route departure="SFO" destination="PVG" airliner="Boeing 777-200ER" quantity="2" />
-      <route departure="SFO" destination="SYD" airliner="Boeing 747-400" quantity="2" />
-      <route departure="SFO" destination="LHR" airliner="Boeing 777-200ER" quantity="2" />
+      <route departure="SFO" destination="JFK" coach="Boeing 767-200" quantity="1" />
+      <route departure="SFO" destination="LAX" coach="Boeing 737-800" quantity="1" />
+      <route departure="SFO" destination="ORD" coach="Boeing 737-800" quantity="1" />
+      <route departure="SFO" destination="ORD" coach="Boeing 737-900" quantity="1" />
+      <route departure="SFO" destination="SEA" coach="Boeing 757-200" quantity="1" />
+      <route departure="SFO" destination="DEN" coach="Boeing 737-700" quantity="1" />
+      <route departure="SFO" destination="DEN" coach="Boeing 737-800" quantity="1" />
+      <route departure="SFO" destination="MSP" coach="Boeing 737-800" quantity="1" />
+      <route departure="SFO" destination="MIA" coach="Boeing 757-200" quantity="1" />
+      <route departure="SFO" destination="HNL" coach="Boeing 767-300" quantity="1" />
+      <route departure="SFO" destination="PHX" coach="Boeing 737-800" quantity="1" />
+      <route departure="SFO" destination="RNO" coach="Bombardier CRJ700" quantity="1" />
+      <route departure="SFO" destination="HND" coach="Boeing 777-200ER" quantity="2" />
+      <route departure="SFO" destination="PEK" coach="Boeing 777-200ER" quantity="2" />
+      <route departure="SFO" destination="PVG" coach="Boeing 777-200ER" quantity="2" />
+      <route departure="SFO" destination="SYD" coach="Boeing 747-400" quantity="2" />
+      <route departure="SFO" destination="LHR" coach="Boeing 777-200ER" quantity="2" />
     </routes>
     <AI>
-      <airline name="DL" homeBase="ATL">
-        <route departure="ATL" destination="JFK" airliner="Boeing 737-600" quantity="2" />
-        <route departure="ATL" destination="LAX" airliner="Boeing 757-200" quantity="3" />
-        <route departure="ATL" destination="BOS" airliner="Boeing 737-600" quantity="1" />
-        <route departure="ATL" destination="PHL" airliner="Boeing 737-600" quantity="2" />
-        <route departure="ATL" destination="LHR" airliner="Boeing 747-400" quantity="1" />
-        <route departure="ATL" destination="DFW" airliner="Boeing 737-600" quantity="2" />
-        <route departure="ATL" destination="MSP" airliner="MD-88 (DC-9-88)" quantity="2" />
-        <route departure="ATL" destination="MSP" airliner="Boeing 757-200" quantity="2" />
-        <route departure="ATL" destination="LHR" airliner="Boeing 767-400ER" quantity="2" />
-      </airline>
-      <airline name="AA" homeBase="DFW">
-        <route departure="DFW" destination="ATL" airliner="Boeing 737-600" quantity="2" />
-        <route departure="DFW" destination="JFK" airliner="Boeing 737-800" quantity="2" />
-        <route departure="DFW" destination="LAX" airliner="Boeing 737-800" quantity="3" />
-        <route departure="DFW" destination="MIA" airliner="Boeing 737-800" quantity="2" />
-        <route departure="DFW" destination="ORD" airliner="Boeing 717-200" quantity="4" />
-      </airline>
-      <airline name="UA" homeBase="IAH">
-        <route departure="IAH" destination="CLE" airliner="Airbus A320-200" quantity="2" />
-        <route departure="IAH" destination="DEN" airliner="Airbus A320-200" quantity="2" />
-        <route departure="IAH" destination="SFO" airliner="Boeing 757-200" quantity="3" />
-        <route departure="IAH" destination="LAX" airliner="Boeing 737-900" quantity="2" />
-        <route departure="IAH" destination="NRT" airliner="Boeing 777-200ER" quantity="2" />
-      </airline>
+      <carrier name="DL" homeBase="ATL">
+        <route departure="ATL" destination="JFK" coach="Boeing 737-600" quantity="2" />
+        <route departure="ATL" destination="LAX" coach="Boeing 757-200" quantity="3" />
+        <route departure="ATL" destination="BOS" coach="Boeing 737-600" quantity="1" />
+        <route departure="ATL" destination="PHL" coach="Boeing 737-600" quantity="2" />
+        <route departure="ATL" destination="LHR" coach="Boeing 747-400" quantity="1" />
+        <route departure="ATL" destination="DFW" coach="Boeing 737-600" quantity="2" />
+        <route departure="ATL" destination="MSP" coach="MD-88 (DC-9-88)" quantity="2" />
+        <route departure="ATL" destination="MSP" coach="Boeing 757-200" quantity="2" />
+        <route departure="ATL" destination="LHR" coach="Boeing 767-400ER" quantity="2" />
+      </carrier>
+      <carrier name="AA" homeBase="DFW">
+        <route departure="DFW" destination="ATL" coach="Boeing 737-600" quantity="2" />
+        <route departure="DFW" destination="JFK" coach="Boeing 737-800" quantity="2" />
+        <route departure="DFW" destination="LAX" coach="Boeing 737-800" quantity="3" />
+        <route departure="DFW" destination="MIA" coach="Boeing 737-800" quantity="2" />
+        <route departure="DFW" destination="ORD" coach="Boeing 717-200" quantity="4" />
+      </carrier>
+      <carrier name="UA" homeBase="IAH">
+        <route departure="IAH" destination="CLE" coach="Airbus A320-200" quantity="2" />
+        <route departure="IAH" destination="DEN" coach="Airbus A320-200" quantity="2" />
+        <route departure="IAH" destination="SFO" coach="Boeing 757-200" quantity="3" />
+        <route departure="IAH" destination="LAX" coach="Boeing 737-900" quantity="2" />
+        <route departure="IAH" destination="NRT" coach="Boeing 777-200ER" quantity="2" />
+      </carrier>
     </AI>
   </start>
   <modifiers>

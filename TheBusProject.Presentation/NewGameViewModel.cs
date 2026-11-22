@@ -4,14 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Countries;
 
 namespace TheBusProject.Presentation
 {
-    /// <summary>Choose an airline, a start year and a difficulty, then start a new game.</summary>
+    /// <summary>Choose an carrier, a start year and a difficulty, then start a new game.</summary>
     /// <summary>A region with the name shown to the player (from the region translations).</summary>
     public class RegionChoice
     {
@@ -42,17 +42,17 @@ namespace TheBusProject.Presentation
         private bool _isCreating;
         private string _status = "Loading the game data...";
         private int _startYear = 2007;
-        private Airline _selectedAirline;
+        private Carrier _selectedCarrier;
         private string _ceo = "";
         private DifficultyLevel _selectedDifficulty;
         private int _opponents = 12;
         private bool _useDayTurns = true;
-        private bool _majorAirports, _sameRegion = true;
+        private bool _majorStations, _sameRegion = true;
         private List<Continent> _continents = new List<Continent>();
         private List<RegionChoice> _regions = new List<RegionChoice>();
         private Continent _continent;
         private RegionChoice _region;
-        private List<Airline> _airlines = new List<Airline>();
+        private List<Carrier> _carriers = new List<Carrier>();
         private List<DifficultyLevel> _difficulties = new List<DifficultyLevel>();
 
         public NewGameViewModel(ShellViewModel shell)
@@ -64,7 +64,7 @@ namespace TheBusProject.Presentation
             OpponentChoices = new List<int> { 1, 3, 5, 8, 12, 20, 30, 50 };
             OpponentOptions = OpponentChoices.Select(n => new NamedChoice<int> { Name = n.ToString(), Value = n }).ToList();
 
-            CreateCommand = new AsyncCommand(CreateAsync, () => !_isLoading && !_isCreating && SelectedAirline != null);
+            CreateCommand = new AsyncCommand(CreateAsync, () => !_isLoading && !_isCreating && SelectedCarrier != null);
             BackCommand = new RelayCommand(shell.ShowMainMenu, () => !_isCreating);
 
             var ignore = LoadAsync();
@@ -82,17 +82,17 @@ namespace TheBusProject.Presentation
             set { if (value != null) Opponents = value.Value; }
         }
 
-        /// <summary>How many airlines there are to compete with in the chosen year.</summary>
+        /// <summary>How many carriers there are to compete with in the chosen year.</summary>
         public string OpponentsText
         {
             get
             {
                 if (_isLoading) return null;
                 int year = StartYear;
-                int n = Models.Airlines.Airlines.GetAirlines(a => a.Profile.Founded <= year && a.Profile.Folded > year).Count - 1;
+                int n = Models.Carriers.Carriers.GetCarriers(a => a.Profile.Founded <= year && a.Profile.Folded > year).Count - 1;
                 int playing = Math.Min(n, _opponents);
                 return string.Format(
-                    "{0} other airlines flew in {1}; {2} of them will compete with you{3}. More airlines mean more competition and higher-fare routes get crowded; each game day also takes longer.",
+                    "{0} other carriers ran in {1}; {2} of them will compete with you{3}. More carriers mean more competition and higher-fare routes get crowded; each game day also takes longer.",
                     Math.Max(0, n), year, Math.Max(0, playing), SameRegion ? " (the ones nearest to you)" : " (picked at random)");
             }
         }
@@ -116,50 +116,50 @@ namespace TheBusProject.Presentation
             {
                 if (SetProperty(ref _startYear, value))
                 {
-                    RefreshAirlines();
+                    RefreshCarriers();
                 }
             }
         }
 
-        public List<Airline> Airlines
+        public List<Carrier> Carriers
         {
-            get { return _airlines; }
-            private set { SetProperty(ref _airlines, value); }
+            get { return _carriers; }
+            private set { SetProperty(ref _carriers, value); }
         }
 
-        /// <summary>What the chosen airline can fly: passenger airlines fly passenger routes, cargo airlines cargo routes.</summary>
-        public string SelectedAirlineKind
+        /// <summary>What the chosen carrier can fly: passenger carriers fly passenger routes, cargo carriers cargo routes.</summary>
+        public string SelectedCarrierKind
         {
             get
             {
-                var a = _selectedAirline;
+                var a = _selectedCarrier;
                 if (a == null) return null;
-                bool cargo = Helpers.AirlineTypeRules.IsCargoAirline(a);
-                return a.Profile.Name + " is a " + Helpers.AirlineTypeRules.Kind(a) + ": it flies " + (cargo ? "cargo" : "passenger") +
-                       " routes only. You can start a " + (cargo ? "passenger" : "cargo") + " subsidiary later to fly the other kind.";
+                bool cargo = Helpers.CarrierTypeRules.IsCargoCarrier(a);
+                return a.Profile.Name + " is a " + Helpers.CarrierTypeRules.Kind(a) + ": it runs " + (cargo ? "cargo" : "passenger") +
+                       " routes only. You can start a " + (cargo ? "passenger" : "cargo") + " subsidiary later to run the other kind.";
             }
         }
 
-        public Airline SelectedAirline
+        public Carrier SelectedCarrier
         {
-            get { return _selectedAirline; }
+            get { return _selectedCarrier; }
             set
             {
-                if (SetProperty(ref _selectedAirline, value))
+                if (SetProperty(ref _selectedCarrier, value))
                 {
                     if (value != null)
                     {
                         Ceo = value.Profile.CEO ?? "";
                         OnPropertyChanged(nameof(Narrative));
                     }
-                    OnPropertyChanged(nameof(SelectedAirlineKind));
+                    OnPropertyChanged(nameof(SelectedCarrierKind));
 
                     (CreateCommand as AsyncCommand)?.RaiseCanExecuteChanged();
                 }
             }
         }
 
-        public string Narrative => _selectedAirline?.Profile.Narrative ?? "";
+        public string Narrative => _selectedCarrier?.Profile.Narrative ?? "";
 
         public string Ceo
         {
@@ -213,7 +213,7 @@ namespace TheBusProject.Presentation
                     _region = list[0];
                     Regions = list;
                     OnPropertyChanged(nameof(SelectedRegion));
-                    RefreshAirlines();
+                    RefreshCarriers();
                 }
             }
         }
@@ -231,19 +231,19 @@ namespace TheBusProject.Presentation
             {
                 if (value != null && SetProperty(ref _region, value))
                 {
-                    RefreshAirlines();
+                    RefreshCarriers();
                 }
             }
         }
 
-        /// <summary>Start with the major airports only.</summary>
-        public bool MajorAirports
+        /// <summary>Start with the major stations only.</summary>
+        public bool MajorStations
         {
-            get { return _majorAirports; }
-            set { SetProperty(ref _majorAirports, value); }
+            get { return _majorStations; }
+            set { SetProperty(ref _majorStations, value); }
         }
 
-        /// <summary>Opponents are airlines from the same region as the player.</summary>
+        /// <summary>Opponents are carriers from the same region as the player.</summary>
         public bool SameRegion
         {
             get { return _sameRegion; }
@@ -273,7 +273,7 @@ namespace TheBusProject.Presentation
                 SelectedDifficulty = Difficulties.FirstOrDefault(d => d.Name == "Normal") ?? Difficulties.FirstOrDefault();
 
                 _isLoading = false;
-                RefreshAirlines();
+                RefreshCarriers();
             }
             catch (Exception ex)
             {
@@ -288,8 +288,8 @@ namespace TheBusProject.Presentation
             }
         }
 
-        // the airlines that exist in the chosen year
-        private void RefreshAirlines()
+        // the carriers that exist in the chosen year
+        private void RefreshCarriers()
         {
             if (_isLoading)
             {
@@ -297,15 +297,15 @@ namespace TheBusProject.Presentation
             }
 
             int year = StartYear;
-            Airlines = Models.Airlines.Airlines.GetAirlines(a => a.Profile.Founded <= year && a.Profile.Folded > year && InSelectedArea(a))
+            Carriers = Models.Carriers.Carriers.GetCarriers(a => a.Profile.Founded <= year && a.Profile.Folded > year && InSelectedArea(a))
                                                .OrderBy(a => a.Profile.Name)
                                                .ToList();
-            SelectedAirline = Airlines.FirstOrDefault();
-            Status = Airlines.Count + " airlines in " + year;
+            SelectedCarrier = Carriers.FirstOrDefault();
+            Status = Carriers.Count + " carriers in " + year;
             OnPropertyChanged(nameof(OpponentsText));
         }
 
-        private bool InSelectedArea(Airline a)
+        private bool InSelectedArea(Carrier a)
         {
             var region = a.Profile.Country?.Region;
             if (_region == null || _region.Region.Uid == "100")
@@ -318,7 +318,7 @@ namespace TheBusProject.Presentation
 
         private async Task CreateAsync()
         {
-            Airline airline = SelectedAirline;
+            Carrier carrier = SelectedCarrier;
             _isCreating = true;
             OnPropertyChanged(nameof(IsBusy));
             (BackCommand as RelayCommand)?.RaiseCanExecuteChanged();
@@ -326,42 +326,42 @@ namespace TheBusProject.Presentation
 
             try
             {
-                // airports are only active relative to the game clock, so set it to the start year first
+                // stations are only active relative to the game clock, so set it to the start year first
                 GameObject.GetInstance().GameTime = new DateTime(StartYear, 1, 1);
 
-                Airport airport = FindHomeAirport(airline);
-                if (airport == null)
+                Station station = FindHomeStation(carrier);
+                if (station == null)
                 {
-                    Status = "No airport found for " + airline.Profile.Name + " in " + StartYear;
+                    Status = "No station found for " + carrier.Profile.Name + " in " + StartYear;
                     return;
                 }
 
                 var startData = new StartDataObject
                     {
-                        Airline = airline,
-                        Airport = airport,
+                        Carrier = carrier,
+                        Station = station,
                         CEO = string.IsNullOrWhiteSpace(Ceo) ? "CEO" : Ceo.Trim(),
                         // uid "100" is the "all" entry the game setup code checks for
                         Continent = _continent ?? new Continent("100", "All continents"),
                         Difficulty = SelectedDifficulty,
-                        Focus = default(Infrastructure.Enums.AirlineFocus),
-                        HomeCountry = airport.Profile.Country ?? airline.Profile.Country,
+                        Focus = default(Infrastructure.Enums.CarrierFocus),
+                        HomeCountry = station.Profile.Country ?? carrier.Profile.Country,
                         IsPaused = true,
                         LocalCurrency = false,
-                        MajorAirports = MajorAirports,
+                        MajorStations = MajorStations,
                         NumberOfOpponents = Opponents,
                         RandomOpponents = true,
                         RealData = false,
                         Region = _region?.Region ?? Models.General.Countries.Regions.GetRegion("100"),
                         SameRegion = SameRegion,
-                        TimeZone = airport.Profile.TimeZone ?? TimeZones.GetTimeZones().First(),
+                        TimeZone = station.Profile.TimeZone ?? TimeZones.GetTimeZones().First(),
                         UseDayTurns = UseDayTurns,
                         Year = StartYear
                     };
 
                 await GameSession.CreateGameAsync(startData);
 
-                _shell.ShowAirline();
+                _shell.ShowCarrier();
             }
             catch (Exception ex)
             {
@@ -376,23 +376,23 @@ namespace TheBusProject.Presentation
             }
         }
 
-        private static Airport FindHomeAirport(Airline airline)
+        private static Station FindHomeStation(Carrier carrier)
         {
-            Airport preferred = airline.Profile.PreferedAirport;
+            Station preferred = carrier.Profile.PreferedStation;
             if (preferred != null)
             {
                 return preferred;
             }
 
-            Airport own = airline.Airports.FirstOrDefault();
+            Station own = carrier.Stations.FirstOrDefault();
             if (own != null)
             {
                 return own;
             }
 
-            return Models.Airports.Airports.GetAllActiveAirports()
-                         .Where(a => a.Profile.Country != null && airline.Profile.Country != null
-                                     && a.Profile.Country.Uid == airline.Profile.Country.Uid)
+            return Models.Stations.Stations.GetAllActiveStations()
+                         .Where(a => a.Profile.Country != null && carrier.Profile.Country != null
+                                     && a.Profile.Country.Uid == carrier.Profile.Country.Uid)
                          .OrderByDescending(a => a.Profile.Size)
                          .FirstOrDefault();
         }

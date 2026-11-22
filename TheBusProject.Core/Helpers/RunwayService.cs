@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Finances;
 
@@ -22,16 +22,16 @@ namespace TheBusProject.Helpers
 
         public static readonly Runway.SurfaceType[] Surfaces = { Runway.SurfaceType.Concrete, Runway.SurfaceType.Asphalt };
 
-        private static double SizeFactor(Airport airport)
+        private static double SizeFactor(Station station)
         {
-            return 1 + 0.1*(int) airport.Profile.Size;
+            return 1 + 0.1*(int) station.Profile.Size;
         }
 
         /// <summary>The price of a new runway (in base-year money, before inflation).</summary>
-        public static double NewPrice(Airport airport, long length, Runway.SurfaceType surface)
+        public static double NewPrice(Station station, long length, Runway.SurfaceType surface)
         {
             double perMeter = surface == Runway.SurfaceType.Concrete ? 900 : 750;
-            return GeneralHelpers.GetInflationPrice((300000 + perMeter*length)*SizeFactor(airport));
+            return GeneralHelpers.GetInflationPrice((300000 + perMeter*length)*SizeFactor(station));
         }
 
         public static int NewDays(long length)
@@ -39,11 +39,11 @@ namespace TheBusProject.Helpers
             return 180 + (int) (length/15);
         }
 
-        public static double ExtensionPrice(Airport airport, Runway runway, long newLength)
+        public static double ExtensionPrice(Station station, Runway runway, long newLength)
         {
             long added = Math.Max(0, newLength - runway.Length);
             double perMeter = runway.Surface == Runway.SurfaceType.Concrete ? 900 : 750;
-            return GeneralHelpers.GetInflationPrice((80000 + perMeter*added)*SizeFactor(airport));
+            return GeneralHelpers.GetInflationPrice((80000 + perMeter*added)*SizeFactor(station));
         }
 
         public static int ExtensionDays(long added)
@@ -59,44 +59,44 @@ namespace TheBusProject.Helpers
             return "in use";
         }
 
-        public static string NextName(Airport airport)
+        public static string NextName(Station station)
         {
-            int n = airport.Runways.Count + 1;
+            int n = station.Runways.Count + 1;
             string name;
             do
             {
                 name = "New runway " + n++;
-            } while (airport.Runways.Any(r => r.Name == name));
+            } while (station.Runways.Any(r => r.Name == name));
             return name;
         }
 
-        public static string GetBuildBlocker(Airline airline, Airport airport, long length, string name)
+        public static string GetBuildBlocker(Carrier carrier, Station station, long length, string name)
         {
             if (length < MinLength || length > MaxLength) return "The length must be between " + MinLength.ToString("N0") + " and " + MaxLength.ToString("N0") + " m.";
-            if (airport.Runways.Count(r => r.Type == Runway.RunwayType.Regular) >= MaxRunways) return airport.Profile.IATACode + " already has " + MaxRunways + " runways.";
-            if (!string.IsNullOrWhiteSpace(name) && airport.Runways.Any(r => string.Equals(r.Name, name.Trim(), StringComparison.OrdinalIgnoreCase)))
+            if (station.Runways.Count(r => r.Type == Runway.RunwayType.Regular) >= MaxRunways) return station.Profile.IATACode + " already has " + MaxRunways + " runways.";
+            if (!string.IsNullOrWhiteSpace(name) && station.Runways.Any(r => string.Equals(r.Name, name.Trim(), StringComparison.OrdinalIgnoreCase)))
                 return "There is already a runway called " + name.Trim() + ".";
             return null;
         }
 
-        public static bool Build(Airline airline, Airport airport, long length, Runway.SurfaceType surface, string name, out string message)
+        public static bool Build(Carrier carrier, Station station, long length, Runway.SurfaceType surface, string name, out string message)
         {
-            message = GetBuildBlocker(airline, airport, length, name);
+            message = GetBuildBlocker(carrier, station, length, name);
             if (message != null) return false;
-            double price = NewPrice(airport, length, surface);
+            double price = NewPrice(station, length, surface);
             var now = GameObject.GetInstance().GameTime;
             var ready = now.AddDays(NewDays(length));
-            string n = string.IsNullOrWhiteSpace(name) ? NextName(airport) : name.Trim();
-            airport.Runways.Add(new Runway(n, length, Runway.RunwayType.Regular, surface, ready, false) { BuiltBy = airline });
-            airport.PlayerEdited = true;
-            AirlineHelpers.AddAirlineInvoice(airline, now, Invoice.InvoiceType.Purchases, -price);
+            string n = string.IsNullOrWhiteSpace(name) ? NextName(station) : name.Trim();
+            station.Runways.Add(new Runway(n, length, Runway.RunwayType.Regular, surface, ready, false) { BuiltBy = carrier });
+            station.PlayerEdited = true;
+            CarrierHelpers.AddCarrierInvoice(carrier, now, Invoice.InvoiceType.Purchases, -price);
             message = string.Format(
                 "{0} ({1:N0} m, {2}) ordered at {3} for {4}. Ready {5}.",
-                n, length, surface.ToString().ToLower(), airport.Profile.IATACode, Money(price), ready.ToShortDateString());
+                n, length, surface.ToString().ToLower(), station.Profile.IATACode, Money(price), ready.ToShortDateString());
             return true;
         }
 
-        public static string GetExtendBlocker(Airport airport, Runway runway, long newLength)
+        public static string GetExtendBlocker(Station station, Runway runway, long newLength)
         {
             if (runway == null) return "Pick a runway.";
             if (runway.Type != Runway.RunwayType.Regular) return "Helipads can't be extended.";
@@ -107,44 +107,44 @@ namespace TheBusProject.Helpers
             return null;
         }
 
-        public static bool Extend(Airline airline, Airport airport, Runway runway, long newLength, out string message)
+        public static bool Extend(Carrier carrier, Station station, Runway runway, long newLength, out string message)
         {
-            message = GetExtendBlocker(airport, runway, newLength);
+            message = GetExtendBlocker(station, runway, newLength);
             if (message != null) return false;
-            double price = ExtensionPrice(airport, runway, newLength);
+            double price = ExtensionPrice(station, runway, newLength);
             var now = GameObject.GetInstance().GameTime;
             runway.ExtendTo = newLength;
             runway.ExtendDate = now.AddDays(ExtensionDays(newLength - runway.Length));
-            runway.BuiltBy = airline;
-            airport.PlayerEdited = true;
-            AirlineHelpers.AddAirlineInvoice(airline, now, Invoice.InvoiceType.Purchases, -price);
+            runway.BuiltBy = carrier;
+            station.PlayerEdited = true;
+            CarrierHelpers.AddCarrierInvoice(carrier, now, Invoice.InvoiceType.Purchases, -price);
             message = string.Format(
                 "{0} at {1} is being extended from {2:N0} m to {3:N0} m for {4}. Ready {5}; it stays in use until then.",
-                runway.Name, airport.Profile.IATACode, runway.Length, newLength, Money(price), runway.ExtendDate.ToShortDateString());
+                runway.Name, station.Profile.IATACode, runway.Length, newLength, Money(price), runway.ExtendDate.ToShortDateString());
             return true;
         }
 
         /// <summary>"DUB has 2,800 m", plus an extension or a new runway on the way.</summary>
-        public static string Describe(Airport airport)
+        public static string Describe(Station station)
         {
             var now = GameObject.GetInstance().GameTime;
-            string text = airport.Profile.IATACode + " has " + airport.GetMaxRunwayLength().ToString("N0") + " m";
-            var ext = airport.Runways.Where(r => r.IsExtending).OrderByDescending(r => r.ExtendTo).FirstOrDefault();
-            var built = airport.Runways.Where(r => r.BuiltDate > now).OrderByDescending(r => r.Length).FirstOrDefault();
+            string text = station.Profile.IATACode + " has " + station.GetMaxRunwayLength().ToString("N0") + " m";
+            var ext = station.Runways.Where(r => r.IsExtending).OrderByDescending(r => r.ExtendTo).FirstOrDefault();
+            var built = station.Runways.Where(r => r.BuiltDate > now).OrderByDescending(r => r.Length).FirstOrDefault();
             if (ext != null) text += " (an extension to " + ext.ExtendTo.ToString("N0") + " m is ready " + ext.ExtendDate.ToShortDateString() + ")";
             else if (built != null) text += " (a " + built.Length.ToString("N0") + " m runway opens " + built.BuiltDate.ToShortDateString() + ")";
             return text;
         }
 
         /// <summary>
-        ///     The player's aircraft (of a kind, delivered and not on a route) whose runway need is above the length: one
+        ///     The player's coach (of a kind, delivered and not on a route) whose runway need is above the length: one
         ///     entry per type with what it needs, longest first.
         /// </summary>
         public static List<string> TooShortFor(long length, bool cargo)
         {
-            var airline = GameObject.GetInstance().HumanAirline;
-            return airline.DeliveredFleet.Where(f => (f.Airliner.Type.TypeAirliner == AirlinerType.TypeOfAirliner.Cargo) == cargo && f.Airliner.MinRunwaylength > length)
-                          .GroupBy(f => f.Airliner.Type.Name).Select(g => Tuple.Create(g.Key, g.Max(f => f.Airliner.MinRunwaylength)))
+            var carrier = GameObject.GetInstance().HumanCarrier;
+            return carrier.DeliveredFleet.Where(f => (f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Cargo) == cargo && f.Coach.MinRunwaylength > length)
+                          .GroupBy(f => f.Coach.Type.Name).Select(g => Tuple.Create(g.Key, g.Max(f => f.Coach.MinRunwaylength)))
                           .OrderByDescending(t => t.Item2).Select(t => t.Item1 + " (needs " + t.Item2.ToString("N0") + " m)").ToList();
         }
 
@@ -153,9 +153,9 @@ namespace TheBusProject.Helpers
         {
             var game = GameObject.GetInstance();
             var today = game.GameTime.Date;
-            foreach (var airport in Airports.GetAllAirports().Where(a => a.PlayerEdited))
+            foreach (var station in Stations.GetAllStations().Where(a => a.PlayerEdited))
             {
-                foreach (var r in airport.Runways.ToList())
+                foreach (var r in station.Runways.ToList())
                 {
                     if (r.IsExtending && r.ExtendDate.Date <= today)
                     {
@@ -163,17 +163,17 @@ namespace TheBusProject.Helpers
                         r.Length = r.ExtendTo;
                         r.ExtendTo = 0;
                         if (r.BuiltBy != null && r.BuiltBy.IsHuman)
-                            Post(airport, "Runway extended", string.Format("{0} at {1} is now {2:N0} m long (was {3:N0} m).", r.Name, airport.Profile.IATACode, r.Length, old));
+                            Post(station, "Runway extended", string.Format("{0} at {1} is now {2:N0} m long (was {3:N0} m).", r.Name, station.Profile.IATACode, r.Length, old));
                     }
                     if (r.BuiltBy != null && r.BuiltBy.IsHuman && r.BuiltDate.Date == today)
-                        Post(airport, "New runway open", string.Format("{0} ({1:N0} m) at {2} is open.", r.Name, r.Length, airport.Profile.IATACode));
+                        Post(station, "New runway open", string.Format("{0} ({1:N0} m) at {2} is open.", r.Name, r.Length, station.Profile.IATACode));
                 }
             }
         }
 
-        private static void Post(Airport airport, string subject, string body)
+        private static void Post(Station station, string subject, string body)
         {
-            GameObject.GetInstance().NewsBox.AddNews(new News(News.NewsType.AirportNews, GameObject.GetInstance().GameTime, subject, body));
+            GameObject.GetInstance().NewsBox.AddNews(new News(News.NewsType.StationNews, GameObject.GetInstance().GameTime, subject, body));
         }
 
         private static string Money(double v)

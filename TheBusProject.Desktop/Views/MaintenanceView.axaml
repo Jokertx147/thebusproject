@@ -14,7 +14,7 @@
         </StackPanel>
       </Border>
       <StackPanel Orientation="Horizontal" Spacing="10">
-        <Button Content="Automatic maintenance for all aircraft" Command="{Binding AutoAllCommand}" />
+        <Button Content="Automatic maintenance for all coach" Command="{Binding AutoAllCommand}" />
         <Button Content="Manual maintenance for all" Command="{Binding AutoNoneCommand}" />
       </StackPanel>
       <TextBlock Text="{Binding Status}" TextWrapping="Wrap" />

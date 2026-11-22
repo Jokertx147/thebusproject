@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General.Statistics;
 
 namespace TheBusProject.Models.Routes
@@ -16,8 +16,8 @@ namespace TheBusProject.Models.Routes
 
         public CargoRoute(
             string id,
-            Airport destination1,
-            Airport destination2,
+            Station destination1,
+            Station destination2,
             DateTime startDate,
             double pricePerUnit)
             : base(RouteType.Cargo, id, destination1, destination2, startDate)

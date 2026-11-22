@@ -5,52 +5,52 @@
     text="In the post-9/11 United States, many airlines had trouble getting their passenger values back up to normal. As the CEO of jetBlue, your job is to revitalize the airline market for the New York Metropolitan area, one of the busiest airspaces in the world. You will have 5 years to grow to a fleet of at least 50 aircraft, serving at least 25 domestic and 5 international destinations. During that time, you must have a 5% passenger growth every year, and keep your bank account in the black. Good luck, we know you've got what it takes!" />
   <success
     text="Congratulations! You have successfully improved and revitalized the commercial airline market in the United States and New York metropolitan area by maintaining constant growth and high standards of safety over the previous 5 years!" />
-  <start airline="B6" homeBase="JFK">
+  <start carrier="B6" homeBase="JFK">
     <destinations>
-      <destination airport="LGA" />
-      <destination airport="EWR" />
-      <destination airport="BOS" />
-      <destination airport="LAX" />
-      <destination airport="MIA" />
-      <destination airport="SFO" />
-      <destination airport="LHR" />
+      <destination station="LGA" />
+      <destination station="EWR" />
+      <destination station="BOS" />
+      <destination station="LAX" />
+      <destination station="MIA" />
+      <destination station="SFO" />
+      <destination station="LHR" />
     </destinations>
     <fleet>
-      <aircraft name="Boeing 737-600" quantity="8" />
-      <aircraft name="Boeing 757-200" quantity="2" />
-      <aircraft name="Boeing 767-200" quantity="1" />
+      <coach name="Boeing 737-600" quantity="8" />
+      <coach name="Boeing 757-200" quantity="2" />
+      <coach name="Boeing 767-200" quantity="1" />
     </fleet>
     <AI>
-      <airline name="DL" homeBase="ATL">
-        <route departure="ATL" destination="JFK" airliner="Boeing 737-600" quantity="2" />
-        <route departure="ATL" destination="LAX" airliner="Boeing 757-200" quantity="3" />
-        <route departure="ATL" destination="BOS" airliner="Boeing 737-600" quantity="1" />
-        <route departure="ATL" destination="PHL" airliner="Boeing 737-600" quantity="2" />
-        <route departure="ATL" destination="LHR" airliner="Boeing 747-400" quantity="1" />
-        <route departure="ATL" destination="DFW" airliner="Boeing 737-600" quantity="2" />
-      </airline>
-      <airline name="AA" homeBase="DFW">
-        <route departure="DFW" destination="ATL" airliner="Boeing 737-600" quantity="2" />
-        <route departure="DFW" destination="JFK" airliner="Boeing 737-800" quantity="2" />
-        <route departure="DFW" destination="LAX" airliner="Boeing 737-800" quantity="3" />
-        <route departure="DFW" destination="MIA" airliner="Boeing 737-800" quantity="2" />
-        <route departure="DFW" destination="ORD" airliner="Boeing 717-200" quantity="4" />
-      </airline>
-      <airline name="UA" homeBase="IAH">
-        <route departure="IAH" destination="CLE" airliner="Airbus A320-200" quantity="2" />
-        <route departure="IAH" destination="DEN" airliner="Airbus A320-200" quantity="2" />
-        <route departure="IAH" destination="SFO" airliner="Boeing 757-200" quantity="3" />
-        <route departure="IAH" destination="LAX" airliner="Boeing 737-900" quantity="2" />
-        <route departure="IAH" destination="NRT" airliner="Boeing 777-300" quantity="2" />
-      </airline>
+      <carrier name="DL" homeBase="ATL">
+        <route departure="ATL" destination="JFK" coach="Boeing 737-600" quantity="2" />
+        <route departure="ATL" destination="LAX" coach="Boeing 757-200" quantity="3" />
+        <route departure="ATL" destination="BOS" coach="Boeing 737-600" quantity="1" />
+        <route departure="ATL" destination="PHL" coach="Boeing 737-600" quantity="2" />
+        <route departure="ATL" destination="LHR" coach="Boeing 747-400" quantity="1" />
+        <route departure="ATL" destination="DFW" coach="Boeing 737-600" quantity="2" />
+      </carrier>
+      <carrier name="AA" homeBase="DFW">
+        <route departure="DFW" destination="ATL" coach="Boeing 737-600" quantity="2" />
+        <route departure="DFW" destination="JFK" coach="Boeing 737-800" quantity="2" />
+        <route departure="DFW" destination="LAX" coach="Boeing 737-800" quantity="3" />
+        <route departure="DFW" destination="MIA" coach="Boeing 737-800" quantity="2" />
+        <route departure="DFW" destination="ORD" coach="Boeing 717-200" quantity="4" />
+      </carrier>
+      <carrier name="UA" homeBase="IAH">
+        <route departure="IAH" destination="CLE" coach="Airbus A320-200" quantity="2" />
+        <route departure="IAH" destination="DEN" coach="Airbus A320-200" quantity="2" />
+        <route departure="IAH" destination="SFO" coach="Boeing 757-200" quantity="3" />
+        <route departure="IAH" destination="LAX" coach="Boeing 737-900" quantity="2" />
+        <route departure="IAH" destination="NRT" coach="Boeing 777-300" quantity="2" />
+      </carrier>
     </AI>
   </start>
   <modifiers>
     <!--country/airport is modified by change(%) for length(years)-->
     <paxDemand country="122" change="-20" length="1" />
-    <paxDemand airport="JFK" change="-25" length="2" />
-    <paxDemand airport="LGA" change="-25" length="2" />
-    <paxDemand airport="EWR" change="-25" length="2" />
+    <paxDemand station="JFK" change="-25" length="2" />
+    <paxDemand station="LGA" change="-25" length="2" />
+    <paxDemand station="EWR" change="-25" length="2" />
   </modifiers>
   <parameters>
     <!--all values are less than. For is if that value is true for that amount of years. At is if it is true at n years into the scenario-->

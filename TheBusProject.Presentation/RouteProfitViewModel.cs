@@ -39,10 +39,10 @@ namespace TheBusProject.Presentation
 
         public List<string> SortChoices { get; } = new List<string>
         {
-            "Profit, last 12 months", "Profit, last month", "Loss first", "Profit per flight", "Load factor", "Fare against the market", "Name"
+            "Profit, last 12 months", "Profit, last month", "Loss first", "Profit per trip", "Load factor", "Fare against the market", "Name"
         };
 
-        public List<string> ShowChoices { get; } = new List<string> {"All routes", "Losing money", "Passenger routes", "Cargo routes", "No aircraft"};
+        public List<string> ShowChoices { get; } = new List<string> {"All routes", "Losing money", "Passenger routes", "Cargo routes", "No coach"};
 
         public string SortBy
         {
@@ -91,24 +91,24 @@ namespace TheBusProject.Presentation
 
         public void Reload()
         {
-            var airline = GameObject.GetInstance()?.HumanAirline;
-            if (airline == null) return;
+            var carrier = GameObject.GetInstance()?.HumanCarrier;
+            if (carrier == null) return;
 
-            List<RouteFigures> all = RouteProfitService.All(airline);
+            List<RouteFigures> all = RouteProfitService.All(carrier);
             IEnumerable<RouteFigures> shown = all;
             switch (_show)
             {
                 case "Losing money": shown = all.Where(f => f.Losing); break;
                 case "Passenger routes": shown = all.Where(f => !f.IsCargo); break;
                 case "Cargo routes": shown = all.Where(f => f.IsCargo); break;
-                case "No aircraft": shown = all.Where(f => f.Route.GetAirliners().Count == 0); break;
+                case "No coach": shown = all.Where(f => f.Route.GetCoaches().Count == 0); break;
             }
 
             switch (_sortBy)
             {
                 case "Profit, last month": shown = shown.OrderByDescending(f => f.LastMonth); break;
                 case "Loss first": shown = shown.OrderBy(f => f.Months > 0 ? f.Last12 : f.ThisMonth); break;
-                case "Profit per flight": shown = shown.OrderByDescending(f => f.ProfitPerFlight); break;
+                case "Profit per trip": shown = shown.OrderByDescending(f => f.ProfitPerTrip); break;
                 case "Load factor": shown = shown.OrderByDescending(f => f.Load); break;
                 case "Fare against the market": shown = shown.OrderByDescending(f => f.FareRatio); break;
                 case "Name": shown = shown.OrderBy(f => Code(f.Route)); break;
@@ -129,10 +129,10 @@ namespace TheBusProject.Presentation
                     {
                         "last month " + Money(f.LastMonth),
                         f.Load > 0 ? string.Format("{0:0}% full", f.Load*100) : "no load yet",
-                        f.WeeklyFlights + " flights a week",
-                        f.ProfitPerFlight != 0 ? Money(f.ProfitPerFlight) + " a flight" : null,
+                        f.WeeklyTrips + " trips a week",
+                        f.ProfitPerTrip != 0 ? Money(f.ProfitPerTrip) + " a trip" : null,
                         fare.Length > 0 ? fare : null,
-                        f.Aircraft
+                        f.Coach
                     }.Where(x => x != null)),
                     Advice = f.Advice
                 });

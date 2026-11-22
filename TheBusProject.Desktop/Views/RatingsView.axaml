@@ -30,13 +30,13 @@
 
       <TextBlock Text="{Binding Effects}" TextWrapping="Wrap" Opacity="0.75" />
 
-      <TextBlock Text="Compared with other airlines" FontSize="16" FontWeight="SemiBold" Margin="0,8,0,0" />
+      <TextBlock Text="Compared with other carriers" FontSize="16" FontWeight="SemiBold" Margin="0,8,0,0" />
       <ItemsControl ItemsSource="{Binding Compare}">
         <ItemsControl.ItemTemplate>
           <DataTemplate>
             <Grid ColumnDefinitions="50,300,60,*" Margin="0,2">
               <TextBlock Text="{Binding Rank}" Opacity="0.7" />
-              <TextBlock Grid.Column="1" Text="{Binding Airline}" TextTrimming="CharacterEllipsis" />
+              <TextBlock Grid.Column="1" Text="{Binding Carrier}" TextTrimming="CharacterEllipsis" />
               <TextBlock Grid.Column="2" Text="{Binding Overall}" FontWeight="SemiBold" />
               <TextBlock Grid.Column="3" Text="{Binding Detail}" Opacity="0.7" TextTrimming="CharacterEllipsis" />
             </Grid>

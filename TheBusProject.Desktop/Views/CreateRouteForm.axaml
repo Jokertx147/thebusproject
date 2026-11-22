@@ -27,8 +27,8 @@
       <TextBlock Text="Price per unit of cargo" />
       <TextBox Text="{Binding CargoPrice}" />
     </StackPanel>
-    <TextBlock Text="{Binding AircraftLabel}" />
-    <ComboBox ItemsSource="{Binding Aircraft}" SelectedItem="{Binding SelectedAircraft}" HorizontalAlignment="Stretch" />
+    <TextBlock Text="{Binding CoachLabel}" />
+    <ComboBox ItemsSource="{Binding Coach}" SelectedItem="{Binding SelectedCoach}" HorizontalAlignment="Stretch" />
 
     <StackPanel Spacing="8" IsEnabled="{Binding ScheduleEnabled}">
       <TextBlock Text="Schedule" />
@@ -39,7 +39,7 @@
       <ComboBox ItemsSource="{Binding Trips}" SelectedItem="{Binding RoundTrips}" HorizontalAlignment="Stretch" IsEnabled="{Binding DetailEnabled}" />
       <TextBlock Text="First departure" />
       <ComboBox ItemsSource="{Binding StartTimes}" SelectedItem="{Binding StartTime}" HorizontalAlignment="Stretch" IsEnabled="{Binding DetailEnabled}" />
-      <CheckBox Content="Start flying straight away" IsChecked="{Binding StartAirliner}" />
+      <CheckBox Content="Start running straight away" IsChecked="{Binding StartCoach}" />
     </StackPanel>
 
     <TextBlock Text="{Binding Forecast}" TextWrapping="Wrap" IsVisible="{Binding HasForecast}" Foreground="#9CC3E6" />

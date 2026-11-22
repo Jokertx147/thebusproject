@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airliners;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Coaches;
 using TheBusProject.Models.General;
 using TheBusProject.Models.Routes;
 
@@ -22,18 +22,18 @@ namespace TheBusProject.Helpers
 
         /// <summary>Accepts an offered contract. The game judges it from the date stored in the contract, so a contract
         /// without a fixed period starts being judged after the days to fulfil it, not on the day it is accepted.</summary>
-        public static SpecialContract Accept(Airline airline, SpecialContractType type)
+        public static SpecialContract Accept(Carrier carrier, SpecialContractType type)
         {
             DateTime date = type.IsFixedDate ? type.Period.From : GameObject.GetInstance().GameTime.AddDays(DaysToFulfil);
-            var sc = new SpecialContract(type, date, airline);
-            airline.SpecialContracts.Add(sc);
+            var sc = new SpecialContract(type, date, carrier);
+            carrier.SpecialContracts.Add(sc);
             while (GameObject.GetInstance().Contracts.Remove(type))
             {
             }
 
-            foreach (Route r in airline.Routes.ToList())
+            foreach (Route r in carrier.Routes.ToList())
             {
-                LinkRoute(airline, r);
+                LinkRoute(carrier, r);
             }
 
             return sc;
@@ -57,11 +57,11 @@ namespace TheBusProject.Helpers
                    || (scr.BothWays && route.Destination2 == scr.Departure && route.Destination1 == scr.Destination);
         }
 
-        /// <summary>Counts a route for the contracts of the airline that ask for it. Returns the names of those contracts.</summary>
-        public static List<string> LinkRoute(Airline airline, Route route)
+        /// <summary>Counts a route for the contracts of the carrier that ask for it. Returns the names of those contracts.</summary>
+        public static List<string> LinkRoute(Carrier carrier, Route route)
         {
             var linked = new List<string>();
-            foreach (SpecialContract sc in airline.SpecialContracts)
+            foreach (SpecialContract sc in carrier.SpecialContracts)
             {
                 if (sc.Routes.Contains(route) || !sc.Type.Routes.Any(r => Matches(r, route)))
                 {
@@ -86,7 +86,7 @@ namespace TheBusProject.Helpers
         {
             if (c.Type == ContractRequirement.RequirementType.ClassType)
             {
-                return c.ClassType + " seats on the aircraft (at least " + c.MinSeats + ")";
+                return c.ClassType + " seats on the coach (at least " + c.MinSeats + ")";
             }
 
             return "Fly " + c.Departure?.Profile.IATACode + " to " + c.Destination?.Profile.IATACode;
@@ -95,13 +95,13 @@ namespace TheBusProject.Helpers
         /// <summary>Is the contract route flown today by a route that counts for the contract?</summary>
         public static bool IsServed(SpecialContract sc, SpecialContractRoute scr)
         {
-            return sc.Routes.Any(r => r.HasAirliner && Matches(scr, r));
+            return sc.Routes.Any(r => r.HasCoach && Matches(scr, r));
         }
 
-        /// <summary>The airline's own routes that fit a contract route, whether or not they count yet.</summary>
-        public static List<Route> FindOwnRoutes(Airline airline, SpecialContractRoute scr)
+        /// <summary>The carrier's own routes that fit a contract route, whether or not they count yet.</summary>
+        public static List<Route> FindOwnRoutes(Carrier carrier, SpecialContractRoute scr)
         {
-            return airline.Routes.Where(r => Matches(scr, r)).ToList();
+            return carrier.Routes.Where(r => Matches(scr, r)).ToList();
         }
     }
 }

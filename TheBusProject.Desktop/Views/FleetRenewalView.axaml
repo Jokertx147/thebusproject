@@ -4,7 +4,7 @@
   <ScrollViewer Margin="0,10,0,0">
     <StackPanel Spacing="10" MaxWidth="900" HorizontalAlignment="Left">
       <TextBlock Text="Fleet renewal" FontSize="16" FontWeight="SemiBold" />
-      <TextBlock Text="Replace every aircraft of one type by another type. Each new aircraft takes over the old one's routes; idle aircraft of the new type are used first, then aircraft from the market. Pilots who can fly the new type move with it, the rest are hired." Opacity="0.7" TextWrapping="Wrap" />
+      <TextBlock Text="Replace every coach of one type by another type. Each new coach takes over the old one's routes; idle coach of the new type are used first, then coach from the market. Pilots who can run the new type move with it, the rest are hired." Opacity="0.7" TextWrapping="Wrap" />
       <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" >
         <TextBlock Grid.Row="0" Text="Replace" VerticalAlignment="Center" Margin="0,0,10,6" />
         <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding OldTypes}" SelectedItem="{Binding OldType}" MinWidth="360" Margin="0,0,0,6" />
@@ -12,15 +12,15 @@
         <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding NewTypes}" SelectedItem="{Binding NewType}" MinWidth="360" Margin="0,0,0,6" />
         <TextBlock Grid.Row="2" Text="If slower" VerticalAlignment="Center" Margin="0,0,10,6" />
         <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding SlowerChoices}" SelectedItem="{Binding Slower}" MinWidth="360" Margin="0,0,0,6" />
-        <TextBlock Grid.Row="3" Text="Old aircraft" VerticalAlignment="Center" Margin="0,0,10,6" />
+        <TextBlock Grid.Row="3" Text="Old coach" VerticalAlignment="Center" Margin="0,0,10,6" />
         <ComboBox Grid.Row="3" Grid.Column="1" ItemsSource="{Binding AfterChoices}" SelectedItem="{Binding After}" MinWidth="360" Margin="0,0,0,6" />
       </Grid>
       <StackPanel Orientation="Horizontal" Spacing="10">
-        <TextBlock Text="Missing aircraft" VerticalAlignment="Center" />
+        <TextBlock Text="Missing coach" VerticalAlignment="Center" />
         <ComboBox ItemsSource="{Binding SourceChoices}" SelectedItem="{Binding Source}" MinWidth="320" />
         <CheckBox Content="Down payment now, the rest on delivery" IsChecked="{Binding DownPayment}" IsVisible="{Binding Orders}" />
       </StackPanel>
-      <TextBlock Text="New aircraft keep the old ones flying until they are delivered, then take over their routes automatically." Opacity="0.6" TextWrapping="Wrap" IsVisible="{Binding Orders}" />
+      <TextBlock Text="New coach keep the old ones running until they are delivered, then take over their routes automatically." Opacity="0.6" TextWrapping="Wrap" IsVisible="{Binding Orders}" />
       <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" FontWeight="SemiBold" />
       <ItemsControl ItemsSource="{Binding Rows}">
         <ItemsControl.ItemTemplate>

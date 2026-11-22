@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Device.Location;
 using System.Globalization;
 using System.Security.Cryptography;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Environment;
 using TheBusProject.Models.Routes;
@@ -66,10 +66,10 @@ namespace TheBusProject.Helpers
                 daysBetween = 7;
             }
 
-            DateTime flightTime = new DateTime(GameObject.GetInstance().GameTime.Year, GameObject.GetInstance().GameTime.Month, GameObject.GetInstance().GameTime.Day, entry.Time.Hours, entry.Time.Minutes, entry.Time.Seconds).AddDays(daysBetween);
+            DateTime tripTime = new DateTime(GameObject.GetInstance().GameTime.Year, GameObject.GetInstance().GameTime.Month, GameObject.GetInstance().GameTime.Day, entry.Time.Hours, entry.Time.Minutes, entry.Time.Seconds).AddDays(daysBetween);
 
             
-            return flightTime;
+            return tripTime;
              * */
         }
 
@@ -94,7 +94,7 @@ namespace TheBusProject.Helpers
                 daysBetween = 7;
             }
 
-            DateTime flightTime =
+            DateTime tripTime =
                 new DateTime(
                     GameObject.GetInstance().GameTime.Year,
                     GameObject.GetInstance().GameTime.Month,
@@ -103,7 +103,7 @@ namespace TheBusProject.Helpers
                     entry.Time.Minutes,
                     entry.Time.Seconds).AddDays(daysBetween);
 
-            return flightTime;
+            return tripTime;
         }
 
         public static TimeSpan ConvertTimeSpanToLocalTime(TimeSpan time, GameTimeZone timeZone)
@@ -178,26 +178,26 @@ namespace TheBusProject.Helpers
 
         //retuns the wind direction from a direction
 
-        //gets the distance between two airports in kilometers
-        public static double GetDistance(Airport airport1, Airport airport2)
+        //gets the distance between two stations in kilometers
+        public static double GetDistance(Station station1, Station station2)
         {
-            if (airport1.Statics == null)
+            if (station1.Statics == null)
             {
-                airport1.Statics = new AirportStatics(airport1);
+                station1.Statics = new StationStatics(station1);
             }
 
-            if (airport2.Statics == null)
+            if (station2.Statics == null)
             {
-                airport2.Statics = new AirportStatics(airport2);
+                station2.Statics = new StationStatics(station2);
             }
 
-            if (airport1.Statics.GetDistance(airport2).Equals(0) && airport2.Statics.GetDistance(airport1).Equals(0))
+            if (station1.Statics.GetDistance(station2).Equals(0) && station2.Statics.GetDistance(station1).Equals(0))
             {
                 return
-                    airport1.Profile.Coordinates.ConvertToGeoCoordinate()
-                            .GetDistanceTo(airport2.Profile.Coordinates.ConvertToGeoCoordinate())/1000;
+                    station1.Profile.Coordinates.ConvertToGeoCoordinate()
+                            .GetDistanceTo(station2.Profile.Coordinates.ConvertToGeoCoordinate())/1000;
             }
-            return Math.Max(airport1.Statics.GetDistance(airport2), airport2.Statics.GetDistance(airport1));
+            return Math.Max(station1.Statics.GetDistance(station2), station2.Statics.GetDistance(station1));
         }
 
         //gets the distance in kilometers between two coordinates
@@ -227,8 +227,8 @@ namespace TheBusProject.Helpers
 
         //returns the coordinates for a route in a distance of a specific lenghth
 
-        //returns the flight time between two coordinates with a given speed
-        public static TimeSpan GetFlightTime(GeoCoordinate coordinate1, GeoCoordinate coordinate2, double speed)
+        //returns the trip time between two coordinates with a given speed
+        public static TimeSpan GetTripTime(GeoCoordinate coordinate1, GeoCoordinate coordinate2, double speed)
         {
             if (coordinate1.Equals(coordinate2))
             {
@@ -251,8 +251,8 @@ namespace TheBusProject.Helpers
             return new TimeSpan(hours, minutes, 0);
         }
 
-        //returns the flight time for a given airliner type between two coordinates
-        public static TimeSpan GetFlightTime(GeoCoordinate coordinate1, GeoCoordinate coordinate2, AirlinerType type)
+        //returns the trip time for a given coach type between two coordinates
+        public static TimeSpan GetTripTime(GeoCoordinate coordinate1, GeoCoordinate coordinate2, CoachType type)
         {
             double dist = GetDistance(coordinate1, coordinate2);
 
@@ -277,11 +277,11 @@ namespace TheBusProject.Helpers
             return new TimeSpan(hours, minutes, 0);
         }
 
-        public static TimeSpan GetFlightTime(Airport airport1, Airport airport2, AirlinerType type)
+        public static TimeSpan GetTripTime(Station station1, Station station2, CoachType type)
         {
-            return GetFlightTime(
-                airport1.Profile.Coordinates.ConvertToGeoCoordinate(),
-                airport2.Profile.Coordinates.ConvertToGeoCoordinate(),
+            return GetTripTime(
+                station1.Profile.Coordinates.ConvertToGeoCoordinate(),
+                station2.Profile.Coordinates.ConvertToGeoCoordinate(),
                 type);
         }
 
@@ -344,7 +344,7 @@ namespace TheBusProject.Helpers
             return seeded != null ? seeded.Next(min, max) : Rnd.Next(min, max);
         }
 
-        // while set (on this thread), the random numbers above repeat for the same key: a pair of airports gets the
+        // while set (on this thread), the random numbers above repeat for the same key: a pair of stations gets the
         // same demand every time it is built (a new game, a load, a new year)
         [ThreadStatic]
         private static Random _seeded;
@@ -532,9 +532,9 @@ namespace TheBusProject.Helpers
         }
 
 
-        public static void MoveObject(FleetAirliner airliner, double speed)
+        public static void MoveObject(FleetCoach coach, double speed)
         {
-            double distance = airliner.CurrentFlight.DistanceToDestination;
+            double distance = coach.CurrentTrip.DistanceToDestination;
             double timepermove = Infrastructure.Settings.GetInstance().MinutesPerTurn;
 
             //Making sure that if the game time is not an hour, the plane is not moving an hour forward.
@@ -553,7 +553,7 @@ namespace TheBusProject.Helpers
                 distanceToDestination = 0;
             }
 
-            airliner.CurrentFlight.DistanceToDestination = distanceToDestination;
+            coach.CurrentTrip.DistanceToDestination = distanceToDestination;
         }
 
         //converts celsius to fahrenheit

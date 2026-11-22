@@ -3,14 +3,14 @@
         xmlns:vm="using:TheBusProject.Presentation"
         xmlns:v="using:TheBusProject.Desktop.Views"
         x:Class="TheBusProject.Desktop.ShellWindow"
-        Title="The Airline Project" Width="1100" Height="720" MinWidth="800" MinHeight="560"
+        Title="The Carrier Project" Width="1100" Height="720" MinWidth="800" MinHeight="560"
         WindowStartupLocation="CenterScreen">
   <Window.DataTemplates>
     <DataTemplate DataType="vm:MainMenuViewModel"><v:MainMenuView /></DataTemplate>
     <DataTemplate DataType="vm:NewGameViewModel"><v:NewGameView /></DataTemplate>
     <DataTemplate DataType="vm:LoadGameViewModel"><v:LoadGameView /></DataTemplate>
     <DataTemplate DataType="vm:ScenariosViewModel"><v:ScenariosView /></DataTemplate>
-    <DataTemplate DataType="vm:AirlineViewModel"><v:AirlineView /></DataTemplate>
+    <DataTemplate DataType="vm:CarrierViewModel"><v:CarrierView /></DataTemplate>
   </Window.DataTemplates>
 
   <LayoutTransformControl x:Name="ZoomRoot">

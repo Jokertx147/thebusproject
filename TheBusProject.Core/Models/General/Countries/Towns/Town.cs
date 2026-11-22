@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -109,41 +109,41 @@ namespace TheBusProject.Models.General.Countries.Towns
                 string state = name.Split(',')[1].Trim();
 
                 if (
-                    Airports.Airports.GetAirport(
+                    Stations.Stations.GetStation(
                         a =>
                         a.Profile.Town.Name == town && a.Profile.Town.State != null
                         && a.Profile.Town.State.ShortName == state) == null)
                 {
-                    if (Airports.Airports.GetAirport(a => a.Profile.Town.Name == town && a.Profile.Country.Uid == state) != null)
+                    if (Stations.Stations.GetStation(a => a.Profile.Town.Name == town && a.Profile.Country.Uid == state) != null)
                     {
-                        return Airports.Airports.GetAirport(a => a.Profile.Town.Name == town && a.Profile.Country.Uid == state).Profile.Town;
+                        return Stations.Stations.GetStation(a => a.Profile.Town.Name == town && a.Profile.Country.Uid == state).Profile.Town;
                     }
                     return null;
                 }
 
                 return
-                    Airports.Airports.GetAirport(
+                    Stations.Stations.GetStation(
                         a =>
                         a.Profile.Town.Name == town && a.Profile.Town.State != null
                         && a.Profile.Town.State.ShortName == state).Profile.Town;
             }
-            if (Airports.Airports.GetAirport(a => a.Profile.Town.Name == name) == null)
+            if (Stations.Stations.GetStation(a => a.Profile.Town.Name == name) == null)
             {
                 return null;
             }
 
-            return Airports.Airports.GetAirport(a => a.Profile.Town.Name == name).Profile.Town;
+            return Stations.Stations.GetStation(a => a.Profile.Town.Name == name).Profile.Town;
         }
 
         public static Town GetTown(string name, State state)
         {
-            return Airports.Airports.GetAirport(a => a.Profile.Town.Name == name && a.Profile.Town.State == state).Profile.Town;
+            return Stations.Stations.GetStation(a => a.Profile.Town.Name == name && a.Profile.Town.State == state).Profile.Town;
         }
 
         public static List<Town> GetTowns()
         {
             return
-                Airports.Airports.GetAllAirports()
+                Stations.Stations.GetAllStations()
                         .Select(a => a.Profile.Town)
                         .Where(t => (object) t != null && (object) t.Country != null && t.Name != null)
                         .Distinct()
@@ -154,7 +154,7 @@ namespace TheBusProject.Models.General.Countries.Towns
         public static List<Town> GetTowns(Country country)
         {
             return
-                Airports.Airports.GetAllAirports()
+                Stations.Stations.GetAllStations()
                         .Where(a => a.Profile.Country == country)
                         .Select(a => a.Profile.Town)
                         .Distinct()

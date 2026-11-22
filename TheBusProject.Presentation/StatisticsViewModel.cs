@@ -4,15 +4,15 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using TheBusProject.Helpers;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Finances;
 using TheBusProject.Models.General.Statistics;
 
 namespace TheBusProject.Presentation
 {
-    /// <summary>One line of the chart: an airline's figure for each period (null where it isn't known).</summary>
+    /// <summary>One line of the chart: an carrier's figure for each period (null where it isn't known).</summary>
     public class ChartSeries
     {
         public string Name { get; set; }
@@ -21,7 +21,7 @@ namespace TheBusProject.Presentation
         public bool IsMine { get; set; }
     }
 
-    /// <summary>What the chart draws: the periods along the bottom, a line per airline, and how a value is written.</summary>
+    /// <summary>What the chart draws: the periods along the bottom, a line per carrier, and how a value is written.</summary>
     public class ChartData
     {
         public string[] Labels { get; set; } = new string[0];
@@ -34,15 +34,15 @@ namespace TheBusProject.Presentation
         /// <summary>A share (0 to 1): the axis goes from 0 to 100%.</summary>
         public bool IsShare { get; set; }
 
-        /// <summary>Each decade takes the same height, so a small airline and a giant both show (0 and losses included).</summary>
+        /// <summary>Each decade takes the same height, so a small carrier and a giant both show (0 and losses included).</summary>
         public bool Log { get; set; }
     }
 
-    /// <summary>An airline that can be shown on the chart.</summary>
-    public class ChartAirline : ObservableObject
+    /// <summary>An carrier that can be shown on the chart.</summary>
+    public class ChartCarrier : ObservableObject
     {
         private bool _shown;
-        public Airline Airline { get; set; }
+        public Carrier Carrier { get; set; }
         public string Name { get; set; }
         public string Color { get; set; }
         public bool IsMine { get; set; }
@@ -64,7 +64,7 @@ namespace TheBusProject.Presentation
         public string Color { get; set; }
     }
 
-    /// <summary>A row of the chart's table: a period and each shown airline's value.</summary>
+    /// <summary>A row of the chart's table: a period and each shown carrier's value.</summary>
     public class ChartTableRow
     {
         public string Period { get; set; }
@@ -77,16 +77,16 @@ namespace TheBusProject.Presentation
         public string Name { get; set; }
         public bool IsMine { get; set; }
         public string Passengers { get; set; }
-        public string Flights { get; set; }
+        public string Trips { get; set; }
         public string Load { get; set; }
         public string OnTime { get; set; }
         public string Result { get; set; }
         public string Fleet { get; set; }
     }
 
-    public class AirportStatRow
+    public class StationStatRow
     {
-        public string Airport { get; set; }
+        public string Station { get; set; }
         public string Arrivals { get; set; }
         public string Passengers { get; set; }
         public string LastYear { get; set; }
@@ -97,8 +97,8 @@ namespace TheBusProject.Presentation
     }
 
     /// <summary>
-    ///     My Airline > Statistics: a figure by month or by year for the player's airline and its closest rivals (chart and
-    ///     table), every airline's year so far, and the player's busiest airports this year against last.
+    ///     My Carrier > Statistics: a figure by month or by year for the player's carrier and its closest rivals (chart and
+    ///     table), every carrier's year so far, and the player's busiest stations this year against last.
     /// </summary>
     public class StatisticsViewModel : ObservableObject
     {
@@ -106,17 +106,17 @@ namespace TheBusProject.Presentation
 
         public static readonly string[] Figures =
         {
-            "Passengers", "Flights", "Seats filled", "On time", "Cargo", "Income", "Costs", "Operating result", "Cash"
+            "Passengers", "Trips", "Seats filled", "On time", "Cargo", "Income", "Costs", "Operating result", "Cash"
         };
 
-        public static readonly string[] LeagueSorts = {"Passengers", "Flights", "Seats filled", "On time", "Operating result", "Fleet"};
+        public static readonly string[] LeagueSorts = {"Passengers", "Trips", "Seats filled", "On time", "Operating result", "Fleet"};
 
-        private string _figure = Figures[0], _period = ByMonth, _leagueSort = LeagueSorts[0], _summary, _leagueTitle, _airportsTitle;
+        private string _figure = Figures[0], _period = ByMonth, _leagueSort = LeagueSorts[0], _summary, _leagueTitle, _stationsTitle;
         private ChartData _chart = new ChartData();
         private bool _loading, _logScale, _logChosen;
-        private Airline _for;
+        private Carrier _for;
 
-        /// <summary>A spread this wide between the airlines shown turns the log scale on by itself.</summary>
+        /// <summary>A spread this wide between the carriers shown turns the log scale on by itself.</summary>
         public const double LogSpread = 25;
 
         public StatisticsViewModel()
@@ -128,17 +128,17 @@ namespace TheBusProject.Presentation
         public List<string> FigureChoices => Figures.ToList();
         public List<string> PeriodChoices => new List<string> {ByMonth, ByYear};
         public List<string> LeagueSortChoices => LeagueSorts.ToList();
-        public ObservableCollection<ChartAirline> Airlines { get; } = new ObservableCollection<ChartAirline>();
+        public ObservableCollection<ChartCarrier> Carriers { get; } = new ObservableCollection<ChartCarrier>();
         public ObservableCollection<ChartTableRow> Table { get; } = new ObservableCollection<ChartTableRow>();
         public ObservableCollection<LeagueRow> League { get; } = new ObservableCollection<LeagueRow>();
-        public ObservableCollection<AirportStatRow> AirportRows { get; } = new ObservableCollection<AirportStatRow>();
+        public ObservableCollection<StationStatRow> StationRows { get; } = new ObservableCollection<StationStatRow>();
 
         public ChartData Chart { get => _chart; private set => SetProperty(ref _chart, value); }
         public string Summary { get => _summary; private set => SetProperty(ref _summary, value); }
         public List<ChartCell> TableHeader { get; private set; } = new List<ChartCell>();
         public string LeagueTitle { get => _leagueTitle; private set => SetProperty(ref _leagueTitle, value); }
-        public string AirportsTitle { get => _airportsTitle; private set => SetProperty(ref _airportsTitle, value); }
-        public bool HasAirports => AirportRows.Count > 0;
+        public string StationsTitle { get => _stationsTitle; private set => SetProperty(ref _stationsTitle, value); }
+        public bool HasStations => StationRows.Count > 0;
 
         public string Figure
         {
@@ -158,7 +158,7 @@ namespace TheBusProject.Presentation
             }
         }
 
-        /// <summary>Each decade the same height: the only way a two-aircraft airline and a 600-aircraft one fit one chart.</summary>
+        /// <summary>Each decade the same height: the only way a two-coach carrier and a 600-coach one fit one chart.</summary>
         public bool LogScale
         {
             get => _logScale;
@@ -196,11 +196,11 @@ namespace TheBusProject.Presentation
         }
 
         /// <summary>A year's flying from the game's statistics (kept by year since the statistics fix).</summary>
-        private static MonthOps YearOps(Airline a, int year)
+        private static MonthOps YearOps(Carrier a, int year)
         {
             var s = a.Statistics;
             var o = new MonthOps {Year = year, Month = 12};
-            o.Flights = (int) s.GetStatisticsValue(year, T("Arrivals"));
+            o.Trips = (int) s.GetStatisticsValue(year, T("Arrivals"));
             o.OnTime = (int) s.GetStatisticsValue(year, T("On-Time"));
             o.Passengers = (long) s.GetStatisticsValue(year, T("Passengers"));
             o.Seats = (long) s.GetStatisticsValue(year, T("Capacity"));
@@ -208,7 +208,7 @@ namespace TheBusProject.Presentation
             return o;
         }
 
-        private static void YearMoney(Airline a, int year, out double income, out double costs)
+        private static void YearMoney(Carrier a, int year, out double income, out double costs)
         {
             income = 0;
             costs = 0;
@@ -221,30 +221,30 @@ namespace TheBusProject.Presentation
             }
         }
 
-        /// <summary>The figure for an airline in a period (month 0: the whole year); null when it isn't known.</summary>
-        public static double? Value(string figure, Airline a, int year, int month)
+        /// <summary>The figure for an carrier in a period (month 0: the whole year); null when it isn't known.</summary>
+        public static double? Value(string figure, Carrier a, int year, int month)
         {
             bool now = year == GameObject.GetInstance().GameTime.Year && (month == 0 || month == GameObject.GetInstance().GameTime.Month);
-            MonthOps o = month == 0 ? YearOps(a, year) : AirlineReportService.Ops(a, year, month);
+            MonthOps o = month == 0 ? YearOps(a, year) : CarrierReportService.Ops(a, year, month);
             double income, costs;
             switch (figure)
             {
                 case "Passengers": return o.Passengers;
-                case "Flights": return o.Flights;
+                case "Trips": return o.Trips;
                 case "Seats filled": return o.Seats > 0 ? o.Load : (double?) null;
-                case "On time": return o.Flights > 0 ? o.OnTimeShare : (double?) null;
+                case "On time": return o.Trips > 0 ? o.OnTimeShare : (double?) null;
                 case "Cargo": return o.Cargo;
                 case "Income":
                 case "Costs":
                 case "Operating result":
                     if (month == 0) YearMoney(a, year, out income, out costs);
-                    else AirlineReportService.IncomeAndCosts(a, year, month, out income, out costs);
+                    else CarrierReportService.IncomeAndCosts(a, year, month, out income, out costs);
                     return figure == "Income" ? income : figure == "Costs" ? -costs : income + costs;
                 case "Cash":
                     if (now) return a.Money;
                     if (month == 0)
                     {
-                        MonthOps dec = AirlineReportService.Ops(a, year, 12);
+                        MonthOps dec = CarrierReportService.Ops(a, year, 12);
                         return dec.Closed ? dec.Cash : (double?) null;
                     }
                     return o.Closed ? o.Cash : (double?) null;
@@ -311,28 +311,28 @@ namespace TheBusProject.Presentation
         public void Reload()
         {
             var game = GameObject.GetInstance();
-            Airline me = game?.HumanAirline;
+            Carrier me = game?.HumanCarrier;
             if (me == null) return;
             _loading = true;
             // the player and its closest rivals (as on the map, in the map's colours); the first three rivals shown
-            var keep = Airlines.Where(x => x.Shown).Select(x => x.Airline).ToList();
-            bool first = _for != me || Airlines.Count == 0;
+            var keep = Carriers.Where(x => x.Shown).Select(x => x.Carrier).ToList();
+            bool first = _for != me || Carriers.Count == 0;
             _for = me;
-            Airlines.Clear();
-            Airlines.Add(new ChartAirline {Airline = me, Name = me.Profile.IATACode + " " + me.Profile.Name + " (you)", Color = "#145ac8", IsMine = true, Shown = true, Changed = LoadChart});
-            List<RivalAirline> rivals;
+            Carriers.Clear();
+            Carriers.Add(new ChartCarrier {Carrier = me, Name = me.Profile.IATACode + " " + me.Profile.Name + " (you)", Color = "#145ac8", IsMine = true, Shown = true, Changed = LoadChart});
+            List<RivalCarrier> rivals;
             try { rivals = CompetitorService.Rivals(me); }
-            catch (Exception) { rivals = new List<RivalAirline>(); }
-            var others = rivals.Select(r => r.Airline).ToList();
-            // a new airline with no rivals yet: the biggest airlines
+            catch (Exception) { rivals = new List<RivalCarrier>(); }
+            var others = rivals.Select(r => r.Carrier).ToList();
+            // a new carrier with no rivals yet: the biggest carriers
             if (others.Count < 5)
-                others.AddRange(TheBusProject.Models.Airlines.Airlines.GetAllAirlines().Where(a => a != me && !others.Contains(a)).OrderByDescending(a => a.Fleet.Count).Take(5 - others.Count));
+                others.AddRange(TheBusProject.Models.Carriers.Carriers.GetAllCarriers().Where(a => a != me && !others.Contains(a)).OrderByDescending(a => a.Fleet.Count).Take(5 - others.Count));
             int i = 0;
-            foreach (Airline a in others.Take(WorldMapViewModel.RivalColors.Length - 1))
+            foreach (Carrier a in others.Take(WorldMapViewModel.RivalColors.Length - 1))
             {
-                Airlines.Add(new ChartAirline
+                Carriers.Add(new ChartCarrier
                 {
-                    Airline = a, Name = a.Profile.IATACode + " " + a.Profile.Name, Color = WorldMapViewModel.RivalColors[i],
+                    Carrier = a, Name = a.Profile.IATACode + " " + a.Profile.Name, Color = WorldMapViewModel.RivalColors[i],
                     Shown = first ? i < 3 : keep.Contains(a), Changed = LoadChart
                 });
                 i++;
@@ -340,7 +340,7 @@ namespace TheBusProject.Presentation
             _loading = false;
             LoadChart();
             LoadLeague();
-            LoadAirports();
+            LoadStations();
         }
 
         /// <summary>The periods shown: the last 13 months (oldest first), or every year of the game.</summary>
@@ -354,7 +354,7 @@ namespace TheBusProject.Presentation
                     list.Add(Tuple.Create(y, 0, y == game.GameTime.Year ? y + " so far" : y.ToString()));
                 return list;
             }
-            foreach (var m in AirlineReportService.ReportMonths(game.HumanAirline).AsEnumerable().Reverse())
+            foreach (var m in CarrierReportService.ReportMonths(game.HumanCarrier).AsEnumerable().Reverse())
             {
                 string name = CultureInfo.InvariantCulture.DateTimeFormat.GetAbbreviatedMonthName(m.Item2) + " " + (m.Item1 % 100).ToString("00");
                 list.Add(Tuple.Create(m.Item1, m.Item2, m.Item1 == game.GameTime.Year && m.Item2 == game.GameTime.Month ? name + "*" : name));
@@ -371,16 +371,16 @@ namespace TheBusProject.Presentation
                 Labels = periods.Select(p => p.Item3).ToArray(), Format = FormatFor(_figure), AxisFormat = AxisFormatFor(_figure),
                 IsShare = _figure == "Seats filled" || _figure == "On time"
             };
-            foreach (ChartAirline a in Airlines.Where(x => x.Shown))
+            foreach (ChartCarrier a in Carriers.Where(x => x.Shown))
             {
                 data.Series.Add(new ChartSeries
                 {
-                    Name = a.Airline.Profile.IATACode, Color = a.Color, IsMine = a.IsMine,
-                    Values = periods.Select(p => Value(_figure, a.Airline, p.Item1, p.Item2)).ToArray()
+                    Name = a.Carrier.Profile.IATACode, Color = a.Color, IsMine = a.IsMine,
+                    Values = periods.Select(p => Value(_figure, a.Carrier, p.Item1, p.Item2)).ToArray()
                 });
             }
-            // on a shared axis a giant's millions flatten a new airline's thousands to the zero line, so unless the
-            // player has said otherwise the log scale comes on when the airlines shown are of very different size
+            // on a shared axis a giant's millions flatten a new carrier's thousands to the zero line, so unless the
+            // player has said otherwise the log scale comes on when the carriers shown are of very different size
             var sizes = data.Series.SelectMany(x => x.Values).Where(v => v.HasValue && Math.Abs(v.Value) > 0).Select(v => Math.Abs(v.Value)).ToList();
             bool wide = sizes.Count > 1 && sizes.Max() >= sizes.Min()*LogSpread;
             if (!_logChosen || data.IsShare)
@@ -429,7 +429,7 @@ namespace TheBusProject.Presentation
                         else if (Math.Abs(before) >= 1) text += string.Format(" ({0:+0;-0;0}% on {1})", (v - before)/Math.Abs(before)*100, periods[full - 1].Item3);
                     }
                     var ranked = data.Series.Where(s => s.Values[full].HasValue).OrderByDescending(s => _figure == "Costs" ? -s.Values[full].Value : s.Values[full].Value).ToList();
-                    if (ranked.Count > 1) text += string.Format(", {0} of the {1} airlines shown", Ordinal(ranked.IndexOf(mine) + 1), ranked.Count);
+                    if (ranked.Count > 1) text += string.Format(", {0} of the {1} carriers shown", Ordinal(ranked.IndexOf(mine) + 1), ranked.Count);
                     Summary = text + ".";
                 }
             }
@@ -447,25 +447,25 @@ namespace TheBusProject.Presentation
             }
         }
 
-        // every airline's year so far
+        // every carrier's year so far
         private void LoadLeague()
         {
             if (_for == null) return;
             int year = GameObject.GetInstance().GameTime.Year;
-            LeagueTitle = "Every airline in " + year + " so far";
-            var rows = new List<Tuple<Airline, MonthOps, double, int>>();
-            foreach (Airline a in TheBusProject.Models.Airlines.Airlines.GetAllAirlines().ToList())
+            LeagueTitle = "Every carrier in " + year + " so far";
+            var rows = new List<Tuple<Carrier, MonthOps, double, int>>();
+            foreach (Carrier a in TheBusProject.Models.Carriers.Carriers.GetAllCarriers().ToList())
             {
                 double income, costs;
                 YearMoney(a, year, out income, out costs);
                 rows.Add(Tuple.Create(a, YearOps(a, year), income + costs, a.Fleet.Count));
             }
-            Func<Tuple<Airline, MonthOps, double, int>, double> key;
+            Func<Tuple<Carrier, MonthOps, double, int>, double> key;
             switch (_leagueSort)
             {
-                case "Flights": key = r => r.Item2.Flights; break;
+                case "Trips": key = r => r.Item2.Trips; break;
                 case "Seats filled": key = r => r.Item2.Seats > 0 ? r.Item2.Load : -1; break;
-                case "On time": key = r => r.Item2.Flights > 0 ? r.Item2.OnTimeShare : -1; break;
+                case "On time": key = r => r.Item2.Trips > 0 ? r.Item2.OnTimeShare : -1; break;
                 case "Operating result": key = r => r.Item3; break;
                 case "Fleet": key = r => r.Item4; break;
                 default: key = r => r.Item2.Passengers; break;
@@ -479,22 +479,22 @@ namespace TheBusProject.Presentation
                 League.Add(new LeagueRow
                 {
                     Rank = rank.ToString(), Name = r.Item1.Profile.IATACode + " " + r.Item1.Profile.Name, IsMine = r.Item1 == _for,
-                    Passengers = o.Passengers.ToString("#,0"), Flights = o.Flights.ToString("#,0"),
-                    Load = o.Seats > 0 ? (o.Load*100).ToString("0") + "%" : "-", OnTime = o.Flights > 0 ? (o.OnTimeShare*100).ToString("0") + "%" : "-",
+                    Passengers = o.Passengers.ToString("#,0"), Trips = o.Trips.ToString("#,0"),
+                    Load = o.Seats > 0 ? (o.Load*100).ToString("0") + "%" : "-", OnTime = o.Trips > 0 ? (o.OnTimeShare*100).ToString("0") + "%" : "-",
                     Result = ShortMoney(r.Item3), Fleet = r.Item4.ToString()
                 });
             }
         }
 
-        // the player's busiest airports: this year against last, and its share of each airport's flights
-        private void LoadAirports()
+        // the player's busiest stations: this year against last, and its share of each station's trips
+        private void LoadStations()
         {
-            AirportRows.Clear();
+            StationRows.Clear();
             if (_for == null) return;
             int year = GameObject.GetInstance().GameTime.Year;
-            AirportsTitle = "Your busiest airports in " + year + " so far";
-            var rows = new List<Tuple<Airport, double, double, double, double>>();
-            foreach (Airport ap in TheBusProject.Models.Airports.Airports.GetAllActiveAirports())
+            StationsTitle = "Your busiest stations in " + year + " so far";
+            var rows = new List<Tuple<Station, double, double, double, double>>();
+            foreach (Station ap in TheBusProject.Models.Stations.Stations.GetAllActiveStations())
             {
                 double arr = ap.Statistics.GetStatisticsValue(year, _for, T("Arrivals"));
                 if (arr <= 0) continue;
@@ -506,15 +506,15 @@ namespace TheBusProject.Presentation
             foreach (var r in rows.OrderByDescending(r => r.Item2).Take(15))
             {
                 double change = r.Item4 > 0 ? (r.Item3 - r.Item4)/r.Item4 : 0;
-                AirportRows.Add(new AirportStatRow
+                StationRows.Add(new StationStatRow
                 {
-                    Airport = r.Item1.Profile.IATACode + " " + r.Item1.Profile.Name, Arrivals = r.Item2.ToString("#,0"), Passengers = r.Item3.ToString("#,0"),
+                    Station = r.Item1.Profile.IATACode + " " + r.Item1.Profile.Name, Arrivals = r.Item2.ToString("#,0"), Passengers = r.Item3.ToString("#,0"),
                     LastYear = r.Item4 > 0 ? r.Item4.ToString("#,0") : "-", Change = r.Item4 > 0 ? string.Format("{0:+0;-0;0}%", change*100) : "new",
                     IsUp = r.Item4 > 0 && change > 0, IsDown = r.Item4 > 0 && change < 0,
-                    Share = r.Item5 > 0 ? (r.Item2/r.Item5*100).ToString("0") + "% of its flights" : ""
+                    Share = r.Item5 > 0 ? (r.Item2/r.Item5*100).ToString("0") + "% of its trips" : ""
                 });
             }
-            OnPropertyChanged(nameof(HasAirports));
+            OnPropertyChanged(nameof(HasStations));
         }
     }
 }

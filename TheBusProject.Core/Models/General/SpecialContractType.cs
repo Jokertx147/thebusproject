@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.Routes;
 
 namespace TheBusProject.Models.General
@@ -80,7 +80,7 @@ namespace TheBusProject.Models.General
     [System.Serializable]
     public class SpecialContractRoute : BaseModel
     {
-        public SpecialContractRoute(Airport destination1, Airport destination2, long passengers, Route.RouteType routetype, bool bothways)
+        public SpecialContractRoute(Station destination1, Station destination2, long passengers, Route.RouteType routetype, bool bothways)
         {
             Departure = destination1;
             Destination = destination2;
@@ -105,10 +105,10 @@ namespace TheBusProject.Models.General
         #endregion
 
         [Versioning("departure")]
-        public Airport Departure { get; set; }
+        public Station Departure { get; set; }
 
         [Versioning("destination")]
-        public Airport Destination { get; set; }
+        public Station Destination { get; set; }
 
         [Versioning("bothways")]
         public bool BothWays { get; set; }
@@ -155,16 +155,16 @@ namespace TheBusProject.Models.General
         public RequirementType Type { get; set; }
 
         [Versioning("classtype")]
-        public AirlinerClass.ClassType ClassType { get; set; }
+        public CoachClass.ClassType ClassType { get; set; }
 
         [Versioning("seats")]
         public int MinSeats { get; set; }
 
         [Versioning("destination")]
-        public Airport Destination { get; set; }
+        public Station Destination { get; set; }
 
         [Versioning("departure")]
-        public Airport Departure { get; set; }
+        public Station Departure { get; set; }
     }
 
     /*the list of special contracts*/

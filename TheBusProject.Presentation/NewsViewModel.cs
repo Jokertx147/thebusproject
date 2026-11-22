@@ -45,12 +45,12 @@ namespace TheBusProject.Presentation
         {
             switch (type)
             {
-                case News.NewsType.AirportNews: return "Airports";
-                case News.NewsType.FlightNews: return "Flights";
+                case News.NewsType.StationNews: return "Stations";
+                case News.NewsType.TripNews: return "Trips";
                 case News.NewsType.FleetNews: return "Fleet";
-                case News.NewsType.AirlineNews: return "Airlines";
+                case News.NewsType.CarrierNews: return "Carriers";
                 case News.NewsType.AllianceNews: return "Alliances";
-                case News.NewsType.AirlinerNews: return "Aircraft";
+                case News.NewsType.CoachNews: return "Coach";
                 case News.NewsType.RivalNews: return "Rivals";
                 default: return "General";
             }
@@ -107,7 +107,7 @@ namespace TheBusProject.Presentation
         {
             if (!HasLink) return;
             bool ok = _openLink(_selected.News.ActionObject);
-            LinkNote = ok ? "" : "You no longer fly this route.";
+            LinkNote = ok ? "" : "You no longer run this route.";
             OnPropertyChanged(nameof(LinkNote));
         }
 

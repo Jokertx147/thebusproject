@@ -87,7 +87,7 @@ namespace TheBusProject.Presentation
                     {
                         Scenario = s,
                         Name = s.Name,
-                        Summary = string.Format("{0} to {1} | {2} | {3}", s.StartYear, s.EndYear, s.Airline?.Profile.Name ?? "?", s.Difficulty?.Name ?? ""),
+                        Summary = string.Format("{0} to {1} | {2} | {3}", s.StartYear, s.EndYear, s.Carrier?.Profile.Name ?? "?", s.Difficulty?.Name ?? ""),
                         Problem = ScenarioService.Problem(s)
                     });
                 }
@@ -123,12 +123,12 @@ namespace TheBusProject.Presentation
                 var lines = new List<string>
                 {
                     string.Format("{0} to {1} ({2} years), difficulty {3}.", s.StartYear, s.EndYear, s.EndYear - s.StartYear, s.Difficulty?.Name),
-                    string.Format("You run {0} ({1}) from {2}, {3}.", s.Airline?.Profile.Name, AirlineTypeRules.Kind(s.Airline), s.Homebase?.Profile.Name, s.Homebase?.Profile.Country?.Name),
+                    string.Format("You run {0} ({1}) from {2}, {3}.", s.Carrier?.Profile.Name, CarrierTypeRules.Kind(s.Carrier), s.Homebase?.Profile.Name, s.Homebase?.Profile.Country?.Name),
                     "Starting cash " + Money(s.StartCash) + (s.StartDebt > 0 ? ", and a debt of " + Money(s.StartDebt) + " to pay off." : ".")
                 };
                 if (s.Fleet.Count > 0) lines.Add("Fleet: " + string.Join(", ", s.Fleet.Select(f => f.Value + " x " + f.Key.Name)) + ".");
-                if (s.Destinations.Count > 0) lines.Add("Gates at " + s.Destinations.Count + " airports: " + string.Join(", ", s.Destinations.Take(12).Select(a => a.Profile.IATACode)) + (s.Destinations.Count > 12 ? " and more" : "") + ".");
-                if (s.OpponentAirlines.Count > 0) lines.Add("Rivals: " + string.Join(", ", s.OpponentAirlines.Select(o => o.Airline?.Profile.Name)) + ".");
+                if (s.Destinations.Count > 0) lines.Add("Gates at " + s.Destinations.Count + " stations: " + string.Join(", ", s.Destinations.Take(12).Select(a => a.Profile.IATACode)) + (s.Destinations.Count > 12 ? " and more" : "") + ".");
+                if (s.OpponentCarriers.Count > 0) lines.Add("Rivals: " + string.Join(", ", s.OpponentCarriers.Select(o => o.Carrier?.Profile.Name)) + ".");
                 if (_selected.Problem != null) lines.Add("This scenario can't be played: " + _selected.Problem + ".");
                 Details = string.Join(Environment.NewLine, lines);
                 foreach (var f in s.Failures)
@@ -153,7 +153,7 @@ namespace TheBusProject.Presentation
             {
                 await Task.Run(() => ScenarioService.Start(s));
                 StartupLog.Write("Scenarios: started " + s.Name);
-                _shell.ShowAirline();
+                _shell.ShowCarrier();
             }
             catch (Exception ex)
             {
@@ -166,7 +166,7 @@ namespace TheBusProject.Presentation
         }
     }
 
-    /// <summary>My Airline > Scenario: the scenario's story, years left, every goal and where the airline stands.</summary>
+    /// <summary>My Carrier > Scenario: the scenario's story, years left, every goal and where the carrier stands.</summary>
     public class ScenarioViewModel : ObservableObject
     {
         public ScenarioViewModel()
@@ -224,7 +224,7 @@ namespace TheBusProject.Presentation
             so.EndShown = true;
             title = so.IsSuccess && so.ScenarioFailed == null ? "Scenario won: " + so.Scenario.Name : "Scenario lost: " + so.Scenario.Name;
             string text = so.ScenarioFailed != null ? so.ScenarioFailed.FailureText : (so.Scenario.SuccessText ?? "You met every goal.");
-            return text + Environment.NewLine + Environment.NewLine + "The game is paused. You can keep playing this airline as a normal game, or go back to the main menu (Options).";
+            return text + Environment.NewLine + Environment.NewLine + "The game is paused. You can keep playing this carrier as a normal game, or go back to the main menu (Options).";
         }
     }
 }

@@ -1,0 +1,72 @@
+
+
+<majordestinations>
+  <majordestination station="BOG">
+    <destinations>
+      <destination station="MDE" pax="1836" />
+      <destination station="CLO" pax="1517" />
+      <destination station="CTG" pax="1231" />
+      <destination station="BAQ" pax="968" />
+      <destination station="BGA" pax="707" />
+      <destination station="SMR" pax="653" />
+      <destination station="CUC" pax="501" />
+      <destination station="PEI" pax="475" />
+      <destination station="ADZ" pax="443" />
+      <destination station="MTR" pax="368" />
+      <destination station="MIA" pax="460" />
+      <destination station="MAD" pax="427" />
+      <destination station="PTY" pax="410" />
+      <destination station="LIM" pax="340" />
+      <destination station="UIO" pax="290" />
+      <destination station="FLL" pax="227" />
+      <destination station="MEX" pax="501" cargo="77" />
+      <destination station="CCS" pax="222" />
+      <destination station="CDG" pax="168" />
+      <destination station="IAH" pax="158" />
+      <destination station="GRU" pax="155" />
+      <destination station="JFK" pax="110" />
+      <destination station="LGA" pax="42" />
+      <destination station="SCL" pax="134" />
+      <destination station="FRA" pax="132" />
+      <destination station="EZE" pax="130" />
+      <destination station="MCO" pax="103" />
+      <destination station="SJO" pax="80" />
+      <destination station="GYE" pax="71" />
+      <destination station="EWR" pax="68" />
+      <destination station="YYZ" pax="67" />
+    </destinations>
+  </majordestination>
+  <majordestination station="CCS">
+    <destinations>
+      <destination station="DFW" pax="13" cargo="2" />
+    </destinations>
+  </majordestination>
+  <majordestination station="EZE">
+    <destinations>
+      <destination station="DFW" pax="140" cargo="22" />
+      <destination station="MEX" pax="139" cargo="21" />
+    </destinations>
+  </majordestination>
+  <majordestination station="GIG">
+    <destinations>
+      <destination station="DFW" pax="1" />
+          </destinations>
+  </majordestination>
+  <majordestination station="GRU">
+    <destinations>
+      <destination station="DFW" pax="154" cargo="24" />
+      <destination station="MEX" pax="324" cargo="50" />
+    </destinations>
+  </majordestination>
+  <majordestination station="LIM">
+    <destinations>
+      <destination station="MEX" pax="369" cargo="57" />
+    </destinations>
+  </majordestination>
+  <majordestination station="SCL">
+    <destinations>
+      <destination station="DFW" pax="114" cargo="18" />
+      <destination station="MEX" pax="188" cargo="29" />
+    </destinations>
+  </majordestination>
+</majordestinations>

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Countries.Towns;
 using TheBusProject.Models.General.Environment;
@@ -63,43 +63,43 @@ namespace TheBusProject.Helpers
 
         #region Public Methods and Operators
 
-        public static int ClassToPriceFactor(AirlinerClass.ClassType type)
+        public static int ClassToPriceFactor(CoachClass.ClassType type)
         {
-            if (type == AirlinerClass.ClassType.BusinessClass)
+            if (type == CoachClass.ClassType.BusinessClass)
             {
                 return 3;
             }
-            if (type == AirlinerClass.ClassType.EconomyClass)
+            if (type == CoachClass.ClassType.EconomyClass)
             {
                 return 1;
             }
-            if (type == AirlinerClass.ClassType.FirstClass)
+            if (type == CoachClass.ClassType.FirstClass)
             {
                 return 6;
             }
             return 1;
         }
 
-        public static AirlinerType.TypeRange ConvertDistanceToRangeType(double distance)
+        public static CoachType.TypeRange ConvertDistanceToRangeType(double distance)
         {
             if (distance < 2000)
             {
-                return AirlinerType.TypeRange.Regional;
+                return CoachType.TypeRange.Regional;
             }
             if (distance >= 2000 && distance < 3500)
             {
-                return AirlinerType.TypeRange.ShortRange;
+                return CoachType.TypeRange.ShortRange;
             }
             if (distance >= 3500 && distance < 9000)
             {
-                return AirlinerType.TypeRange.MediumRange;
+                return CoachType.TypeRange.MediumRange;
             }
             if (distance >= 9000)
             {
-                return AirlinerType.TypeRange.LongRange;
+                return CoachType.TypeRange.LongRange;
             }
 
-            return AirlinerType.TypeRange.MediumRange;
+            return CoachType.TypeRange.MediumRange;
         }
 
         public static void CreateHolidays(int startYear)
@@ -180,7 +180,7 @@ namespace TheBusProject.Helpers
             }
         }
 
-        public static void CreatePilots(int count, string airlinerFamily)
+        public static void CreatePilots(int count, string coachFamily)
         {
             List<Town> towns = Towns.GetTowns();
 
@@ -209,9 +209,9 @@ namespace TheBusProject.Helpers
                 DateTime educationTime = MathHelpers.GetRandomDate(birthdate.AddYears(23), new DateTime(toYear, 1, 1));
                 var pilot = new Pilot(profile, educationTime, rating);
 
-                pilot.Aircrafts = GetPilotAircrafts(pilot);
-                pilot.Aircrafts.RemoveAt(0);
-                pilot.Aircrafts.Add(airlinerFamily);
+                pilot.Coaches = GetPilotCoaches(pilot);
+                pilot.Coaches.RemoveAt(0);
+                pilot.Coaches.Add(coachFamily);
 
                 Pilots.AddPilot(pilot);
             }
@@ -247,22 +247,22 @@ namespace TheBusProject.Helpers
                 DateTime educationTime = MathHelpers.GetRandomDate(birthdate.AddYears(23), new DateTime(toYear, 1, 1));
                 var pilot = new Pilot(profile, educationTime, rating);
 
-                pilot.Aircrafts = GetPilotAircrafts(pilot);
+                pilot.Coaches = GetPilotCoaches(pilot);
 
                 Pilots.AddPilot(pilot);
             }
         }
 
-        public static double GetAirlineLoanRate(Airline airline)
+        public static double GetCarrierLoanRate(Carrier carrier)
         {
-            var value = (double) airline.GetAirlineValue();
+            var value = (double) carrier.GetCarrierValue();
 
-            // yearly interest in percent: a base rate plus a risk premium that falls as the airline gets stronger
+            // yearly interest in percent: a base rate plus a risk premium that falls as the carrier gets stronger
             return 2 + (GameObject.GetInstance().Difficulty.LoanLevel + 0.5)
-                   *((double) Airline.AirlineValue.VeryHigh + 1 - value);
+                   *((double) Carrier.CarrierValue.VeryHigh + 1 - value);
         }
 
-        public static double GetAirlinerOrderDiscount(int orders)
+        public static double GetCoachOrderDiscount(int orders)
         {
             if (orders > 2)
             {
@@ -273,16 +273,16 @@ namespace TheBusProject.Helpers
 
         // public enum Rate { None }
 
-        //returns the list of arrivals for an airport
-        public static List<RouteTimeTableEntry> GetAirportArrivals(Airport airport, DayOfWeek day)
+        //returns the list of arrivals for an station
+        public static List<RouteTimeTableEntry> GetStationArrivals(Station station, DayOfWeek day)
         {
             var entries = new List<RouteTimeTableEntry>();
-            foreach (Route route in AirportHelpers.GetAirportRoutes(airport))
+            foreach (Route route in StationHelpers.GetStationRoutes(station))
             {
-                if (route.HasAirliner)
+                if (route.HasCoach)
                 {
                     IEnumerable<RouteTimeTableEntry> rEntries =
-                        route.TimeTable.Entries.Where(e => e.Day == day && e.Destination.Airport == airport);
+                        route.TimeTable.Entries.Where(e => e.Day == day && e.Destination.Station == station);
 
                     entries.AddRange(rEntries);
                 }
@@ -292,22 +292,22 @@ namespace TheBusProject.Helpers
             return entries;
         }
 
-        public static List<RouteTimeTableEntry> GetAirportArrivals(Airport airport, int count)
+        public static List<RouteTimeTableEntry> GetStationArrivals(Station station, int count)
         {
             var entries = new List<RouteTimeTableEntry>();
-            foreach (Route route in AirportHelpers.GetAirportRoutes(airport))
+            foreach (Route route in StationHelpers.GetStationRoutes(station))
             {
-                if (route.HasAirliner && route.GetCurrentAirliner() != null)
+                if (route.HasCoach && route.GetCurrentCoach() != null)
                 {
-                    RouteTimeTableEntry entry = route.GetCurrentAirliner().CurrentFlight == null
+                    RouteTimeTableEntry entry = route.GetCurrentCoach().CurrentTrip == null
                                                     ? route.TimeTable.GetNextEntry(
                                                         GameObject.GetInstance().GameTime,
-                                                        (airport == route.Destination1 ? route.Destination2 : route.Destination1))
-                                                    : route.GetCurrentAirliner().CurrentFlight.Entry;
+                                                        (station == route.Destination1 ? route.Destination2 : route.Destination1))
+                                                    : route.GetCurrentCoach().CurrentTrip.Entry;
 
                     for (int i = 0; i < route.TimeTable.Entries.Count; i++)
                     {
-                        if (entry.Destination.Airport == airport)
+                        if (entry.Destination.Station == station)
                         {
                             entries.Add(entry);
                         }
@@ -320,16 +320,16 @@ namespace TheBusProject.Helpers
             return entries.GetRange(0, Math.Min(entries.Count, count));
         }
 
-        //returns the list of departures for an airport
-        public static List<RouteTimeTableEntry> GetAirportDepartures(Airport airport, DayOfWeek day)
+        //returns the list of departures for an station
+        public static List<RouteTimeTableEntry> GetStationDepartures(Station station, DayOfWeek day)
         {
             var entries = new List<RouteTimeTableEntry>();
-            foreach (Route route in AirportHelpers.GetAirportRoutes(airport))
+            foreach (Route route in StationHelpers.GetStationRoutes(station))
             {
-                if (route.HasAirliner)
+                if (route.HasCoach)
                 {
                     IEnumerable<RouteTimeTableEntry> rEntries =
-                        route.TimeTable.Entries.Where(e => e.Day == day && e.DepartureAirport == airport);
+                        route.TimeTable.Entries.Where(e => e.Day == day && e.DepartureStation == station);
 
                     entries.AddRange(rEntries);
                 }
@@ -339,18 +339,18 @@ namespace TheBusProject.Helpers
             return entries;
         }
 
-        public static List<RouteTimeTableEntry> GetAirportDepartures(Airport airport, int count)
+        public static List<RouteTimeTableEntry> GetStationDepartures(Station station, int count)
         {
             var entries = new List<RouteTimeTableEntry>();
-            foreach (Route route in AirportHelpers.GetAirportRoutes(airport))
+            foreach (Route route in StationHelpers.GetStationRoutes(station))
             {
-                if (route.HasAirliner && route.GetCurrentAirliner() != null)
+                if (route.HasCoach && route.GetCurrentCoach() != null)
                 {
-                    RouteTimeTableEntry entry = route.GetCurrentAirliner().CurrentFlight == null
-                                                    ? route.TimeTable.GetNextEntry(GameObject.GetInstance().GameTime, airport)
-                                                    : route.GetCurrentAirliner().CurrentFlight.Entry;
+                    RouteTimeTableEntry entry = route.GetCurrentCoach().CurrentTrip == null
+                                                    ? route.TimeTable.GetNextEntry(GameObject.GetInstance().GameTime, station)
+                                                    : route.GetCurrentCoach().CurrentTrip.Entry;
 
-                    if (!entry.Destination.Airport.Profile.Coordinates.Equals(airport.Profile.Coordinates))
+                    if (!entry.Destination.Station.Profile.Coordinates.Equals(station.Profile.Coordinates))
                     {
                         entries.Add(entry);
                     }
@@ -358,7 +358,7 @@ namespace TheBusProject.Helpers
                     while (entries.Count < 4)
                     {
                         entry = route.TimeTable.GetNextEntry(entry);
-                        if (entry.Destination.Airport != airport)
+                        if (entry.Destination.Station != station)
                         {
                             entries.Add(entry);
                         }
@@ -370,27 +370,27 @@ namespace TheBusProject.Helpers
             return entries.GetRange(0, Math.Min(entries.Count, count));
         }
 
-        public static List<RouteTimeTableEntry> GetAirportFlights(Airport fAirport, Airport tAirport, Boolean arrivals)
+        public static List<RouteTimeTableEntry> GetStationTrips(Station fStation, Station tStation, Boolean arrivals)
         {
             var entries = new List<RouteTimeTableEntry>();
-            foreach (Route route in AirportHelpers.GetAirportRoutes(fAirport))
+            foreach (Route route in StationHelpers.GetStationRoutes(fStation))
             {
-                if (route.HasAirliner && (route.Destination1 == tAirport || route.Destination2 == tAirport))
+                if (route.HasCoach && (route.Destination1 == tStation || route.Destination2 == tStation))
                 {
-                    RouteTimeTableEntry entry = route.GetCurrentAirliner() == null
-                                                || route.GetCurrentAirliner().CurrentFlight == null
-                                                || route.GetCurrentAirliner().CurrentFlight.Entry == null
+                    RouteTimeTableEntry entry = route.GetCurrentCoach() == null
+                                                || route.GetCurrentCoach().CurrentTrip == null
+                                                || route.GetCurrentCoach().CurrentTrip.Entry == null
                                                     ? route.TimeTable.GetNextEntry(GameObject.GetInstance().GameTime)
-                                                    : route.GetCurrentAirliner().CurrentFlight.Entry;
+                                                    : route.GetCurrentCoach().CurrentTrip.Entry;
 
                     for (int i = 0; i < route.TimeTable.Entries.Count; i++)
                     {
-                        if (!arrivals && entry.Destination.Airport == tAirport)
+                        if (!arrivals && entry.Destination.Station == tStation)
                         {
                             entries.Add(entry);
                         }
 
-                        if (arrivals && entry.Destination.Airport == fAirport)
+                        if (arrivals && entry.Destination.Station == fStation)
                         {
                             entries.Add(entry);
                         }
@@ -404,7 +404,7 @@ namespace TheBusProject.Helpers
             return entries;
         }
 
-        //returns the rate (for loan) for an airline
+        //returns the rate (for loan) for an carrier
 
         //the converter for a price based on inflation
         public static double GetInflationPrice(double price)
@@ -419,26 +419,26 @@ namespace TheBusProject.Helpers
             return newPrice;
         }
 
-        public static List<string> GetPilotAircrafts(Pilot pilot)
+        public static List<string> GetPilotCoaches(Pilot pilot)
         {
             int year = GameObject.GetInstance().GameTime.Year;
 
-            IEnumerable<string> airlinerFamilies =
-                AirlinerTypes.GetTypes(
+            IEnumerable<string> coachFamilies =
+                CoachTypes.GetTypes(
                     t =>
                     t.Produced.From.Year <= GameObject.GetInstance().GameTime.Year
                     && t.Produced.To > GameObject.GetInstance().GameTime.AddYears(-30))
-                             .Select(a => a.AirlinerFamily)
+                             .Select(a => a.CoachFamily)
                              .Distinct();
 
             var rnd = new Random();
             var families = new List<string>();
 
-            int numberOfAircrafts = PilotRatings.GetRatings().IndexOf(pilot.Rating) + 1;
+            int numberOfCoaches = PilotRatings.GetRatings().IndexOf(pilot.Rating) + 1;
 
-            for (int i = 0; i < numberOfAircrafts; i++)
+            for (int i = 0; i < numberOfCoaches; i++)
             {
-                var enumerable = airlinerFamilies as string[] ?? airlinerFamilies.ToArray();
+                var enumerable = coachFamilies as string[] ?? coachFamilies.ToArray();
                 List<string> freeFamilies = enumerable.Where(a => !families.Contains(a)).ToList();
                 string family = freeFamilies[rnd.Next(freeFamilies.Count)];
 
@@ -467,7 +467,7 @@ namespace TheBusProject.Helpers
         public static PilotRating GetPilotStudentRating(Instructor instructor, List<PilotRating> ratings)
         {
             PilotRating instructorRanking = instructor.Rating;
-            int aircraftCoeff = instructor.FlightSchool.TrainingAircrafts.Exists(a => a.Type.MaxNumberOfStudents > 5)
+            int coachCoeff = instructor.TripSchool.TrainingCoaches.Exists(a => a.Type.MaxNumberOfStudents > 5)
                                     ? 10
                                     : 0;
 
@@ -485,7 +485,7 @@ namespace TheBusProject.Helpers
 
                 if (ratings.Contains(prevRating))
                 {
-                    rankings.Add(prevRating, 35 - aircraftCoeff);
+                    rankings.Add(prevRating, 35 - coachCoeff);
                 }
             }
             if (instructorRankingIndex < PilotRatings.GetRatings().Count - 1)
@@ -494,7 +494,7 @@ namespace TheBusProject.Helpers
 
                 if (ratings.Contains(nextRating))
                 {
-                    rankings.Add(nextRating, 15 + aircraftCoeff);
+                    rankings.Add(nextRating, 15 + coachCoeff);
                 }
             }
 
@@ -517,7 +517,7 @@ namespace TheBusProject.Helpers
         public static PilotRating GetPilotStudentRating(Instructor instructor)
         {
             PilotRating instructorRanking = instructor.Rating;
-            int aircraftCoeff = instructor.FlightSchool.TrainingAircrafts.Exists(a => a.Type.MaxNumberOfStudents > 5)
+            int coachCoeff = instructor.TripSchool.TrainingCoaches.Exists(a => a.Type.MaxNumberOfStudents > 5)
                                     ? 10
                                     : 0;
 
@@ -527,13 +527,13 @@ namespace TheBusProject.Helpers
             if (instructorRankingIndex > 0)
             {
                 PilotRating prevRating = PilotRatings.GetRatings()[instructorRankingIndex - 1];
-                rankings.Add(prevRating, 35 - aircraftCoeff);
+                rankings.Add(prevRating, 35 - coachCoeff);
             }
             if (instructorRankingIndex < PilotRatings.GetRatings().Count)
             {
                 PilotRating nextRating = PilotRatings.GetRatings()[instructorRankingIndex + 1];
 
-                rankings.Add(nextRating, 15 + aircraftCoeff);
+                rankings.Add(nextRating, 15 + coachCoeff);
             }
 
             PilotRating rating = AIHelpers.GetRandomItem(rankings);
@@ -559,15 +559,15 @@ namespace TheBusProject.Helpers
             return Weather.Season.Winter;
         }
 
-        public static Boolean IsAirportActive(Airport airport)
+        public static Boolean IsStationActive(Station station)
         {
-            return airport.Profile.Period.From <= GameObject.GetInstance().GameTime
-                   && airport.Profile.Period.To > GameObject.GetInstance().GameTime && Airports.Contains(airport);
+            return station.Profile.Period.From <= GameObject.GetInstance().GameTime
+                   && station.Profile.Period.To > GameObject.GetInstance().GameTime && Stations.Contains(station);
         }
 
         #endregion
 
-        //creates a number of pilots with a specific aircraft
+        //creates a number of pilots with a specific coach
     }
 
     public static class EnumHelper

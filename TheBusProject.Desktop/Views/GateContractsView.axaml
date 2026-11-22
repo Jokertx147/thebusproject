@@ -31,7 +31,7 @@
       <StackPanel Spacing="8" IsVisible="{Binding HasSelection}" Margin="0,0,8,0">
         <TextBlock Text="{Binding Detail}" TextWrapping="Wrap" />
         <CheckBox Content="Renew by itself when it ends" IsChecked="{Binding AutoRenew}" />
-        <Button Content="Show this airport" Command="{Binding OpenAirportCommand}" />
+        <Button Content="Show this station" Command="{Binding OpenStationCommand}" />
 
         <Border IsVisible="{Binding HasPending}" Background="#3a3320" CornerRadius="6" Padding="10">
           <StackPanel Spacing="8">

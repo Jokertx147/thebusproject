@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<carrier>
+  <profile name="Jet2.com" iata="LS" color="Black" country="130" CEO="Philip Meeson" mentality="Safe" market="Global"
+           preferedstation="MAN">
+  </profile>
+  <info real="True" from="2002" to="2199" />
+</carrier>

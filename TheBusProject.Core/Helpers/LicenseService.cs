@@ -1,16 +1,16 @@
 using System;
-using TheBusProject.Models.Airlines;
+using TheBusProject.Models.Carriers;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Finances;
 
 namespace TheBusProject.Helpers
 {
-    /// <summary>The airline's flying license: Regional, Domestic, then Long haul. A higher one is bought for money.</summary>
+    /// <summary>The carrier's flying license: Regional, Domestic, then Long haul. A higher one is bought for money.</summary>
     public static class LicenseService
     {
-        public static string Name(Airline.AirlineLicense license)
+        public static string Name(Carrier.CarrierLicense license)
         {
-            switch (AirlineHelpers.GetLicenseRank(license))
+            switch (CarrierHelpers.GetLicenseRank(license))
             {
                 case 0: return "Regional";
                 case 1: return "Domestic";
@@ -18,52 +18,52 @@ namespace TheBusProject.Helpers
             }
         }
 
-        public static string Allows(Airline.AirlineLicense license)
+        public static string Allows(Carrier.CarrierLicense license)
         {
-            switch (AirlineHelpers.GetLicenseRank(license))
+            switch (CarrierHelpers.GetLicenseRank(license))
             {
-                case 0: return "Flights inside one continent or one union of countries.";
-                case 1: return "The same, plus flights inside a country and flights shorter than 2,000 km between continents.";
-                default: return "Flights anywhere, including long distance between continents.";
+                case 0: return "Trips inside one continent or one union of countries.";
+                case 1: return "The same, plus trips inside a country and trips shorter than 2,000 km between continents.";
+                default: return "Trips anywhere, including long distance between continents.";
             }
         }
 
-        public static bool IsHighest(Airline airline)
+        public static bool IsHighest(Carrier carrier)
         {
-            return AirlineHelpers.GetLicenseRank(airline.License) >= 2;
+            return CarrierHelpers.GetLicenseRank(carrier.License) >= 2;
         }
 
-        public static Airline.AirlineLicense Next(Airline airline)
+        public static Carrier.CarrierLicense Next(Carrier carrier)
         {
-            return AirlineHelpers.GetNextLicense(airline.License);
+            return CarrierHelpers.GetNextLicense(carrier.License);
         }
 
-        public static double Price(Airline airline)
+        public static double Price(Carrier carrier)
         {
-            return GeneralHelpers.GetInflationPrice(AirlineHelpers.GetLicenseRank(airline.License) == 0 ? 3000000 : 15000000);
+            return GeneralHelpers.GetInflationPrice(CarrierHelpers.GetLicenseRank(carrier.License) == 0 ? 3000000 : 15000000);
         }
 
         /// <summary>Why the next license cannot be bought now, or null.</summary>
-        public static string GetBlocker(Airline airline)
+        public static string GetBlocker(Carrier carrier)
         {
-            if (IsHighest(airline)) return "You already have the highest license.";
-            if (airline.Money < Price(airline)) return "Not enough money: it costs " + Price(airline).ToString("N0") + ".";
+            if (IsHighest(carrier)) return "You already have the highest license.";
+            if (carrier.Money < Price(carrier)) return "Not enough money: it costs " + Price(carrier).ToString("N0") + ".";
             return null;
         }
 
-        public static bool Upgrade(Airline airline, out string message)
+        public static bool Upgrade(Carrier carrier, out string message)
         {
-            string blocker = GetBlocker(airline);
+            string blocker = GetBlocker(carrier);
             if (blocker != null)
             {
                 message = blocker;
                 return false;
             }
-            double price = Price(airline);
-            var next = Next(airline);
-            AirlineHelpers.AddAirlineInvoice(airline, GameObject.GetInstance().GameTime, Invoice.InvoiceType.AirlineExpenses, -price);
-            airline.License = next;
-            message = "Your airline now has a " + Name(next) + " license. " + Allows(next);
+            double price = Price(carrier);
+            var next = Next(carrier);
+            CarrierHelpers.AddCarrierInvoice(carrier, GameObject.GetInstance().GameTime, Invoice.InvoiceType.CarrierExpenses, -price);
+            carrier.License = next;
+            message = "Your carrier now has a " + Name(next) + " license. " + Allows(next);
             return true;
         }
     }

@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using TheBusProject.Helpers;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airlines;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Carriers;
 
 namespace TheBusProject.Models.Pilots
 {
@@ -25,7 +25,7 @@ namespace TheBusProject.Models.Pilots
             Profile = profile;
             EducationTime = educationTime;
             Rating = rating;
-            Aircrafts = new List<string>();
+            Coaches = new List<string>();
         }
 
         private Pilot(SerializationInfo info, StreamingContext ctxt) : base(info, ctxt)
@@ -36,7 +36,7 @@ namespace TheBusProject.Models.Pilots
             }
             if (Version < 3)
             {
-                Aircrafts = GeneralHelpers.GetPilotAircrafts(this);
+                Coaches = GeneralHelpers.GetPilotCoaches(this);
                 Training = null;
             }
         }
@@ -45,21 +45,21 @@ namespace TheBusProject.Models.Pilots
 
         #region Public Properties
 
-        [Versioning("aircrafts", Version = 3)]
-        public List<string> Aircrafts { get; set; }
+        [Versioning("coaches", Version = 3)]
+        public List<string> Coaches { get; set; }
 
-        /// <summary>0 to 100: how happy the pilot is at his airline.</summary>
+        /// <summary>0 to 100: how happy the pilot is at his carrier.</summary>
         [Versioning("morale")]
         public double Morale { get; set; } = 70;
 
-        [Versioning("airline")]
-        public Airline Airline { get; set; }
+        [Versioning("carrier")]
+        public Carrier Carrier { get; set; }
 
         [Versioning("signeddate")]
-        public DateTime AirlineSignedDate { get; set; }
+        public DateTime CarrierSignedDate { get; set; }
 
-        [Versioning("airliner")]
-        public FleetAirliner Airliner { get; set; }
+        [Versioning("coach")]
+        public FleetCoach Coach { get; set; }
 
         [Versioning("education")]
         public DateTime EducationTime { get; set; }
@@ -86,17 +86,17 @@ namespace TheBusProject.Models.Pilots
             base.GetObjectData(info, context);
         }
 
-        //adds an airliner type family which the pilot expirence
-        public void AddAirlinerFamily(string family)
+        //adds an coach type family which the pilot expirence
+        public void AddCoachFamily(string family)
         {
-            Aircrafts.Add(family);
+            Coaches.Add(family);
         }
 
-        //sets the airline for a pilot
-        public void SetAirline(Airline airline, DateTime signDate)
+        //sets the carrier for a pilot
+        public void SetCarrier(Carrier carrier, DateTime signDate)
         {
-            Airline = airline;
-            AirlineSignedDate = signDate;
+            Carrier = carrier;
+            CarrierSignedDate = signDate;
         }
 
         #endregion
@@ -149,7 +149,7 @@ namespace TheBusProject.Models.Pilots
         //returns all unassigned pilots
         public static List<Pilot> GetUnassignedPilots()
         {
-            List<Pilot> unassigned = pilots.FindAll(p => p.Airline == null);
+            List<Pilot> unassigned = pilots.FindAll(p => p.Carrier == null);
 
             if (unassigned.Count < 5)
             {

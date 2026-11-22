@@ -5,12 +5,12 @@
     text="In the aftermath of the Cold War in Eastern Europe, international air traffic is virtually non-existent. As the CEO of a new airline operating a flight of outdated aircraft, your job is to build the demand for international traffic from major Russian and former USSR destinations. You will have 10 years to establish routes to 20 destinations, from at least 3 different airports. Your fleet must be an average of less than 10 years old by 2000. You must transport at least 5,000,000 passengers in the year 2000." />
   <success
     text="Congratulations! You have successfully established Russia and Eastern Europe as a worthwhile market in the aviation industry!" />
-  <start airline="UN" homeBase="DME">
+  <start carrier="UN" homeBase="DME">
     <destinations>
     </destinations>
     <fleet>
-      <aircraft name="Tupolev Tu-134" quantity="8" />
-      <aircraft name="Tupolev Tu-154" quantity="2" />
+      <coach name="Tupolev Tu-134" quantity="8" />
+      <coach name="Tupolev Tu-154" quantity="2" />
     </fleet>
   </start>
   <modifiers>

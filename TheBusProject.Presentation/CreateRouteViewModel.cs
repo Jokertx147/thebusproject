@@ -4,61 +4,61 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 using TheBusProject.Helpers;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.Routes;
 
 namespace TheBusProject.Presentation
 {
-    public class AircraftChoice
+    public class CoachChoice
     {
         public string Name { get; set; }
-        public FleetAirliner Airliner { get; set; }
+        public FleetCoach Coach { get; set; }
         public override string ToString() { return Name; }
     }
 
     public class ContractChoice
     {
-        public AirportContract.ContractType Type { get; set; }
+        public StationContract.ContractType Type { get; set; }
         public string Text { get; set; }
         public override string ToString() { return Text; }
     }
 
-    /// <summary>Offer to lease gates at an airport where the airline has none free.</summary>
+    /// <summary>Offer to lease gates at an station where the carrier has none free.</summary>
     public class GateOffer : ObservableObject
     {
-        private readonly Airport _airport;
+        private readonly Station _station;
         private readonly Action _signed;
         private readonly Terminal.TerminalType _terminalType;
         private ContractChoice _selected;
 
-        public GateOffer(Airport airport, Action signed, Terminal.TerminalType terminalType = Terminal.TerminalType.Passenger)
+        public GateOffer(Station station, Action signed, Terminal.TerminalType terminalType = Terminal.TerminalType.Passenger)
         {
-            _airport = airport;
+            _station = station;
             _signed = signed;
             _terminalType = terminalType;
             string kind = terminalType == Terminal.TerminalType.Cargo ? "cargo " : "";
             var f = new ValueCurrencyFormatter();
-            int gates = Math.Min(2, RouteCreator.GetFreeGates(airport, terminalType));
+            int gates = Math.Min(2, RouteCreator.GetFreeGates(station, terminalType));
             CanLease = gates > 0;
             Options = new List<ContractChoice>();
 
             if (CanLease)
             {
-                foreach (AirportContract.ContractType t in Enum.GetValues(typeof(AirportContract.ContractType)))
+                foreach (StationContract.ContractType t in Enum.GetValues(typeof(StationContract.ContractType)))
                 {
-                    double yearly = AirportHelpers.GetYearlyContractPayment(airport, t, gates, 2);
+                    double yearly = StationHelpers.GetYearlyContractPayment(station, t, gates, 2);
                     Options.Add(new ContractChoice { Type = t, Text = string.Format("{0}  ({1}/year, {2} gate(s), 2 years)", t, f.Convert(yearly), gates) });
                 }
                 _selected = Options.First();
             }
 
-            Title = airport.Profile.IATACode + " " + airport.Profile.Name;
+            Title = station.Profile.IATACode + " " + station.Profile.Name;
             Text = CanLease
                 ? "You have no free " + kind + "gate at " + Title + ". Lease gates there to create the route."
                 : terminalType == Terminal.TerminalType.Cargo
-                    ? "There are no free cargo gates at " + Title + " to lease. Build a cargo terminal there first (Airports tab > Build a terminal)."
+                    ? "There are no free cargo gates at " + Title + " to lease. Build a cargo terminal there first (Stations tab > Build a terminal)."
                     : "There are no free gates at " + Title + " to lease.";
             LeaseCommand = new RelayCommand(Lease, () => CanLease);
         }
@@ -82,15 +82,15 @@ namespace TheBusProject.Presentation
                 return;
             }
 
-            RouteCreator.SignContract(_airport, _selected.Type, _terminalType);
+            RouteCreator.SignContract(_station, _selected.Type, _terminalType);
             _signed();
         }
     }
 
-    /// <summary>Create a passenger or cargo route between two airports, with an optional schedule for one aircraft.</summary>
+    /// <summary>Create a passenger or cargo route between two stations, with an optional schedule for one coach.</summary>
     public class CreateRouteViewModel : ObservableObject
     {
-        private readonly Airport _origin, _destination;
+        private readonly Station _origin, _destination;
         private readonly Action<string> _done;
         private readonly bool _cargo;
         private readonly Route _existing;
@@ -98,22 +98,22 @@ namespace TheBusProject.Presentation
         private string _cargoPrice;
         private bool _updating;
         private ServiceTier _tier = ServiceTier.Standard;
-        private AircraftChoice _aircraft;
+        private CoachChoice _coach;
         private OpsType _operation = OpsType.Regular;
         private int _turnaround = 60;
         private int _trips = 1;
         private string _startTime;
-        private bool _startAirliner = true;
+        private bool _startCoach = true;
         private string _info;
         private bool _scheduleEnabled, _detailEnabled;
 
-        /// <summary>Assign an aircraft (and a schedule) to a route that was created without one.</summary>
+        /// <summary>Assign an coach (and a schedule) to a route that was created without one.</summary>
         public CreateRouteViewModel(Route existing, Action<string> done, bool move = false)
             : this(existing.Destination1, existing.Destination2, done, existing.IsCargoRoute, existing, move)
         {
         }
 
-        public CreateRouteViewModel(Airport origin, Airport destination, Action<string> done, bool cargo = false, Route existing = null, bool move = false)
+        public CreateRouteViewModel(Station origin, Station destination, Action<string> done, bool cargo = false, Route existing = null, bool move = false)
         {
             _existing = existing;
             _move = move;
@@ -124,7 +124,7 @@ namespace TheBusProject.Presentation
             _cargoPrice = PassengerHelpers.GetCargoPrice(origin, destination).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
 
             Title = existing != null
-                ? string.Format(move ? "Move {0} - {1} to another aircraft" : "Assign an aircraft to {0} - {1}", origin.Profile.IATACode, destination.Profile.IATACode)
+                ? string.Format(move ? "Move {0} - {1} to another coach" : "Assign a coach to {0} - {1}", origin.Profile.IATACode, destination.Profile.IATACode)
                 : string.Format("New {0}route {1} - {2}", cargo ? "cargo " : "", origin.Profile.IATACode, destination.Profile.IATACode);
             Tiers = Enum.GetValues(typeof(ServiceTier)).Cast<ServiceTier>().ToList();
             Operations = new List<OpsType> { OpsType.Regular, OpsType.Whole_Day };
@@ -133,27 +133,27 @@ namespace TheBusProject.Presentation
             StartTimes = new ObservableCollection<string>();
             Offers = new ObservableCollection<GateOffer>();
 
-            Aircraft = new List<AircraftChoice>();
+            Coaches = new List<CoachChoice>();
             if (existing == null)
             {
-                Aircraft.Add(new AircraftChoice { Name = "(assign an aircraft later)" });
+                Coaches.Add(new CoachChoice { Name = "(assign a coach later)" });
             }
 
-            Aircraft.AddRange(
-                RouteCreator.GetCandidateAirliners(origin, destination, cargo ? Route.RouteType.Cargo : Route.RouteType.Passenger)
-                            .Select(f => new AircraftChoice { Name = f.Name + " - " + f.Airliner.Type.Name, Airliner = f }));
-            _aircraft = existing == null
-                ? (Aircraft.Count > 1 ? Aircraft[1] : Aircraft[0])
-                : Aircraft.FirstOrDefault();
+            Coaches.AddRange(
+                RouteCreator.GetCandidateCoaches(origin, destination, cargo ? Route.RouteType.Cargo : Route.RouteType.Passenger)
+                            .Select(f => new CoachChoice { Name = f.Name + " - " + f.Coach.Type.Name, Coach = f }));
+            _coach = existing == null
+                ? (Coaches.Count > 1 ? Coaches[1] : Coaches[0])
+                : Coaches.FirstOrDefault();
 
             try
             {
                 var why = RouteCreator.WhyNot(origin, destination, cargo ? Route.RouteType.Cargo : Route.RouteType.Passenger);
-                CantFly = why.Count == 0 ? null : "Can't fly it: " + string.Join(" ", why);
+                CantFly = why.Count == 0 ? null : "Can't run it: " + string.Join(" ", why);
             }
             catch (Exception ex)
             {
-                Infrastructure.StartupLog.Write("Route planner: listing the aircraft that can't fly failed: " + ex);
+                Infrastructure.StartupLog.Write("Route planner: listing the coach that can't run failed: " + ex);
             }
 
             CreateCommand = new RelayCommand(Create);
@@ -166,12 +166,12 @@ namespace TheBusProject.Presentation
 
         public string Title { get; }
 
-        /// <summary>The player's idle aircraft that can't fly the route, and why (runway or range), or null.</summary>
+        /// <summary>The player's idle coach that can't fly the route, and why (runway or range), or null.</summary>
         public string CantFly { get; }
 
         public bool HasCantFly => !string.IsNullOrEmpty(CantFly);
         public List<ServiceTier> Tiers { get; }
-        public List<AircraftChoice> Aircraft { get; }
+        public List<CoachChoice> Coaches { get; }
         public List<OpsType> Operations { get; }
         public List<int> Turnarounds { get; }
         public ObservableCollection<int> Trips { get; }
@@ -207,7 +207,7 @@ namespace TheBusProject.Presentation
 
         public string CreateLabel
         {
-            get { return _existing == null ? "Create route" : _move ? "Move route" : "Assign aircraft"; }
+            get { return _existing == null ? "Create route" : _move ? "Move route" : "Assign coach"; }
         }
 
         /// <summary>The price per unit of cargo the route starts with.</summary>
@@ -217,9 +217,9 @@ namespace TheBusProject.Presentation
             set { SetProperty(ref _cargoPrice, value); }
         }
 
-        public string AircraftLabel
+        public string CoachLabel
         {
-            get { return _cargo ? "Cargo aircraft (only aircraft without routes)" : "Aircraft (only aircraft without routes)"; }
+            get { return _cargo ? "Cargo coach (only coach without routes)" : "Coach (only coach without routes)"; }
         }
 
         private Terminal.TerminalType TerminalKind
@@ -233,12 +233,12 @@ namespace TheBusProject.Presentation
             set { SetProperty(ref _tier, value); }
         }
 
-        public AircraftChoice SelectedAircraft
+        public CoachChoice SelectedCoach
         {
-            get { return _aircraft; }
+            get { return _coach; }
             set
             {
-                if (value != null && SetProperty(ref _aircraft, value))
+                if (value != null && SetProperty(ref _coach, value))
                 {
                     SetDefaultTurnaround();
                     RefreshSchedule();
@@ -289,10 +289,10 @@ namespace TheBusProject.Presentation
             set { SetProperty(ref _startTime, value); }
         }
 
-        public bool StartAirliner
+        public bool StartCoach
         {
-            get { return _startAirliner; }
-            set { SetProperty(ref _startAirliner, value); }
+            get { return _startCoach; }
+            set { SetProperty(ref _startCoach, value); }
         }
 
         public string Info
@@ -301,7 +301,7 @@ namespace TheBusProject.Presentation
             private set { SetProperty(ref _info, value); }
         }
 
-        /// <summary>True when an aircraft is chosen, so the schedule options apply.</summary>
+        /// <summary>True when an coach is chosen, so the schedule options apply.</summary>
         public bool ScheduleEnabled
         {
             get { return _scheduleEnabled; }
@@ -320,15 +320,15 @@ namespace TheBusProject.Presentation
             get { return Offers.Count > 0; }
         }
 
-        private FleetAirliner Airliner
+        private FleetCoach Coach
         {
-            get { return _aircraft?.Airliner; }
+            get { return _coach?.Coach; }
         }
 
         private void SetDefaultTurnaround()
         {
             _updating = true;
-            int minutes = Airliner == null ? 60 : (int)FleetAirlinerHelpers.GetMinTimeBetweenFlights(Airliner).TotalMinutes;
+            int minutes = Coach == null ? 60 : (int)FleetCoachHelpers.GetMinTimeBetweenTrips(Coach).TotalMinutes;
             int best = RouteCreator.TurnaroundOptions.FirstOrDefault(o => o >= minutes);
             _turnaround = best == 0 ? RouteCreator.TurnaroundOptions.Last() : best;
             OnPropertyChanged(nameof(Turnaround));
@@ -342,26 +342,26 @@ namespace TheBusProject.Presentation
                 return;
             }
 
-            ScheduleEnabled = Airliner != null;
+            ScheduleEnabled = Coach != null;
             Trips.Clear();
             StartTimes.Clear();
 
-            if (Airliner == null)
+            if (Coach == null)
             {
                 DetailEnabled = false;
                 if (_existing != null)
                 {
-                    Info = "None of your " + (_cargo ? "cargo " : "") + "aircraft without a route can fly this route (range or runway). Buy one under Airliners.";
+                    Info = "None of your " + (_cargo ? "cargo " : "") + "coach without a route can run this route (range or runway). Buy one under Coaches.";
                     return;
                 }
 
-                Info = Aircraft.Count == 1
-                    ? "None of your " + (_cargo ? "cargo " : "") + "aircraft can fly this route (range, runway, or already on a route). The route is created without a schedule; assign an aircraft later."
-                    : "The route is created without a schedule; assign an aircraft later.";
+                Info = Coaches.Count == 1
+                    ? "None of your " + (_cargo ? "cargo " : "") + "coach can run this route (range, runway, or already on a route). The route is created without a schedule; assign a coach later."
+                    : "The route is created without a schedule; assign a coach later.";
                 return;
             }
 
-            var type = Airliner.Airliner.Type;
+            var type = Coach.Coach.Type;
             if (RouteCreator.IsLongRoute(_origin, _destination, type, _turnaround))
             {
                 DetailEnabled = false;
@@ -377,15 +377,15 @@ namespace TheBusProject.Presentation
             }
 
             // the default is the number of round trips the forecast says earns the most a day (passenger routes),
-            // not the most the aircraft can fly
+            // not the most the coach can fly
             _suggested = null;
             int pick = max;
-            if (!_cargo && GameObject.GetInstance()?.HumanAirline != null)
+            if (!_cargo && GameObject.GetInstance()?.HumanCarrier != null)
             {
                 try
                 {
                     List<RouteForecast> all;
-                    _suggested = RouteForecastService.Best(GameObject.GetInstance().HumanAirline, _origin, _destination, Airliner, max, out all, _move ? _existing : null);
+                    _suggested = RouteForecastService.Best(GameObject.GetInstance().HumanCarrier, _origin, _destination, Coach, max, out all, _move ? _existing : null);
                     pick = _suggested.RoundTrips;
                 }
                 catch (Exception ex)
@@ -407,7 +407,7 @@ namespace TheBusProject.Presentation
         private RouteForecast _suggested;
         private string _forecast;
 
-        /// <summary>The forecast at the chosen number of round trips (null for cargo, long-haul or no aircraft).</summary>
+        /// <summary>The forecast at the chosen number of round trips (null for cargo, long-haul or no coach).</summary>
         public RouteForecast CurrentForecast { get; private set; }
 
         /// <summary>The forecast at the suggested number of round trips.</summary>
@@ -433,7 +433,7 @@ namespace TheBusProject.Presentation
         private void RefreshForecast()
         {
             CurrentForecast = null;
-            if (_cargo || Airliner == null || _suggested == null || !DetailEnabled || GameObject.GetInstance()?.HumanAirline == null)
+            if (_cargo || Coach == null || _suggested == null || !DetailEnabled || GameObject.GetInstance()?.HumanCarrier == null)
             {
                 Forecast = null;
                 return;
@@ -441,7 +441,7 @@ namespace TheBusProject.Presentation
             RouteForecast now;
             try
             {
-                now = RouteForecastService.Forecast(GameObject.GetInstance().HumanAirline, _origin, _destination, Airliner, Math.Max(1, _trips), _move ? _existing : null);
+                now = RouteForecastService.Forecast(GameObject.GetInstance().HumanCarrier, _origin, _destination, Coach, Math.Max(1, _trips), _move ? _existing : null);
             }
             catch (Exception ex)
             {
@@ -450,12 +450,12 @@ namespace TheBusProject.Presentation
                 return;
             }
             CurrentForecast = now;
-            string text = string.Format("Forecast at {0} round trip{1} a day: about {2:0}% full ({3:0} of {4} seats), {5} income and {6} costs a flight, {7} a day.",
-                now.RoundTrips, now.RoundTrips == 1 ? "" : "s", now.Load*100, now.PassengersPerFlight, now.Seats, Cash(now.RevenuePerFlight), Cash(now.CostPerFlight), Cash(now.ProfitPerDay));
+            string text = string.Format("Forecast at {0} round trip{1} a day: about {2:0}% full ({3:0} of {4} seats), {5} income and {6} costs a trip, {7} a day.",
+                now.RoundTrips, now.RoundTrips == 1 ? "" : "s", now.Load*100, now.PassengersPerTrip, now.Seats, Cash(now.RevenuePerTrip), Cash(now.CostPerTrip), Cash(now.ProfitPerDay));
             if (_suggested.ProfitPerDay < 0)
             {
-                text += string.Format(" This aircraft is likely to lose money here however often it flies (the least loss is at {0} a day, {1} a day){2}. A different aircraft or destination may do better.",
-                    _suggested.RoundTrips, Cash(_suggested.ProfitPerDay), _suggested.Rivals > 0 ? ": " + _suggested.Rivals + " other route" + (_suggested.Rivals == 1 ? "" : "s") + " already fly the pair" : "");
+                text += string.Format(" This coach is likely to lose money here however often it runs (the least loss is at {0} a day, {1} a day){2}. A different coach or destination may do better.",
+                    _suggested.RoundTrips, Cash(_suggested.ProfitPerDay), _suggested.Rivals > 0 ? ": " + _suggested.Rivals + " other route" + (_suggested.Rivals == 1 ? "" : "s") + " already run the pair" : "");
             }
             else if (_suggested.RoundTrips != now.RoundTrips)
             {
@@ -470,14 +470,14 @@ namespace TheBusProject.Presentation
 
         private void RefreshStartTimes()
         {
-            if (_updating || Airliner == null)
+            if (_updating || Coach == null)
             {
                 return;
             }
 
             StartTimes.Clear();
             foreach (TimeSpan t in RouteCreator.GetStartTimes(
-                _origin, _destination, Airliner.Airliner.Type, _turnaround, _trips, _operation))
+                _origin, _destination, Coach.Coach.Type, _turnaround, _trips, _operation))
             {
                 StartTimes.Add(t.ToString(@"hh\:mm"));
             }
@@ -489,9 +489,9 @@ namespace TheBusProject.Presentation
         private void RefreshGates()
         {
             Offers.Clear();
-            foreach (Airport a in new[] { _origin, _destination }.Distinct())
+            foreach (Station a in new[] { _origin, _destination }.Distinct())
             {
-                if (!AirportHelpers.HasFreeGates(a, GameObject.GetInstance().HumanAirline, TerminalKind))
+                if (!StationHelpers.HasFreeGates(a, GameObject.GetInstance().HumanCarrier, TerminalKind))
                 {
                     if (RouteCreator.NeedsContract(a, TerminalKind))
                     {
@@ -509,16 +509,16 @@ namespace TheBusProject.Presentation
 
         private void AssignExisting()
         {
-            if (Airliner == null)
+            if (Coach == null)
             {
-                Info = "Pick an aircraft first.";
+                Info = "Pick a coach first.";
                 return;
             }
 
             var request = new NewRouteRequest
             {
-                Airliner = Airliner,
-                StartAirliner = _startAirliner,
+                Coach = Coach,
+                StartCoach = _startCoach,
                 Operation = _operation,
                 TurnaroundMinutes = _turnaround,
                 RoundTripsPerDay = _trips < 1 ? 1 : _trips,
@@ -526,7 +526,7 @@ namespace TheBusProject.Presentation
             };
 
             string message;
-            if (!(_move ? RouteCreator.MoveRoute(_existing, request, out message) : RouteCreator.AssignAircraft(_existing, request, out message)))
+            if (!(_move ? RouteCreator.MoveRoute(_existing, request, out message) : RouteCreator.AssignCoach(_existing, request, out message)))
             {
                 Info = message;
                 return;
@@ -570,8 +570,8 @@ namespace TheBusProject.Presentation
                 Origin = _origin,
                 Destination = _destination,
                 Tier = _tier,
-                Airliner = Airliner,
-                StartAirliner = _startAirliner,
+                Coach = Coach,
+                StartCoach = _startCoach,
                 Operation = _operation,
                 TurnaroundMinutes = _turnaround,
                 RoundTripsPerDay = _trips < 1 ? 1 : _trips,

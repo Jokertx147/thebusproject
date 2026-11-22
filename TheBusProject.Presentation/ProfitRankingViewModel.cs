@@ -17,19 +17,19 @@ namespace TheBusProject.Presentation
         public string Detail { get; set; }
         public bool IsLoss => Value < 0;
 
-        /// <summary>The route this bar stands for, so clicking it can open the route; null for an aircraft.</summary>
+        /// <summary>The route this bar stands for, so clicking it can open the route; null for an coach.</summary>
         public Route Route { get; set; }
     }
 
     /// <summary>
-    ///     My Airline > Best and worst: the routes, or the aircraft, that made the most and lost the most, drawn as
-    ///     bars either side of nothing. Routes are judged on their own income and costs; an aircraft is judged on its
-    ///     share of the profit of the routes it flies, less what it costs to own or lease (see AircraftProfitService).
+    ///     My Carrier > Best and worst: the routes, or the coach, that made the most and lost the most, drawn as
+    ///     bars either side of nothing. Routes are judged on their own income and costs; an coach is judged on its
+    ///     share of the profit of the routes it flies, less what it costs to own or lease (see CoachProfitService).
     /// </summary>
     public class ProfitRankingViewModel : ObservableObject
     {
         public const string Routes = "Routes";
-        public const string Aircraft = "Aircraft";
+        public const string Coach = "Coach";
         public const string LastMonth = "Last month";
         public const string ThisMonth = "This month so far";
         public const string Last12 = "Last 12 months, a month on average";
@@ -53,7 +53,7 @@ namespace TheBusProject.Presentation
         public ObservableCollection<RankBar> Worst { get; } = new ObservableCollection<RankBar>();
         public System.Windows.Input.ICommand OpenCommand { get; }
 
-        public List<string> WhatChoices { get; } = new List<string> { Routes, Aircraft };
+        public List<string> WhatChoices { get; } = new List<string> { Routes, Coach };
         public List<string> PeriodChoices { get; } = new List<string> { LastMonth, ThisMonth, Last12 };
         public List<int> HowManyChoices { get; } = new List<int> { 5, 8, 12, 20 };
 
@@ -103,20 +103,20 @@ namespace TheBusProject.Presentation
         {
             Best.Clear();
             Worst.Clear();
-            var airline = GameObject.GetInstance().HumanAirline;
-            if (airline == null)
+            var carrier = GameObject.GetInstance().HumanCarrier;
+            if (carrier == null)
             {
-                Summary = "No airline yet.";
+                Summary = "No carrier yet.";
                 Raise();
                 return;
             }
 
-            List<RankBar> bars = _what == Aircraft ? AircraftBars(airline) : RouteBars(airline);
+            List<RankBar> bars = _what == Coach ? CoachBars(carrier) : RouteBars(carrier);
             var ordered = bars.OrderByDescending(b => b.Value).ToList();
             if (ordered.Count == 0)
             {
-                Summary = _what == Aircraft
-                    ? "No aircraft delivered yet."
+                Summary = _what == Coach
+                    ? "No coach delivered yet."
                     : "No routes yet. Open one under Routes, and this will show which earn and which lose.";
                 Raise();
                 return;
@@ -131,7 +131,7 @@ namespace TheBusProject.Presentation
             string shown = Worst.Count == 0
                 ? "All of them are shown, the best at the top."
                 : "The " + Best.Count + " best and the " + Worst.Count + " worst are shown.";
-            string what = _what == Aircraft ? "aircraft" : ordered.Count == 1 ? "route" : "routes";
+            string what = _what == Coach ? "coach" : ordered.Count == 1 ? "route" : "routes";
             Summary = string.Format(
                 "{0} {1}, {2} losing money. Together {3} {4}. {5}",
                 ordered.Count, what, losing, Money(total), AmountHeading, shown);
@@ -145,10 +145,10 @@ namespace TheBusProject.Presentation
             OnPropertyChanged(nameof(AmountHeading));
         }
 
-        private List<RankBar> RouteBars(Models.Airlines.Airline airline)
+        private List<RankBar> RouteBars(Models.Carriers.Carrier carrier)
         {
             var bars = new List<RankBar>();
-            foreach (RouteFigures r in RouteProfitService.All(airline))
+            foreach (RouteFigures r in RouteProfitService.All(carrier))
             {
                 double value = _period == ThisMonth ? r.ThisMonth
                     : _period == Last12 ? (r.Months > 0 ? r.Last12/r.Months : 0)
@@ -160,67 +160,67 @@ namespace TheBusProject.Presentation
                     Amount = Money(value),
                     Route = r.Route,
                     Detail = string.Format(
-                        "{0} {1}  |  {2:0}% full  |  {3} flights a week{4}",
-                        Money(value), AmountHeading, r.Load*100, r.WeeklyFlights,
-                        string.IsNullOrEmpty(r.Aircraft) ? "" : "  |  " + r.Aircraft)
+                        "{0} {1}  |  {2:0}% full  |  {3} trips a week{4}",
+                        Money(value), AmountHeading, r.Load*100, r.WeeklyTrips,
+                        string.IsNullOrEmpty(r.Coach) ? "" : "  |  " + r.Coach)
                 });
             }
 
             return bars;
         }
 
-        private List<RankBar> AircraftBars(Models.Airlines.Airline airline)
+        private List<RankBar> CoachBars(Models.Carriers.Carrier carrier)
         {
             DateTime when = GameObject.GetInstance().GameTime;
             var bars = new List<RankBar>();
 
-            List<AircraftFigures> figures;
+            List<CoachFigures> figures;
             if (_period == Last12)
             {
                 // the twelve months before this one, averaged over the months that have figures
-                var sums = new Dictionary<Models.Airliners.FleetAirliner, AircraftFigures>();
-                var months = new Dictionary<Models.Airliners.FleetAirliner, int>();
+                var sums = new Dictionary<Models.Coaches.FleetCoach, CoachFigures>();
+                var months = new Dictionary<Models.Coaches.FleetCoach, int>();
                 for (int back = 1; back <= 12; back++)
                 {
                     DateTime m = when.AddMonths(-back);
-                    foreach (var fig in AircraftProfitService.All(airline, m.Year, m.Month))
+                    foreach (var fig in CoachProfitService.All(carrier, m.Year, m.Month))
                     {
-                        if (Math.Abs(fig.RouteShare) < 0.5 && fig.WeeklyFlights == 0) continue;
-                        AircraftFigures sum;
-                        if (!sums.TryGetValue(fig.Airliner, out sum))
+                        if (Math.Abs(fig.RouteShare) < 0.5 && fig.WeeklyTrips == 0) continue;
+                        CoachFigures sum;
+                        if (!sums.TryGetValue(fig.Coach, out sum))
                         {
-                            sums[fig.Airliner] = fig;
-                            months[fig.Airliner] = 1;
+                            sums[fig.Coach] = fig;
+                            months[fig.Coach] = 1;
                             continue;
                         }
 
                         sum.RouteShare += fig.RouteShare;
                         sum.Ownership += fig.Ownership;
-                        months[fig.Airliner] = months[fig.Airliner] + 1;
+                        months[fig.Coach] = months[fig.Coach] + 1;
                     }
                 }
 
                 figures = sums.Values.ToList();
                 foreach (var fig in figures)
                 {
-                    int n = Math.Max(1, months[fig.Airliner]);
+                    int n = Math.Max(1, months[fig.Coach]);
                     fig.RouteShare /= n;
                     fig.Ownership /= n;
                 }
 
-                // an aircraft that never flew in the year still costs what it costs
-                foreach (var fig in AircraftProfitService.All(airline, when.Year, when.Month))
+                // an coach that never flew in the year still costs what it costs
+                foreach (var fig in CoachProfitService.All(carrier, when.Year, when.Month))
                 {
-                    if (!sums.ContainsKey(fig.Airliner)) figures.Add(fig);
+                    if (!sums.ContainsKey(fig.Coach)) figures.Add(fig);
                 }
             }
             else
             {
                 DateTime m = _period == ThisMonth ? when : when.AddMonths(-1);
-                figures = AircraftProfitService.All(airline, m.Year, m.Month);
+                figures = CoachProfitService.All(carrier, m.Year, m.Month);
             }
 
-            foreach (AircraftFigures a in figures)
+            foreach (CoachFigures a in figures)
             {
                 bars.Add(new RankBar
                 {
@@ -228,9 +228,9 @@ namespace TheBusProject.Presentation
                     Value = a.Profit,
                     Amount = Money(a.Profit),
                     Detail = string.Format(
-                        "{0} {1}  |  {2}  |  {3}  |  {4} flights a week, {5:0}% full  |  its share of its routes {6}, it costs {7}",
+                        "{0} {1}  |  {2}  |  {3}  |  {4} trips a week, {5:0}% full  |  its share of its routes {6}, it costs {7}",
                         Money(a.Profit), AmountHeading, a.TypeName,
-                        a.Idle ? "no flights" : a.Routes, a.WeeklyFlights, a.Load*100,
+                        a.Idle ? "no trips" : a.Routes, a.WeeklyTrips, a.Load*100,
                         Money(a.RouteShare), Money(a.Ownership))
                 });
             }

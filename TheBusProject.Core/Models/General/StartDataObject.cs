@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using TheBusProject.Infrastructure.Enums;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Countries;
 
@@ -12,9 +12,9 @@ namespace TheBusProject.Models.General
     {
         #region Public Properties
 
-        public Airline Airline { get; set; }
+        public Carrier Carrier { get; set; }
 
-        public Airport Airport { get; set; }
+        public Station Station { get; set; }
 
         public string CEO { get; set; }
 
@@ -22,7 +22,7 @@ namespace TheBusProject.Models.General
 
         public DifficultyLevel Difficulty { get; set; }
 
-        public AirlineFocus Focus { get; set; }
+        public CarrierFocus Focus { get; set; }
 
         public Country HomeCountry { get; set; }
 
@@ -30,13 +30,13 @@ namespace TheBusProject.Models.General
 
         public bool LocalCurrency { get; set; }
 
-        public bool MajorAirports { get; set; }
+        public bool MajorStations { get; set; }
 
-        public bool InternationalAirports { get; set; }
+        public bool InternationalStations { get; set; }
 
         public int NumberOfOpponents { get; set; }
 
-        public List<Airline> Opponents { get; set; }
+        public List<Carrier> Opponents { get; set; }
 
         public bool RandomOpponents { get; set; }
 

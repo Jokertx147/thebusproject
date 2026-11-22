@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Environment;
 using TheBusProject.Models.General.Finances;
@@ -10,60 +10,60 @@ using TheBusProject.Models.General.Finances;
 namespace TheBusProject.Helpers
 {
     /// <summary>
-    ///     Buying gates from the computer airlines: an airline gives up gates it doesn't need for its flights,
+    ///     Buying gates from the computer carriers: an carrier gives up gates it doesn't need for its trips,
     ///     and the buyer pays it a transfer fee and gets a normal gate contract for them.
     /// </summary>
     public static class GateTrading
     {
-        //a gate is sold for one and a half years of the standard gate rent, to the airline that gives it up
-        public static double GetPricePerGate(Airport airport)
+        //a gate is sold for one and a half years of the standard gate rent, to the carrier that gives it up
+        public static double GetPricePerGate(Station station)
         {
-            return 1.5 * AirportHelpers.GetYearlyContractPayment(airport, AirportContract.ContractType.Full, 1, 2);
+            return 1.5 * StationHelpers.GetYearlyContractPayment(station, StationContract.ContractType.Full, 1, 2);
         }
 
-        //true when the contract is one that can be bought from: a computer airline's passenger gates, no own terminal
-        public static bool IsTradable(Airport airport, AirportContract contract)
+        //true when the contract is one that can be bought from: a computer carrier's passenger gates, no own terminal
+        public static bool IsTradable(Station station, StationContract contract)
         {
             return contract != null
-                   && !contract.Airline.IsHuman
+                   && !contract.Carrier.IsHuman
                    && contract.TerminalType == Terminal.TerminalType.Passenger
                    && contract.Terminal == null
                    && !contract.IsExclusiveDeal
                    && contract.NumberOfGates > 0
-                   && airport.AirlineContracts.Contains(contract)
-                   && !airport.HasHub(contract.Airline);
+                   && station.CarrierContracts.Contains(contract)
+                   && !station.HasHub(contract.Carrier);
         }
 
-        //how many of the contract's gates the airline can give up and still fly everything it flies from the airport
-        public static int GetSpareGates(Airport airport, AirportContract contract)
+        //how many of the contract's gates the carrier can give up and still fly everything it flies from the station
+        public static int GetSpareGates(Station station, StationContract contract)
         {
-            if (!IsTradable(airport, contract))
+            if (!IsTradable(station, contract))
             {
                 return 0;
             }
 
-            Airline seller = contract.Airline;
+            Carrier seller = contract.Carrier;
 
-            int total = airport.GetAirlineContracts(seller)
+            int total = station.GetCarrierContracts(seller)
                                .Where(c => c.TerminalType == Terminal.TerminalType.Passenger)
                                .Sum(c => c.NumberOfGates);
 
-            int ownedGates = airport.Terminals.GetGates().Count(g => g.Airline == seller);
+            int ownedGates = station.Terminals.GetGates().Count(g => g.Carrier == seller);
 
             try
             {
-                bool hasRoutes = AirportHelpers.GetAirportRoutes(airport, seller).Count > 0;
+                bool hasRoutes = StationHelpers.GetStationRoutes(station, seller).Count > 0;
 
                 if (!hasRoutes)
                 {
                     return Math.Min(contract.NumberOfGates, ownedGates);
                 }
 
-                // the busiest 15 minutes of the airline: how many of its routes use the airport at the same time
-                var everySlot = new AirportContract(
+                // the busiest 15 minutes of the carrier: how many of its routes use the station at the same time
+                var everySlot = new StationContract(
                     seller,
-                    airport,
-                    AirportContract.ContractType.Full,
+                    station,
+                    StationContract.ContractType.Full,
                     Terminal.TerminalType.Passenger,
                     GameObject.GetInstance().GameTime,
                     1,
@@ -71,8 +71,8 @@ namespace TheBusProject.Helpers
                     0,
                     false);
 
-                int busiest = AirportHelpers
-                    .GetOccupiedSlotTimes(airport, seller, new List<AirportContract> { everySlot }, Weather.Season.AllYear)
+                int busiest = StationHelpers
+                    .GetOccupiedSlotTimes(station, seller, new List<StationContract> { everySlot }, Weather.Season.AllYear)
                     .GroupBy(t => t.Ticks)
                     .Select(g => g.Count())
                     .DefaultIfEmpty(0)
@@ -85,20 +85,20 @@ namespace TheBusProject.Helpers
             }
             catch (Exception)
             {
-                // an airline with an unusual timetable is simply not selling
+                // an carrier with an unusual timetable is simply not selling
                 return 0;
             }
         }
 
-        //buys gates from a computer airline; returns false with a message that says why not
+        //buys gates from a computer carrier; returns false with a message that says why not
         public static bool BuyGates(
-            Airport airport,
-            AirportContract sellerContract,
+            Station station,
+            StationContract sellerContract,
             int gates,
-            AirportContract.ContractType type,
+            StationContract.ContractType type,
             out string message)
         {
-            Airline buyer = GameObject.GetInstance().HumanAirline;
+            Carrier buyer = GameObject.GetInstance().HumanCarrier;
             DateTime now = GameObject.GetInstance().GameTime;
 
             if (gates < 1)
@@ -107,17 +107,17 @@ namespace TheBusProject.Helpers
                 return false;
             }
 
-            int spare = GetSpareGates(airport, sellerContract);
+            int spare = GetSpareGates(station, sellerContract);
 
             if (spare < gates)
             {
                 message = spare == 0
-                              ? sellerContract.Airline.Profile.Name + " needs all of its gates for its flights."
-                              : sellerContract.Airline.Profile.Name + " can only spare " + spare + " gate(s).";
+                              ? sellerContract.Carrier.Profile.Name + " needs all of its gates for its trips."
+                              : sellerContract.Carrier.Profile.Name + " can only spare " + spare + " gate(s).";
                 return false;
             }
 
-            double price = GetPricePerGate(airport) * gates;
+            double price = GetPricePerGate(station) * gates;
 
             if (price > buyer.Money)
             {
@@ -125,10 +125,10 @@ namespace TheBusProject.Helpers
                 return false;
             }
 
-            Airline seller = sellerContract.Airline;
+            Carrier seller = sellerContract.Carrier;
 
             //take the gates from the seller
-            var taken = airport.Terminals.GetGates().Where(g => g.Airline == seller).Take(gates).ToList();
+            var taken = station.Terminals.GetGates().Where(g => g.Carrier == seller).Take(gates).ToList();
 
             if (taken.Count < gates)
             {
@@ -142,40 +142,40 @@ namespace TheBusProject.Helpers
 
             if (sellerContract.NumberOfGates <= 0)
             {
-                airport.RemoveAirlineContract(sellerContract);
+                station.RemoveCarrierContract(sellerContract);
             }
 
-            AirlineHelpers.AddAirlineInvoice(buyer, now, Invoice.InvoiceType.Purchases, -price);
-            AirlineHelpers.AddAirlineInvoice(seller, now, Invoice.InvoiceType.Rents, price);
+            CarrierHelpers.AddCarrierInvoice(buyer, now, Invoice.InvoiceType.Purchases, -price);
+            CarrierHelpers.AddCarrierInvoice(seller, now, Invoice.InvoiceType.Rents, price);
 
             //the buyer gets a normal two year contract for them
-            bool hasCheckin = airport.GetAirportFacility(buyer, AirportFacility.FacilityType.CheckIn).TypeLevel > 0;
+            bool hasCheckin = station.GetStationFacility(buyer, StationFacility.FacilityType.CheckIn).TypeLevel > 0;
 
-            if (!hasCheckin && type == AirportContract.ContractType.Full)
+            if (!hasCheckin && type == StationContract.ContractType.Full)
             {
-                AirportFacility checkin =
-                    AirportFacilities.GetFacilities(AirportFacility.FacilityType.CheckIn).Find(f => f.TypeLevel == 1);
+                StationFacility checkin =
+                    StationFacilities.GetFacilities(StationFacility.FacilityType.CheckIn).Find(f => f.TypeLevel == 1);
 
-                airport.AddAirportFacility(buyer, checkin, now);
-                AirlineHelpers.AddAirlineInvoice(buyer, now, Invoice.InvoiceType.Purchases, -checkin.Price);
+                station.AddStationFacility(buyer, checkin, now);
+                CarrierHelpers.AddCarrierInvoice(buyer, now, Invoice.InvoiceType.Purchases, -checkin.Price);
             }
 
-            var contract = new AirportContract(
+            var contract = new StationContract(
                 buyer,
-                airport,
+                station,
                 type,
                 Terminal.TerminalType.Passenger,
                 now,
                 gates,
                 2,
-                AirportHelpers.GetYearlyContractPayment(airport, type, gates, 2),
+                StationHelpers.GetYearlyContractPayment(station, type, gates, 2),
                 true);
 
-            AirportHelpers.AddAirlineContract(contract);
+            StationHelpers.AddCarrierContract(contract);
 
             foreach (Gate gate in taken)
             {
-                gate.Airline = buyer;
+                gate.Carrier = buyer;
             }
 
             message = string.Format("Bought {0} gate(s) from {1} for {2:N0}.", gates, seller.Profile.Name, price);

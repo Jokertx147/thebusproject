@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Environment;
 using TheBusProject.Models.General.Finances;
@@ -35,14 +35,14 @@ namespace TheBusProject.Helpers
     /// </summary>
     public class NewRouteRequest
     {
-        public Airport Origin { get; set; }
+        public Station Origin { get; set; }
 
-        public Airport Destination { get; set; }
+        public Station Destination { get; set; }
 
         public ServiceTier Tier { get; set; }
 
-        //null when the aircraft is assigned later
-        public FleetAirliner Airliner { get; set; }
+        //null when the coach is assigned later
+        public FleetCoach Coach { get; set; }
 
         public OpsType Operation { get; set; }
 
@@ -52,7 +52,7 @@ namespace TheBusProject.Helpers
 
         public int RoundTripsPerDay { get; set; }
 
-        public bool StartAirliner { get; set; }
+        public bool StartCoach { get; set; }
 
         //passenger (the default) or cargo
         public Route.RouteType RouteType { get; set; }
@@ -68,10 +68,10 @@ namespace TheBusProject.Helpers
     {
         public static readonly List<int> TurnaroundOptions = new List<int> { 30, 45, 60, 75, 90, 105, 120 };
 
-        //the human airline's passenger aircraft that can fly between the two airports
-        public static List<FleetAirliner> GetCandidateAirliners(
-            Airport origin,
-            Airport destination,
+        //the human carrier's passenger coach that can fly between the two stations
+        public static List<FleetCoach> GetCandidateCoaches(
+            Station origin,
+            Station destination,
             Route.RouteType routeType = Route.RouteType.Passenger)
         {
             double distance = MathHelpers.GetDistance(origin, destination);
@@ -79,75 +79,75 @@ namespace TheBusProject.Helpers
             bool cargo = routeType == Route.RouteType.Cargo;
 
             return GameObject.GetInstance()
-                             .HumanAirline.DeliveredFleet.Where(
+                             .HumanCarrier.DeliveredFleet.Where(
                                  f =>
                                  cargo
-                                     ? f.Airliner.Type.TypeAirliner == AirlinerType.TypeOfAirliner.Cargo
-                                     : (f.Airliner.Type.TypeAirliner == AirlinerType.TypeOfAirliner.Passenger
-                                        || f.Airliner.Type.TypeAirliner == AirlinerType.TypeOfAirliner.Mixed))
-                             .Where(f => f.Routes.Count == 0 && !AircraftDealService.IsLeasedOut(f))
-                             .Where(f => f.Airliner.Range >= distance && f.Airliner.MinRunwaylength <= runway)
+                                     ? f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Cargo
+                                     : (f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Passenger
+                                        || f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Mixed))
+                             .Where(f => f.Routes.Count == 0 && !CoachDealService.IsLeasedOut(f))
+                             .Where(f => f.Coach.Range >= distance && f.Coach.MinRunwaylength <= runway)
                              .OrderBy(f => f.Name)
                              .ToList();
         }
 
         /// <summary>
-        ///     Why the player's idle aircraft of the route's kind can't fly it: "N010DL (Airbus A350-900) needs 2,810 m of
+        ///     Why the player's idle coach of the route's kind can't fly it: "N010DL (Airbus A350-900) needs 2,810 m of
         ///     runway: DUB has 2,800 m". One line per type and reason.
         /// </summary>
-        public static List<string> WhyNot(Airport origin, Airport destination, Route.RouteType routeType = Route.RouteType.Passenger)
+        public static List<string> WhyNot(Station origin, Station destination, Route.RouteType routeType = Route.RouteType.Passenger)
         {
             double distance = MathHelpers.GetDistance(origin, destination);
             bool cargo = routeType == Route.RouteType.Cargo;
             var lines = new List<string>();
-            var idle = GameObject.GetInstance().HumanAirline.DeliveredFleet
+            var idle = GameObject.GetInstance().HumanCarrier.DeliveredFleet
                                  .Where(f => (cargo
-                                                  ? f.Airliner.Type.TypeAirliner == AirlinerType.TypeOfAirliner.Cargo
-                                                  : f.Airliner.Type.TypeAirliner == AirlinerType.TypeOfAirliner.Passenger || f.Airliner.Type.TypeAirliner == AirlinerType.TypeOfAirliner.Mixed)
-                                             && f.Routes.Count == 0 && !AircraftDealService.IsLeasedOut(f));
-            foreach (var g in idle.GroupBy(f => f.Airliner.Type))
+                                                  ? f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Cargo
+                                                  : f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Passenger || f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Mixed)
+                                             && f.Routes.Count == 0 && !CoachDealService.IsLeasedOut(f));
+            foreach (var g in idle.GroupBy(f => f.Coach.Type))
             {
-                var f = g.OrderBy(x => x.Airliner.MinRunwaylength).First();
+                var f = g.OrderBy(x => x.Coach.MinRunwaylength).First();
                 string names = string.Join(", ", g.Select(x => x.Name).Take(3)) + (g.Count() > 3 ? " and " + (g.Count() - 3) + " more" : "");
-                var shortEnds = new[] {origin, destination}.Where(a => a.GetMaxRunwayLength() < f.Airliner.MinRunwaylength).ToList();
+                var shortEnds = new[] {origin, destination}.Where(a => a.GetMaxRunwayLength() < f.Coach.MinRunwaylength).ToList();
                 if (shortEnds.Count > 0)
                 {
-                    lines.Add(names + " (" + g.Key.Name + ") need" + (g.Count() == 1 ? "s" : "") + " " + f.Airliner.MinRunwaylength.ToString("N0") + " m of runway: "
+                    lines.Add(names + " (" + g.Key.Name + ") need" + (g.Count() == 1 ? "s" : "") + " " + f.Coach.MinRunwaylength.ToString("N0") + " m of runway: "
                               + string.Join(", ", shortEnds.Select(RunwayService.Describe)) + ".");
                 }
-                else if (g.Max(x => x.Airliner.Range) < distance)
+                else if (g.Max(x => x.Coach.Range) < distance)
                 {
-                    lines.Add(names + " (" + g.Key.Name + "): range " + g.Max(x => x.Airliner.Range).ToString("N0") + " km, the route is " + Math.Round(distance).ToString("N0") + " km.");
+                    lines.Add(names + " (" + g.Key.Name + "): range " + g.Max(x => x.Coach.Range).ToString("N0") + " km, the route is " + Math.Round(distance).ToString("N0") + " km.");
                 }
             }
             return lines;
         }
 
         //true when a round trip takes so long that the schedule is made weekly instead of daily
-        public static bool IsLongRoute(Airport origin, Airport destination, AirlinerType type, int turnaroundMinutes)
+        public static bool IsLongRoute(Station origin, Station destination, CoachType type, int turnaroundMinutes)
         {
-            TimeSpan minFlightTime = MathHelpers.GetFlightTime(origin, destination, type).Add(new TimeSpan(0, turnaroundMinutes, 0));
+            TimeSpan minTripTime = MathHelpers.GetTripTime(origin, destination, type).Add(new TimeSpan(0, turnaroundMinutes, 0));
 
-            return minFlightTime.Hours >= 12 || minFlightTime.Days >= 1;
+            return minTripTime.Hours >= 12 || minTripTime.Days >= 1;
         }
 
         //how many round trips a day fit: 06:00-22:00 for a regular schedule, the whole day otherwise
-        public static int GetMaxRoundTrips(Airport origin, Airport destination, AirlinerType type, int turnaroundMinutes, OpsType operation)
+        public static int GetMaxRoundTrips(Station origin, Station destination, CoachType type, int turnaroundMinutes, OpsType operation)
         {
-            TimeSpan minFlightTime = MathHelpers.GetFlightTime(origin, destination, type).Add(new TimeSpan(0, turnaroundMinutes, 0));
+            TimeSpan minTripTime = MathHelpers.GetTripTime(origin, destination, type).Add(new TimeSpan(0, turnaroundMinutes, 0));
 
             int maxHours = operation == OpsType.Whole_Day ? 24 : 16;
 
-            return Math.Max(1, (int) Math.Floor(maxHours * 60 / (2 * minFlightTime.TotalMinutes)));
+            return Math.Max(1, (int) Math.Floor(maxHours * 60 / (2 * minTripTime.TotalMinutes)));
         }
 
         //the possible first departures for a number of round trips
-        public static List<TimeSpan> GetStartTimes(Airport origin, Airport destination, AirlinerType type, int turnaroundMinutes, int roundTrips, OpsType operation)
+        public static List<TimeSpan> GetStartTimes(Station origin, Station destination, CoachType type, int turnaroundMinutes, int roundTrips, OpsType operation)
         {
-            TimeSpan minFlightTime = MathHelpers.GetFlightTime(origin, destination, type).Add(new TimeSpan(0, turnaroundMinutes, 0));
+            TimeSpan minTripTime = MathHelpers.GetTripTime(origin, destination, type).Add(new TimeSpan(0, turnaroundMinutes, 0));
 
             int firstHour = operation == OpsType.Whole_Day ? 0 : 6;
-            int lastHour = Math.Max(firstHour, (int) (22 - minFlightTime.TotalHours * roundTrips * 2));
+            int lastHour = Math.Max(firstHour, (int) (22 - minTripTime.TotalHours * roundTrips * 2));
 
             var times = new List<TimeSpan>();
 
@@ -163,24 +163,24 @@ namespace TheBusProject.Helpers
         //creates the route (and its schedule); returns the route, or null with a message that says why not
         public static Route Create(NewRouteRequest request, out string message)
         {
-            Airline airline = GameObject.GetInstance().HumanAirline;
-            Airport origin = request.Origin;
-            Airport destination = request.Destination;
+            Carrier carrier = GameObject.GetInstance().HumanCarrier;
+            Station origin = request.Origin;
+            Station destination = request.Destination;
 
-            // a passenger airline flies passenger routes, a cargo airline cargo routes
-            message = AirlineTypeRules.RouteBlocker(airline, request.RouteType == Route.RouteType.Cargo ? Route.RouteType.Cargo : Route.RouteType.Passenger);
+            // a passenger carrier flies passenger routes, a cargo carrier cargo routes
+            message = CarrierTypeRules.RouteBlocker(carrier, request.RouteType == Route.RouteType.Cargo ? Route.RouteType.Cargo : Route.RouteType.Passenger);
             if (message != null)
             {
                 return null;
             }
 
-            if (airline.Routes.Exists(
+            if (carrier.Routes.Exists(
                 r =>
                 r.IsCargoRoute == (request.RouteType == Route.RouteType.Cargo)
                 && ((r.Destination1 == origin && r.Destination2 == destination)
                     || (r.Destination1 == destination && r.Destination2 == origin))))
             {
-                message = "You already have a route between these airports.";
+                message = "You already have a route between these stations.";
                 return null;
             }
 
@@ -188,8 +188,8 @@ namespace TheBusProject.Helpers
 
             try
             {
-                AirlineHelpers.IsRouteDestinationsOk(
-                    airline,
+                CarrierHelpers.IsRouteDestinationsOk(
+                    carrier,
                     origin,
                     destination,
                     isCargo ? Route.RouteType.Cargo : Route.RouteType.Passenger,
@@ -214,37 +214,37 @@ namespace TheBusProject.Helpers
             }
             else
             {
-                route = CreatePassengerRoute(airline, origin, destination, request.Tier, year, baseFare);
+                route = CreatePassengerRoute(carrier, origin, destination, request.Tier, year, baseFare);
             }
 
-            FleetAirlinerHelpers.CreateStopoverRoute(route, null, null);
+            FleetCoachHelpers.CreateStopoverRoute(route, null, null);
             route.Season = Weather.Season.AllYear;
-            airline.AddRoute(route);
-            ContractService.LinkRoute(airline, route);
+            carrier.AddRoute(route);
+            ContractService.LinkRoute(carrier, route);
 
             message = string.Format("Route {0} - {1} created.", origin.Profile.IATACode, destination.Profile.IATACode);
 
-            return AssignAirliner(route, airline, request, ref message);
+            return AssignCoach(route, carrier, request, ref message);
         }
 
         private static Route CreatePassengerRoute(
-            Airline airline,
-            Airport origin,
-            Airport destination,
+            Carrier carrier,
+            Station origin,
+            Station destination,
             ServiceTier tier,
             int year,
             double baseFare)
         {
             var route = new PassengerRoute(Guid.NewGuid().ToString(), origin, destination, GameObject.GetInstance().GameTime, 0);
 
-            foreach (AirlinerClass.ClassType classType in AirlinerClass.GetAirlinerTypes())
+            foreach (CoachClass.ClassType classType in CoachClass.GetCoachTypes())
             {
                 if ((int) classType > year)
                 {
                     continue;
                 }
 
-                RouteAirlinerClass routeClass = route.GetRouteAirlinerClass(classType);
+                RouteCoachClass routeClass = route.GetRouteCoachClass(classType);
 
                 if (routeClass == null)
                 {
@@ -260,7 +260,7 @@ namespace TheBusProject.Helpers
                         continue;
                     }
 
-                    RouteFacility facility = PickFacility(airline, facilityType, tier);
+                    RouteFacility facility = PickFacility(carrier, facilityType, tier);
 
                     if (facility != null)
                     {
@@ -272,91 +272,91 @@ namespace TheBusProject.Helpers
             return route;
         }
 
-        //puts the requested aircraft on the new route with a daily schedule
-        /// <summary>Puts an aircraft on an existing route that has no aircraft yet. Returns false, with the reason in message, when it can't be done.</summary>
-        public static bool AssignAircraft(Route route, NewRouteRequest request, out string message)
+        //puts the requested coach on the new route with a daily schedule
+        /// <summary>Puts an coach on an existing route that has no coach yet. Returns false, with the reason in message, when it can't be done.</summary>
+        public static bool AssignCoach(Route route, NewRouteRequest request, out string message)
         {
-            Airline airline = GameObject.GetInstance().HumanAirline;
-            FleetAirliner airliner = request.Airliner;
+            Carrier carrier = GameObject.GetInstance().HumanCarrier;
+            FleetCoach coach = request.Coach;
             message = "";
 
-            if (route == null || !airline.Routes.Contains(route))
+            if (route == null || !carrier.Routes.Contains(route))
             {
                 message = "That route is not one of yours.";
                 return false;
             }
 
-            if (airliner == null)
+            if (coach == null)
             {
-                message = "Pick an aircraft first.";
+                message = "Pick a coach first.";
                 return false;
             }
 
-            if (route.HasAirliner)
+            if (route.HasCoach)
             {
-                message = "This route already has an aircraft.";
+                message = "This route already has a coach.";
                 return false;
             }
 
-            if (!GetCandidateAirliners(route.Destination1, route.Destination2, route.Type).Contains(airliner))
+            if (!GetCandidateCoaches(route.Destination1, route.Destination2, route.Type).Contains(coach))
             {
-                message = airliner.Name + " can't fly this route (range, runway, or already on a route).";
+                message = coach.Name + " can't run this route (range, runway, or already on a route).";
                 return false;
             }
 
             request.Origin = route.Destination1;
             request.Destination = route.Destination2;
-            AssignAirliner(route, airline, request, ref message);
+            AssignCoach(route, carrier, request, ref message);
 
-            if (!airliner.Routes.Contains(route))
+            if (!coach.Routes.Contains(route))
             {
                 message = message.Trim();
                 return false;
             }
 
-            message = (airliner.Name + " is assigned to " + route.Destination1.Profile.IATACode + " - "
+            message = (coach.Name + " is assigned to " + route.Destination1.Profile.IATACode + " - "
                        + route.Destination2.Profile.IATACode + ". " + message).Trim();
             return true;
         }
 
-        /// <summary>Takes a route off its aircraft and puts it on another one (a new schedule). The old aircraft is stopped when it has no other route. Nothing changes when it fails.</summary>
+        /// <summary>Takes a route off its coach and puts it on another one (a new schedule). The old coach is stopped when it has no other route. Nothing changes when it fails.</summary>
         public static bool MoveRoute(Route route, NewRouteRequest request, out string message)
         {
-            Airline airline = GameObject.GetInstance().HumanAirline;
-            FleetAirliner target = request.Airliner;
+            Carrier carrier = GameObject.GetInstance().HumanCarrier;
+            FleetCoach target = request.Coach;
             message = "";
 
-            if (route == null || !airline.Routes.Contains(route) || !route.HasAirliner)
+            if (route == null || !carrier.Routes.Contains(route) || !route.HasCoach)
             {
-                message = "That route has no aircraft to move it from.";
+                message = "That route has no coach to move it from.";
                 return false;
             }
 
             if (target == null)
             {
-                message = "Pick the aircraft to move the route to.";
+                message = "Pick the coach to move the route to.";
                 return false;
             }
 
-            List<FleetAirliner> olds = route.GetAirliners().ToList();
+            List<FleetCoach> olds = route.GetCoaches().ToList();
             if (olds.Contains(target))
             {
                 message = "The route is already on " + target.Name + ".";
                 return false;
             }
 
-            if (!GetCandidateAirliners(route.Destination1, route.Destination2, route.Type).Contains(target))
+            if (!GetCandidateCoaches(route.Destination1, route.Destination2, route.Type).Contains(target))
             {
-                message = target.Name + " can't fly this route (range, runway, or already on a route).";
+                message = target.Name + " can't run this route (range, runway, or already on a route).";
                 return false;
             }
 
             var backups = olds.ToDictionary(
                 o => o,
-                o => new Tuple<List<RouteTimeTableEntry>, FleetAirliner.AirlinerStatus>(
-                    route.TimeTable.Entries.Where(e => e.Airliner == o).ToList(), o.Status));
+                o => new Tuple<List<RouteTimeTableEntry>, FleetCoach.CoachStatus>(
+                    route.TimeTable.Entries.Where(e => e.Coach == o).ToList(), o.Status));
 
-            foreach (FleetAirliner old in olds)
+            foreach (FleetCoach old in olds)
             {
                 old.RemoveRoute(route);
             }
@@ -364,11 +364,11 @@ namespace TheBusProject.Helpers
             request.Origin = route.Destination1;
             request.Destination = route.Destination2;
             string result = "";
-            AssignAirliner(route, airline, request, ref result);
+            AssignCoach(route, carrier, request, ref result);
 
             if (!target.Routes.Contains(route))
             {
-                foreach (FleetAirliner old in olds)
+                foreach (FleetCoach old in olds)
                 {
                     route.TimeTable.Entries.AddRange(backups[old].Item1);
                     old.AddRoute(route);
@@ -379,11 +379,11 @@ namespace TheBusProject.Helpers
                 return false;
             }
 
-            foreach (FleetAirliner old in olds)
+            foreach (FleetCoach old in olds)
             {
                 if (old.Routes.Count == 0)
                 {
-                    old.Status = FleetAirliner.AirlinerStatus.Stopped;
+                    old.Status = FleetCoach.CoachStatus.Stopped;
                 }
             }
 
@@ -392,136 +392,136 @@ namespace TheBusProject.Helpers
             return true;
         }
 
-        private static Route AssignAirliner(Route route, Airline airline, NewRouteRequest request, ref string message)
+        private static Route AssignCoach(Route route, Carrier carrier, NewRouteRequest request, ref string message)
         {
-            FleetAirliner airliner = request.Airliner;
+            FleetCoach coach = request.Coach;
 
-            if (airliner == null)
+            if (coach == null)
             {
-                message += " Assign an aircraft to it in the route planner to start flying.";
+                message += " Assign a coach to it in the route planner to start running.";
                 return route;
             }
 
-            List<string> codes = airline.GetFlightCodes();
-            string flightCode1 = codes[0];
-            string flightCode2 = codes[1];
+            List<string> codes = carrier.GetTripCodes();
+            string tripCode1 = codes[0];
+            string tripCode2 = codes[1];
 
-            RouteTimeTable timeTable = AIHelpers.CreateAirlinerRouteTimeTable(
+            RouteTimeTable timeTable = AIHelpers.CreateCoachRouteTimeTable(
                 route,
-                airliner,
+                coach,
                 request.RoundTripsPerDay,
                 true,
                 request.TurnaroundMinutes,
                 request.StartTime,
-                flightCode1,
-                flightCode2);
+                tripCode1,
+                tripCode2);
 
             var existing = new List<RouteTimeTableEntry>(
-                airliner.Routes.SelectMany(r => r.TimeTable.Entries.Where(e => e.Airliner == airliner)));
+                coach.Routes.SelectMany(r => r.TimeTable.Entries.Where(e => e.Coach == coach)));
 
-            if (!TimeTableHelpers.IsTimeTableValid(timeTable, airliner, existing, false))
+            if (!TimeTableHelpers.IsTimeTableValid(timeTable, coach, existing, false))
             {
-                message += " The schedule clashes with the flights " + airliner.Name
-                           + " already has, so no flights were scheduled. Set the timetable in the route planner.";
+                message += " The schedule clashes with the trips " + coach.Name
+                           + " already has, so no trips were scheduled. Set the timetable in the route planner.";
                 return route;
             }
 
             foreach (RouteTimeTableEntry entry in timeTable.Entries)
             {
-                if (!TimeTableHelpers.IsRouteEntryInOccupied(entry, airliner))
+                if (!TimeTableHelpers.IsRouteEntryInOccupied(entry, coach))
                 {
                     entry.TimeTable = route.TimeTable;
                     route.TimeTable.AddEntry(entry);
                 }
             }
 
-            airliner.AddRoute(route);
+            coach.AddRoute(route);
 
-            if (airliner.Status != FleetAirliner.AirlinerStatus.Stopped)
+            if (coach.Status != FleetCoach.CoachStatus.Stopped)
             {
-                message += " " + airliner.Name + " is scheduled on it.";
+                message += " " + coach.Name + " is scheduled on it.";
             }
-            else if (request.StartAirliner)
+            else if (request.StartCoach)
             {
-                if (airliner.Pilots.Count == airliner.Airliner.Type.CockpitCrew)
+                if (coach.Pilots.Count == coach.Coach.Type.CockpitCrew)
                 {
-                    airliner.Status = GameObject.GetInstance().DayRoundEnabled
-                        ? FleetAirliner.AirlinerStatus.OnRoute
-                        : FleetAirliner.AirlinerStatus.ToRouteStart;
-                    message += " " + airliner.Name + " is flying it.";
+                    coach.Status = GameObject.GetInstance().DayRoundEnabled
+                        ? FleetCoach.CoachStatus.OnRoute
+                        : FleetCoach.CoachStatus.ToRouteStart;
+                    message += " " + coach.Name + " is running it.";
                 }
                 else
                 {
-                    message += " " + airliner.Name + " has no full pilot crew yet, so it was not started.";
+                    message += " " + coach.Name + " has no full pilot crew yet, so it was not started.";
                 }
             }
             else
             {
-                message += " " + airliner.Name + " is scheduled but stopped.";
+                message += " " + coach.Name + " is scheduled but stopped.";
             }
 
             return route;
         }
 
-        //true when the human airline has no passenger contract at the airport, so a contract can fix a missing gate
-        public static bool NeedsContract(Airport airport, Terminal.TerminalType terminalType = Terminal.TerminalType.Passenger)
+        //true when the human carrier has no passenger contract at the station, so a contract can fix a missing gate
+        public static bool NeedsContract(Station station, Terminal.TerminalType terminalType = Terminal.TerminalType.Passenger)
         {
-            Airline airline = GameObject.GetInstance().HumanAirline;
+            Carrier carrier = GameObject.GetInstance().HumanCarrier;
 
-            return !airport.GetAirlineContracts(airline).Any(c => c.TerminalType == terminalType);
+            return !station.GetCarrierContracts(carrier).Any(c => c.TerminalType == terminalType);
         }
 
-        public static int GetFreePassengerGates(Airport airport)
+        public static int GetFreePassengerGates(Station station)
         {
-            return airport.Terminals.GetFreeGates(Terminal.TerminalType.Passenger);
+            return station.Terminals.GetFreeGates(Terminal.TerminalType.Passenger);
         }
 
-        public static int GetFreeGates(Airport airport, Terminal.TerminalType terminalType)
+        public static int GetFreeGates(Station station, Terminal.TerminalType terminalType)
         {
-            return airport.Terminals.GetFreeGates(terminalType);
+            return station.Terminals.GetFreeGates(terminalType);
         }
 
-        //signs a passenger gate contract (up to two gates, two years) and takes the gates; same rules as the airport page
+        //signs a passenger gate contract (up to two gates, two years) and takes the gates; same rules as the station page
         public static void SignContract(
-            Airport airport,
-            AirportContract.ContractType contractType,
+            Station station,
+            StationContract.ContractType contractType,
             Terminal.TerminalType terminalType = Terminal.TerminalType.Passenger)
         {
-            Airline airline = GameObject.GetInstance().HumanAirline;
+            Carrier carrier = GameObject.GetInstance().HumanCarrier;
             DateTime now = GameObject.GetInstance().GameTime;
             bool cargo = terminalType == Terminal.TerminalType.Cargo;
 
-            int gates = Math.Min(2, GetFreeGates(airport, terminalType));
+            int gates = Math.Min(2, GetFreeGates(station, terminalType));
 
             // a full contract includes the basic facility of the kind (check-in for passengers, cargo for cargo)
-            if (contractType == AirportContract.ContractType.Full)
+            if (contractType == StationContract.ContractType.Full)
             {
-                AirportFacility.FacilityType facilityType = cargo
-                    ? AirportFacility.FacilityType.Cargo
-                    : AirportFacility.FacilityType.CheckIn;
+                StationFacility.FacilityType facilityType = cargo
+                    ? StationFacility.FacilityType.Cargo
+                    : StationFacility.FacilityType.CheckIn;
 
-                if (airport.GetAirportFacility(airline, facilityType, cargo).TypeLevel == 0)
+                if (station.GetStationFacility(carrier, facilityType, cargo).TypeLevel == 0)
                 {
-                    AirportFacility basic = AirportFacilities.GetFacilities(facilityType).Find(f => f.TypeLevel == 1);
+                    StationFacility basic = StationFacilities.GetFacilities(facilityType).Find(f => f.TypeLevel == 1);
 
-                    airport.AddAirportFacility(airline, basic, now);
-                    AirlineHelpers.AddAirlineInvoice(airline, now, Invoice.InvoiceType.Purchases, -basic.Price);
+                    station.AddStationFacility(carrier, basic, now);
+                    CarrierHelpers.AddCarrierInvoice(carrier, now, Invoice.InvoiceType.Purchases, -basic.Price);
                 }
             }
 
-            double yearlyPayment = AirportHelpers.GetYearlyContractPayment(airport, contractType, gates, 2);
+            double yearlyPayment = StationHelpers.GetYearlyContractPayment(station, contractType, gates, 2);
 
-            var contract = new AirportContract(
-                airline, airport, contractType, terminalType, now, gates, 2, yearlyPayment, true);
+            var contract = new StationContract(
+                carrier, station, contractType, terminalType, now, gates, 2, yearlyPayment, true);
 
-            AirportHelpers.AddAirlineContract(contract);
+            StationHelpers.AddCarrierContract(contract);
 
             for (int i = 0; i < gates; i++)
             {
-                Gate gate = airport.Terminals.GetGates().FirstOrDefault(g => g.Airline == null);
+                Gate gate = station.Terminals.GetGates().FirstOrDefault(g => g.Carrier == null);
                 if (gate != null)
                 {
-                    gate.Airline = airline;
+                    gate.Carrier = carrier;
                 }
             }
         }
@@ -531,27 +531,27 @@ namespace TheBusProject.Helpers
             switch (code)
             {
                 case "3000":
-                    return "No free gates at one of the airports. You need an airport contract with free gates at both ends.";
+                    return "No free gates at one of the stations. You need a station contract with free gates at both ends.";
                 case "3001":
-                    return "The distance is too short, or longer than any available aircraft can fly.";
+                    return "The distance is too short, or longer than any available coach can run.";
                 case "3002":
-                    return "The route is not of an appropriate type for these airports.";
+                    return "The route is not of an appropriate type for these stations.";
                 case "3003":
-                    return "Both airports need a cargo facility of yours (Airports tab > Facilities), or a Full cargo gate contract, which includes one.";
+                    return "Both stations need a cargo facility of yours (Stations tab > Facilities), or a Full cargo gate contract, which includes one.";
                 case "3004":
-                    return "Your airline has no license for this route. Buy a higher one under My Airline > License.";
+                    return "Your carrier has no license for this route. Buy a higher one under My Carrier > License.";
                 case "3005":
-                    return "There are flight restrictions between these countries.";
+                    return "There are trip restrictions between these countries.";
                 default:
                     return code;
             }
         }
 
         //the facility that fits a service tier: the cheapest for basic, the best for premium, one in the middle for standard
-        public static RouteFacility PickFacility(Airline airline, RouteFacility.FacilityType type, ServiceTier tier)
+        public static RouteFacility PickFacility(Carrier carrier, RouteFacility.FacilityType type, ServiceTier tier)
         {
             List<RouteFacility> facilities =
-                AirlineHelpers.GetRouteFacilities(airline, type).OrderBy(f => f.ServiceLevel).ToList();
+                CarrierHelpers.GetRouteFacilities(carrier, type).OrderBy(f => f.ServiceLevel).ToList();
 
             if (facilities.Count == 0)
             {

@@ -12,7 +12,7 @@
           </StackPanel>
         </StackPanel>
       </Border>
-      <TextBlock Text="Charter flights are one-off jobs. Only an aircraft with no routes, a full crew and enough room and range can take one. It flies there, is paid when it lands, and stays at the destination." TextWrapping="Wrap" Opacity="0.75" />
+      <TextBlock Text="Charter trips are one-off jobs. Only a coach with no routes, a full crew and enough room and range can take one. It runs there, is paid when it lands, and stays at the destination." TextWrapping="Wrap" Opacity="0.75" />
       <TextBlock Text="{Binding Status}" TextWrapping="Wrap" />
 
       <TextBlock Text="{Binding OffersTitle}" FontSize="16" FontWeight="SemiBold" />
@@ -23,8 +23,8 @@
               <StackPanel Spacing="6">
                 <TextBlock Text="{Binding Name}" FontSize="15" FontWeight="SemiBold" />
                 <TextBlock Text="{Binding Terms}" TextWrapping="Wrap" />
-                <TextBlock Text="{Binding NoAircraft}" IsVisible="{Binding HasNoAircraft}" TextWrapping="Wrap" Opacity="0.7" />
-                <ItemsControl ItemsSource="{Binding Aircraft}">
+                <TextBlock Text="{Binding NoCoach}" IsVisible="{Binding HasNoCoach}" TextWrapping="Wrap" Opacity="0.7" />
+                <ItemsControl ItemsSource="{Binding Coach}">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate>
                       <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,2">

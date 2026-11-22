@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using TheBusProject.Helpers;
-using TheBusProject.Models.Airlines;
+using TheBusProject.Models.Carriers;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Statistics;
 
@@ -21,11 +21,11 @@ namespace TheBusProject.Presentation
         public string Tip { get; set; }
     }
 
-    /// <summary>One line of the airline comparison.</summary>
+    /// <summary>One line of the carrier comparison.</summary>
     public class RatingCompareRow
     {
         public string Rank { get; set; }
-        public string Airline { get; set; }
+        public string Carrier { get; set; }
         public string Overall { get; set; }
         public string Detail { get; set; }
         public bool IsMine { get; set; }
@@ -40,7 +40,7 @@ namespace TheBusProject.Presentation
         public string Change { get; set; }
     }
 
-    /// <summary>My Airline > Ratings: the five ratings, why they are what they are, and how the airline compares.</summary>
+    /// <summary>My Carrier > Ratings: the five ratings, why they are what they are, and how the carrier compares.</summary>
     public class RatingsViewModel : ObservableObject
     {
         private string _summary;
@@ -71,7 +71,7 @@ namespace TheBusProject.Presentation
         }
 
         public string Effects =>
-            "What the ratings do: customer happiness changes how often passengers pick you over other airlines " +
+            "What the ratings do: customer happiness changes how often passengers pick you over other carriers " +
             "(from 75% at 0 to 125% at 100). Maintenance, safety and security set the price of insurance. " +
             "All five count toward your game score. Ratings are updated on the 1st of each month and move a third of the way toward where they are heading.";
 
@@ -83,26 +83,26 @@ namespace TheBusProject.Presentation
         public void Reload()
         {
             var game = GameObject.GetInstance();
-            var airline = game?.HumanAirline;
-            if (airline == null) return;
+            var carrier = game?.HumanCarrier;
+            if (carrier == null) return;
 
-            var all = Airlines.GetAllAirlines().ToList();
+            var all = Carriers.GetAllCarriers().ToList();
 
             // a new game, or a save from before ratings were worked out: work them out once now
             if (all.All(a => !a.Ratings.IsCalculated))
             {
                 foreach (var a in all) RatingsService.ProcessMonth(a);
             }
-            else if (!airline.Ratings.IsCalculated)
+            else if (!carrier.Ratings.IsCalculated)
             {
-                RatingsService.ProcessMonth(airline);
+                RatingsService.ProcessMonth(carrier);
             }
 
             Ratings.Clear();
-            foreach (var t in RatingsService.Targets(airline))
+            foreach (var t in RatingsService.Targets(carrier))
             {
-                int value = RatingsService.Get(airline, t.Name);
-                int change = value - RatingsService.GetLastMonth(airline, t.Name);
+                int value = RatingsService.Get(carrier, t.Name);
+                int change = value - RatingsService.GetLastMonth(carrier, t.Name);
                 int target = t.Value;
                 string heading = target == value ? "Steady" : target > value ? "Rising toward " + target : "Falling toward " + target;
                 var reasons = t.Factors.Select(f => Signed(f.Points) + "  " + f.Text).ToList();
@@ -114,33 +114,33 @@ namespace TheBusProject.Presentation
                     ValueText = value + " / 100  " + RatingsService.Grade(value),
                     Change = change == 0 ? "no change this month" : Signed(change) + " this month",
                     Heading = heading,
-                    Reasons = reasons.Count == 0 ? "Nothing to rate yet: buy aircraft, open routes and hire staff." : string.Join(Environment.NewLine, reasons),
+                    Reasons = reasons.Count == 0 ? "Nothing to rate yet: buy coach, open routes and hire staff." : string.Join(Environment.NewLine, reasons),
                     Tip = t.Tip
                 });
             }
 
-            int overall = RatingsService.Overall(airline);
+            int overall = RatingsService.Overall(carrier);
             Summary = "Overall rating " + overall + " / 100  (" + RatingsService.Grade(overall) + ")";
 
             var ranked = all.OrderByDescending(RatingsService.Overall).ThenBy(a => a.Profile.Name).ToList();
-            int position = ranked.IndexOf(airline) + 1;
-            Rank = "You are number " + position + " of " + ranked.Count + " airlines by overall rating.";
+            int position = ranked.IndexOf(carrier) + 1;
+            Rank = "You are number " + position + " of " + ranked.Count + " carriers by overall rating.";
 
             Compare.Clear();
             var shown = ranked.Take(10).ToList();
-            if (!shown.Contains(airline)) shown.Add(airline);
+            if (!shown.Contains(carrier)) shown.Add(carrier);
             foreach (var a in shown)
             {
                 var r = a.Ratings;
                 Compare.Add(new RatingCompareRow
                 {
                     Rank = "#" + (ranked.IndexOf(a) + 1),
-                    Airline = a.Profile.Name + (a.Profile.IATACode != null ? " (" + a.Profile.IATACode + ")" : "") + (a == airline ? "  \u2190 you" : ""),
+                    Carrier = a.Profile.Name + (a.Profile.IATACode != null ? " (" + a.Profile.IATACode + ")" : "") + (a == carrier ? "  \u2190 you" : ""),
                     Overall = RatingsService.Overall(a).ToString(),
                     Detail = string.Format(
                         "customers {0}  |  staff {1}  |  maintenance {2}  |  safety {3}  |  security {4}",
                         r.CustomerHappinessRating, r.EmployeeHappinessRating, r.MaintenanceRating, r.SafetyRating, r.SecurityRating),
-                    IsMine = a == airline
+                    IsMine = a == carrier
                 });
             }
 
@@ -148,14 +148,14 @@ namespace TheBusProject.Presentation
             int year = game.GameTime.Year;
             foreach (var pair in new[]
             {
-                new[] { "Passengers", "Passengers" }, new[] { "Passengers per flight", "Passengers%" },
-                new[] { "Flights", "Arrivals" }, new[] { "On-time flights %", "On-Time%" }
+                new[] { "Passengers", "Passengers" }, new[] { "Passengers per trip", "Passengers%" },
+                new[] { "Trips", "Arrivals" }, new[] { "On-time trips %", "On-Time%" }
             })
             {
                 var type = StatisticsTypes.GetStatisticsType(pair[1]);
                 if (type == null) continue;
-                double now = airline.Statistics.GetStatisticsValue(year, type);
-                double last = airline.Statistics.GetStatisticsValue(year - 1, type);
+                double now = carrier.Statistics.GetStatisticsValue(year, type);
+                double last = carrier.Statistics.GetStatisticsValue(year - 1, type);
                 string change = last == 0 ? "" : Signed((now - last)/last*100, "0.#") + "%";
                 Stats.Add(new RatingStatRow
                 {

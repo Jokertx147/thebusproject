@@ -5,7 +5,7 @@ using TheBusProject.Helpers;
 using TheBusProject.Helpers.Workers;
 using TheBusProject.Infrastructure;
 using TheBusProject.Infrastructure.Enums;
-using TheBusProject.Models.Airlines;
+using TheBusProject.Models.Carriers;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Countries;
 using TheBusProject.Models.General.Environment;
@@ -15,15 +15,15 @@ class P {
     if (args.Length > 0 && args[0] == "vm") { VmTest.Run().GetAwaiter().GetResult(); return; }
     try {
       GameDataLoader.EnsureLoaded();
-      Console.WriteLine("LOADED airports=" + TheBusProject.Models.Airports.Airports.GetAllAirports().Count);
-      var airline = Airlines.GetAllAirlines().First(a => a.Profile.IATACode == "DL" || a.Profile.IATACode == "AA");
-      var airport = airline.Airports.FirstOrDefault() ?? TheBusProject.Models.Airports.Airports.GetAllAirports().First(a => a.Profile.IATACode == "JFK");
+      Console.WriteLine("LOADED stations=" + TheBusProject.Models.Stations.Stations.GetAllStations().Count);
+      var carrier = Carriers.GetAllCarriers().First(a => a.Profile.IATACode == "DL" || a.Profile.IATACode == "AA");
+      var station = carrier.Stations.FirstOrDefault() ?? TheBusProject.Models.Stations.Stations.GetAllStations().First(a => a.Profile.IATACode == "JFK");
       var sd = new StartDataObject {
-        Airline = airline, Airport = airport, CEO = "Test CEO",
+        Carrier = carrier, Station = station, CEO = "Test CEO",
         Continent = new Continent("100", "All continents"),
         Difficulty = DifficultyLevels.GetDifficultyLevel("Normal"),
-        Focus = default(AirlineFocus), HomeCountry = airport.Profile.Country,
-        IsPaused = true, LocalCurrency = false, MajorAirports = true, NumberOfOpponents = 3, RandomOpponents = true,
+        Focus = default(CarrierFocus), HomeCountry = station.Profile.Country,
+        IsPaused = true, LocalCurrency = false, MajorStations = true, NumberOfOpponents = 3, RandomOpponents = true,
         RealData = false, Region = Regions.GetRegion("100"), SameRegion = true,
         TimeZone = TimeZones.GetTimeZones().First(), UseDayTurns = true, Year = 2007 };
       GameObjectHelpers.CreateGame(sd);
@@ -32,16 +32,16 @@ class P {
       Console.WriteLine("worker started after " + sw.Elapsed.TotalSeconds + "s (demand built)");
       GameObjectWorker.GetInstance().Pause();
       var g = GameObject.GetInstance();
-      Console.WriteLine("human=" + g.HumanAirline.Profile.Name + " start=" + g.GameTime.ToShortDateString() + " money=" + g.HumanAirline.Money);
+      Console.WriteLine("human=" + g.HumanCarrier.Profile.Name + " start=" + g.GameTime.ToShortDateString() + " money=" + g.HumanCarrier.Money);
       for (int i = 0; i < 40; i++) GameObjectHelpers.SimulateTurn();
-      Console.WriteLine("after 40 days: " + g.GameTime.ToShortDateString() + " money=" + g.HumanAirline.Money);
+      Console.WriteLine("after 40 days: " + g.GameTime.ToShortDateString() + " money=" + g.HumanCarrier.Money);
       Console.WriteLine("SIMULATED OK");
-      var before = g.GameTime; var money = g.HumanAirline.Money;
+      var before = g.GameTime; var money = g.HumanCarrier.Money;
       SerializedLoadSaveHelpers.SaveGame("headless-test");
       Console.WriteLine("SAVED: " + string.Join(", ", LoadSaveHelpers.GetSavedGameInfos().Select(x => x.Name)));
       SerializedLoadSaveHelpers.LoadGame("headless-test");
       var g2 = GameObject.GetInstance();
-      Console.WriteLine("LOADED SAVE: " + g2.GameTime.ToShortDateString() + " money=" + g2.HumanAirline.Money + " (expected " + before.ToShortDateString() + " / " + money + ")");
+      Console.WriteLine("LOADED SAVE: " + g2.GameTime.ToShortDateString() + " money=" + g2.HumanCarrier.Money + " (expected " + before.ToShortDateString() + " / " + money + ")");
       GameObjectWorker.GetInstance().Pause();
       for (int i = 0; i < 10; i++) GameObjectHelpers.SimulateTurn();
       Console.WriteLine("10 more days after load: " + g2.GameTime.ToShortDateString());

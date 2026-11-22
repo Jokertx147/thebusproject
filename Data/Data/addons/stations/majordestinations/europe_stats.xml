@@ -1,0 +1,210 @@
+<majordestinations>
+  <majordestination station="LHR">
+    <destinations>
+      <destination station="JFK" pax="2678" />
+      <destination station="DXB" pax="1889" />
+      <destination station="DUB" pax="1556" />
+      <destination station="FRA" pax="1469" />
+      <destination station="HKG" pax="1412" />
+      <destination station="AMS" pax="1407" />
+      <destination station="LAX" pax="1299" />
+      <destination station="CDG" pax="1272" />
+      <destination station="ORD" pax="2290" cargo="352"/>
+      <destination station="EWR" pax="1197" />
+      <destination station="MAD" pax="1191" />
+      <destination station="FCO" pax="1052" />
+      <destination station="BOS" pax="1030" />
+      <destination station="SIN" pax="1069" />
+      <destination station="DEL" pax="1003" />
+      <destination station="IAD" pax="989" />
+      <destination station="GVA" pax="977" />
+      <destination station="ZRH" pax="958" />
+      <destination station="MIA" pax="953" />
+      <destination station="BOM" pax="950" />
+      <destination station="CPH" pax="939" />
+      <destination station="YYZ" pax="926" />
+      <destination station="SFO" pax="925" />
+      <destination station="ARN" pax="889" />
+      <destination station="IST" pax="847" />
+      <destination station="JNB" pax="840" />
+      <destination station="VIE" pax="778" />
+      <destination station="LIS" pax="745" />
+      <destination station="ATH" pax="735" />
+      <destination station="LIN" pax="733" />
+      <destination station="BCN" pax="710" />
+      <destination station="SYD" pax="698" />
+      <destination station="TXL" pax="694" />
+      <destination station="DOH" pax="681" />
+      <destination station="OSL" pax="628" />
+      <destination station="NRT" pax="604" />
+      <destination station="DUS" pax="603" />
+      <destination station="HEL" pax="591" />
+      <destination station="BKK" pax="579" />
+      <destination station="MEX" pax="174" cargo="27" />
+      <destination station="DFW" pax="1477" cargo="277" />
+      <destination station="PHX" pax="351" cargo="50" /> 
+       <destination station="DEN" pax="24" cargo="4" /> 
+       <destination station="SEA" pax="390" cargo="60" />
+      
+  </destinations>
+  </majordestination>
+  <majordestination station="CDG">
+    <destinations>
+      <destination station="MAD" pax="2117" />
+      <destination station="FCO" pax="1744" />
+      <destination station="JFK" pax="1634" />
+      <destination station="LHR" pax="1625" />
+      <destination station="BCN" pax="1591" />
+      <destination station="LIN" pax="1535" />
+      <destination station="YUL" pax="1233" />
+      <destination station="CAS" pax="1142" />
+      <destination station="LIS" pax="1126" />
+      <destination station="TUN" pax="993" />
+      <destination station="ALG" pax="952" />
+      <destination station="HND" pax="869" />
+      <destination station="TLV" pax="769" />
+      <destination station="DXB" pax="716" />
+      <destination station="ORD" pax="653" cargo="100" />
+      <destination station="HKG" pax="601" />
+      <destination station="GRU" pax="527" />
+      <destination station="LAX" pax="525" />
+      <destination station="BEY" pax="524" />
+      <destination station="PVG" pax="512" />
+      <destination station="ATL" pax="511" />
+      <destination station="GIG" pax="505" />
+      <destination station="BOG" pax="482" />
+      <destination station="IAD" pax="480" />
+      <destination station="CAI" pax="418" />
+      <destination station="MEX" pax="411" cargo="63" />
+      <destination station="DKR" pax="320" />
+      <destination station="DFW" pax="265" cargo="41" />
+      <destination station="SLC" pax="103" cargo="16" />
+    </destinations>
+  </majordestination>
+  <majordestination station="FRA">
+    <destinations>
+      <destination station="TXL" pax="802" />
+      <destination station="HAM" pax="745" />
+      <destination station="LHR" pax="639" />
+      <destination station="JFK" pax="638" />
+      <destination station="VIE" pax="484" />
+      <destination station="MUN" pax="475" />
+      <destination station="MAD" pax="459" />
+      <destination station="ORD" pax="1242" cargo="191" />
+      <destination station="CDG" pax="448" />
+      <destination station="SIN" pax="429" />
+      <destination station="WAW" pax="378" />
+      <destination station="IST" pax="353" />
+      <destination station="DXB" pax="337" />
+      <destination station="IAD" pax="334" />
+      <destination station="BKK" pax="330" />
+      <destination station="FCO" pax="320" />
+      <destination station="PMI" pax="319" />
+      <destination station="BCN" pax="290" />
+      <destination station="NRT" pax="290" />
+      <destination station="YYZ" pax="289" />
+      <destination station="AYT" pax="289" />
+      <destination station="AMS" pax="287" />
+      <destination station="ATL" pax="283" />
+      <destination station="SFO" pax="277" />
+      <destination station="CPH" pax="276" />
+      <destination station="ZRH" pax="272" />
+      <destination station="PEK" pax="270" />
+      <destination station="PVG" pax="264" />
+      <destination station="ARN" pax="264" />
+      <destination station="EWR" pax="255" />
+      <destination station="LIS" pax="253" />
+      <destination station="MEX" pax="237" cargo="36" />
+      <destination station="ICN" pax="236" />
+      <destination station="TLV" pax="228" />
+      <destination station="GRU" pax="223" />
+      <destination station="HEL" pax="222" />
+      <destination station="HKG" pax="221" />
+      <destination station="DUB" pax="214" />
+      <destination station="OSL" pax="213" />
+      <destination station="ATH" pax="210" />
+      <destination station="DME" pax="210" />
+      <destination station="JNB" pax="209" />
+      <destination station="DFW" pax="560" cargo="86" />
+       <destination station="DEN" pax="24" cargo="4" /> 
+       <destination station="SEA" pax="330" cargo="51" />
+    </destinations>
+  </majordestination>
+  <majordestination station="AMS">
+    <destinations>
+      <destination station="LHR" pax="1406" />
+      <destination station="BCN" pax="1331" />
+      <destination station="MAD" pax="1165" />
+      <destination station="CDG" pax="1050" />
+      <destination station="FCO" pax="914" />
+      <destination station="CPH" pax="831" />
+      <destination station="FRA" pax="850" />
+      <destination station="AYT" pax="725" />
+      <destination station="MUN" pax="675" />
+      <destination station="ZRH" pax="665" />
+      <destination station="LGW" pax="635" />
+      <destination station="MAN" pax="629" />
+      <destination station="DTW" pax="606" />
+      <destination station="OSL" pax="596" />
+      <destination station="GVA" pax="593" />
+      <destination station="ARN" pax="564" />
+      <destination station="EDI" pax="563" />
+      <destination station="JFK" pax="559" />
+      <destination station="MXP" pax="551" />
+      <destination station="IST" pax="527" />
+      <destination station="VIE" pax="526" />
+      <destination station="DXB" pax="525" />
+      <destination station="LIS" pax="479" />
+      <destination station="ATL" pax="459" />
+      <destination station="MSP" pax="448" />
+      <destination station="HKG" pax="411" />
+      <destination station="NBO" pax="409" />
+      <destination station="CUR" pax="408" />
+      <destination station="KUL" pax="395" />
+      <destination station="YYZ" pax="385" />
+      <destination station="TLV" pax="382" />
+      <destination station="BKK" pax="383" />
+      <destination station="SIN" pax="325" />
+      <destination station="PVG" pax="325" />
+      <destination station="IAH" pax="365" />
+      <destination station="PBM" pax="267" />
+      <destination station="ORD" pax="265" />
+      <destination station="EWR" pax="262" />
+      <destination station="IAD" pax="256" />
+      <destination station="MEX" pax="192" cargo="30" />
+      <destination station="SEA" pax="496" cargo="76" />
+      <destination station="PDX" pax="293" cargo="45" />
+    </destinations>
+  </majordestination>
+  <majordestination station="MAD">
+    <destinations>
+       <destination station="DFW" pax="258" cargo="40" />
+       <destination station="MEX" pax="488" cargo="75" />
+    </destinations>
+  </majordestination>
+    <majordestination station="MAN">
+    <destinations>
+      <destination station="ORD" pax="17" cargo="3" />
+    </destinations>
+  </majordestination>
+  <majordestination station="MUC">
+    <destinations>
+      <destination station="ORD" pax="200" cargo="31" />
+    </destinations>
+  </majordestination>
+    <majordestination station="BRU">
+    <destinations>
+      <destination station="ORD" pax="157" cargo="24" />
+    </destinations>
+  </majordestination>
+    <majordestination station="DUB">
+    <destinations>
+      <destination station="ORD" pax="652" cargo="100" />
+    </destinations>
+  </majordestination>
+    <majordestination station="FCO">
+    <destinations>
+      <destination station="ORD" pax="105" cargo="16" />
+    </destinations>
+  </majordestination>
+</majordestinations>

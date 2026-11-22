@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Stations;
 
 namespace TheBusProject.Models.General.Scenarios
 {
@@ -17,25 +17,25 @@ namespace TheBusProject.Models.General.Scenarios
         public Scenario(
             string name,
             string description,
-            Airline airline,
-            Airport homebase,
+            Carrier carrier,
+            Station homebase,
             int startyear,
             int endyear,
             long startcash,
             DifficultyLevel difficulty)
         {
             Name = name;
-            Airline = airline;
+            Carrier = carrier;
             Homebase = homebase;
             StartYear = startyear;
             StartCash = startcash;
             Description = description;
             Difficulty = difficulty;
             EndYear = endyear;
-            OpponentAirlines = new List<ScenarioAirline>();
-            Destinations = new List<Airport>();
-            Fleet = new Dictionary<AirlinerType, int>();
-            Routes = new List<ScenarioAirlineRoute>();
+            OpponentCarriers = new List<ScenarioCarrier>();
+            Destinations = new List<Station>();
+            Fleet = new Dictionary<CoachType, int>();
+            Routes = new List<ScenarioCarrierRoute>();
             Failures = new List<ScenarioFailure>();
             PassengerDemands = new List<ScenarioPassengerDemand>();
         }
@@ -48,14 +48,14 @@ namespace TheBusProject.Models.General.Scenarios
 
         #region Public Properties
 
-        [Versioning("airline")]
-        public Airline Airline { get; set; }
+        [Versioning("carrier")]
+        public Carrier Carrier { get; set; }
 
         [Versioning("description")]
         public string Description { get; set; }
 
         [Versioning("destinations")]
-        public List<Airport> Destinations { get; set; }
+        public List<Station> Destinations { get; set; }
 
         [Versioning("difficulty")]
         public DifficultyLevel Difficulty { get; set; }
@@ -67,22 +67,22 @@ namespace TheBusProject.Models.General.Scenarios
         public List<ScenarioFailure> Failures { get; set; }
 
         [Versioning("fleet")]
-        public Dictionary<AirlinerType, int> Fleet { get; set; }
+        public Dictionary<CoachType, int> Fleet { get; set; }
 
         [Versioning("homebase")]
-        public Airport Homebase { get; set; }
+        public Station Homebase { get; set; }
 
         [Versioning("name")]
         public string Name { get; set; }
 
         [Versioning("opponents")]
-        public List<ScenarioAirline> OpponentAirlines { get; set; }
+        public List<ScenarioCarrier> OpponentCarriers { get; set; }
 
         [Versioning("demands")]
         public List<ScenarioPassengerDemand> PassengerDemands { get; set; }
 
         [Versioning("routes")]
-        public List<ScenarioAirlineRoute> Routes { get; set; }
+        public List<ScenarioCarrierRoute> Routes { get; set; }
 
         [Versioning("startcash")]
         public long StartCash { get; set; }
@@ -94,7 +94,7 @@ namespace TheBusProject.Models.General.Scenarios
         [Versioning("successtext")]
         public string SuccessText { get; set; }
 
-        /// <summary>The debt the airline starts with (some scenarios start in debt).</summary>
+        /// <summary>The debt the carrier starts with (some scenarios start in debt).</summary>
         [Versioning("startdebt")]
         public long StartDebt { get; set; }
 
@@ -110,20 +110,20 @@ namespace TheBusProject.Models.General.Scenarios
         }
 
         //adds a destinaton to the scenario
-        public void AddDestination(Airport destination)
+        public void AddDestination(Station destination)
         {
             Destinations.Add(destination);
         }
 
-        public void AddFleet(AirlinerType type, int quantity)
+        public void AddFleet(CoachType type, int quantity)
         {
             Fleet.Add(type, quantity);
         }
 
-        //adds an opponent airline to the scenario
-        public void AddOpponentAirline(ScenarioAirline airline)
+        //adds an opponent carrier to the scenario
+        public void AddOpponentCarrier(ScenarioCarrier carrier)
         {
-            OpponentAirlines.Add(airline);
+            OpponentCarriers.Add(carrier);
         }
 
         public void AddPassengerDemand(ScenarioPassengerDemand demand)
@@ -132,7 +132,7 @@ namespace TheBusProject.Models.General.Scenarios
         }
 
         //adds a route to the scenario
-        public void AddRoute(ScenarioAirlineRoute route)
+        public void AddRoute(ScenarioCarrierRoute route)
         {
             Routes.Add(route);
         }

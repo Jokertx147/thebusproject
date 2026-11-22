@@ -43,14 +43,14 @@ namespace TheBusProject.Presentation
             SetMoneyCommand = new RelayCommand(SetMoney);
             CleanAreaCommand = new RelayCommand(AskCleanArea, () => !_busy && _area != null && _areaRemovable > 0);
 
-            var airline = GameObject.GetInstance().HumanAirline;
-            _saveName = GameSession.SafeFileName(airline?.Profile?.Name ?? "save");
+            var carrier = GameObject.GetInstance().HumanCarrier;
+            _saveName = GameSession.SafeFileName(carrier?.Profile?.Name ?? "save");
             Reload();
         }
 
         public ObservableCollection<SaveItem> Saves { get; } = new ObservableCollection<SaveItem>();
 
-        // ---- game area: take out airports outside the continent or region the game is set in ----
+        // ---- game area: take out stations outside the continent or region the game is set in ----
 
         private NamedChoice<GameArea> _area;
         private int _areaRemovable;
@@ -64,10 +64,10 @@ namespace TheBusProject.Presentation
         {
             get
             {
-                if (GameObject.GetInstance()?.HumanAirline == null) return "Start or load a game first.";
-                int continents = AirportCleanupService.ContinentCount();
-                return "This game has " + TheBusProject.Models.Airports.Airports.GetAllAirports().Count.ToString("N0") + " airports on " + continents + (continents == 1 ? " continent" : " continents")
-                       + ". If you started it in one continent or region, you can take out the airports outside it that nobody uses (a load with an earlier version could add the whole world). Fewer airports make game days, saving and loading faster.";
+                if (GameObject.GetInstance()?.HumanCarrier == null) return "Start or load a game first.";
+                int continents = StationCleanupService.ContinentCount();
+                return "This game has " + TheBusProject.Models.Stations.Stations.GetAllStations().Count.ToString("N0") + " stations on " + continents + (continents == 1 ? " continent" : " continents")
+                       + ". If you started it in one continent or region, you can take out the stations outside it that nobody uses (a load with an earlier version could add the whole world). Fewer stations make game days, saving and loading faster.";
             }
         }
 
@@ -89,13 +89,13 @@ namespace TheBusProject.Presentation
         private void LoadAreas()
         {
             Areas.Clear();
-            if (GameObject.GetInstance()?.HumanAirline != null)
+            if (GameObject.GetInstance()?.HumanCarrier != null)
             {
                 try
                 {
-                    foreach (GameArea area in AirportCleanupService.Areas())
+                    foreach (GameArea area in StationCleanupService.Areas())
                     {
-                        Areas.Add(new NamedChoice<GameArea> {Name = area.Name + ": " + area.Airports.ToString("N0") + " airports", Value = area});
+                        Areas.Add(new NamedChoice<GameArea> {Name = area.Name + ": " + area.Stations.ToString("N0") + " stations", Value = area});
                     }
                 }
                 catch (Exception ex)
@@ -120,11 +120,11 @@ namespace TheBusProject.Presentation
             else
             {
                 int kept;
-                _areaRemovable = AirportCleanupService.Outside(_area.Value, out kept).Count;
+                _areaRemovable = StationCleanupService.Outside(_area.Value, out kept).Count;
                 AreaPreview = _areaRemovable == 0
-                    ? "Every airport outside it is in use (or there are none): nothing to take out."
-                    : _areaRemovable.ToString("N0") + " unused airports outside it would be taken out"
-                      + (kept > 0 ? "; " + kept + " outside it are kept because an airline uses them." : ".");
+                    ? "Every station outside it is in use (or there are none): nothing to take out."
+                    : _areaRemovable.ToString("N0") + " unused stations outside it would be taken out"
+                      + (kept > 0 ? "; " + kept + " outside it are kept because a carrier uses them." : ".");
             }
             OnPropertyChanged(nameof(AreaPreview));
             (CleanAreaCommand as RelayCommand)?.RaiseCanExecuteChanged();
@@ -138,21 +138,21 @@ namespace TheBusProject.Presentation
             _pending = async () =>
                 {
                     SetBusy(true);
-                    AreaStatus = "Taking out " + count.ToString("N0") + " airports and building the passenger demand again...";
+                    AreaStatus = "Taking out " + count.ToString("N0") + " stations and building the passenger demand again...";
                     try
                     {
                         bool wasRunning = !TheBusProject.Helpers.Workers.GameObjectWorker.GetInstance().IsPaused;
                         int removed = await Task.Run(() =>
                             {
                                 GameSession.StopClock();
-                                return AirportCleanupService.RemoveOutside(area);
+                                return StationCleanupService.RemoveOutside(area);
                             });
                         if (wasRunning) TheBusProject.Helpers.Workers.GameObjectWorker.GetInstance().Restart();
-                        AreaStatus = "Took out " + removed.ToString("N0") + " airports; " + TheBusProject.Models.Airports.Airports.GetAllAirports().Count.ToString("N0") + " are left. Save the game to keep the change.";
+                        AreaStatus = "Took out " + removed.ToString("N0") + " stations; " + TheBusProject.Models.Stations.Stations.GetAllStations().Count.ToString("N0") + " are left. Save the game to keep the change.";
                     }
                     catch (Exception ex)
                     {
-                        StartupLog.Write("Options: taking out airports failed: " + ex);
+                        StartupLog.Write("Options: taking out stations failed: " + ex);
                         AreaStatus = "That failed: " + ex.Message;
                     }
                     finally
@@ -161,19 +161,19 @@ namespace TheBusProject.Presentation
                         LoadAreas();
                     }
                 };
-            PendingText = "Take out " + count.ToString("N0") + " unused airports outside " + area.Name.Replace(" (the whole continent)", "") + "? Airlines can't fly to them afterwards. This can't be undone, except by loading a save made before.";
+            PendingText = "Take out " + count.ToString("N0") + " unused stations outside " + area.Name.Replace(" (the whole continent)", "") + "? Carriers can't run to them afterwards. This can't be undone, except by loading a save made before.";
         }
 
         // ---- setting the money ----
 
-        private string _airlineMoney = "", _moneyStatus;
+        private string _carrierMoney = "", _moneyStatus;
 
         /// <summary>Called after the money changed, so the top bar and pages update.</summary>
         public Action MoneyChanged { get; set; }
 
         public ICommand SetMoneyCommand { get; }
 
-        public string AirlineMoney { get => _airlineMoney; set => SetProperty(ref _airlineMoney, value ?? ""); }
+        public string CarrierMoney { get => _carrierMoney; set => SetProperty(ref _carrierMoney, value ?? ""); }
         public string MoneyStatus { get => _moneyStatus; private set => SetProperty(ref _moneyStatus, value); }
 
         public string MoneyText
@@ -181,8 +181,8 @@ namespace TheBusProject.Presentation
             get
             {
                 var game = GameObject.GetInstance();
-                if (game?.HumanAirline == null) return "No game is running.";
-                return "Your money: " + Cash(game.HumanAirline.Money) + ". The player's money (human money) always follows your airline's cash.";
+                if (game?.HumanCarrier == null) return "No game is running.";
+                return "Your money: " + Cash(game.HumanCarrier.Money) + ". The player's money (human money) always follows your carrier's cash.";
             }
         }
 
@@ -215,20 +215,20 @@ namespace TheBusProject.Presentation
         private void SetMoney()
         {
             var game = GameObject.GetInstance();
-            if (game?.HumanAirline == null)
+            if (game?.HumanCarrier == null)
             {
                 MoneyStatus = "Start or load a game first.";
                 return;
             }
 
             double amount;
-            if (!TryParseMoney(_airlineMoney, out amount))
+            if (!TryParseMoney(_carrierMoney, out amount))
             {
                 MoneyStatus = "Type the amount as a number, for example 50000000, 50,000,000 or 50m (k, m and b work, a minus sign too).";
                 return;
             }
 
-            game.HumanAirline.Money = amount;
+            game.HumanCarrier.Money = amount;
             MoneyStatus = "Your money is now " + Cash(amount) + ".";
             OnPropertyChanged(nameof(MoneyText));
             MoneyChanged?.Invoke();
@@ -311,19 +311,19 @@ namespace TheBusProject.Presentation
             set { UseMiles = !value; }
         }
 
-        /// <summary>How much flights cost: Original, Realistic or Tough (kept in the save).</summary>
-        public System.Collections.Generic.List<string> CostLevels => TheBusProject.Helpers.FlightCosts.LevelNames.ToList();
+        /// <summary>How much trips cost: Original, Realistic or Tough (kept in the save).</summary>
+        public System.Collections.Generic.List<string> CostLevels => TheBusProject.Helpers.TripCosts.LevelNames.ToList();
 
         public string CostLevel
         {
             get
             {
                 var g = TheBusProject.Models.General.GameObject.GetInstance();
-                return TheBusProject.Helpers.FlightCosts.LevelNames[Math.Max(0, Math.Min(2, g?.CostLevel ?? 1))];
+                return TheBusProject.Helpers.TripCosts.LevelNames[Math.Max(0, Math.Min(2, g?.CostLevel ?? 1))];
             }
             set
             {
-                int i = Array.IndexOf(TheBusProject.Helpers.FlightCosts.LevelNames, value);
+                int i = Array.IndexOf(TheBusProject.Helpers.TripCosts.LevelNames, value);
                 var g = TheBusProject.Models.General.GameObject.GetInstance();
                 if (i < 0 || g == null || g.CostLevel == i) return;
                 g.CostLevel = i;
@@ -332,7 +332,7 @@ namespace TheBusProject.Presentation
             }
         }
 
-        public string CostLevelText => TheBusProject.Helpers.FlightCosts.Describe(TheBusProject.Models.General.GameObject.GetInstance()?.CostLevel ?? 1);
+        public string CostLevelText => TheBusProject.Helpers.TripCosts.Describe(TheBusProject.Models.General.GameObject.GetInstance()?.CostLevel ?? 1);
 
         public string DistanceExample => "Example: " + DistanceFormatter.Km(1000) + ", " + DistanceFormatter.Speed(800);
 

@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Runtime.Serialization;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General.Countries;
 
 namespace TheBusProject.Models.General.Scenarios
@@ -12,12 +12,12 @@ namespace TheBusProject.Models.General.Scenarios
     {
         #region Constructors and Destructors
 
-        public ScenarioPassengerDemand(double factor, DateTime enddate, Country country, Airport airport)
+        public ScenarioPassengerDemand(double factor, DateTime enddate, Country country, Station station)
         {
             Country = country;
             Factor = factor;
             EndDate = enddate;
-            Airport = airport;
+            Station = station;
         }
 
         private ScenarioPassengerDemand(SerializationInfo info, StreamingContext ctxt) : base(info, ctxt)
@@ -28,8 +28,8 @@ namespace TheBusProject.Models.General.Scenarios
 
         #region Public Properties
 
-        [Versioning("airport")]
-        public Airport Airport { get; set; }
+        [Versioning("station")]
+        public Station Station { get; set; }
 
         [Versioning("country")]
         public Country Country { get; set; }

@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Stations;
 
 namespace TheBusProject.Models.Routes
 {
@@ -12,7 +12,7 @@ namespace TheBusProject.Models.Routes
     {
         #region Constructors and Destructors
 
-        public StopoverRoute(Airport stopover)
+        public StopoverRoute(Station stopover)
         {
             Legs = new List<Route>();
             Stopover = stopover;
@@ -32,7 +32,7 @@ namespace TheBusProject.Models.Routes
         public List<Route> Legs { get; set; }
 
         [Versioning("stopover")]
-        public Airport Stopover { get; set; }
+        public Station Stopover { get; set; }
 
         #endregion
 

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using TheBusProject.Helpers.Workers;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Scenarios;
 using TheBusProject.Models.General.Statistics;
@@ -21,7 +21,7 @@ namespace TheBusProject.Helpers
 
         public static void SetupScenario(Scenario scenario)
         {
-            Airline airline = scenario.Airline;
+            Carrier carrier = scenario.Carrier;
 
             GameObject.GetInstance().DayRoundEnabled = true;
             GameObject.GetInstance().TimeZone = scenario.Homebase.Profile.TimeZone;
@@ -32,47 +32,47 @@ namespace TheBusProject.Helpers
             GameObject.GetInstance().FuelPrice =
                 Inflations.GetInflation(GameObject.GetInstance().GameTime.Year).FuelPrice;
 
-            GameObject.GetInstance().SetHumanAirline(airline);
-            GameObject.GetInstance().MainAirline = GameObject.GetInstance().HumanAirline;
-            //GameObject.GetInstance().HumanAirline.Money = scenario.StartCash;
+            GameObject.GetInstance().SetHumanCarrier(carrier);
+            GameObject.GetInstance().MainCarrier = GameObject.GetInstance().HumanCarrier;
+            //GameObject.GetInstance().HumanCarrier.Money = scenario.StartCash;
 
             GameObject.GetInstance().Scenario = new ScenarioObject(scenario);
 
-            Airport airport = scenario.Homebase;
+            Station station = scenario.Homebase;
 
-            SetupScenarioAirport(airline, airport);
+            SetupScenarioStation(carrier, station);
 
             // PassengerHelpers.CreateDestinationPassengers();
 
-            AirlinerHelpers.CreateStartUpAirliners();
+            CoachHelpers.CreateStartUpCoaches();
 
-            int pilotsPool = 100*Airlines.GetAllAirlines().Count;
+            int pilotsPool = 100*Carriers.GetAllCarriers().Count;
 
             GeneralHelpers.CreatePilots(pilotsPool);
 
-            int instructorsPool = 75*Airlines.GetAllAirlines().Count;
+            int instructorsPool = 75*Carriers.GetAllCarriers().Count;
 
             GeneralHelpers.CreateInstructors(instructorsPool);
 
-            SetupScenarioAirlines(scenario);
+            SetupScenarioCarriers(scenario);
             SetupScenario();
             Setup.SetupAlliances();
 
             // the scenario's own start: its cash, and its debt as a loan to pay off
-            airline.Money = scenario.StartCash;
-            airline.StartMoney = scenario.StartCash;
+            carrier.Money = scenario.StartCash;
+            carrier.StartMoney = scenario.StartCash;
             if (scenario.StartDebt > 0)
             {
-                airline.AddLoan(new Loan(GameObject.GetInstance().GameTime, scenario.StartDebt, 120, GeneralHelpers.GetAirlineLoanRate(airline)));
+                carrier.AddLoan(new Loan(GameObject.GetInstance().GameTime, scenario.StartDebt, 120, GeneralHelpers.GetCarrierLoanRate(carrier)));
             }
 
-            PassengerHelpers.CreateAirlineDestinationDemand();
+            PassengerHelpers.CreateCarrierDestinationDemand();
 
             GeneralHelpers.CreateHolidays(GameObject.GetInstance().GameTime.Year);
 
-            UserInterface.ScenarioStarted?.Invoke(GameObject.GetInstance().HumanAirline);
+            UserInterface.ScenarioStarted?.Invoke(GameObject.GetInstance().HumanCarrier);
 
-            // GameObject.GetInstance().HumanAirline.Money = 1000000000;
+            // GameObject.GetInstance().HumanCarrier.Money = 1000000000;
 
             GameObject.GetInstance()
                       .NewsBox.AddNews(
@@ -82,10 +82,10 @@ namespace TheBusProject.Helpers
                               Translator.GetInstance().GetString("News", "1001"),
                               string.Format(
                                   Translator.GetInstance().GetString("News", "1001", "message"),
-                                  GameObject.GetInstance().HumanAirline.Profile.CEO,
-                                  GameObject.GetInstance().HumanAirline.Profile.IATACode)));
+                                  GameObject.GetInstance().HumanCarrier.Profile.CEO,
+                                  GameObject.GetInstance().HumanCarrier.Profile.IATACode)));
 
-            // the demand must exist before the clock runs, otherwise months pass with empty flights
+            // the demand must exist before the clock runs, otherwise months pass with empty trips
             PassengerHelpers.CreateDestinationDemand();
             SetupScenarioPassengerDemand(scenario);
             GameObjectWorker.GetInstance().StartPaused();
@@ -109,46 +109,46 @@ namespace TheBusProject.Helpers
 
         //sets up the passenger demand for a scenario
 
-        //sets up the human airline 
-        private static void SetupHumanAirline(Scenario scenario)
+        //sets up the human carrier 
+        private static void SetupHumanCarrier(Scenario scenario)
         {
-            foreach (Airport destination in scenario.Destinations)
+            foreach (Station destination in scenario.Destinations)
             {
-                SetupScenarioAirport(GameObject.GetInstance().HumanAirline, destination);
+                SetupScenarioStation(GameObject.GetInstance().HumanCarrier, destination);
             }
 
-            foreach (var fleetAirliner in scenario.Fleet)
+            foreach (var fleetCoach in scenario.Fleet)
             {
-                for (int i = 0; i < fleetAirliner.Value; i++)
+                for (int i = 0; i < fleetCoach.Value; i++)
                 {
                     GameObject.GetInstance()
-                              .HumanAirline.AddAirliner(
-                                  AirlineHelpers.CreateAirliner(GameObject.GetInstance().HumanAirline, fleetAirliner.Key));
+                              .HumanCarrier.AddCoach(
+                                  CarrierHelpers.CreateCoach(GameObject.GetInstance().HumanCarrier, fleetCoach.Key));
                 }
             }
-            foreach (ScenarioAirlineRoute route in scenario.Routes)
+            foreach (ScenarioCarrierRoute route in scenario.Routes)
             {
-                SetupScenarioRoute(route, GameObject.GetInstance().HumanAirline);
+                SetupScenarioRoute(route, GameObject.GetInstance().HumanCarrier);
             }
         }
 
-        private static void SetupOpponentAirline(ScenarioAirline airline)
+        private static void SetupOpponentCarrier(ScenarioCarrier carrier)
         {
-            AirportHelpers.RentGates(airline.Homebase, airline.Airline, AirportContract.ContractType.Full,
-                                     airline.Airline.AirlineRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger);
+            StationHelpers.RentGates(carrier.Homebase, carrier.Carrier, StationContract.ContractType.Full,
+                                     carrier.Carrier.CarrierRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger);
 
-            AirportFacility checkinFacility =
-                AirportFacilities.GetFacilities(AirportFacility.FacilityType.CheckIn).Find(f => f.TypeLevel == 1);
-            AirportFacility facility =
-                AirportFacilities.GetFacilities(AirportFacility.FacilityType.Service)
+            StationFacility checkinFacility =
+                StationFacilities.GetFacilities(StationFacility.FacilityType.CheckIn).Find(f => f.TypeLevel == 1);
+            StationFacility facility =
+                StationFacilities.GetFacilities(StationFacility.FacilityType.Service)
                                  .Find((f => f.TypeLevel == 1));
 
-            airline.Homebase.AddAirportFacility(airline.Airline, facility, GameObject.GetInstance().GameTime);
-            airline.Homebase.AddAirportFacility(airline.Airline, checkinFacility, GameObject.GetInstance().GameTime);
+            carrier.Homebase.AddStationFacility(carrier.Carrier, facility, GameObject.GetInstance().GameTime);
+            carrier.Homebase.AddStationFacility(carrier.Carrier, checkinFacility, GameObject.GetInstance().GameTime);
 
-            foreach (ScenarioAirlineRoute saroute in airline.Routes)
+            foreach (ScenarioCarrierRoute saroute in carrier.Routes)
             {
-                SetupScenarioRoute(saroute, airline.Airline);
+                SetupScenarioRoute(saroute, carrier.Carrier);
             }
         }
 
@@ -156,82 +156,82 @@ namespace TheBusProject.Helpers
         private static void SetupScenario()
         {
             Parallel.ForEach(
-                Airports.GetAllAirports(),
-                airport =>
+                Stations.GetAllStations(),
+                station =>
                     {
-                        foreach (Airline airline in Airlines.GetAllAirlines())
+                        foreach (Carrier carrier in Carriers.GetAllCarriers())
                         {
                             foreach (
-                                AirportFacility.FacilityType type in Enum.GetValues(typeof (AirportFacility.FacilityType)))
+                                StationFacility.FacilityType type in Enum.GetValues(typeof (StationFacility.FacilityType)))
                             {
-                                AirportFacility noneFacility =
-                                    AirportFacilities.GetFacilities(type)
+                                StationFacility noneFacility =
+                                    StationFacilities.GetFacilities(type)
                                                      .Find((facility => facility.TypeLevel == 0));
 
-                                airport.AddAirportFacility(airline, noneFacility, GameObject.GetInstance().GameTime);
+                                station.AddStationFacility(carrier, noneFacility, GameObject.GetInstance().GameTime);
                             }
                         }
-                        AirportHelpers.CreateAirportWeather(airport);
+                        StationHelpers.CreateStationWeather(station);
                     });
 
-            foreach (Airline airline in Airlines.GetAllAirlines())
+            foreach (Carrier carrier in Carriers.GetAllCarriers())
             {
-                airline.Money = GameObject.GetInstance().StartMoney;
+                carrier.Money = GameObject.GetInstance().StartMoney;
 
-                if (airline.IsHuman)
+                if (carrier.IsHuman)
                 {
-                    GameObject.GetInstance().HumanMoney = airline.Money;
+                    GameObject.GetInstance().HumanMoney = carrier.Money;
                 }
 
-                airline.StartMoney = airline.Money;
+                carrier.StartMoney = carrier.Money;
 
-                airline.Fees = new AirlineFees();
-                airline.AddAirlinePolicy(new AirlinePolicy("Cancellation Minutes", 150));
+                carrier.Fees = new CarrierFees();
+                carrier.AddCarrierPolicy(new CarrierPolicy("Cancellation Minutes", 150));
             }
         }
 
-        private static void SetupScenarioAirlines(Scenario scenario)
+        private static void SetupScenarioCarriers(Scenario scenario)
         {
-            var airlines = new List<Airline> {scenario.Airline};
+            var carriers = new List<Carrier> {scenario.Carrier};
 
-            foreach (ScenarioAirline airline in scenario.OpponentAirlines)
+            foreach (ScenarioCarrier carrier in scenario.OpponentCarriers)
             {
-                airlines.Add(airline.Airline);
-                SetupOpponentAirline(airline);
+                carriers.Add(carrier.Carrier);
+                SetupOpponentCarrier(carrier);
             }
 
-            Airlines.Clear();
+            Carriers.Clear();
 
-            airlines.ForEach(Airlines.AddAirline);
+            carriers.ForEach(Carriers.AddCarrier);
 
-            SetupHumanAirline(scenario);
+            SetupHumanCarrier(scenario);
         }
 
-        private static void SetupScenarioAirport(Airline airline, Airport airport, int quantity = 2)
+        private static void SetupScenarioStation(Carrier carrier, Station station, int quantity = 2)
         {
             for (int i = 0; i < quantity; i++)
             {
-                if (!AirportHelpers.HasFreeGates(airport, airline))
+                if (!StationHelpers.HasFreeGates(station, carrier))
                 {
-                    AirportHelpers.RentGates(airport, airline, AirportContract.ContractType.Full);
+                    StationHelpers.RentGates(station, carrier, StationContract.ContractType.Full);
                 }
             }
 
-            AirportFacility checkinFacility =
-                AirportFacilities.GetFacilities(AirportFacility.FacilityType.CheckIn).Find(f => f.TypeLevel == 1);
-            AirportFacility facility =
-                AirportFacilities.GetFacilities(AirportFacility.FacilityType.Service)
+            StationFacility checkinFacility =
+                StationFacilities.GetFacilities(StationFacility.FacilityType.CheckIn).Find(f => f.TypeLevel == 1);
+            StationFacility facility =
+                StationFacilities.GetFacilities(StationFacility.FacilityType.Service)
                                  .Find((f => f.TypeLevel == 1));
 
-            airport.AddAirportFacility(airline, facility, GameObject.GetInstance().GameTime);
-            airport.AddAirportFacility(airline, checkinFacility, GameObject.GetInstance().GameTime);
+            station.AddStationFacility(carrier, facility, GameObject.GetInstance().GameTime);
+            station.AddStationFacility(carrier, checkinFacility, GameObject.GetInstance().GameTime);
         }
 
         private static void SetupScenarioPassengerDemand(Scenario scenario)
         {
             foreach (ScenarioPassengerDemand demand in scenario.PassengerDemands)
             {
-                if (demand.Airport != null)
+                if (demand.Station != null)
                 {
                     PassengerHelpers.ChangePaxDemand(demand.Factor);
                 }
@@ -239,16 +239,16 @@ namespace TheBusProject.Helpers
                 {
                     ScenarioPassengerDemand demand1 = demand;
                     PassengerHelpers.ChangePaxDemand(
-                        Airports.GetAllAirports(a => a.Profile.Country == demand1.Country),
+                        Stations.GetAllStations(a => a.Profile.Country == demand1.Country),
                         demand.Factor);
                 }
             }
         }
 
-        private static void SetupScenarioRoute(ScenarioAirlineRoute saroute, Airline airline)
+        private static void SetupScenarioRoute(ScenarioCarrierRoute saroute, Carrier carrier)
         {
-            SetupScenarioAirport(airline, saroute.Destination1, saroute.Quantity);
-            SetupScenarioAirport(airline, saroute.Destination2, saroute.Quantity);
+            SetupScenarioStation(carrier, saroute.Destination1, saroute.Quantity);
+            SetupScenarioStation(carrier, saroute.Destination2, saroute.Quantity);
 
             double price = PassengerHelpers.GetPassengerPrice(saroute.Destination1, saroute.Destination2);
 
@@ -267,27 +267,27 @@ namespace TheBusProject.Helpers
 
                 foreach (RouteClassConfiguration classConfiguration in configuration.GetClasses())
                 {
-                    route.GetRouteAirlinerClass(classConfiguration.Type).FarePrice = price
+                    route.GetRouteCoachClass(classConfiguration.Type).FarePrice = price
                                                                                      *GeneralHelpers.ClassToPriceFactor
                                                                                           (classConfiguration.Type);
 
                     foreach (RouteFacility rfacility in classConfiguration.GetFacilities())
                     {
-                        route.GetRouteAirlinerClass(classConfiguration.Type).AddFacility(rfacility);
+                        route.GetRouteCoachClass(classConfiguration.Type).AddFacility(rfacility);
                     }
                 }
 
-                airline.AddRoute(route);
+                carrier.AddRoute(route);
 
-                FleetAirliner fAirliner = AirlineHelpers.CreateAirliner(airline, saroute.AirlinerType);
-                airline.AddAirliner(fAirliner);
+                FleetCoach fCoach = CarrierHelpers.CreateCoach(carrier, saroute.CoachType);
+                carrier.AddCoach(fCoach);
 
-                fAirliner.AddRoute(route);
+                fCoach.AddRoute(route);
 
-                AIHelpers.CreateRouteTimeTable(route, fAirliner);
+                AIHelpers.CreateRouteTimeTable(route, fCoach);
 
-                fAirliner.Status = FleetAirliner.AirlinerStatus.ToRouteStart;
-                AirlineHelpers.HireAirlinerPilots(fAirliner);
+                fCoach.Status = FleetCoach.CoachStatus.ToRouteStart;
+                CarrierHelpers.HireCoachPilots(fCoach);
 
                 route.LastUpdated = GameObject.GetInstance().GameTime;
             }
@@ -323,7 +323,7 @@ namespace TheBusProject.Helpers
             {
                 if (GameObject.GetInstance().GameTime.ToShortDateString() == demand.EndDate.ToShortDateString())
                 {
-                    if (demand.Airport != null)
+                    if (demand.Station != null)
                     {
                         PassengerHelpers.ChangePaxDemand(-demand.Factor);
                     }
@@ -331,7 +331,7 @@ namespace TheBusProject.Helpers
                     {
                         ScenarioPassengerDemand demand1 = demand;
                         PassengerHelpers.ChangePaxDemand(
-                            Airports.GetAllAirports(a => a.Profile.Country == demand1.Country),
+                            Stations.GetAllStations(a => a.Profile.Country == demand1.Country),
                             -demand.Factor);
                     }
                 }

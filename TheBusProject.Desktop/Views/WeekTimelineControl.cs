@@ -11,7 +11,7 @@ using TheBusProject.Presentation;
 
 namespace TheBusProject.Desktop.Views
 {
-    /// <summary>The week of one aircraft as a horizontal timetable: a row per day, the hours across, and a block per flight. Dashed blocks are the flights about to be added.</summary>
+    /// <summary>The week of one coach as a horizontal timetable: a row per day, the hours across, and a block per trip. Dashed blocks are the trips about to be added.</summary>
     public class WeekTimelineControl : Control
     {
         private const double Gutter = 44, Header = 22, RowHeight = 34;
@@ -21,7 +21,7 @@ namespace TheBusProject.Desktop.Views
 
         private TimetableViewModel _vm;
 
-        // the flight being dragged, where the drag started, and where it would land
+        // the trip being dragged, where the drag started, and where it would land
         private TimelineBlock _drag;
         private Point _pressed;
         private bool _dragging;
@@ -30,10 +30,10 @@ namespace TheBusProject.Desktop.Views
         private int _dragDays;
         private double _dragMinutes;
 
-        // shift held when the drag began: the flight is copied to where it lands instead of moved there
+        // shift held when the drag began: the trip is copied to where it lands instead of moved there
         private bool _copying;
 
-        // the rubber band drawn across empty space to pick several flights at once
+        // the rubber band drawn across empty space to pick several trips at once
         private bool _banding;
         private Point _bandFrom, _bandTo;
         private bool _bandAdds;
@@ -148,7 +148,7 @@ namespace TheBusProject.Desktop.Views
                 ctx.DrawRectangle(new SolidColorBrush(Color.FromArgb(55, c.R, c.G, c.B)), new Pen(new SolidColorBrush(c), 1.5, new DashStyle(new double[] { 3, 2 }, 0)), r, 4, 4);
             }
 
-            // the gate time after each flight, behind the flights themselves: the aircraft is there but not flying,
+            // the gate time after each trip, behind the trips themselves: the coach is there but not flying,
             // and nothing else can leave until it has passed
             foreach (var b in _vm.Ground.ToList().Concat(_vm.PreviewGround.ToList()))
             {
@@ -179,12 +179,12 @@ namespace TheBusProject.Desktop.Views
                 }
             }
 
-            // where the dragged flights would land: one outline each, the whole group moving together
+            // where the dragged trips would land: one outline each, the whole group moving together
             if (_dragging && _drag != null)
             {
                 var pen = new Pen(Brushes.White, 2, new DashStyle(new double[] { 4, 3 }, 0));
                 bool group = _vm.SelectedCount > 1 && _vm.IsSelected(_drag.Entry);
-                // the same shift the move will apply, so the outline is where the flights really land
+                // the same shift the move will apply, so the outline is where the trips really land
                 double shift = TimetableViewModel.SnapShift(_dragMinutes);
                 var dragged = group
                     ? _vm.Blocks.Where(b => b.Entry != null && _vm.IsSelected(b.Entry) && b.Start == b.Entry.Time.TotalMinutes).ToList()
@@ -276,14 +276,14 @@ namespace TheBusProject.Desktop.Views
                 return;
             }
 
-            // Shift does two things, told apart by whether the pointer moves: shift-clicking a flight picks
+            // Shift does two things, told apart by whether the pointer moves: shift-clicking a trip picks
             // everything between it and the last one picked, while shift-dragging one copies it. So shift on its own
             // decides nothing yet; the range is picked on release if the pointer never moved.
             _copying = shift && !ctrl;
             if (ctrl) _vm.SelectAlso(hit);
-            else if (!shift && !_vm.IsSelected(hit.Entry)) _vm.SelectedBlock = hit; // a flight already picked keeps the group
+            else if (!shift && !_vm.IsSelected(hit.Entry)) _vm.SelectedBlock = hit; // a trip already picked keeps the group
 
-            // dragging starts from any picked flight and takes the whole group with it; a copy takes only the one
+            // dragging starts from any picked trip and takes the whole group with it; a copy takes only the one
             if (_copying || _vm.IsSelected(hit.Entry))
             {
                 _drag = hit;
@@ -308,7 +308,7 @@ namespace TheBusProject.Desktop.Views
             }
 
             Point p = e.GetPosition(this);
-            // a click shouldn't nudge a flight, so a few pixels have to be travelled first
+            // a click shouldn't nudge a trip, so a few pixels have to be travelled first
             if (!_dragging && Math.Abs(p.X - _pressed.X) < 4 && Math.Abs(p.Y - _pressed.Y) < 4)
             {
                 return;
@@ -323,7 +323,7 @@ namespace TheBusProject.Desktop.Views
             InvalidateVisual();
         }
 
-        // where the pointer would put the dragged flight: the whole week moves with the pointer, so dragging a block
+        // where the pointer would put the dragged trip: the whole week moves with the pointer, so dragging a block
         // that ran past midnight works from either half of it
         private void Target(TimelineBlock block, Point p, out DayOfWeek day, out TimeSpan time)
         {
@@ -365,7 +365,7 @@ namespace TheBusProject.Desktop.Views
 
             if (!dragging)
             {
-                // shift and no movement: pick everything between this flight and the last one picked
+                // shift and no movement: pick everything between this trip and the last one picked
                 if (copying) _vm.SelectRange(drag);
                 InvalidateVisual();
                 return;

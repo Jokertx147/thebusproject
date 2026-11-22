@@ -10,7 +10,7 @@
         <TextBlock Text="Sort by" VerticalAlignment="Center" Margin="12,0,0,0" />
         <ComboBox ItemsSource="{Binding SortChoices}" SelectedItem="{Binding SortBy}" MinWidth="200" />
       </StackPanel>
-      <TextBlock Text="A route's own income and costs (tickets, in-flight sales, fuel and handling, crew, maintenance, fees), before what its aircraft cost to own or lease." Opacity="0.6" TextWrapping="Wrap" />
+      <TextBlock Text="A route's own income and costs (tickets, in-trip sales, fuel and handling, crew, maintenance, fees), before what its coach cost to own or lease." Opacity="0.6" TextWrapping="Wrap" />
     </StackPanel>
 
     <!-- the routes -->

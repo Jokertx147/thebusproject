@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -17,10 +17,10 @@ namespace TheBusProject.Models.Pilots
             Name = name;
             TrainingDays = trainingdays;
             CostIndex = costindex;
-            Aircrafts = new List<TrainingAircraftType>();
+            Coaches = new List<TrainingCoachType>();
         }
 
-        //adds a training aircraft which the rating (pilot) uses in training
+        //adds a training coach which the rating (pilot) uses in training
 
         private PilotRating(SerializationInfo info, StreamingContext ctxt) : base(info, ctxt)
         {
@@ -30,8 +30,8 @@ namespace TheBusProject.Models.Pilots
 
         #region Public Properties
 
-        [Versioning("trainingaircrafts")]
-        public List<TrainingAircraftType> Aircrafts { get; set; }
+        [Versioning("trainingcoaches")]
+        public List<TrainingCoachType> Coaches { get; set; }
 
         [Versioning("costindex")]
         public int CostIndex { get; set; }
@@ -58,9 +58,9 @@ namespace TheBusProject.Models.Pilots
             base.GetObjectData(info, context);
         }
 
-        public void AddAircraft(TrainingAircraftType aircraft)
+        public void AddCoach(TrainingCoachType coach)
         {
-            Aircrafts.Add(aircraft);
+            Coaches.Add(coach);
         }
 
         #endregion

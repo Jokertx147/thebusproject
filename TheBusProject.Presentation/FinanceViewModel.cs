@@ -14,7 +14,7 @@ namespace TheBusProject.Presentation
         public bool IsTotal { get; set; }
     }
 
-    /// <summary>Income and expenses of the airline per month (the last six months and the year so far).</summary>
+    /// <summary>Income and expenses of the carrier per month (the last six months and the year so far).</summary>
     public class FinanceViewModel : ObservableObject
     {
         public ObservableCollection<FinanceRow> Rows { get; } = new ObservableCollection<FinanceRow>();
@@ -23,8 +23,8 @@ namespace TheBusProject.Presentation
         public void Refresh()
         {
             var game = GameObject.GetInstance();
-            var airline = game?.HumanAirline;
-            if (airline == null)
+            var carrier = game?.HumanCarrier;
+            if (carrier == null)
             {
                 return;
             }
@@ -40,20 +40,20 @@ namespace TheBusProject.Presentation
 
             var types = new[]
             {
-                Invoice.InvoiceType.Tickets, Invoice.InvoiceType.OnFlightIncome, Invoice.InvoiceType.Wages,
-                Invoice.InvoiceType.FlightExpenses, Invoice.InvoiceType.Maintenances, Invoice.InvoiceType.Fees,
-                Invoice.InvoiceType.Rents, Invoice.InvoiceType.Loans, Invoice.InvoiceType.AirlineExpenses,
+                Invoice.InvoiceType.Tickets, Invoice.InvoiceType.OnTripIncome, Invoice.InvoiceType.Wages,
+                Invoice.InvoiceType.TripExpenses, Invoice.InvoiceType.Maintenances, Invoice.InvoiceType.Fees,
+                Invoice.InvoiceType.Rents, Invoice.InvoiceType.Loans, Invoice.InvoiceType.CarrierExpenses,
                 Invoice.InvoiceType.Purchases, Invoice.InvoiceType.Total
             };
 
             Rows.Clear();
             foreach (var type in types)
             {
-                var values = months.Select(m => money(airline.GetInvoicesAmountMonth(m.Year, m.Month, type))).ToList();
+                var values = months.Select(m => money(carrier.GetInvoicesAmountMonth(m.Year, m.Month, type))).ToList();
 
                 double year = type == Invoice.InvoiceType.Total
-                    ? airline.Invoices.GetYearlyAmount(now.Year)
-                    : airline.Invoices.GetYearlyAmount(type, now.Year);
+                    ? carrier.Invoices.GetYearlyAmount(now.Year)
+                    : carrier.Invoices.GetYearlyAmount(type, now.Year);
                 values.Add(money(year));
 
                 Rows.Add(

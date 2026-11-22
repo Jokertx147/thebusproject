@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using TheBusProject.Helpers;
@@ -6,7 +6,7 @@ using TheBusProject.Infrastructure;
 
 namespace TheBusProject.Models.Pilots
 {
-    //the class for a flight school instructor
+    //the class for a trip school instructor
     [Serializable]
     public class Instructor : BaseModel
     {
@@ -31,8 +31,8 @@ namespace TheBusProject.Models.Pilots
 
         #region Public Properties
 
-        [Versioning("flightschool")]
-        public FlightSchool FlightSchool { get; set; }
+        [Versioning("tripschool")]
+        public TripSchool TripSchool { get; set; }
 
         [Versioning("profile")]
         public PilotProfile Profile { get; set; }
@@ -69,7 +69,7 @@ namespace TheBusProject.Models.Pilots
         #endregion
     }
 
-    //the list of flight school instructors
+    //the list of trip school instructors
     public class Instructors
     {
         #region Static Fields
@@ -98,13 +98,13 @@ namespace TheBusProject.Models.Pilots
 
         public static int GetNumberOfUnassignedInstructors()
         {
-            return instructors.FindAll(i => i.FlightSchool == null).Count;
+            return instructors.FindAll(i => i.TripSchool == null).Count;
         }
 
-        //returns all instructors not assigned to a flight school
+        //returns all instructors not assigned to a trip school
         public static List<Instructor> GetUnassignedInstructors()
         {
-            return instructors.FindAll(i => i.FlightSchool == null);
+            return instructors.FindAll(i => i.TripSchool == null);
         }
 
         //clears the list of instructors

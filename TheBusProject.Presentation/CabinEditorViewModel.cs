@@ -5,7 +5,7 @@ using System.Linq;
 using System.Windows.Input;
 using TheBusProject.Helpers;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airliners;
+using TheBusProject.Models.Coaches;
 using TheBusProject.Models.General;
 
 namespace TheBusProject.Presentation
@@ -13,7 +13,7 @@ namespace TheBusProject.Presentation
     /// <summary>One selectable cabin facility (seats, audio or video) with its price.</summary>
     public class FacilityChoice
     {
-        public AirlinerFacility Facility { get; set; }
+        public CoachFacility Facility { get; set; }
         public string Text { get; set; }
         public override string ToString()
         {
@@ -27,16 +27,16 @@ namespace TheBusProject.Presentation
         private readonly CabinClassViewModel _owner;
         private FacilityChoice _selected;
 
-        public FacilityPicker(CabinClassViewModel owner, AirlinerFacility.FacilityType type, List<FacilityChoice> choices)
+        public FacilityPicker(CabinClassViewModel owner, CoachFacility.FacilityType type, List<FacilityChoice> choices)
         {
             _owner = owner;
             Type = type;
             Choices = choices;
-            Title = type == AirlinerFacility.FacilityType.Seat ? "Seats"
-                  : type == AirlinerFacility.FacilityType.Audio ? "Audio" : "Video";
+            Title = type == CoachFacility.FacilityType.Seat ? "Seats"
+                  : type == CoachFacility.FacilityType.Audio ? "Audio" : "Video";
         }
 
-        public AirlinerFacility.FacilityType Type { get; }
+        public CoachFacility.FacilityType Type { get; }
         public string Title { get; }
         public List<FacilityChoice> Choices { get; }
 
@@ -52,10 +52,10 @@ namespace TheBusProject.Presentation
             }
         }
 
-        public AirlinerFacility Facility => _selected?.Facility;
+        public CoachFacility Facility => _selected?.Facility;
 
         /// <summary>Selects without telling the owner (used while a layout is loaded).</summary>
-        internal void Load(AirlinerFacility facility)
+        internal void Load(CoachFacility facility)
         {
             FacilityChoice choice = Choices.FirstOrDefault(c => c.Facility.Uid == facility.Uid && c.Facility.Type == facility.Type);
             if (choice == null)
@@ -77,24 +77,24 @@ namespace TheBusProject.Presentation
         private int _maxSeats;
         private int _regular;
 
-        public CabinClassViewModel(CabinEditorViewModel owner, AirlinerClass.ClassType type, int year)
+        public CabinClassViewModel(CabinEditorViewModel owner, CoachClass.ClassType type, int year)
         {
             _owner = owner;
             Type = type;
-            Name = type == AirlinerClass.ClassType.EconomyClass ? "Economy"
-                 : type == AirlinerClass.ClassType.BusinessClass ? "Business" : "First";
-            Seat = new FacilityPicker(this, AirlinerFacility.FacilityType.Seat, CabinEditorViewModel.ChoicesFor(AirlinerFacility.FacilityType.Seat, year));
-            Audio = new FacilityPicker(this, AirlinerFacility.FacilityType.Audio, CabinEditorViewModel.ChoicesFor(AirlinerFacility.FacilityType.Audio, year));
-            Video = new FacilityPicker(this, AirlinerFacility.FacilityType.Video, CabinEditorViewModel.ChoicesFor(AirlinerFacility.FacilityType.Video, year));
-            Seat.Load(AirlinerFacilities.GetBasicFacility(AirlinerFacility.FacilityType.Seat));
-            Audio.Load(AirlinerFacilities.GetBasicFacility(AirlinerFacility.FacilityType.Audio));
-            Video.Load(AirlinerFacilities.GetBasicFacility(AirlinerFacility.FacilityType.Video));
+            Name = type == CoachClass.ClassType.EconomyClass ? "Economy"
+                 : type == CoachClass.ClassType.BusinessClass ? "Business" : "First";
+            Seat = new FacilityPicker(this, CoachFacility.FacilityType.Seat, CabinEditorViewModel.ChoicesFor(CoachFacility.FacilityType.Seat, year));
+            Audio = new FacilityPicker(this, CoachFacility.FacilityType.Audio, CabinEditorViewModel.ChoicesFor(CoachFacility.FacilityType.Audio, year));
+            Video = new FacilityPicker(this, CoachFacility.FacilityType.Video, CabinEditorViewModel.ChoicesFor(CoachFacility.FacilityType.Video, year));
+            Seat.Load(CoachFacilities.GetBasicFacility(CoachFacility.FacilityType.Seat));
+            Audio.Load(CoachFacilities.GetBasicFacility(CoachFacility.FacilityType.Audio));
+            Video.Load(CoachFacilities.GetBasicFacility(CoachFacility.FacilityType.Video));
             RemoveCommand = new RelayCommand(() => _owner.Remove(this), () => !IsEconomy);
         }
 
-        public AirlinerClass.ClassType Type { get; }
+        public CoachClass.ClassType Type { get; }
         public string Name { get; }
-        public bool IsEconomy => Type == AirlinerClass.ClassType.EconomyClass;
+        public bool IsEconomy => Type == CoachClass.ClassType.EconomyClass;
         public bool CanEditSeats => !IsEconomy;
         public bool CanRemove => !IsEconomy;
         public ICommand RemoveCommand { get; }
@@ -152,9 +152,9 @@ namespace TheBusProject.Presentation
             OnPropertyChanged(nameof(Info));
         }
 
-        internal void FacilityChanged(AirlinerFacility.FacilityType type)
+        internal void FacilityChanged(CoachFacility.FacilityType type)
         {
-            if (type == AirlinerFacility.FacilityType.Seat && !IsEconomy)
+            if (type == CoachFacility.FacilityType.Seat && !IsEconomy)
             {
                 _regular = (int) Math.Ceiling(_seats * SeatUses - 1e-9);
             }
@@ -166,7 +166,7 @@ namespace TheBusProject.Presentation
     public class CabinPreset
     {
         public string Name { get; set; }
-        public AirlinerConfiguration Configuration { get; set; }
+        public CoachConfiguration Configuration { get; set; }
         public bool IsSaved => Configuration != null && !Configuration.Standard;
         public override string ToString()
         {
@@ -175,12 +175,12 @@ namespace TheBusProject.Presentation
     }
 
     /// <summary>
-    /// The cabin layout of an aircraft being ordered: classes, seats and onboard facilities.
-    /// The airliner has a fixed floor (its maximum seating); better seats take more space per passenger.
+    /// The cabin layout of an coach being ordered: classes, seats and onboard facilities.
+    /// The coach has a fixed floor (its maximum seating); better seats take more space per passenger.
     /// </summary>
     public class CabinEditorViewModel : ObservableObject
     {
-        private readonly AirlinerPassengerType _type;
+        private readonly CoachPassengerType _type;
         private readonly int _year;
         private readonly Action _changed;
         private CabinPreset _preset;
@@ -188,7 +188,7 @@ namespace TheBusProject.Presentation
         private string _saveName = "", _layoutStatus, _pendingText;
         private Action _pending;
 
-        public CabinEditorViewModel(AirlinerPassengerType type, Action changed = null)
+        public CabinEditorViewModel(CoachPassengerType type, Action changed = null)
         {
             _type = type;
             _changed = changed;
@@ -207,14 +207,14 @@ namespace TheBusProject.Presentation
         }
 
         /// <summary>"Economy only", then the player's layouts, then the game's, all that fit this type.</summary>
-        private void LoadPresets(AirlinerConfiguration select)
+        private void LoadPresets(CoachConfiguration select)
         {
             Presets.Clear();
             Presets.Add(new CabinPreset { Name = "Economy only" });
             foreach (var c in CabinLayoutService.Saved().Where(c => CabinLayoutService.Fits(c, _type, _year)))
                 Presets.Add(new CabinPreset { Name = "Yours: " + c.Name + "  (" + CabinLayoutService.Describe(c) + ")", Configuration = c });
-            foreach (var c in Configurations.GetConfigurations(Configuration.ConfigurationType.Airliner)
-                                            .OfType<AirlinerConfiguration>()
+            foreach (var c in Configurations.GetConfigurations(Configuration.ConfigurationType.Coach)
+                                            .OfType<CoachConfiguration>()
                                             .Where(c => c.Standard && CabinLayoutService.Fits(c, _type, _year))
                                             .OrderBy(c => c.Name))
                 Presets.Add(new CabinPreset { Name = c.Name, Configuration = c });
@@ -257,7 +257,7 @@ namespace TheBusProject.Presentation
             {
                 LoadPresets(conf);
                 if (replacing) m = m.Replace("Saved the layout", "Replaced the layout");
-                m += " It is in the Start from list for every aircraft it fits.";
+                m += " It is in the Start from list for every coach it fits.";
             }
             LayoutStatus = m;
         }
@@ -266,7 +266,7 @@ namespace TheBusProject.Presentation
         {
             var conf = _preset?.Configuration;
             if (conf == null || conf.Standard) return;
-            SetPending("Delete your layout \"" + conf.Name + "\"? Aircraft that have it keep their cabins.", () =>
+            SetPending("Delete your layout \"" + conf.Name + "\"? Coach that have it keep their cabins.", () =>
                 {
                     CabinLayoutService.Delete(conf);
                     LoadPresets(null);
@@ -277,20 +277,20 @@ namespace TheBusProject.Presentation
                 });
         }
 
-        /// <summary>The editor for an aircraft that exists already: starts from its classes and facilities.</summary>
-        public CabinEditorViewModel(AirlinerPassengerType type, IEnumerable<AirlinerClass> existing, Action changed = null)
+        /// <summary>The editor for an coach that exists already: starts from its classes and facilities.</summary>
+        public CabinEditorViewModel(CoachPassengerType type, IEnumerable<CoachClass> existing, Action changed = null)
             : this(type, changed)
         {
             Load(existing);
         }
 
         /// <summary>What the seats and facilities of the classes are worth (what ordering them costs).</summary>
-        public static double PriceOf(IEnumerable<AirlinerClass> classes)
+        public static double PriceOf(IEnumerable<CoachClass> classes)
         {
             double price = 0;
-            foreach (AirlinerClass c in classes)
+            foreach (CoachClass c in classes)
             {
-                foreach (AirlinerFacility f in c.GetFacilities())
+                foreach (CoachFacility f in c.GetFacilities())
                 {
                     price += f.PricePerSeat * (f.PercentOfSeats / 100) * c.SeatingCapacity;
                 }
@@ -299,7 +299,7 @@ namespace TheBusProject.Presentation
             return price;
         }
 
-        private void Load(IEnumerable<AirlinerClass> classes)
+        private void Load(IEnumerable<CoachClass> classes)
         {
             var list = classes.Where(c => c != null).ToList();
             if (list.Count == 0)
@@ -309,13 +309,13 @@ namespace TheBusProject.Presentation
 
             _loading = true;
             Classes.Clear();
-            foreach (AirlinerClass c in list.OrderBy(c => c.Type != AirlinerClass.ClassType.EconomyClass))
+            foreach (CoachClass c in list.OrderBy(c => c.Type != CoachClass.ClassType.EconomyClass))
             {
                 var vm = new CabinClassViewModel(this, c.Type, _year);
-                foreach (AirlinerFacility f in c.GetFacilities())
+                foreach (CoachFacility f in c.GetFacilities())
                 {
-                    FacilityPicker picker = f.Type == AirlinerFacility.FacilityType.Seat ? vm.Seat
-                                          : f.Type == AirlinerFacility.FacilityType.Audio ? vm.Audio : vm.Video;
+                    FacilityPicker picker = f.Type == CoachFacility.FacilityType.Seat ? vm.Seat
+                                          : f.Type == CoachFacility.FacilityType.Audio ? vm.Audio : vm.Video;
                     picker.Load(f);
                 }
 
@@ -329,7 +329,7 @@ namespace TheBusProject.Presentation
 
             if (Classes.All(c => !c.IsEconomy))
             {
-                Classes.Insert(0, new CabinClassViewModel(this, AirlinerClass.ClassType.EconomyClass, _year));
+                Classes.Insert(0, new CabinClassViewModel(this, CoachClass.ClassType.EconomyClass, _year));
             }
 
             _loading = false;
@@ -363,9 +363,9 @@ namespace TheBusProject.Presentation
             }
         }
 
-        public bool CanAdd => Classes.Count < Math.Max(1, _type.MaxAirlinerClasses) && NextType() != null;
+        public bool CanAdd => Classes.Count < Math.Max(1, _type.MaxCoachClasses) && NextType() != null;
 
-        /// <summary>Extra price per aircraft for the seats and facilities.</summary>
+        /// <summary>Extra price per coach for the seats and facilities.</summary>
         public double Price
         {
             get
@@ -375,7 +375,7 @@ namespace TheBusProject.Presentation
                 {
                     foreach (FacilityPicker p in new[] { c.Seat, c.Audio, c.Video })
                     {
-                        AirlinerFacility f = p.Facility;
+                        CoachFacility f = p.Facility;
                         if (f != null)
                         {
                             price += f.PricePerSeat * (f.PercentOfSeats / 100) * c.Seats;
@@ -394,22 +394,22 @@ namespace TheBusProject.Presentation
         {
             get
             {
-                int Seats(AirlinerClass.ClassType t) => Classes.FirstOrDefault(c => c.Type == t)?.Seats ?? 0;
+                int Seats(CoachClass.ClassType t) => Classes.FirstOrDefault(c => c.Type == t)?.Seats ?? 0;
                 return string.Format(
                     "{0}F | {1}C | {2}Y",
-                    Seats(AirlinerClass.ClassType.FirstClass),
-                    Seats(AirlinerClass.ClassType.BusinessClass),
-                    Seats(AirlinerClass.ClassType.EconomyClass));
+                    Seats(CoachClass.ClassType.FirstClass),
+                    Seats(CoachClass.ClassType.BusinessClass),
+                    Seats(CoachClass.ClassType.EconomyClass));
             }
         }
 
         public string Summary => string.Format(
-            "{0}  ({1} seats)  |  cabin extras {2} per aircraft",
+            "{0}  ({1} seats)  |  cabin extras {2} per coach",
             Layout,
             TotalSeats,
             Convert.ToString(new ValueCurrencyFormatter().Convert(Price)));
 
-        public static string Describe(AirlinerFacility f)
+        public static string Describe(CoachFacility f)
         {
             string text = f.Name;
             if (f.PricePerSeat > 0 && f.PercentOfSeats > 0)
@@ -417,7 +417,7 @@ namespace TheBusProject.Presentation
                 text += "  (" + Convert.ToString(new ValueCurrencyFormatter().Convert(f.PricePerSeat * f.PercentOfSeats / 100)) + " / seat)";
             }
 
-            if (f.Type == AirlinerFacility.FacilityType.Seat && Math.Abs(f.SeatUses - 1) > 0.001)
+            if (f.Type == CoachFacility.FacilityType.Seat && Math.Abs(f.SeatUses - 1) > 0.001)
             {
                 text += "  [" + f.SeatUses.ToString("0.0#") + "x space]";
             }
@@ -425,9 +425,9 @@ namespace TheBusProject.Presentation
             return text;
         }
 
-        internal static List<FacilityChoice> ChoicesFor(AirlinerFacility.FacilityType type, int year)
+        internal static List<FacilityChoice> ChoicesFor(CoachFacility.FacilityType type, int year)
         {
-            return AirlinerFacilities.GetFacilities(type, year)
+            return CoachFacilities.GetFacilities(type, year)
                                      .Select(f => new FacilityChoice { Facility = f, Text = Describe(f) })
                                      .ToList();
         }
@@ -437,24 +437,24 @@ namespace TheBusProject.Presentation
         {
             _loading = true;
             Classes.Clear();
-            Classes.Add(new CabinClassViewModel(this, AirlinerClass.ClassType.EconomyClass, _year));
+            Classes.Add(new CabinClassViewModel(this, CoachClass.ClassType.EconomyClass, _year));
             _loading = false;
             Recalculate();
         }
 
-        private void Apply(AirlinerConfiguration configuration)
+        private void Apply(CoachConfiguration configuration)
         {
             _loading = true;
             Classes.Clear();
 
             // economy first, as it takes what the others leave
-            foreach (AirlinerClassConfiguration conf in configuration.Classes.OrderBy(c => c.Type != AirlinerClass.ClassType.EconomyClass))
+            foreach (CoachClassConfiguration conf in configuration.Classes.OrderBy(c => c.Type != CoachClass.ClassType.EconomyClass))
             {
                 var vm = new CabinClassViewModel(this, conf.Type, _year);
-                foreach (AirlinerFacility f in conf.GetFacilities())
+                foreach (CoachFacility f in conf.GetFacilities())
                 {
-                    FacilityPicker picker = f.Type == AirlinerFacility.FacilityType.Seat ? vm.Seat
-                                          : f.Type == AirlinerFacility.FacilityType.Audio ? vm.Audio : vm.Video;
+                    FacilityPicker picker = f.Type == CoachFacility.FacilityType.Seat ? vm.Seat
+                                          : f.Type == CoachFacility.FacilityType.Audio ? vm.Audio : vm.Video;
                     picker.Load(f);
                 }
 
@@ -470,9 +470,9 @@ namespace TheBusProject.Presentation
             Recalculate();
         }
 
-        private AirlinerClass.ClassType? NextType()
+        private CoachClass.ClassType? NextType()
         {
-            foreach (AirlinerClass.ClassType t in new[] { AirlinerClass.ClassType.BusinessClass, AirlinerClass.ClassType.FirstClass })
+            foreach (CoachClass.ClassType t in new[] { CoachClass.ClassType.BusinessClass, CoachClass.ClassType.FirstClass })
             {
                 if (_year >= (int) t && Classes.All(c => c.Type != t))
                 {
@@ -485,7 +485,7 @@ namespace TheBusProject.Presentation
 
         private void Add()
         {
-            AirlinerClass.ClassType? next = NextType();
+            CoachClass.ClassType? next = NextType();
             if (next == null)
             {
                 return;
@@ -550,13 +550,13 @@ namespace TheBusProject.Presentation
             _changed?.Invoke();
         }
 
-        /// <summary>Fresh classes for one aircraft; the cabin price is already part of the order price, so nothing is charged here.</summary>
-        public List<AirlinerClass> BuildClasses()
+        /// <summary>Fresh classes for one coach; the cabin price is already part of the order price, so nothing is charged here.</summary>
+        public List<CoachClass> BuildClasses()
         {
-            var list = new List<AirlinerClass>();
+            var list = new List<CoachClass>();
             foreach (CabinClassViewModel c in Classes)
             {
-                var aClass = new AirlinerClass(c.Type, c.Seats) { RegularSeatingCapacity = c.Regular };
+                var aClass = new CoachClass(c.Type, c.Seats) { RegularSeatingCapacity = c.Regular };
                 foreach (FacilityPicker p in new[] { c.Seat, c.Audio, c.Video })
                 {
                     aClass.ForceSetFacility(p.Facility);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.Serialization;
 using TheBusProject.Infrastructure;
 
@@ -10,10 +10,10 @@ namespace TheBusProject.Models.Pilots
     {
         #region Constructors and Destructors
 
-        public PilotTraining(string airlinerfamily, DateTime enddate)
+        public PilotTraining(string coachfamily, DateTime enddate)
         {
             EndDate = enddate;
-            AirlinerFamily = airlinerfamily;
+            CoachFamily = coachfamily;
         }
 
         private PilotTraining(SerializationInfo info, StreamingContext ctxt) : base(info, ctxt)
@@ -24,8 +24,8 @@ namespace TheBusProject.Models.Pilots
 
         #region Public Properties
 
-        [Versioning("airliner")]
-        public string AirlinerFamily { get; set; }
+        [Versioning("coach")]
+        public string CoachFamily { get; set; }
 
         [Versioning("date")]
         public DateTime EndDate { get; set; }

@@ -41,7 +41,7 @@
         <TextBlock Text="years" VerticalAlignment="Center" />
       </StackPanel>
       <StackPanel Orientation="Horizontal" Spacing="10">
-        <TextBox Text="{Binding AmountText}" Width="170" Watermark="limit per aircraft" />
+        <TextBox Text="{Binding AmountText}" Width="170" Watermark="limit per coach" />
         <Button Content="Buy policy" Command="{Binding BuyCommand}" />
       </StackPanel>
       <TextBlock Text="{Binding CoverText}" Opacity="0.8" TextWrapping="Wrap" />

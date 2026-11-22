@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General.Statistics;
 
 namespace TheBusProject.Models.Routes
@@ -17,17 +17,17 @@ namespace TheBusProject.Models.Routes
 
         public PassengerRoute(
             string id,
-            Airport destination1,
-            Airport destination2,
+            Station destination1,
+            Station destination2,
             DateTime startDate,
             double farePrice)
             : base(RouteType.Passenger, id, destination1, destination2, startDate)
         {
-            Classes = new List<RouteAirlinerClass>();
+            Classes = new List<RouteCoachClass>();
 
-            foreach (AirlinerClass.ClassType ctype in Enum.GetValues(typeof (AirlinerClass.ClassType)))
+            foreach (CoachClass.ClassType ctype in Enum.GetValues(typeof (CoachClass.ClassType)))
             {
-                var cl = new RouteAirlinerClass(ctype, RouteAirlinerClass.SeatingType.ReservedSeating, farePrice);
+                var cl = new RouteCoachClass(ctype, RouteCoachClass.SeatingType.ReservedSeating, farePrice);
 
                 Classes.Add(cl);
             }
@@ -43,7 +43,7 @@ namespace TheBusProject.Models.Routes
         #region Public Properties
 
         [Versioning("classes")]
-        public List<RouteAirlinerClass> Classes { get; set; }
+        public List<RouteCoachClass> Classes { get; set; }
 
         public double IncomePerPassenger => GetIncomePerPassenger();
 
@@ -58,13 +58,13 @@ namespace TheBusProject.Models.Routes
             base.GetObjectData(info, context);
         }
 
-        //adds a route airliner class to the route
-        public void AddRouteAirlinerClass(RouteAirlinerClass aClass)
+        //adds a route coach class to the route
+        public void AddRouteCoachClass(RouteCoachClass aClass)
         {
             Classes.Add(aClass);
         }
 
-        public double GetFarePrice(AirlinerClass.ClassType type)
+        public double GetFarePrice(CoachClass.ClassType type)
         {
             return Classes.Find(c => c.Type == type).FarePrice;
         }
@@ -87,25 +87,25 @@ namespace TheBusProject.Models.Routes
             return passengers/passengerCapacity;
         }
 
-        //returns the route airliner class for a specific class type
-        public RouteAirlinerClass GetRouteAirlinerClass(AirlinerClass.ClassType type)
+        //returns the route coach class for a specific class type
+        public RouteCoachClass GetRouteCoachClass(CoachClass.ClassType type)
         {
             return Classes.Find(cl => cl.Type == type);
         }
 
-        public double GetServiceLevel(AirlinerClass.ClassType type)
+        public double GetServiceLevel(CoachClass.ClassType type)
         {
             return Classes.Find(c => c.Type == type).GetFacilities().Sum(f => f.ServiceLevel);
         }
 
-        //returns the total number of cabin crew for the route based on airliner
+        //returns the total number of cabin crew for the route based on coach
         public int GetTotalCabinCrew()
         {
             int cabinCrew = 0;
 
-            if (GetAirliners().Count > 0)
+            if (GetCoaches().Count > 0)
             {
-                cabinCrew = GetAirliners().Sum(a => ((AirlinerPassengerType) a.Airliner.Type).CabinCrew);
+                cabinCrew = GetCoaches().Sum(a => ((CoachPassengerType) a.Coach.Type).CabinCrew);
             }
 
             return cabinCrew;
@@ -125,7 +125,7 @@ namespace TheBusProject.Models.Routes
 
         #endregion
 
-        //public FleetAirliner Airliner { get; set; }
+        //public FleetCoach Coach { get; set; }
 
         //get the degree of filling
 
@@ -142,8 +142,8 @@ namespace TheBusProject.Models.Routes
     {
         public HelicopterRoute(
             string id,
-            Airport destination1,
-            Airport destination2,
+            Station destination1,
+            Station destination2,
             DateTime startDate,
             double farePrice)
             : base(id, destination1, destination2, startDate, farePrice)

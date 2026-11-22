@@ -4,8 +4,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 using TheBusProject.Helpers;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 
 namespace TheBusProject.Presentation
@@ -16,7 +16,7 @@ namespace TheBusProject.Presentation
         private int _passengers;
         private int _cargo;
 
-        public DemandRow(Airport origin, Airport destination, int passengers, int cargo, bool domestic)
+        public DemandRow(Station origin, Station destination, int passengers, int cargo, bool domestic)
         {
             Origin = origin;
             Destination = destination;
@@ -27,18 +27,18 @@ namespace TheBusProject.Presentation
             IsDomestic = domestic;
             Distance = MathHelpers.GetDistance(origin, destination);
 
-            var airline = GameObject.GetInstance().HumanAirline;
+            var carrier = GameObject.GetInstance().HumanCarrier;
             var p = destination.Profile;
             Name = p.IATACode + "  " + p.Name + ", " + p.Country?.Name;
             Kind = DemandViewModel.TypeName(p.Type) + ", " + DemandViewModel.SizeName(p.Size);
-            HasContract = destination.AirlineContracts.Exists(c => c.Airline == airline);
+            HasContract = destination.CarrierContracts.Exists(c => c.Carrier == carrier);
             FreeGates = destination.Terminals.GetFreeGates(Terminal.TerminalType.Passenger);
-            HasRoute = airline.Routes.Any(
+            HasRoute = carrier.Routes.Any(
                 r => (r.Destination1 == origin && r.Destination2 == destination) || (r.Destination1 == destination && r.Destination2 == origin));
         }
 
-        public Airport Origin { get; }
-        public Airport Destination { get; }
+        public Station Origin { get; }
+        public Station Destination { get; }
         public bool IsDomestic { get; }
         public double Distance { get; }
         public string Name { get; }
@@ -95,7 +95,7 @@ namespace TheBusProject.Presentation
             get
             {
                 var parts = new List<string> { IsDomestic ? "Domestic" : "International", Kind };
-                if (HasRoute) parts.Add("you fly this route");
+                if (HasRoute) parts.Add("you run this route");
                 parts.Add(HasContract ? "you have gates there" : FreeGates > 0 ? FreeGates + " free gate(s)" : "no free gates");
                 return string.Join("  |  ", parts);
             }
@@ -108,14 +108,14 @@ namespace TheBusProject.Presentation
         }
     }
 
-    /// <summary>The airport demand page: where people and cargo from one airport want to go.</summary>
+    /// <summary>The station demand page: where people and cargo from one station want to go.</summary>
     public class DemandViewModel : ObservableObject
     {
         private readonly Action _changed;
         private readonly List<DemandRow> _rows = new List<DemandRow>();
-        private List<Airport> _all;
+        private List<Station> _all;
         private string _search = "";
-        private AirportItem _selected;
+        private StationItem _selected;
         private string _filter = "All";
         private string _sortBy = "Passengers";
         private string _destFilter = "";
@@ -129,7 +129,7 @@ namespace TheBusProject.Presentation
         public DemandViewModel(Action changed)
         {
             _changed = changed;
-            Airports = new ObservableCollection<AirportItem>();
+            Stations = new ObservableCollection<StationItem>();
             Rows = new ObservableCollection<DemandRow>();
             Filters = new List<string> { "All", "Domestic", "International" };
             SortOptions = new List<string> { "Passengers", "Cargo", "Distance", "Name" };
@@ -138,10 +138,10 @@ namespace TheBusProject.Presentation
             UndoCommand = new RelayCommand(Undo);
             CreateCommand = new RelayCommand(OpenCreate, () => _selectedRow != null);
             ApplySearch();
-            Selected = Airports.FirstOrDefault();
+            Selected = Stations.FirstOrDefault();
         }
 
-        public ObservableCollection<AirportItem> Airports { get; }
+        public ObservableCollection<StationItem> Stations { get; }
         public ObservableCollection<DemandRow> Rows { get; }
         public List<string> Filters { get; }
         public List<string> SortOptions { get; }
@@ -157,18 +157,18 @@ namespace TheBusProject.Presentation
             return System.Text.RegularExpressions.Regex.Replace(size.ToString().Replace('_', ' '), "(?<=[a-z])(?=[A-Z])", " ").ToLower();
         }
 
-        public static string TypeName(AirportProfile.AirportType type)
+        public static string TypeName(StationProfile.StationType type)
         {
             switch (type)
             {
-                case AirportProfile.AirportType.LongHaulInternational: return "Long haul international";
-                case AirportProfile.AirportType.ShortHaulInternational: return "Short haul international";
-                case AirportProfile.AirportType.Domestic: return "Domestic";
+                case StationProfile.StationType.LongHaulInternational: return "Long haul international";
+                case StationProfile.StationType.ShortHaulInternational: return "Short haul international";
+                case StationProfile.StationType.Domestic: return "Domestic";
                 default: return "Regional";
             }
         }
 
-        /// <summary>Filters the airport list by code, name, town or country; empty shows your own airports.</summary>
+        /// <summary>Filters the station list by code, name, town or country; empty shows your own stations.</summary>
         public string Search
         {
             get { return _search; }
@@ -181,7 +181,7 @@ namespace TheBusProject.Presentation
             }
         }
 
-        public AirportItem Selected
+        public StationItem Selected
         {
             get { return _selected; }
             set
@@ -194,16 +194,16 @@ namespace TheBusProject.Presentation
             }
         }
 
-        /// <summary>Shows the demand of this airport (used when another page picks an airport).</summary>
-        public void ShowAirport(Airport airport)
+        /// <summary>Shows the demand of this station (used when another page picks an station).</summary>
+        public void ShowStation(Station station)
         {
-            if (airport == null) return;
-            var item = Airports.FirstOrDefault(a => a.Airport == airport);
+            if (station == null) return;
+            var item = Stations.FirstOrDefault(a => a.Station == station);
             if (item == null)
             {
-                var own = new HashSet<Airport>(GameObject.GetInstance().HumanAirline.Airports);
-                item = new AirportItem(airport, own.Contains(airport));
-                Airports.Insert(0, item);
+                var own = new HashSet<Station>(GameObject.GetInstance().HumanCarrier.Stations);
+                item = new StationItem(station, own.Contains(station));
+                Stations.Insert(0, item);
             }
             Selected = item;
         }
@@ -306,27 +306,27 @@ namespace TheBusProject.Presentation
         /// <summary>Recalculates the page after the game changed (new routes, gates).</summary>
         public void Reload()
         {
-            var keep = _selected?.Airport;
+            var keep = _selected?.Station;
             ApplySearch();
             if (keep != null)
             {
-                ShowAirport(keep);
+                ShowStation(keep);
                 Load();
             }
         }
 
         private void ApplySearch()
         {
-            var airline = GameObject.GetInstance().HumanAirline;
-            if (airline == null) return;
-            var own = new HashSet<Airport>(airline.Airports);
-            _all = _all ?? Models.Airports.Airports.GetAllAirports().OrderBy(a => a.Profile.Name).ToList();
+            var carrier = GameObject.GetInstance().HumanCarrier;
+            if (carrier == null) return;
+            var own = new HashSet<Station>(carrier.Stations);
+            _all = _all ?? Models.Stations.Stations.GetAllStations().OrderBy(a => a.Profile.Name).ToList();
 
-            IEnumerable<Airport> list;
+            IEnumerable<Station> list;
             string s = _search.Trim();
             if (s.Length == 0)
             {
-                list = airline.Airports.OrderBy(a => a.Profile.Name);
+                list = carrier.Stations.OrderBy(a => a.Profile.Name);
             }
             else
             {
@@ -339,10 +339,10 @@ namespace TheBusProject.Presentation
                      .ThenBy(a => a.Profile.Name);
             }
 
-            Airports.Clear();
+            Stations.Clear();
             foreach (var a in list.Take(150))
             {
-                Airports.Add(new AirportItem(a, own.Contains(a)));
+                Stations.Add(new StationItem(a, own.Contains(a)));
             }
         }
 
@@ -356,14 +356,14 @@ namespace TheBusProject.Presentation
                 return;
             }
 
-            var origin = _selected.Airport;
+            var origin = _selected.Station;
             var resolver = new CountryCurrentCountryResolver();
             var home = resolver.Convert(origin.Profile.Country);
 
             foreach (var d in origin.GetDestinationDemands())
             {
-                if (d == null || d == origin || !GeneralHelpers.IsAirportActive(d)) continue;
-                int pax = origin.GetDestinationPassengersRate(d, AirlinerClass.ClassType.EconomyClass);
+                if (d == null || d == origin || !GeneralHelpers.IsStationActive(d)) continue;
+                int pax = origin.GetDestinationPassengersRate(d, CoachClass.ClassType.EconomyClass);
                 int cargo = origin.GetDestinationCargoRate(d);
                 if (pax == 0 && cargo == 0) continue;
                 bool domestic = Equals(resolver.Convert(d.Profile.Country), home);
@@ -381,7 +381,7 @@ namespace TheBusProject.Presentation
                 Summary = "";
                 return;
             }
-            var p = _selected.Airport.Profile;
+            var p = _selected.Station.Profile;
             var dom = _rows.Where(r => r.IsDomestic).ToList();
             var intl = _rows.Where(r => !r.IsDomestic).ToList();
             Summary = string.Format(
@@ -462,7 +462,7 @@ namespace TheBusProject.Presentation
         {
             if (_selected == null || _selectedRow == null) return;
             bool cargo = _selectedRow.Passengers == 0 && _selectedRow.Cargo > 0;
-            Create = new CreateRouteViewModel(_selected.Airport, _selectedRow.Destination, OnCreateDone, cargo);
+            Create = new CreateRouteViewModel(_selected.Station, _selectedRow.Destination, OnCreateDone, cargo);
         }
 
         private void OnCreateDone(string message)

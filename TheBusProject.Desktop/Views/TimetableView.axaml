@@ -10,8 +10,8 @@
 
     <StackPanel Grid.ColumnSpan="3" Spacing="6" Margin="0,0,0,8">
       <StackPanel Orientation="Horizontal" Spacing="10">
-        <TextBlock Text="Aircraft" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
-        <ComboBox ItemsSource="{Binding Aircraft}" SelectedItem="{Binding SelectedAircraft}" MinWidth="420">
+        <TextBlock Text="Coach" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
+        <ComboBox ItemsSource="{Binding Coach}" SelectedItem="{Binding SelectedCoach}" MinWidth="420">
           <ComboBox.ItemTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding Text}" />
@@ -22,13 +22,13 @@
       <TextBlock Text="{Binding Summary}" Opacity="0.8" />
     </StackPanel>
 
-    <!-- the week of this aircraft -->
+    <!-- the week of this coach -->
     <Grid Grid.Row="1" RowDefinitions="Auto,Auto,Auto,*">
       <v:WeekTimelineControl Margin="0,0,0,6" />
       <StackPanel Grid.Row="1" Spacing="6" Margin="0,0,0,8">
-        <!-- the picked flight: move it to another day or time, or give it another number -->
+        <!-- the picked trip: move it to another day or time, or give it another number -->
         <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding CanEditSelected}">
-          <TextBlock Text="This flight" VerticalAlignment="Center" FontWeight="SemiBold" />
+          <TextBlock Text="This trip" VerticalAlignment="Center" FontWeight="SemiBold" />
           <ComboBox ItemsSource="{Binding DayChoices}" SelectedItem="{Binding EditDay}" MinWidth="110">
             <ComboBox.ItemTemplate>
               <DataTemplate>
@@ -43,22 +43,22 @@
               </DataTemplate>
             </ComboBox.ItemTemplate>
           </ComboBox>
-          <TextBox Text="{Binding EditFlightCode}" MinWidth="100" Watermark="Flight no." VerticalAlignment="Center" />
+          <TextBox Text="{Binding EditTripCode}" MinWidth="100" Watermark="Trip no." VerticalAlignment="Center" />
           <Button Content="Apply" Command="{Binding ApplyEditCommand}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Spacing="10">
           <Button Content="{Binding RemoveSelectedText}" Command="{Binding RemoveSelectedCommand}" IsVisible="{Binding HasSelection}" />
           <Button Content="{Binding UndoText}" Command="{Binding UndoCommand}" ToolTip.Tip="Ctrl+Z" />
-          <Button Content="Remove all flights" Command="{Binding RemoveAllFlightsCommand}" />
+          <Button Content="Remove all trips" Command="{Binding RemoveAllTripsCommand}" />
         </StackPanel>
-        <!-- on its own line: beside the buttons it ran under the Add flights panel and was cut off -->
+        <!-- on its own line: beside the buttons it ran under the Add trips panel and was cut off -->
         <TextBlock Text="{Binding SelectedBlockText}" TextWrapping="Wrap" Opacity="0.85" MaxWidth="780" HorizontalAlignment="Left" />
       </StackPanel>
       <Grid Grid.Row="2" ColumnDefinitions="50,60,70,90,110,*" Margin="4,0,0,2" Opacity="0.7">
         <TextBlock Text="Day" FontWeight="SemiBold" />
         <TextBlock Grid.Column="1" Text="Leaves" FontWeight="SemiBold" />
         <TextBlock Grid.Column="2" Text="Arrives" FontWeight="SemiBold" />
-        <TextBlock Grid.Column="3" Text="Flight" FontWeight="SemiBold" />
+        <TextBlock Grid.Column="3" Text="Trip" FontWeight="SemiBold" />
         <TextBlock Grid.Column="4" Text="Route" FontWeight="SemiBold" />
       </Grid>
       <ListBox Grid.Row="3" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}">
@@ -68,7 +68,7 @@
               <TextBlock Text="{Binding Day}" VerticalAlignment="Center" />
               <TextBlock Grid.Column="1" Text="{Binding Time}" VerticalAlignment="Center" />
               <TextBlock Grid.Column="2" Text="{Binding Arrives}" VerticalAlignment="Center" />
-              <TextBlock Grid.Column="3" Text="{Binding Flight}" FontWeight="SemiBold" VerticalAlignment="Center" />
+              <TextBlock Grid.Column="3" Text="{Binding Trip}" FontWeight="SemiBold" VerticalAlignment="Center" />
               <TextBlock Grid.Column="4" Text="{Binding Route}" VerticalAlignment="Center" />
               <Button Grid.Column="5" Content="Remove" Command="{Binding RemoveCommand}" HorizontalAlignment="Left" Padding="8,2" />
             </Grid>
@@ -77,10 +77,10 @@
       </ListBox>
     </Grid>
 
-    <!-- add flights -->
+    <!-- add trips -->
     <ScrollViewer Grid.Row="1" Grid.Column="2">
       <StackPanel Spacing="8" Margin="0,0,10,0">
-        <TextBlock Text="Add flights" FontSize="16" FontWeight="SemiBold" />
+        <TextBlock Text="Add trips" FontSize="16" FontWeight="SemiBold" />
 
         <TextBlock Text="Route" Opacity="0.7" />
         <ComboBox ItemsSource="{Binding Routes}" SelectedItem="{Binding SelectedRoute}" HorizontalAlignment="Stretch">
@@ -138,15 +138,15 @@
           <Button Content="Tue Thu Sat" Command="{Binding TtsCommand}" Margin="0,0,6,4" Padding="8,2" />
         </WrapPanel>
 
-        <TextBlock Text="Flight number (empty = next free)" Opacity="0.7" />
-        <TextBox Text="{Binding FlightCode}" Watermark="e.g. AA0123" />
+        <TextBlock Text="Trip number (empty = next free)" Opacity="0.7" />
+        <TextBox Text="{Binding TripCode}" Watermark="e.g. AA0123" />
 
         <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
           <Button Content="Add round trips" Command="{Binding AddRoundTripCommand}" />
           <Button Content="Add one way" Command="{Binding AddOneWayCommand}" />
         </StackPanel>
-        <Button Content="Remove all flights on this route" Command="{Binding RemoveRouteFlightsCommand}" HorizontalAlignment="Left" />
-        <TextBlock Text="A round trip flies out at the departure time and back after the flight time plus the turnaround. Changing the timetable stops the aircraft." Opacity="0.6" TextWrapping="Wrap" />
+        <Button Content="Remove all trips on this route" Command="{Binding RemoveRouteTripsCommand}" HorizontalAlignment="Left" />
+        <TextBlock Text="A round trip runs out at the departure time and back after the trip time plus the turnaround. Changing the timetable stops the coach." Opacity="0.6" TextWrapping="Wrap" />
       </StackPanel>
     </ScrollViewer>
 

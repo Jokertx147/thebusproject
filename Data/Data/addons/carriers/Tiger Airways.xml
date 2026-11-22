@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<carrier>
+  <profile name="Tiger Airways" iata="TR" color="Black" country="174" CEO="Koay Peng Yen" mentality="Safe"
+           market="Global" preferedstation="SIN">
+  </profile>
+  <info real="True" from="2003" to="2017" />
+</carrier>

@@ -14,7 +14,7 @@ namespace TheBusProject.Desktop.Views
         }
     }
 
-    /// <summary>The player's airline in bold.</summary>
+    /// <summary>The player's carrier in bold.</summary>
     public class StatisticsBold : IValueConverter
     {
         public static readonly StatisticsBold Instance = new StatisticsBold();

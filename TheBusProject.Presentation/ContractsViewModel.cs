@@ -21,7 +21,7 @@ namespace TheBusProject.Presentation
         public ICommand DeclineCommand { get; set; }
     }
 
-    /// <summary>Special contracts: offers from companies and the contracts the airline has taken.</summary>
+    /// <summary>Special contracts: offers from companies and the contracts the carrier has taken.</summary>
     public class ContractsViewModel : ObservableObject
     {
         private readonly Action _changed;
@@ -100,8 +100,8 @@ namespace TheBusProject.Presentation
 
         public void Reload()
         {
-            var airline = GameObject.GetInstance().HumanAirline;
-            if (airline == null)
+            var carrier = GameObject.GetInstance().HumanCarrier;
+            if (carrier == null)
             {
                 return;
             }
@@ -128,7 +128,7 @@ namespace TheBusProject.Presentation
             }
 
             Active.Clear();
-            foreach (var sc in airline.SpecialContracts.ToList())
+            foreach (var sc in carrier.SpecialContracts.ToList())
             {
                 var lines = new List<string>();
                 foreach (var scr in sc.Type.Routes)
@@ -137,11 +137,11 @@ namespace TheBusProject.Presentation
                     string state;
                     if (served)
                     {
-                        state = "flown now";
+                        state = "run now";
                     }
-                    else if (ContractService.FindOwnRoutes(airline, scr).Count > 0)
+                    else if (ContractService.FindOwnRoutes(carrier, scr).Count > 0)
                     {
-                        state = "you have this route, but no aircraft flies it";
+                        state = "you have this route, but no coach runs it";
                     }
                     else
                     {
@@ -179,11 +179,11 @@ namespace TheBusProject.Presentation
         private void AskAccept(SpecialContractType t)
         {
             SetPending(
-                string.Format("Accept \"{0}\"? You get {1} if the routes are flown when it is judged, and pay {2} if not.", t.Name, Money(t.Payment), Money(t.Penalty)),
+                string.Format("Accept \"{0}\"? You get {1} if the routes are run when it is judged, and pay {2} if not.", t.Name, Money(t.Payment), Money(t.Penalty)),
                 () =>
                 {
-                    var airline = GameObject.GetInstance().HumanAirline;
-                    ContractService.Accept(airline, t);
+                    var carrier = GameObject.GetInstance().HumanCarrier;
+                    ContractService.Accept(carrier, t);
                     Status = "You took \"" + t.Name + "\". Routes you already have that fit it count right away.";
                     Reload();
                     _changed();

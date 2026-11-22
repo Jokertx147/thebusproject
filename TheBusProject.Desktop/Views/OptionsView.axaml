@@ -47,7 +47,7 @@
       </StackPanel>
       <TextBlock Text="{Binding DistanceExample}" Opacity="0.6" />
 
-      <TextBlock Text="Flight costs" FontSize="16" FontWeight="SemiBold" Margin="0,14,0,0" />
+      <TextBlock Text="Trip costs" FontSize="16" FontWeight="SemiBold" Margin="0,14,0,0" />
       <ComboBox ItemsSource="{Binding CostLevels}" SelectedItem="{Binding CostLevel}" MinWidth="160" />
       <TextBlock Text="{Binding CostLevelText}" Opacity="0.7" TextWrapping="Wrap" MaxWidth="700" HorizontalAlignment="Left" />
 
@@ -55,14 +55,14 @@
       <TextBlock Text="{Binding MoneyText}" Opacity="0.7" TextWrapping="Wrap" MaxWidth="700" HorizontalAlignment="Left" />
       <StackPanel Orientation="Horizontal" Spacing="10">
         <TextBlock Text="Set money to" VerticalAlignment="Center" />
-        <TextBox Text="{Binding AirlineMoney}" Watermark="e.g. 50000000 or 50m" Width="200" />
+        <TextBox Text="{Binding CarrierMoney}" Watermark="e.g. 50000000 or 50m" Width="200" />
         <Button Content="Set" Command="{Binding SetMoneyCommand}" />
       </StackPanel>
       <TextBlock Text="{Binding MoneyStatus}" TextWrapping="Wrap" />
 
       <TextBlock Text="News" FontSize="16" FontWeight="SemiBold" Margin="0,14,0,0" />
       <CheckBox Content="Rival alerts: tell me when a rival opens, undercuts or gives up one of my routes" IsChecked="{Binding RivalAlerts}" />
-      <CheckBox Content="Monthly report: bring my airline's report in the news at each new month" IsChecked="{Binding MonthlyReport}" />
+      <CheckBox Content="Monthly report: bring my carrier's report in the news at each new month" IsChecked="{Binding MonthlyReport}" />
 
       <TextBlock Text="Game area" FontSize="16" FontWeight="SemiBold" Margin="0,14,0,0" />
       <TextBlock Text="{Binding AreaText}" Opacity="0.7" TextWrapping="Wrap" MaxWidth="700" HorizontalAlignment="Left" />

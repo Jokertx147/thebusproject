@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using TheBusProject.Models;
@@ -30,11 +30,11 @@ namespace TheBusProject.Infrastructure
         {
             Holiday,
 
-            AirlinerOrder,
+            CoachOrder,
 
-            AirportOpening,
+            StationOpening,
 
-            AirportClosing
+            StationClosing
         }
 
         #endregion

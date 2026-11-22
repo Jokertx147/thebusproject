@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airlines.AirlineCooperation;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Carriers.CarrierCooperation;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Environment;
 using TheBusProject.Models.General.Finances;
@@ -21,45 +21,45 @@ namespace TheBusProject.Helpers
     {
         #region Static Fields
 
-        // Random.Shared is safe to use from the parallel airline threads (a shared new Random() is not)
+        // Random.Shared is safe to use from the parallel carrier threads (a shared new Random() is not)
         private static Random Rnd => Random.Shared;
 
         #endregion
 
         #region Public Methods and Operators
 
-        public static void SimulateAirlineFlights(Airline airline)
+        public static void SimulateCarrierTrips(Carrier carrier)
         {
             var sw = new Stopwatch();
             sw.Start();
 
             foreach (
-                FleetAirliner airliner in airline.Fleet.FindAll(f => f.Status != FleetAirliner.AirlinerStatus.Stopped)) //Parallel.ForEach(
-                //    airline.Fleet.FindAll(f => f.Status != FleetAirliner.AirlinerStatus.Stopped),
-                //    airliner =>
+                FleetCoach coach in carrier.Fleet.FindAll(f => f.Status != FleetCoach.CoachStatus.Stopped)) //Parallel.ForEach(
+                //    carrier.Fleet.FindAll(f => f.Status != FleetCoach.CoachStatus.Stopped),
+                //    coach =>
             {
-                if (airliner.Airliner.Airline == null)
+                if (coach.Coach.Carrier == null)
                 {
-                    // an aircraft in the fleet must belong to the airline (a lost link used to stop the whole game)
-                    TheBusProject.Infrastructure.StartupLog.Write("Aircraft " + airliner.Name + " was in the fleet of " + airline.Profile.Name + " without an owner; fixed.");
-                    airliner.Airliner.Airline = airline;
+                    // an coach in the fleet must belong to the carrier (a lost link used to stop the whole game)
+                    TheBusProject.Infrastructure.StartupLog.Write("Coach " + coach.Name + " was in the fleet of " + carrier.Profile.Name + " without an owner; fixed.");
+                    coach.Coach.Carrier = carrier;
                 }
 
-                if (airliner.CurrentFlight != null)
+                if (coach.CurrentTrip != null)
                 {
-                    //Boolean stopoverRoute = airliner.CurrentFlight.Entry.MainEntry != null;
+                    //Boolean stopoverRoute = coach.CurrentTrip.Entry.MainEntry != null;
 
-                    using (Profiler.Measure("flight: landing"))
-                        SimulateLanding(airliner);
+                    using (Profiler.Measure("trip: landing"))
+                        SimulateLanding(coach);
                 }
 
-                FleetAirliner airliner1 = airliner;
+                FleetCoach coach1 = coach;
                 IOrderedEnumerable<RouteTimeTableEntry> dayEntries =
-                    airliner.Routes.Where(r => r.StartDate <= GameObject.GetInstance().GameTime)
+                    coach.Routes.Where(r => r.StartDate <= GameObject.GetInstance().GameTime)
                             .SelectMany(r => r.TimeTable.GetEntries(GameObject.GetInstance().GameTime.DayOfWeek))
                             .Where(
                                 e =>
-                                e.Airliner == airliner1
+                                e.Coach == coach1
                                 && (e.TimeTable.Route.Season == Weather.Season.AllYear
                                     || e.TimeTable.Route.Season
                                     == GeneralHelpers.GetSeason(GameObject.GetInstance().GameTime)))
@@ -67,23 +67,23 @@ namespace TheBusProject.Helpers
 
                 long pfE = Profiler.Start();
                 var dayList = dayEntries.ToList();
-                Profiler.Stop("flight: the day's timetable", pfE);
-                bool ferryOk = !airline.IsHuman || !airline.AutoFerry || FerryService.BeforeFlights(airliner, dayList);
-                if (ferryOk && (GameObject.GetInstance().GameTime > airliner.GroundedToDate || GameObject.GetInstance().GameTime <= airliner.CoveredUntil))
+                Profiler.Stop("trip: the day's timetable", pfE);
+                bool ferryOk = !carrier.IsHuman || !carrier.AutoFerry || FerryService.BeforeTrips(coach, dayList);
+                if (ferryOk && (GameObject.GetInstance().GameTime > coach.GroundedToDate || GameObject.GetInstance().GameTime <= coach.CoveredUntil))
                 {
                     foreach (RouteTimeTableEntry entry in dayList)
                     {
                         if (entry.TimeTable.Route.HasStopovers)
                         {
-                            SimulateStopoverFlight(entry);
+                            SimulateStopoverTrip(entry);
                         }
                         else
                         {
-                            SimulateFlight(entry);
+                            SimulateTrip(entry);
                         }
                     }
-                    using (Profiler.Measure("flight: service check"))
-                        CheckForService(airliner);
+                    using (Profiler.Measure("trip: service check"))
+                        CheckForService(coach);
                 }
             } //);
 
@@ -94,184 +94,184 @@ namespace TheBusProject.Helpers
 
         #region Methods
 
-        private static void CheckForService(FleetAirliner airliner)
+        private static void CheckForService(FleetCoach coach)
         {
             const double serviceCheck = 500000000;
-            double sinceLastService = airliner.Airliner.Flown - airliner.Airliner.LastServiceCheck;
+            double sinceLastService = coach.Coach.Flown - coach.Coach.LastServiceCheck;
 
             if (sinceLastService > serviceCheck)
             {
-                SimulateService(airliner);
+                SimulateService(coach);
             }
         }
 
-        private static void CreatePassengersHappiness(FleetAirliner airliner)
+        private static void CreatePassengersHappiness(FleetCoach coach)
         {
             const int serviceLevel = 0;
-            //airliner.Route.DrinksFacility.ServiceLevel + airliner.Route.FoodFacility.ServiceLevel + airliner.Airliner.Airliner.getFacility(AirlinerFacility.FacilityType.Audio).ServiceLevel + airliner.Airliner.Airliner.getFacility(AirlinerFacility.FacilityType.Seat).ServiceLevel + airliner.Airliner.Airliner.getFacility(AirlinerFacility.FacilityType.Video).ServiceLevel;
-            int happyValue = airliner.CurrentFlight.IsOnTime ? 10 : 20;
+            //coach.Route.DrinksFacility.ServiceLevel + coach.Route.FoodFacility.ServiceLevel + coach.Coach.Coach.getFacility(CoachFacility.FacilityType.Audio).ServiceLevel + coach.Coach.Coach.getFacility(CoachFacility.FacilityType.Seat).ServiceLevel + coach.Coach.Coach.getFacility(CoachFacility.FacilityType.Video).ServiceLevel;
+            int happyValue = coach.CurrentTrip.IsOnTime ? 10 : 20;
             happyValue -= (serviceLevel/25);
-            for (int i = 0; i < airliner.CurrentFlight.GetTotalPassengers(); i++)
+            for (int i = 0; i < coach.CurrentTrip.GetTotalPassengers(); i++)
             {
                 bool isHappy = Rnd.Next(100) > happyValue;
 
                 if (isHappy)
                 {
-                    PassengerHelpers.AddPassengerHappiness(airliner.Airliner.Airline);
+                    PassengerHelpers.AddPassengerHappiness(coach.Coach.Carrier);
                 }
             }
         }
 
-        //simulates a flight with stopovers
+        //simulates a trip with stopovers
 
-        //simulates a flight
-        private static void SimulateFlight(RouteTimeTableEntry entry)
+        //simulates a trip
+        private static void SimulateTrip(RouteTimeTableEntry entry)
         {
-            FleetAirliner airliner = entry.Airliner;
-            airliner.LastFlightDate = GameObject.GetInstance().GameTime.Date;
+            FleetCoach coach = entry.Coach;
+            coach.LastTripDate = GameObject.GetInstance().GameTime.Date;
 
-            if (entry.TimeTable.Route.HasStopovers || airliner.CurrentFlight is StopoverFlight)
+            if (entry.TimeTable.Route.HasStopovers || coach.CurrentTrip is StopoverTrip)
             {
-                if (airliner.CurrentFlight == null || ((StopoverFlight) airliner.CurrentFlight).IsLastTrip)
+                if (coach.CurrentTrip == null || ((StopoverTrip) coach.CurrentTrip).IsLastTrip)
                 {
-                    airliner.CurrentFlight = new StopoverFlight(entry);
+                    coach.CurrentTrip = new StopoverTrip(entry);
                 }
 
-                ((StopoverFlight) airliner.CurrentFlight).SetNextEntry();
+                ((StopoverTrip) coach.CurrentTrip).SetNextEntry();
             }
             else
             {
-                airliner.CurrentFlight = new Flight(entry);
+                coach.CurrentTrip = new Trip(entry);
             }
 
             long pfDelay = Profiler.Start();
-            KeyValuePair<FleetAirlinerHelpers.DelayType, int> delayedMinutes =
-                FleetAirlinerHelpers.GetDelayedMinutes(airliner);
-            Profiler.Stop("flight: delay", pfDelay);
+            KeyValuePair<FleetCoachHelpers.DelayType, int> delayedMinutes =
+                FleetCoachHelpers.GetDelayedMinutes(coach);
+            Profiler.Stop("trip: delay", pfDelay);
 
             //cancelled/delay
             if (delayedMinutes.Value
-                >= Convert.ToInt16(airliner.Airliner.Airline.GetAirlinePolicy("Cancellation Minutes").PolicyValue))
+                >= Convert.ToInt16(coach.Coach.Carrier.GetCarrierPolicy("Cancellation Minutes").PolicyValue))
             {
-                if (airliner.Airliner.Airline.IsHuman)
+                if (coach.Coach.Carrier.IsHuman)
                 {
-                    Flight flight = airliner.CurrentFlight;
+                    Trip trip = coach.CurrentTrip;
 
                     switch (delayedMinutes.Key)
                     {
-                        case FleetAirlinerHelpers.DelayType.AirlinerProblems:
+                        case FleetCoachHelpers.DelayType.CoachProblems:
                             GameObject.GetInstance()
                                       .NewsBox.AddNews(
                                           new News(
-                                              News.NewsType.FlightNews,
+                                              News.NewsType.TripNews,
                                               GameObject.GetInstance().GameTime,
                                               Translator.GetInstance().GetString("News", "1004"),
                                               string.Format(
                                                   Translator.GetInstance().GetString("News", "1004", "message"),
-                                                  flight.Entry.Destination.FlightCode,
-                                                  flight.Entry.DepartureAirport.Profile.IATACode,
-                                                  flight.Entry.Destination.Airport.Profile.IATACode)));
+                                                  trip.Entry.Destination.TripCode,
+                                                  trip.Entry.DepartureStation.Profile.IATACode,
+                                                  trip.Entry.Destination.Station.Profile.IATACode)));
                             break;
-                        case FleetAirlinerHelpers.DelayType.BadWeather:
+                        case FleetCoachHelpers.DelayType.BadWeather:
                             GameObject.GetInstance()
                                       .NewsBox.AddNews(
                                           new News(
-                                              News.NewsType.FlightNews,
+                                              News.NewsType.TripNews,
                                               GameObject.GetInstance().GameTime,
                                               Translator.GetInstance().GetString("News", "1005"),
                                               string.Format(
                                                   Translator.GetInstance().GetString("News", "1005", "message"),
-                                                  flight.Entry.Destination.FlightCode,
-                                                  flight.Entry.DepartureAirport.Profile.IATACode,
-                                                  flight.Entry.Destination.Airport.Profile.IATACode)));
+                                                  trip.Entry.Destination.TripCode,
+                                                  trip.Entry.DepartureStation.Profile.IATACode,
+                                                  trip.Entry.Destination.Station.Profile.IATACode)));
                             break;
                     }
                 }
-                airliner.Airliner.Airline.Statistics.AddStatisticsValue(
+                coach.Coach.Carrier.Statistics.AddStatisticsValue(
                     GameObject.GetInstance().GameTime.Year,
                     StatisticsTypes.GetStatisticsType("Cancellations"),
                     1);
 
                 double cancellationPercent =
-                    airliner.Airliner.Airline.Statistics.GetStatisticsValue(
+                    coach.Coach.Carrier.Statistics.GetStatisticsValue(
                         GameObject.GetInstance().GameTime.Year,
                         StatisticsTypes.GetStatisticsType("Cancellations"))
-                    /(airliner.Airliner.Airline.Statistics.GetStatisticsValue(
+                    /(coach.Coach.Carrier.Statistics.GetStatisticsValue(
                         GameObject.GetInstance().GameTime.Year,
                         StatisticsTypes.GetStatisticsType("Arrivals"))
-                      + airliner.Airliner.Airline.Statistics.GetStatisticsValue(
+                      + coach.Coach.Carrier.Statistics.GetStatisticsValue(
                           GameObject.GetInstance().GameTime.Year,
                           StatisticsTypes.GetStatisticsType("Cancellations")));
-                airliner.Airliner.Airline.Statistics.SetStatisticsValue(
+                coach.Coach.Carrier.Statistics.SetStatisticsValue(
                     GameObject.GetInstance().GameTime.Year,
                     StatisticsTypes.GetStatisticsType("Cancellation%"),
                     cancellationPercent*100);
 
-                FlightRecords.Cancelled(airliner, airliner.CurrentFlight, delayedMinutes.Key == FleetAirlinerHelpers.DelayType.BadWeather ? "bad weather" : "aircraft problems");
-                airliner.CurrentFlight = null;
+                TripRecords.Cancelled(coach, coach.CurrentTrip, delayedMinutes.Key == FleetCoachHelpers.DelayType.BadWeather ? "bad weather" : "coach problems");
+                coach.CurrentTrip = null;
             }
             else
             {
-                airliner.CurrentFlight.AddDelayMinutes(delayedMinutes.Value);
+                coach.CurrentTrip.AddDelayMinutes(delayedMinutes.Value);
 
-                if (airliner.CurrentFlight.Entry.MainEntry == null)
+                if (coach.CurrentTrip.Entry.MainEntry == null)
                 {
-                    if (airliner.CurrentFlight.IsPassengerFlight())
+                    if (coach.CurrentTrip.IsPassengerTrip())
                     {
-                        var classes = new List<AirlinerClass>(airliner.Airliner.Classes);
-                        foreach (AirlinerClass aClass in classes)
+                        var classes = new List<CoachClass>(coach.Coach.Classes);
+                        foreach (CoachClass aClass in classes)
                         {
                             if (aClass == null) continue; // the cabin was being changed on another thread
-                            RouteAirlinerClass rac = ((PassengerRoute) airliner.CurrentFlight.Entry.TimeTable.Route).GetRouteAirlinerClass(aClass.Type);
-                            airliner.CurrentFlight.Classes.Add(
-                                new FlightAirlinerClass(
-                                    ((PassengerRoute) airliner.CurrentFlight.Entry.TimeTable.Route).GetRouteAirlinerClass
+                            RouteCoachClass rac = ((PassengerRoute) coach.CurrentTrip.Entry.TimeTable.Route).GetRouteCoachClass(aClass.Type);
+                            coach.CurrentTrip.Classes.Add(
+                                new TripCoachClass(
+                                    ((PassengerRoute) coach.CurrentTrip.Entry.TimeTable.Route).GetRouteCoachClass
                                         (aClass.Type),
-                                    PassengerHelpers.GetFlightPassengers(airliner, aClass.Type)));
+                                    PassengerHelpers.GetTripPassengers(coach, aClass.Type)));
 
-                            //airliner.CurrentFlight.Classes.Add(new FlightAirlinerClass(((PassengerRoute)airliner.CurrentFlight.Entry.TimeTable.Route).getRouteAirlinerClass(aClass.Type),0));
+                            //coach.CurrentTrip.Classes.Add(new TripCoachClass(((PassengerRoute)coach.CurrentTrip.Entry.TimeTable.Route).getRouteCoachClass(aClass.Type),0));
                         }
                     }
-                    if (airliner.CurrentFlight.IsCargoFlight())
+                    if (coach.CurrentTrip.IsCargoTrip())
                     {
-                        airliner.CurrentFlight.Cargo = PassengerHelpers.GetFlightCargo(airliner);
+                        coach.CurrentTrip.Cargo = PassengerHelpers.GetTripCargo(coach);
                     }
                 }
-                // departures: the airline, the aircraft, the airport it leaves and the route
-                FlightStatistics.TakeOff(airliner);
+                // departures: the carrier, the coach, the station it leaves and the route
+                TripStatistics.TakeOff(coach);
 
-                if (airliner.CurrentFlight.ExpectedLanding.ToShortDateString()
+                if (coach.CurrentTrip.ExpectedLanding.ToShortDateString()
                     == GameObject.GetInstance().GameTime.ToShortDateString())
                 {
-                    using (Profiler.Measure("flight: landing"))
-                        SimulateLanding(airliner);
+                    using (Profiler.Measure("trip: landing"))
+                        SimulateLanding(coach);
                 }
             }
         }
 
-        //simulates the service of a flight
+        //simulates the service of a trip
 
-        //simulates the landing of a flight
-        private static void SimulateLanding(FleetAirliner airliner)
+        //simulates the landing of a trip
+        private static void SimulateLanding(FleetCoach coach)
         {
             long pfL = Profiler.Start();
             DateTime landingTime =
-                airliner.CurrentFlight.FlightTime.Add(
-                    MathHelpers.GetFlightTime(
-                        airliner.CurrentFlight.Entry.DepartureAirport.Profile.Coordinates.ConvertToGeoCoordinate(),
-                        airliner.CurrentFlight.Entry.Destination.Airport.Profile.Coordinates.ConvertToGeoCoordinate(),
-                        airliner.Airliner.Type));
+                coach.CurrentTrip.TripTime.Add(
+                    MathHelpers.GetTripTime(
+                        coach.CurrentTrip.Entry.DepartureStation.Profile.Coordinates.ConvertToGeoCoordinate(),
+                        coach.CurrentTrip.Entry.Destination.Station.Profile.Coordinates.ConvertToGeoCoordinate(),
+                        coach.Coach.Type));
             double fdistance = MathHelpers.GetDistance(
-                airliner.CurrentFlight.GetDepartureAirport(),
-                airliner.CurrentFlight.Entry.Destination.Airport);
+                coach.CurrentTrip.GetDepartureStation(),
+                coach.CurrentTrip.Entry.Destination.Station);
 
-            TimeSpan flighttime = landingTime.Subtract(airliner.CurrentFlight.FlightTime);
+            TimeSpan triptime = landingTime.Subtract(coach.CurrentTrip.TripTime);
             const double groundTaxPerPassenger = 5;
 
             double tax = 0;
 
-            if (airliner.CurrentFlight.Entry.Destination.Airport.Profile.Country
-                != airliner.CurrentFlight.GetDepartureAirport().Profile.Country)
+            if (coach.CurrentTrip.Entry.Destination.Station.Profile.Country
+                != coach.CurrentTrip.GetDepartureStation().Profile.Country)
             {
                 tax = 2*tax;
             }
@@ -281,28 +281,28 @@ namespace TheBusProject.Helpers
             double mealExpenses = 0;
             double fuelExpenses = 0;
 
-            if (airliner.CurrentFlight.IsPassengerFlight())
+            if (coach.CurrentTrip.IsPassengerTrip())
             {
-                tax = groundTaxPerPassenger*airliner.CurrentFlight.GetTotalPassengers();
-                fuelExpenses = FleetAirlinerHelpers.GetFuelExpenses(airliner, fdistance);
+                tax = groundTaxPerPassenger*coach.CurrentTrip.GetTotalPassengers();
+                fuelExpenses = FleetCoachHelpers.GetFuelExpenses(coach, fdistance);
 
-                ticketsIncome += airliner.CurrentFlight.Classes.Sum(fac => fac.Passengers*((PassengerRoute) airliner.CurrentFlight.Entry.TimeTable.Route).GetRouteAirlinerClass(fac.AirlinerClass.Type).FarePrice);
+                ticketsIncome += coach.CurrentTrip.Classes.Sum(fac => fac.Passengers*((PassengerRoute) coach.CurrentTrip.Entry.TimeTable.Route).GetRouteCoachClass(fac.CoachClass.Type).FarePrice);
 
                 FeeType employeeDiscountType = FeeTypes.GetType("Employee Discount");
-                double employeesDiscount = airliner.Airliner.Airline.Fees.GetValue(employeeDiscountType);
+                double employeesDiscount = coach.Coach.Carrier.Fees.GetValue(employeeDiscountType);
 
                 double totalDiscount = ticketsIncome*(employeeDiscountType.Percentage/100.0)
                                        *(employeesDiscount/100.0);
                 ticketsIncome = ticketsIncome - totalDiscount;
 
-                feesIncome += (from feeType in FeeTypes.GetTypes(FeeType.EFeeType.Fee) where GameObject.GetInstance().GameTime.Year >= feeType.FromYear from fac in airliner.CurrentFlight.Classes let percent = 0.10 let maxValue = Convert.ToDouble(feeType.Percentage)*(1 + percent) let minValue = Convert.ToDouble(feeType.Percentage)*(1 - percent) let value = Convert.ToDouble(Rnd.Next((int) minValue, (int) maxValue))/100 select fac.Passengers*value*airliner.Airliner.Airline.Fees.GetValue(feeType)).Sum();
+                feesIncome += (from feeType in FeeTypes.GetTypes(FeeType.EFeeType.Fee) where GameObject.GetInstance().GameTime.Year >= feeType.FromYear from fac in coach.CurrentTrip.Classes let percent = 0.10 let maxValue = Convert.ToDouble(feeType.Percentage)*(1 + percent) let minValue = Convert.ToDouble(feeType.Percentage)*(1 - percent) let value = Convert.ToDouble(Rnd.Next((int) minValue, (int) maxValue))/100 select fac.Passengers*value*coach.Coach.Carrier.Fees.GetValue(feeType)).Sum();
 
-                foreach (FlightAirlinerClass fac in airliner.CurrentFlight.Classes)
+                foreach (TripCoachClass fac in coach.CurrentTrip.Classes)
                 {
                     foreach (
                         RouteFacility facility in
-                            ((PassengerRoute) airliner.CurrentFlight.Entry.TimeTable.Route).GetRouteAirlinerClass(
-                                fac.AirlinerClass.Type).GetFacilities())
+                            ((PassengerRoute) coach.CurrentTrip.Entry.TimeTable.Route).GetRouteCoachClass(
+                                fac.CoachClass.Type).GetFacilities())
                     {
                         if (facility.EType == RouteFacility.ExpenseType.Fixed)
                         {
@@ -317,36 +317,36 @@ namespace TheBusProject.Helpers
 
                             double value = Convert.ToDouble(Rnd.Next((int) minValue, (int) maxValue))/100;
 
-                            mealExpenses -= fac.Passengers*value*airliner.Airliner.Airline.Fees.GetValue(feeType);
+                            mealExpenses -= fac.Passengers*value*coach.Coach.Carrier.Fees.GetValue(feeType);
                         }
                     }
                 }
             }
-            if (airliner.CurrentFlight.IsCargoFlight())
+            if (coach.CurrentTrip.IsCargoTrip())
             {
-                tax = groundTaxPerPassenger*airliner.CurrentFlight.Cargo;
-                fuelExpenses = FleetAirlinerHelpers.GetFuelExpenses(airliner, fdistance);
+                tax = groundTaxPerPassenger*coach.CurrentTrip.Cargo;
+                fuelExpenses = FleetCoachHelpers.GetFuelExpenses(coach, fdistance);
 
-                ticketsIncome = airliner.CurrentFlight.Cargo*airliner.CurrentFlight.GetCargoPrice();
+                ticketsIncome = coach.CurrentTrip.Cargo*coach.CurrentTrip.GetCargoPrice();
             }
 
             pfL = Profiler.Lap("landing: income and costs", pfL);
-            Airport dest = airliner.CurrentFlight.Entry.Destination.Airport;
-            Airport dept = airliner.CurrentFlight.Entry.DepartureAirport;
+            Station dest = coach.CurrentTrip.Entry.Destination.Station;
+            Station dept = coach.CurrentTrip.Entry.DepartureStation;
 
             double dist = MathHelpers.GetDistance(
                 dest.Profile.Coordinates.ConvertToGeoCoordinate(),
                 dept.Profile.Coordinates.ConvertToGeoCoordinate());
 
-            airliner.Data.AddOperatingValue(new OperatingValue("Tickets", GameObject.GetInstance().GameTime.Year, GameObject.GetInstance().GameTime.Month, ticketsIncome));
-            airliner.Data.AddOperatingValue(new OperatingValue("In-flight Services", GameObject.GetInstance().GameTime.Year, GameObject.GetInstance().GameTime.Month, feesIncome));
+            coach.Data.AddOperatingValue(new OperatingValue("Tickets", GameObject.GetInstance().GameTime.Year, GameObject.GetInstance().GameTime.Month, ticketsIncome));
+            coach.Data.AddOperatingValue(new OperatingValue("In-trip Services", GameObject.GetInstance().GameTime.Year, GameObject.GetInstance().GameTime.Month, feesIncome));
 
-            airliner.Data.AddOperatingValue(new OperatingValue("Fuel Expenses", GameObject.GetInstance().GameTime.Year, GameObject.GetInstance().GameTime.Month, -fuelExpenses));
+            coach.Data.AddOperatingValue(new OperatingValue("Fuel Expenses", GameObject.GetInstance().GameTime.Year, GameObject.GetInstance().GameTime.Month, -fuelExpenses));
 
 
-            double expenses = fuelExpenses + AirportHelpers.GetLandingFee(dest, airliner.Airliner) + tax;
+            double expenses = fuelExpenses + StationHelpers.GetLandingFee(dest, coach.Coach) + tax;
             if (!double.IsNaN(expenses))
-                airliner.Data.AddOperatingValue(new OperatingValue("Airport fees and taxes", GameObject.GetInstance().GameTime.Year, GameObject.GetInstance().GameTime.Month, -(AirportHelpers.GetLandingFee(dest, airliner.Airliner) + tax)));
+                coach.Data.AddOperatingValue(new OperatingValue("Station fees and taxes", GameObject.GetInstance().GameTime.Year, GameObject.GetInstance().GameTime.Month, -(StationHelpers.GetLandingFee(dest, coach.Coach) + tax)));
 
             if (double.IsNaN(expenses))
             {
@@ -359,83 +359,83 @@ namespace TheBusProject.Helpers
             }
 
             pfL = Profiler.Lap("landing: operating values", pfL);
-            FleetAirlinerHelpers.SetFlightStats(airliner);
-            pfL = Profiler.Lap("landing: flight statistics", pfL);
+            FleetCoachHelpers.SetTripStats(coach);
+            pfL = Profiler.Lap("landing: trip statistics", pfL);
 
-            long airportIncome = Convert.ToInt64(AirportHelpers.GetLandingFee(dest, airliner.Airliner));
-            dest.Income += airportIncome;
+            long stationIncome = Convert.ToInt64(StationHelpers.GetLandingFee(dest, coach.Coach));
+            dest.Income += stationIncome;
 
-            Airline airline = airliner.Airliner.Airline;
+            Carrier carrier = coach.Coach.Carrier;
 
             IEnumerable<CodeshareAgreement> agreements =
-                airline.Codeshares.Where(
-                    c => c.Airline1 == airline || c.Type == CodeshareAgreement.CodeshareType.BothWays);
+                carrier.Codeshares.Where(
+                    c => c.Carrier1 == carrier || c.Type == CodeshareAgreement.CodeshareType.BothWays);
 
             foreach (CodeshareAgreement agreement in agreements)
             {
-                Airline tAirline = agreement.Airline1 == airline ? agreement.Airline2 : agreement.Airline1;
+                Carrier tCarrier = agreement.Carrier1 == carrier ? agreement.Carrier2 : agreement.Carrier1;
 
                 double agreementIncome = ticketsIncome*(CodeshareAgreement.TicketSalePercent/100);
 
-                AirlineHelpers.AddAirlineInvoice(
-                    tAirline,
+                CarrierHelpers.AddCarrierInvoice(
+                    tCarrier,
                     GameObject.GetInstance().GameTime,
                     Invoice.InvoiceType.Tickets,
                     agreementIncome);
 
-                // the partner's share of the tickets comes out of the operating airline's income
-                AirlineHelpers.AddAirlineInvoice(
-                    airline,
+                // the partner's share of the tickets comes out of the operating carrier's income
+                CarrierHelpers.AddCarrierInvoice(
+                    carrier,
                     GameObject.GetInstance().GameTime,
                     Invoice.InvoiceType.Tickets,
                     -agreementIncome);
-                airliner.CurrentFlight.Entry.TimeTable.Route.AddRouteInvoice(
+                coach.CurrentTrip.Entry.TimeTable.Route.AddRouteInvoice(
                     new Invoice(GameObject.GetInstance().GameTime, Invoice.InvoiceType.Tickets, -agreementIncome));
             }
 
-            AirlineHelpers.AddAirlineInvoice(
-                airline,
+            CarrierHelpers.AddCarrierInvoice(
+                carrier,
                 GameObject.GetInstance().GameTime,
-                Invoice.InvoiceType.FlightExpenses,
+                Invoice.InvoiceType.TripExpenses,
                 -expenses);
-            AirlineHelpers.AddAirlineInvoice(
-                airline,
+            CarrierHelpers.AddCarrierInvoice(
+                carrier,
                 GameObject.GetInstance().GameTime,
                 Invoice.InvoiceType.Tickets,
                 ticketsIncome);
-            AirlineHelpers.AddAirlineInvoice(
-                airline,
+            CarrierHelpers.AddCarrierInvoice(
+                carrier,
                 GameObject.GetInstance().GameTime,
-                Invoice.InvoiceType.OnFlightIncome,
+                Invoice.InvoiceType.OnTripIncome,
                 -mealExpenses);
-            AirlineHelpers.AddAirlineInvoice(
-                airline,
+            CarrierHelpers.AddCarrierInvoice(
+                carrier,
                 GameObject.GetInstance().GameTime,
                 Invoice.InvoiceType.Fees,
                 feesIncome);
 
-            airliner.CurrentFlight.Entry.TimeTable.Route.AddRouteInvoice(
-                new Invoice(GameObject.GetInstance().GameTime, Invoice.InvoiceType.FlightExpenses, -expenses));
-            airliner.CurrentFlight.Entry.TimeTable.Route.AddRouteInvoice(
+            coach.CurrentTrip.Entry.TimeTable.Route.AddRouteInvoice(
+                new Invoice(GameObject.GetInstance().GameTime, Invoice.InvoiceType.TripExpenses, -expenses));
+            coach.CurrentTrip.Entry.TimeTable.Route.AddRouteInvoice(
                 new Invoice(GameObject.GetInstance().GameTime, Invoice.InvoiceType.Tickets, ticketsIncome));
-            airliner.CurrentFlight.Entry.TimeTable.Route.AddRouteInvoice(
-                new Invoice(GameObject.GetInstance().GameTime, Invoice.InvoiceType.OnFlightIncome, -mealExpenses));
-            airliner.CurrentFlight.Entry.TimeTable.Route.AddRouteInvoice(
+            coach.CurrentTrip.Entry.TimeTable.Route.AddRouteInvoice(
+                new Invoice(GameObject.GetInstance().GameTime, Invoice.InvoiceType.OnTripIncome, -mealExpenses));
+            coach.CurrentTrip.Entry.TimeTable.Route.AddRouteInvoice(
                 new Invoice(GameObject.GetInstance().GameTime, Invoice.InvoiceType.Fees, feesIncome));
 
             pfL = Profiler.Lap("landing: invoices", pfL);
             double wages = 0;
 
-            if (airliner.CurrentFlight.IsPassengerFlight())
+            if (coach.CurrentTrip.IsPassengerTrip())
             {
-                int cabinCrew = ((AirlinerPassengerType) airliner.Airliner.Type).CabinCrew;
+                int cabinCrew = ((CoachPassengerType) coach.Coach.Type).CabinCrew;
 
-                wages = cabinCrew*flighttime.TotalHours
-                        *airliner.Airliner.Airline.Fees.GetValue(FeeTypes.GetType("Cabin Wage"));
-                // +(airliner.CurrentFlight.Entry.TimeTable.Route.getTotalCabinCrew() * airliner.Airliner.Airline.Fees.getValue(FeeTypes.GetType("Cabin kilometer rate")) * fdistance) + (airliner.Airliner.Type.CockpitCrew * airliner.Airliner.Airline.Fees.getValue(FeeTypes.GetType("Cockpit kilometer rate")) * fdistance);
-                // holiday pay is 50% more; the airline is charged what the route shows
+                wages = cabinCrew*triptime.TotalHours
+                        *coach.Coach.Carrier.Fees.GetValue(FeeTypes.GetType("Cabin Wage"));
+                // +(coach.CurrentTrip.Entry.TimeTable.Route.getTotalCabinCrew() * coach.Coach.Carrier.Fees.getValue(FeeTypes.GetType("Cabin kilometer rate")) * fdistance) + (coach.Coach.Type.CockpitCrew * coach.Coach.Carrier.Fees.getValue(FeeTypes.GetType("Cockpit kilometer rate")) * fdistance);
+                // holiday pay is 50% more; the carrier is charged what the route shows
                 HolidayYearEvent holiday = HolidayYear.GetHoliday(
-                    airline.Profile.Country,
+                    carrier.Profile.Country,
                     GameObject.GetInstance().GameTime);
 
                 if (holiday != null
@@ -444,103 +444,103 @@ namespace TheBusProject.Helpers
                 {
                     wages = wages*1.50;
                 }
-                AirlineHelpers.AddAirlineInvoice(
-                    airline,
+                CarrierHelpers.AddCarrierInvoice(
+                    carrier,
                     GameObject.GetInstance().GameTime,
                     Invoice.InvoiceType.Wages,
                     -wages);
 
-                airliner.CurrentFlight.Entry.TimeTable.Route.AddRouteInvoice(
+                coach.CurrentTrip.Entry.TimeTable.Route.AddRouteInvoice(
                     new Invoice(GameObject.GetInstance().GameTime, Invoice.InvoiceType.Wages, -wages));
 
                 pfL = Profiler.Lap("landing: wages", pfL);
-                CreatePassengersHappiness(airliner);
+                CreatePassengersHappiness(coach);
                 pfL = Profiler.Lap("landing: happiness", pfL);
             }
 
-            airliner.Statistics.AddStatisticsValue(
+            coach.Statistics.AddStatisticsValue(
                 GameObject.GetInstance().GameTime.Year,
-                StatisticsTypes.GetStatisticsType("Airliner_Income"),
+                StatisticsTypes.GetStatisticsType("Coach_Income"),
                 ticketsIncome - expenses - mealExpenses + feesIncome - wages);
-            pfL = Profiler.Lap("landing: airliner statistics", pfL);
-            double flightCosts = FlightCosts.Charge(airliner, airliner.CurrentFlight.Entry.TimeTable.Route, fdistance, flighttime.TotalHours, ticketsIncome);
-            FlightRecords.Landed(airliner, landingTime, ticketsIncome + feesIncome, ticketsIncome + feesIncome - mealExpenses - expenses - wages - flightCosts);
-            FlightLog.Add(airliner, fdistance, flighttime.TotalHours, ticketsIncome, feesIncome, mealExpenses, fuelExpenses,
-                          AirportHelpers.GetLandingFee(dest, airliner.Airliner), tax, wages);
+            pfL = Profiler.Lap("landing: coach statistics", pfL);
+            double tripCosts = TripCosts.Charge(coach, coach.CurrentTrip.Entry.TimeTable.Route, fdistance, triptime.TotalHours, ticketsIncome);
+            TripRecords.Landed(coach, landingTime, ticketsIncome + feesIncome, ticketsIncome + feesIncome - mealExpenses - expenses - wages - tripCosts);
+            TripLog.Add(coach, fdistance, triptime.TotalHours, ticketsIncome, feesIncome, mealExpenses, fuelExpenses,
+                          StationHelpers.GetLandingFee(dest, coach.Coach), tax, wages);
 
-            pfL = Profiler.Lap("landing: flight costs and log", pfL);
-            airliner.Airliner.Flown += fdistance;
+            pfL = Profiler.Lap("landing: trip costs and log", pfL);
+            coach.Coach.Flown += fdistance;
 
-            if (airliner.CurrentFlight.IsPassengerFlight())
+            if (coach.CurrentTrip.IsPassengerTrip())
             {
                 foreach (
                     Cooperation cooperation in
-                        airliner.CurrentFlight.Entry.Destination.Airport.Cooperations.Where(c => c.Airline == airline))
+                        coach.CurrentTrip.Entry.Destination.Station.Cooperations.Where(c => c.Carrier == carrier))
                 {
                     double incomePerPax = MathHelpers.GetRandomDoubleNumber(
                         cooperation.Type.IncomePerPax*0.9,
                         cooperation.Type.IncomePerPax*1.1);
 
-                    double incomeFromCooperation = Convert.ToDouble(airliner.CurrentFlight.GetTotalPassengers())
+                    double incomeFromCooperation = Convert.ToDouble(coach.CurrentTrip.GetTotalPassengers())
                                                    *incomePerPax;
 
-                    AirlineHelpers.AddAirlineInvoice(
-                        airline,
+                    CarrierHelpers.AddCarrierInvoice(
+                        carrier,
                         GameObject.GetInstance().GameTime,
-                        Invoice.InvoiceType.OnFlightIncome,
+                        Invoice.InvoiceType.OnTripIncome,
                         incomeFromCooperation);
                 }
             }
 
-            if (airliner.Airliner.Airline.IsHuman && Infrastructure.Settings.GetInstance().MailsOnLandings)
+            if (coach.Coach.Carrier.IsHuman && Infrastructure.Settings.GetInstance().MailsOnLandings)
             {
                 GameObject.GetInstance()
                           .NewsBox.AddNews(
                               new News(
-                                  News.NewsType.FlightNews,
+                                  News.NewsType.TripNews,
                                   GameObject.GetInstance().GameTime,
-                                  $"{airliner.Name} landed",
-                                  $"Your airliner [LI airliner={airliner.Airliner.TailNumber}] has landed in [LI airport={dest.Profile.IATACode}], {dest.Profile.Country.Name} with {airliner.CurrentFlight.GetTotalPassengers()} passengers.\nThe airliner flow from [LI airport={dept.Profile.IATACode}], {dept.Profile.Country.Name}"));
+                                  $"{coach.Name} landed",
+                                  $"Your coach [LI coach={coach.Coach.TailNumber}] has landed in [LI station={dest.Profile.IATACode}], {dest.Profile.Country.Name} with {coach.CurrentTrip.GetTotalPassengers()} passengers.\nThe coach flow from [LI station={dept.Profile.IATACode}], {dept.Profile.Country.Name}"));
             }
 
             Profiler.Lap("landing: the rest", pfL);
-            if (airliner.CurrentFlight is StopoverFlight && !((StopoverFlight) airliner.CurrentFlight).IsLastTrip)
+            if (coach.CurrentTrip is StopoverTrip && !((StopoverTrip) coach.CurrentTrip).IsLastTrip)
             {
-                SimulateFlight(airliner.CurrentFlight.Entry);
+                SimulateTrip(coach.CurrentTrip.Entry);
             }
             else
             {
-                airliner.CurrentFlight = null;
+                coach.CurrentTrip = null;
             }
         }
 
-        private static void SimulateService(FleetAirliner airliner)
+        private static void SimulateService(FleetCoach coach)
         {
             const double servicePrice = 100000;
 
-            airliner.Airliner.LastServiceCheck = airliner.Airliner.Flown;
+            coach.Coach.LastServiceCheck = coach.Coach.Flown;
 
-            AirlineHelpers.AddAirlineInvoice(
-                airliner.Airliner.Airline,
+            CarrierHelpers.AddCarrierInvoice(
+                coach.Coach.Carrier,
                 GameObject.GetInstance().GameTime,
                 Invoice.InvoiceType.Maintenances,
                 -servicePrice);
 
-            airliner.Statistics.AddStatisticsValue(
+            coach.Statistics.AddStatisticsValue(
                 GameObject.GetInstance().GameTime.Year,
-                StatisticsTypes.GetStatisticsType("Airliner_Income"),
+                StatisticsTypes.GetStatisticsType("Coach_Income"),
                 -servicePrice);
 
-            airliner.GroundedToDate = GameObject.GetInstance().GameTime.AddDays(90);
+            coach.GroundedToDate = GameObject.GetInstance().GameTime.AddDays(90);
         }
 
-        private static void SimulateStopoverFlight(RouteTimeTableEntry mainEntry)
+        private static void SimulateStopoverTrip(RouteTimeTableEntry mainEntry)
         {
             //List<Route> routes = mainEntry.TimeTable.Route.Stopovers.SelectMany(s => s.Legs).ToList();
 
-            //Boolean isInbound = mainEntry.DepartureAirport == mainEntry.TimeTable.Route.Destination2;
+            //Boolean isInbound = mainEntry.DepartureStation == mainEntry.TimeTable.Route.Destination2;
 
-            SimulateFlight(mainEntry);
+            SimulateTrip(mainEntry);
             /*
             if (isInbound)
                 routes.Reverse();
@@ -554,24 +554,24 @@ namespace TheBusProject.Helpers
                 //inbound
                 if (isInbound)
                 {
-                    RouteTimeTableEntry entry = new RouteTimeTableEntry(timetable, mainEntry.Day, time, new RouteEntryDestination(route.Destination1, mainEntry.Destination.FlightCode));
+                    RouteTimeTableEntry entry = new RouteTimeTableEntry(timetable, mainEntry.Day, time, new RouteEntryDestination(route.Destination1, mainEntry.Destination.TripCode));
 
-                    time = entry.TimeTable.Route.getFlightTime(mainEntry.Airliner.Airliner.Type).Add(RouteTimeTable.MinTimeBetweenFlights); //getFlightTime ( 737-900ER SBY-BOS-CPH-AAR)
-                    entry.Airliner = mainEntry.Airliner;
+                    time = entry.TimeTable.Route.getTripTime(mainEntry.Coach.Coach.Type).Add(RouteTimeTable.MinTimeBetweenTrips); //getTripTime ( 737-900ER SBY-BOS-CPH-AAR)
+                    entry.Coach = mainEntry.Coach;
                     entry.MainEntry = mainEntry;
 
-                    SimulateFlight(entry);
+                    SimulateTrip(entry);
                 }
                 //outbound
                 else
                 {
-                    RouteTimeTableEntry entry = new RouteTimeTableEntry(timetable, mainEntry.Day, time, new RouteEntryDestination(route.Destination2, mainEntry.Destination.FlightCode));
-                    entry.Airliner = mainEntry.Airliner;
+                    RouteTimeTableEntry entry = new RouteTimeTableEntry(timetable, mainEntry.Day, time, new RouteEntryDestination(route.Destination2, mainEntry.Destination.TripCode));
+                    entry.Coach = mainEntry.Coach;
                     entry.MainEntry = mainEntry;
 
-                    time = time.Add(entry.TimeTable.Route.getFlightTime(mainEntry.Airliner.Airliner.Type)).Add(RouteTimeTable.MinTimeBetweenFlights);
+                    time = time.Add(entry.TimeTable.Route.getTripTime(mainEntry.Coach.Coach.Type)).Add(RouteTimeTable.MinTimeBetweenTrips);
 
-                    SimulateFlight(entry);
+                    SimulateTrip(entry);
                 }
 
 
@@ -582,40 +582,40 @@ namespace TheBusProject.Helpers
 
         #endregion
 
-        //simulates all flight for an airline for the current day
+        //simulates all trip for an carrier for the current day
 
         /*
         //sets the statistics from a take off
-        private static void SetTakeoffStatistics(FleetAirliner airliner)
+        private static void SetTakeoffStatistics(FleetCoach coach)
         {
-            Airport airport = airliner.CurrentFlight.Entry.DepartureAirport;
+            Station station = coach.CurrentTrip.Entry.DepartureStation;
 
-            airport.Statistics.addStatisticsValue(GameObject.GetInstance().GameTime.Year, airliner.Airliner.Airline, StatisticsTypes.GetStatisticsType("Departures"), 1);
+            station.Statistics.addStatisticsValue(GameObject.GetInstance().GameTime.Year, coach.Coach.Carrier, StatisticsTypes.GetStatisticsType("Departures"), 1);
 
-            double destPassengers = airport.Statistics.getStatisticsValue(GameObject.GetInstance().GameTime.Year, airliner.Airliner.Airline, StatisticsTypes.GetStatisticsType("Passengers"));
-            double destDepartures = airport.Statistics.getStatisticsValue(GameObject.GetInstance().GameTime.Year, airliner.Airliner.Airline, StatisticsTypes.GetStatisticsType("Arrivals"));
-            airport.Statistics.setStatisticsValue(GameObject.GetInstance().GameTime.Year, airliner.Airliner.Airline, StatisticsTypes.GetStatisticsType("Passengers%"), (int)(destPassengers / destDepartures));
+            double destPassengers = station.Statistics.getStatisticsValue(GameObject.GetInstance().GameTime.Year, coach.Coach.Carrier, StatisticsTypes.GetStatisticsType("Passengers"));
+            double destDepartures = station.Statistics.getStatisticsValue(GameObject.GetInstance().GameTime.Year, coach.Coach.Carrier, StatisticsTypes.GetStatisticsType("Arrivals"));
+            station.Statistics.setStatisticsValue(GameObject.GetInstance().GameTime.Year, coach.Coach.Carrier, StatisticsTypes.GetStatisticsType("Passengers%"), (int)(destPassengers / destDepartures));
 
 
-            airliner.Airliner.Airline.Statistics.addStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Departures"), 1);
-            airliner.Statistics.addStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Departures"), 1);
+            coach.Coach.Carrier.Statistics.addStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Departures"), 1);
+            coach.Statistics.addStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Departures"), 1);
             
-            foreach (AirlinerClass aClass in airliner.Airliner.Classes)
+            foreach (CoachClass aClass in coach.Coach.Classes)
             {
-                RouteAirlinerClass raClass = airliner.CurrentFlight.Entry.TimeTable.Route.getRouteAirlinerClass(aClass.Type);
+                RouteCoachClass raClass = coach.CurrentTrip.Entry.TimeTable.Route.getRouteCoachClass(aClass.Type);
 
-                airliner.CurrentFlight.Entry.TimeTable.Route.Statistics.addStatisticsValue(raClass, StatisticsTypes.GetStatisticsType("Departures"), 1);
+                coach.CurrentTrip.Entry.TimeTable.Route.Statistics.addStatisticsValue(raClass, StatisticsTypes.GetStatisticsType("Departures"), 1);
             }
-            double airlinerPassengers = airliner.Statistics.getStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Passengers"));
-            double airlinerDepartures = airliner.Statistics.getStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Departures"));
-            airliner.Statistics.setStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Passengers%"), (int)(airlinerPassengers / airlinerDepartures));
+            double coachPassengers = coach.Statistics.getStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Passengers"));
+            double coachDepartures = coach.Statistics.getStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Departures"));
+            coach.Statistics.setStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Passengers%"), (int)(coachPassengers / coachDepartures));
 
 
-            double airlinePassengers = airliner.Airliner.Airline.Statistics.getStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Passengers"));
-            double airlineDepartures = airliner.Airliner.Airline.Statistics.getStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Departures"));
-            airliner.Airliner.Airline.Statistics.setStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Passengers%"), (int)(airlinePassengers / airlineDepartures));
+            double carrierPassengers = coach.Coach.Carrier.Statistics.getStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Passengers"));
+            double carrierDepartures = coach.Coach.Carrier.Statistics.getStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Departures"));
+            coach.Coach.Carrier.Statistics.setStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Passengers%"), (int)(carrierPassengers / carrierDepartures));
 
         }*/
-        //creates the happiness for a landed route airliner
+        //creates the happiness for a landed route coach
     }
 }

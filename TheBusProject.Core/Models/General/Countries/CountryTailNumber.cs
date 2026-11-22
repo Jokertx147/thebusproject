@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Linq;
-using TheBusProject.Models.Airlines;
+using TheBusProject.Models.Carriers;
 
 namespace TheBusProject.Models.General.Countries
 {
@@ -112,10 +112,10 @@ namespace TheBusProject.Models.General.Countries
         private static readonly System.Collections.Generic.Dictionary<string, int> UsTailCounters =
             new System.Collections.Generic.Dictionary<string, int>();
 
-        //returns the next tail number for an airline: US airlines get N + a 3 digit number + the airline's two letter code (N001G4, N002G4 ...)
-        public string GetNextTailNumber(Airline airline)
+        //returns the next tail number for an carrier: US carriers get N + a 3 digit number + the carrier's two letter code (N001G4, N002G4 ...)
+        public string GetNextTailNumber(Carrier carrier)
         {
-            string code = airline?.Profile?.IATACode;
+            string code = carrier?.Profile?.IATACode;
 
             if (!IsUnitedStates || string.IsNullOrWhiteSpace(code))
             {
@@ -129,8 +129,8 @@ namespace TheBusProject.Models.General.Countries
                 int highest;
                 UsTailCounters.TryGetValue(code, out highest);
 
-                foreach (string tail in TheBusProject.Models.Airliners.Airliners.GetAllAirliners().Select(a => a.TailNumber)
-                    .Concat(airline.Fleet.ToList().Select(f => f.Airliner?.TailNumber)))
+                foreach (string tail in TheBusProject.Models.Coaches.Coaches.GetAllCoaches().Select(a => a.TailNumber)
+                    .Concat(carrier.Fleet.ToList().Select(f => f.Coach?.TailNumber)))
                 {
                     if (tail == null)
                     {

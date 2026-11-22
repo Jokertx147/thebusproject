@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General.Statistics;
 
 namespace TheBusProject.Models.Routes
@@ -17,8 +17,8 @@ namespace TheBusProject.Models.Routes
 
         public CombiRoute(
             string id,
-            Airport destination1,
-            Airport destination2,
+            Station destination1,
+            Station destination2,
             DateTime startDate,
             double farePrice,
             double pricePerUnit)
@@ -100,8 +100,8 @@ namespace TheBusProject.Models.Routes
 
         #endregion
 
-        //På passenger route check box til "Tag cargo med hvis muligt". Så kan combi airliners bruges herpå./Skal Combi route være en passenger route men med cargo price?
+        //På passenger route check box til "Tag cargo med hvis muligt". Så kan combi coaches bruges herpå./Skal Combi route være en passenger route men med cargo price?
 
-        //adds a route airliner class to the route
+        //adds a route coach class to the route
     }
 }

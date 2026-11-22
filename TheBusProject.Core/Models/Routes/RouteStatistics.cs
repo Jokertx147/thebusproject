@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airliners;
+using TheBusProject.Models.Coaches;
 using TheBusProject.Models.General.Statistics;
 
 namespace TheBusProject.Models.Routes
@@ -45,9 +45,9 @@ namespace TheBusProject.Models.Routes
             base.GetObjectData(info, context);
         }
 
-        // locked for the same reason as an airline's statistics: a find, a change and a write that two threads
+        // locked for the same reason as an carrier's statistics: a find, a change and a write that two threads
         // could interleave, losing what one of them counted
-        public void AddStatisticsValue(RouteAirlinerClass aClass, StatisticsType type, int value)
+        public void AddStatisticsValue(RouteCoachClass aClass, StatisticsType type, int value)
         {
             lock (Stats)
             {
@@ -67,9 +67,9 @@ namespace TheBusProject.Models.Routes
 
         public void AddStatisticsValue(StatisticsType type, int value)
         {
-            var aClass = new RouteAirlinerClass(
-                AirlinerClass.ClassType.EconomyClass,
-                RouteAirlinerClass.SeatingType.FreeSeating,
+            var aClass = new RouteCoachClass(
+                CoachClass.ClassType.EconomyClass,
+                RouteCoachClass.SeatingType.FreeSeating,
                 0);
 
             AddStatisticsValue(aClass, type, value);
@@ -82,7 +82,7 @@ namespace TheBusProject.Models.Routes
         }
 
         //returns the value for a statistics type for a route class
-        public long GetStatisticsValue(RouteAirlinerClass aClass, StatisticsType type)
+        public long GetStatisticsValue(RouteCoachClass aClass, StatisticsType type)
         {
             lock (Stats)
             {
@@ -95,9 +95,9 @@ namespace TheBusProject.Models.Routes
 
         public long GetStatisticsValue(StatisticsType type)
         {
-            var aClass = new RouteAirlinerClass(
-                AirlinerClass.ClassType.EconomyClass,
-                RouteAirlinerClass.SeatingType.FreeSeating,
+            var aClass = new RouteCoachClass(
+                CoachClass.ClassType.EconomyClass,
+                RouteCoachClass.SeatingType.FreeSeating,
                 0);
 
             return GetStatisticsValue(aClass, type);
@@ -118,7 +118,7 @@ namespace TheBusProject.Models.Routes
         //adds the value for a statistics type to a route class
 
         //sets the value for a statistics type to a route class
-        public void SetStatisticsValue(RouteAirlinerClass aClass, StatisticsType type, int value)
+        public void SetStatisticsValue(RouteCoachClass aClass, StatisticsType type, int value)
         {
             lock (Stats)
             {
@@ -138,9 +138,9 @@ namespace TheBusProject.Models.Routes
 
         public void SetStatisticsValue(StatisticsType type, int value)
         {
-            var aClass = new RouteAirlinerClass(
-                AirlinerClass.ClassType.EconomyClass,
-                RouteAirlinerClass.SeatingType.FreeSeating,
+            var aClass = new RouteCoachClass(
+                CoachClass.ClassType.EconomyClass,
+                RouteCoachClass.SeatingType.FreeSeating,
                 0);
 
             SetStatisticsValue(aClass, type, value);
@@ -155,20 +155,20 @@ namespace TheBusProject.Models.Routes
     public class RouteStatistics
     {
         
-        private Dictionary<RouteAirlinerClass, Dictionary<StatisticsType, int>> Stats;
+        private Dictionary<RouteCoachClass, Dictionary<StatisticsType, int>> Stats;
 
         public RouteStatistics()
         {
-            this.Stats = new Dictionary<RouteAirlinerClass, Dictionary<StatisticsType, int>>();
+            this.Stats = new Dictionary<RouteCoachClass, Dictionary<StatisticsType, int>>();
 
         }
         //clears the statistics
         public void clear()
         {
-            this.Stats = new Dictionary<RouteAirlinerClass, Dictionary<StatisticsType, int>>();
+            this.Stats = new Dictionary<RouteCoachClass, Dictionary<StatisticsType, int>>();
         }
         //returns the value for a statistics type for a route class
-        public int getStatisticsValue(RouteAirlinerClass aClass, StatisticsType type)
+        public int getStatisticsValue(RouteCoachClass aClass, StatisticsType type)
         {
             if (this.Stats.ContainsKey(aClass) && this.Stats[aClass].ContainsKey(type))
                 return this.Stats[aClass][type];
@@ -177,12 +177,12 @@ namespace TheBusProject.Models.Routes
         }
         public int getStatisticsValue(StatisticsType type)
         {
-            RouteAirlinerClass aClass = new RouteAirlinerClass(AirlinerClass.ClassType.Economy_Class, RouteAirlinerClass.SeatingType.Free_Seating, 0);
+            RouteCoachClass aClass = new RouteCoachClass(CoachClass.ClassType.Economy_Class, RouteCoachClass.SeatingType.Free_Seating, 0);
 
             return getStatisticsValue(aClass, type);
         }
         //adds the value for a statistics type to a route class
-        public void addStatisticsValue(RouteAirlinerClass aClass, StatisticsType type, int value)
+        public void addStatisticsValue(RouteCoachClass aClass, StatisticsType type, int value)
         {
             lock (this.Stats)
             {
@@ -195,12 +195,12 @@ namespace TheBusProject.Models.Routes
         }
         public void addStatisticsValue(StatisticsType type, int value)
         {
-            RouteAirlinerClass aClass = new RouteAirlinerClass(AirlinerClass.ClassType.Economy_Class, RouteAirlinerClass.SeatingType.Free_Seating, 0);
+            RouteCoachClass aClass = new RouteCoachClass(CoachClass.ClassType.Economy_Class, RouteCoachClass.SeatingType.Free_Seating, 0);
 
             addStatisticsValue(aClass,type,value);
         }
         //sets the value for a statistics type to a route class
-        public void setStatisticsValue(RouteAirlinerClass aClass, StatisticsType type, int value)
+        public void setStatisticsValue(RouteCoachClass aClass, StatisticsType type, int value)
         {
             if (!this.Stats.ContainsKey(aClass))
                 this.Stats.Add(aClass, new Dictionary<StatisticsType, int>());
@@ -211,7 +211,7 @@ namespace TheBusProject.Models.Routes
         }
         public void setStatisticsValue(StatisticsType type, int value)
         {
-            RouteAirlinerClass aClass = new RouteAirlinerClass(AirlinerClass.ClassType.Economy_Class,RouteAirlinerClass.SeatingType.Free_Seating, 0);
+            RouteCoachClass aClass = new RouteCoachClass(CoachClass.ClassType.Economy_Class,RouteCoachClass.SeatingType.Free_Seating, 0);
 
             setStatisticsValue(aClass, type, value);
         }
@@ -222,7 +222,7 @@ namespace TheBusProject.Models.Routes
 
             lock (this.Stats)
             {
-                foreach (RouteAirlinerClass aClass in this.Stats.Keys)
+                foreach (RouteCoachClass aClass in this.Stats.Keys)
                 {
                     if (this.Stats[aClass].ContainsKey(type))
                         value += this.Stats[aClass][type];
@@ -239,7 +239,7 @@ namespace TheBusProject.Models.Routes
     {
         #region Constructors and Destructors
 
-        public RouteStatisticsItem(RouteAirlinerClass routeClass, StatisticsType type, int value)
+        public RouteStatisticsItem(RouteCoachClass routeClass, StatisticsType type, int value)
         {
             RouteClass = routeClass;
             Type = type;
@@ -250,7 +250,7 @@ namespace TheBusProject.Models.Routes
 
         #region Public Properties
 
-        public RouteAirlinerClass RouteClass { get; set; }
+        public RouteCoachClass RouteClass { get; set; }
 
         public StatisticsType Type { get; set; }
 

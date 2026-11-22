@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Runtime.Serialization;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Stations;
 
 namespace TheBusProject.Models.Routes
 {
     /*! RouteTimeTableEntry.
  * This class is used for an entry in a time table
- * The class needs parameters for the time table, the day of flight, the time of flight and the destination
+ * The class needs parameters for the time table, the day of trip, the time of trip and the destination
  */
 
     [Serializable]
@@ -50,13 +50,13 @@ namespace TheBusProject.Models.Routes
 
         #region Public Properties
 
-        [Versioning("airliner")]
-        public FleetAirliner Airliner { get; set; }
+        [Versioning("coach")]
+        public FleetCoach Coach { get; set; }
 
         [Versioning("day")]
         public DayOfWeek Day { get; set; }
 
-        public Airport DepartureAirport => GetDepartureAirport();
+        public Station DepartureStation => GetDepartureStation();
 
         [Versioning("destination")]
         public RouteEntryDestination Destination { get; set; }
@@ -99,9 +99,9 @@ namespace TheBusProject.Models.Routes
             base.GetObjectData(info, context);
         }
 
-        public Airport GetDepartureAirport()
+        public Station GetDepartureStation()
         {
-            return Destination.Airport == TimeTable.Route.Destination1
+            return Destination.Station == TimeTable.Route.Destination1
                        ? TimeTable.Route.Destination2
                        : TimeTable.Route.Destination1;
         }

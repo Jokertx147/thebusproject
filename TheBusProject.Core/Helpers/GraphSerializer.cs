@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -14,8 +14,8 @@ namespace TheBusProject.Helpers
 {
     /// <summary>
     ///     Saves and loads a whole object graph by copying the fields of its objects (what BinaryFormatter used to do).
-    ///     Objects are created first and filled afterwards, so references that go in circles (an airline owns an airliner
-    ///     that points back to the airline, and so on) come back intact. DataContractSerializer cannot do that for the
+    ///     Objects are created first and filled afterwards, so references that go in circles (an carrier owns an coach
+    ///     that points back to the carrier, and so on) come back intact. DataContractSerializer cannot do that for the
     ///     game's ISerializable classes: a reference to an object that is still being built is lost.
     /// </summary>
     public static class GraphSerializer

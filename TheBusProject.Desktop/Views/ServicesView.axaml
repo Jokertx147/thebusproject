@@ -15,7 +15,7 @@
       </Border>
       <TextBlock Text="{Binding Status}" TextWrapping="Wrap" />
 
-      <TextBlock Text="Airline facilities" FontSize="16" FontWeight="SemiBold" Margin="0,8,0,0" />
+      <TextBlock Text="Carrier facilities" FontSize="16" FontWeight="SemiBold" Margin="0,8,0,0" />
       <ItemsControl ItemsSource="{Binding Facilities}">
         <ItemsControl.ItemTemplate>
           <DataTemplate>

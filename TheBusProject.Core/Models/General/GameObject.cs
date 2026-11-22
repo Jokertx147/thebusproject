@@ -1,4 +1,4 @@
-﻿//locked for verison 0.3.6t2 (this serves no purpose whatsoever)
+//locked for verison 0.3.6t2 (this serves no purpose whatsoever)
 
 using System;
 using System.Collections.ObjectModel;
@@ -6,7 +6,7 @@ using System.ComponentModel;
 using System.Runtime.Serialization;
 using TheBusProject.Helpers;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airlines;
+using TheBusProject.Models.Carriers;
 using TheBusProject.Models.General.Countries;
 using TheBusProject.Models.General.Scenarios;
 
@@ -73,7 +73,7 @@ namespace TheBusProject.Models.General
         [Versioning("currencycountry")]
         public Country CurrencyCountry { get; set; }
 
-        /// <summary>How much flights cost (see FlightCosts): 0 original game, 1 realistic, 2 tough.</summary>
+        /// <summary>How much trips cost (see TripCosts): 0 original game, 1 realistic, 2 tough.</summary>
         [Versioning("costlevel")]
         public int CostLevel { get; set; } = 1;
 
@@ -114,19 +114,19 @@ namespace TheBusProject.Models.General
 
         //public DateTime GameTime { get; set; }
 
-        [Versioning("humanairline")]
-        public Airline HumanAirline { get; private set; }
+        [Versioning("humancarrier")]
+        public Carrier HumanCarrier { get; private set; }
 
-        /// <summary>The player's money: always the human airline's money (kept apart only before there is one).</summary>
+        /// <summary>The player's money: always the human carrier's money (kept apart only before there is one).</summary>
         public double HumanMoney
         {
-            get { return HumanAirline != null ? HumanAirline.Money : _humanMoney; }
+            get { return HumanCarrier != null ? HumanCarrier.Money : _humanMoney; }
             set
             {
                 _humanMoney = value;
-                if (HumanAirline != null)
+                if (HumanCarrier != null)
                 {
-                    HumanAirline.Money = value; // notifies through the airline
+                    HumanCarrier.Money = value; // notifies through the carrier
                 }
                 else
                 {
@@ -141,8 +141,8 @@ namespace TheBusProject.Models.General
             NotifyPropertyChanged("HumanMoney");
         }
 
-        [Versioning("mainairline")]
-        public Airline MainAirline { get; set; }
+        [Versioning("maincarrier")]
+        public Carrier MainCarrier { get; set; }
 
         [Versioning("name")]
         public string Name { get; set; }
@@ -203,14 +203,14 @@ namespace TheBusProject.Models.General
 
         public void AddHumanMoney(double value)
         {
-            if (HumanAirline != null) HumanAirline.AddMoney(value);
+            if (HumanCarrier != null) HumanCarrier.AddMoney(value);
             else HumanMoney += value;
         }
 
-        public void SetHumanAirline(Airline airline)
+        public void SetHumanCarrier(Carrier carrier)
         {
-            HumanAirline = airline;
-            HumanMoney = airline.Money;
+            HumanCarrier = carrier;
+            HumanMoney = carrier.Money;
         }
 
         #endregion

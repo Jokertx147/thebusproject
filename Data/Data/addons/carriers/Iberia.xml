@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+
+<carrier>
+  <profile name="Iberia" iata="IB" color="Orangered" country="123" CEO="Antonio Vazquez" mentality="Aggressive"
+           market="Global" preferedstation="MAD">
+    <narrative
+      narrative="Iberia Líneas Aéreas de España, S.A., commonly known as Iberia, is the flag carrier airline of Spain. Based in Madrid, it operates an international network of services from its main bases of Madrid-Barajas Airport and Barcelona El Prat Airport." />
+  </profile>
+     <info real="True" from="1927" to="2199"></info>
+  <startdata>
+    <coaches>
+      <coach type="Airbus A320-200" early="0" late="27"></coach>
+      <coach type="Airbus A319-100" early="0" late="19"></coach>
+      <coach type="Airbus A321-200" early="0" late="19"></coach>
+      <coach type="Airbus A340-300" early="0" late="17"></coach>
+      <coach type="Airbus A340-600" early="0" late="17"></coach>
+    </coaches>
+  </startdata>
+</carrier>

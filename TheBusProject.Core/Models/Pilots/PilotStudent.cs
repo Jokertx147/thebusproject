@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.Serialization;
 using TheBusProject.Helpers;
 using TheBusProject.Infrastructure;
@@ -22,14 +22,14 @@ namespace TheBusProject.Models.Pilots
             DateTime startDate,
             Instructor instructor,
             PilotRating rating,
-            string airlinerfamily)
+            string coachfamily)
         {
             Rating = rating;
             Profile = profile;
             StartDate = startDate;
             EndDate = StartDate.AddDays(Rating.TrainingDays);
             Instructor = instructor;
-            AirlinerFamily = airlinerfamily;
+            CoachFamily = coachfamily;
         }
 
         private PilotStudent(SerializationInfo info, StreamingContext ctxt) : base(info, ctxt)
@@ -40,8 +40,8 @@ namespace TheBusProject.Models.Pilots
             }
             if (Version < 3)
             {
-                Aircraft = null;
-                AirlinerFamily = "";
+                Coach = null;
+                CoachFamily = "";
             }
         }
 
@@ -49,11 +49,11 @@ namespace TheBusProject.Models.Pilots
 
         #region Public Properties
 
-        [Versioning("aircraft", Version = 3)]
-        public TrainingAircraft Aircraft { get; set; }
+        [Versioning("coach", Version = 3)]
+        public TrainingCoach Coach { get; set; }
 
-        [Versioning("airlinerfamily", Version = 3)]
-        public string AirlinerFamily { get; set; }
+        [Versioning("coachfamily", Version = 3)]
+        public string CoachFamily { get; set; }
 
         [Versioning("enddate")]
         public DateTime EndDate { get; set; }

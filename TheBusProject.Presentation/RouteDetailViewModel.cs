@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Input;
 using TheBusProject.Helpers;
-using TheBusProject.Models.Airliners;
+using TheBusProject.Models.Coaches;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Statistics;
 using TheBusProject.Models.Routes;
@@ -17,7 +17,7 @@ namespace TheBusProject.Presentation
         private string _price;
 
         public string ClassName { get; set; }
-        public AirlinerClass.ClassType Type { get; set; }
+        public CoachClass.ClassType Type { get; set; }
         public string Seats { get; set; }
 
         /// <summary>The market fare for this class on the route.</summary>
@@ -59,7 +59,7 @@ namespace TheBusProject.Presentation
         }
     }
 
-    /// <summary>One route of the airline: numbers, fares (editable) and delete.</summary>
+    /// <summary>One route of the carrier: numbers, fares (editable) and delete.</summary>
     public class RouteDetailViewModel : ObservableObject
     {
         private readonly Route _route;
@@ -168,7 +168,7 @@ namespace TheBusProject.Presentation
             UpdatePricing();
         }
         public string Numbers { get; private set; }
-        public string AircraftText { get; private set; }
+        public string CoachText { get; private set; }
         public ObservableCollection<FareItem> Fares { get; }
 
         public ICommand SaveFaresCommand { get; }
@@ -196,10 +196,10 @@ namespace TheBusProject.Presentation
         public ICommand AssignCommand { get; }
         public ICommand MoveCommand { get; }
 
-        // ---- replace one aircraft of the route by another, on the same flights ----
+        // ---- replace one coach of the route by another, on the same trips ----
 
         private bool _replacing;
-        private NamedChoice<FleetAirliner> _replaceFrom;
+        private NamedChoice<FleetCoach> _replaceFrom;
         private NamedChoice<ReplacementOption> _replaceTo;
 
         public ICommand OpenReplaceCommand { get; }
@@ -214,7 +214,7 @@ namespace TheBusProject.Presentation
         public string ShiftText => CanShift ? "Shift the times: " + _replaceTo.Value.Shift.Summary + "." : null;
         public string KeepText => CanKeep ? "Keep what fits: " + _replaceTo.Value.Keep.Summary + "." : null;
 
-        public ObservableCollection<NamedChoice<FleetAirliner>> ReplaceFromChoices { get; } = new ObservableCollection<NamedChoice<FleetAirliner>>();
+        public ObservableCollection<NamedChoice<FleetCoach>> ReplaceFromChoices { get; } = new ObservableCollection<NamedChoice<FleetCoach>>();
         public ObservableCollection<NamedChoice<ReplacementOption>> ReplaceToChoices { get; } = new ObservableCollection<NamedChoice<ReplacementOption>>();
 
         public bool IsReplacing
@@ -231,7 +231,7 @@ namespace TheBusProject.Presentation
 
         public bool ShowReplaceButton => CanMove && !_replacing && _assign == null;
 
-        public NamedChoice<FleetAirliner> ReplaceFrom
+        public NamedChoice<FleetCoach> ReplaceFrom
         {
             get { return _replaceFrom; }
             set
@@ -268,24 +268,24 @@ namespace TheBusProject.Presentation
             get
             {
                 if (_replaceFrom == null) return null;
-                if (ReplaceToChoices.Count == 0) return "No other aircraft of the right kind in your fleet.";
+                if (ReplaceToChoices.Count == 0) return "No other coach of the right kind in your fleet.";
                 if (_replaceTo == null) return null;
                 var from = _replaceFrom.Value;
-                int flights = _route.TimeTable.Entries.Count(e => e.Airliner == from);
+                int trips = _route.TimeTable.Entries.Count(e => e.Coach == from);
                 return _replaceTo.Value.CanReplace
-                    ? _replaceTo.Value.Airliner.Name + " takes over the " + flights + " weekly flights of " + from.Name + " on this route, at the same times."
+                    ? _replaceTo.Value.Coach.Name + " takes over the " + trips + " weekly trips of " + from.Name + " on this route, at the same times."
                     : _replaceTo.Value.Shift != null || _replaceTo.Value.Keep != null
-                        ? _replaceTo.Value.Airliner.Name + " is too slow for the flights as they are. Pick how to make the route fit:"
-                        : _replaceTo.Value.Airliner.Name + " can't take over: " + _replaceTo.Value.Note + ".";
+                        ? _replaceTo.Value.Coach.Name + " is too slow for the trips as they are. Pick how to make the route fit:"
+                        : _replaceTo.Value.Coach.Name + " can't take over: " + _replaceTo.Value.Note + ".";
             }
         }
 
         private void OpenReplace()
         {
             ReplaceFromChoices.Clear();
-            foreach (FleetAirliner f in _route.GetAirliners().OrderBy(f => f.Name))
+            foreach (FleetCoach f in _route.GetCoaches().OrderBy(f => f.Name))
             {
-                ReplaceFromChoices.Add(new NamedChoice<FleetAirliner> {Name = f.Name + " (" + f.Airliner.Type.Name + ")", Value = f});
+                ReplaceFromChoices.Add(new NamedChoice<FleetCoach> {Name = f.Name + " (" + f.Coach.Type.Name + ")", Value = f});
             }
             _replaceFrom = null;
             ReplaceFrom = ReplaceFromChoices.FirstOrDefault();
@@ -297,11 +297,11 @@ namespace TheBusProject.Presentation
             ReplaceToChoices.Clear();
             if (_replaceFrom != null)
             {
-                foreach (ReplacementOption o in AircraftReplaceService.Options(_route, _replaceFrom.Value))
+                foreach (ReplacementOption o in CoachReplaceService.Options(_route, _replaceFrom.Value))
                 {
                     ReplaceToChoices.Add(new NamedChoice<ReplacementOption>
                     {
-                        Name = o.Airliner.Name + " (" + o.Airliner.Airliner.Type.Name + "): " + (o.CanReplace ? o.Note : "can't, " + o.Note),
+                        Name = o.Coach.Name + " (" + o.Coach.Coach.Type.Name + "): " + (o.CanReplace ? o.Note : "can't, " + o.Note),
                         Value = o
                     });
                 }
@@ -314,7 +314,7 @@ namespace TheBusProject.Presentation
         private void DoReplace(ReplaceMode mode)
         {
             string message;
-            bool ok = AircraftReplaceService.Replace(_route, _replaceFrom?.Value, _replaceTo?.Value?.Airliner, mode, out message);
+            bool ok = CoachReplaceService.Replace(_route, _replaceFrom?.Value, _replaceTo?.Value?.Coach, mode, out message);
             Status = message;
             if (ok)
             {
@@ -328,7 +328,7 @@ namespace TheBusProject.Presentation
             }
         }
 
-        /// <summary>The form to put an aircraft on this route, or null when it is closed.</summary>
+        /// <summary>The form to put an coach on this route, or null when it is closed.</summary>
         public CreateRouteViewModel Assign
         {
             get { return _assign; }
@@ -344,14 +344,14 @@ namespace TheBusProject.Presentation
             }
         }
 
-        public bool CanMove => _route.HasAirliner;
+        public bool CanMove => _route.HasCoach;
 
         public bool ShowMoveButton => CanMove && _assign == null;
 
         public bool HasAssign => _assign != null;
 
-        /// <summary>True when no aircraft flies this route.</summary>
-        public bool CanAssign => !_route.HasAirliner;
+        /// <summary>True when no coach flies this route.</summary>
+        public bool CanAssign => !_route.HasCoach;
 
         public bool ShowAssignButton => CanAssign && _assign == null;
 
@@ -378,7 +378,7 @@ namespace TheBusProject.Presentation
             return Convert.ToString(new ValueCurrencyFormatter().Convert(v));
         }
 
-        /// <summary>Updates the figures (passengers, profit, aircraft); fares being edited are left alone.</summary>
+        /// <summary>Updates the figures (passengers, profit, coach); fares being edited are left alone.</summary>
         public void RefreshNumbers()
         {
             double passengers = 0, capacity = 0;
@@ -393,18 +393,18 @@ namespace TheBusProject.Presentation
                 // no statistics yet
             }
 
-            string load = capacity > 0 ? string.Format("{0:0}%", 100 * passengers / capacity) : "no flights yet";
+            string load = capacity > 0 ? string.Format("{0:0}%", 100 * passengers / capacity) : "no trips yet";
             Numbers = string.Format(
                 "{0}  |  {1:0} {2} carried  |  load factor {3}  |  profit {4}",
                 DistanceFormatter.Km(_route.GetDistance()), passengers, IsCargo ? "units of cargo" : "passengers", load, Money(_route.Balance));
 
-            var airliners = _route.GetAirliners();
-            AircraftText = airliners.Count == 0
-                ? "No aircraft is scheduled on this route."
-                : "Aircraft: " + string.Join(", ", airliners.Select(a => a.Name + " (" + a.Status + ")"));
+            var coaches = _route.GetCoaches();
+            CoachText = coaches.Count == 0
+                ? "No coach is scheduled on this route."
+                : "Coach: " + string.Join(", ", coaches.Select(a => a.Name + " (" + a.Status + ")"));
 
             OnPropertyChanged(nameof(Numbers));
-            OnPropertyChanged(nameof(AircraftText));
+            OnPropertyChanged(nameof(CoachText));
             OnPropertyChanged(nameof(CanAssign));
             OnPropertyChanged(nameof(ShowAssignButton));
             OnPropertyChanged(nameof(CanMove));
@@ -462,21 +462,21 @@ namespace TheBusProject.Presentation
             double be80 = PricingService.BreakEvenFare(pr, 0.8);
             var lines = new List<string>();
             lines.Add(m.Income == 0 && m.Costs == 0
-                ? "No flights last month."
-                : string.Format("Last month: income {0}, flight costs {1}, profit {2}.", f.Convert(m.Income), f.Convert(m.Costs), f.Convert(m.Profit)));
+                ? "No trips last month."
+                : string.Format("Last month: income {0}, trip costs {1}, profit {2}.", f.Convert(m.Income), f.Convert(m.Costs), f.Convert(m.Profit)));
             double month = ConnectionService.MonthLoad(pr);
             if (month > 0.005) lines.Add(string.Format("Recently {0:0}% full{1}.", month*100, load > 0.05 ? string.Format(" ({0:0}% on average since it started)", load*100) : ""));
             else if (load > 0.05) lines.Add(string.Format("Since it started the route has been {0:0}% full on average.", load*100));
             var rivals = AIPricingService.Rivals(pr);
             if (rivals.Count == 0)
             {
-                lines.Add("No other airline flies this route.");
+                lines.Add("No other carrier runs this route.");
             }
             else
             {
-                lines.Add("Other airlines here (they review their fares every week or two and answer cheaper rivals): " + string.Join("; ", rivals
+                lines.Add("Other carriers here (they review their fares every week or two and answer cheaper rivals): " + string.Join("; ", rivals
                     .OrderBy(AIPricingService.EconomyFare)
-                    .Select(r => string.Format("{0} economy {1}, {2:0}% full", r.Airline.Profile.Name, f.Convert(AIPricingService.EconomyFare(r)), ConnectionService.MonthLoad(r)*100))) + ".");
+                    .Select(r => string.Format("{0} economy {1}, {2:0}% full", r.Carrier.Profile.Name, f.Convert(AIPricingService.EconomyFare(r)), ConnectionService.MonthLoad(r)*100))) + ".");
             }
             if (be > 0)
             {
@@ -498,8 +498,8 @@ namespace TheBusProject.Presentation
             double load = ConnectionService.MonthLoad(cr);
             var lines = new List<string>();
             lines.Add(m.Income == 0 && m.Costs == 0
-                ? "No flights last month."
-                : string.Format("Last month: income {0}, flight costs {1}, profit {2}.", f.Convert(m.Income), f.Convert(m.Costs), f.Convert(m.Profit)));
+                ? "No trips last month."
+                : string.Format("Last month: income {0}, trip costs {1}, profit {2}.", f.Convert(m.Income), f.Convert(m.Costs), f.Convert(m.Profit)));
             if (load > 0.005) lines.Add(string.Format("Recently {0:0}% of the cargo space was filled.", load*100));
             double atLoad = load > 0.05 ? load : 0.75;
             double be = PricingService.CargoBreakEvenRate(cr, atLoad);
@@ -510,11 +510,11 @@ namespace TheBusProject.Presentation
                     : string.Format("Break-even rate per unit at 75% full: {0}, including what the freighter costs to own.", f.Convert(be75)));
             var rivals = AIPricingService.CargoRivals(cr);
             lines.Add(rivals.Count == 0
-                ? "No other airline flies cargo on this route."
-                : "Other cargo airlines here (they review their rates every week or two): " + string.Join("; ", rivals.OrderBy(r => r.PricePerUnit)
-                    .Select(r => string.Format("{0} {1} per unit, {2:0}% full", r.Airline.Profile.Name, f.Convert(r.PricePerUnit), ConnectionService.MonthLoad(r)*100))) + ".");
+                ? "No other carrier runs cargo on this route."
+                : "Other cargo carriers here (they review their rates every week or two): " + string.Join("; ", rivals.OrderBy(r => r.PricePerUnit)
+                    .Select(r => string.Format("{0} {1} per unit, {2:0}% full", r.Carrier.Profile.Name, f.Convert(r.PricePerUnit), ConnectionService.MonthLoad(r)*100))) + ".");
             if (PricingService.Realistic)
-                lines.Add("A rate above the market rate loses cargo, one below it wins more. Short cargo flights need a higher rate per km than long ones: the market rate has a fixed part for handling.");
+                lines.Add("A rate above the market rate loses cargo, one below it wins more. Short cargo trips need a higher rate per km than long ones: the market rate has a fixed part for handling.");
             return string.Join(Environment.NewLine, lines);
         }
 
@@ -538,7 +538,7 @@ namespace TheBusProject.Presentation
 
             foreach (var f in Fares)
             {
-                pr.GetRouteAirlinerClass(f.Type).FarePrice =
+                pr.GetRouteCoachClass(f.Type).FarePrice =
                     double.Parse(f.Price.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture);
             }
 
@@ -548,19 +548,19 @@ namespace TheBusProject.Presentation
 
         private void Delete()
         {
-            var airline = GameObject.GetInstance().HumanAirline;
+            var carrier = GameObject.GetInstance().HumanCarrier;
 
-            var contract = airline.SpecialContracts.Find(s => s.Routes.Contains(_route));
+            var contract = carrier.SpecialContracts.Find(s => s.Routes.Contains(_route));
             contract?.Routes.Remove(_route);
 
-            var airliners = _route.GetAirliners();
-            airline.RemoveRoute(_route);
-            foreach (var a in airliners)
+            var coaches = _route.GetCoaches();
+            carrier.RemoveRoute(_route);
+            foreach (var a in coaches)
             {
                 a.RemoveRoute(_route);
                 if (a.Routes.Count == 0)
                 {
-                    a.Status = FleetAirliner.AirlinerStatus.Stopped;
+                    a.Status = FleetCoach.CoachStatus.Stopped;
                 }
             }
 

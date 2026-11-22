@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.IO;
 using System.Threading;
@@ -101,7 +101,7 @@ namespace TheBusProject.Infrastructure
             string docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             if (string.IsNullOrEmpty(docs)) docs = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             if (string.IsNullOrEmpty(docs)) docs = Path.GetTempPath();
-            var path = docs + "/theairlineproject/";
+            var path = docs + "/thebusproject/";
 
             if (!Directory.Exists(path))
             {

@@ -5,61 +5,61 @@
     text="As the world ushers in the jet age, airlines are rushing to be the first to utilize the faster and more economic mode of transportation. Your job as CEO of Continental Airlines is to convert their fleet of Douglas turboprop aircraft to a profitable fleet of jets. By 1970, your fleet must be 90% jets and you must continue to turn a profit every year." />
   <success
     text="Congratulations! You have successfully converted the prop-driven Continental fleet to modern jet airliners!" />
-  <start airline="CO" homeBase="MDW">
+  <start carrier="CO" homeBase="MDW">
     <destinations>
-      <destination airport="EWR" />
-      <destination airport="CLE" />
-      <destination airport="IAH" />
-      <destination airport="BWI" />
-      <destination airport="BOS" />
-      <destination airport="LHR" />
-      <destination airport="CDG" />
-      <destination airport="MIA" />
-      <destination airport="LAX" />
-      <destination airport="ATL" />
-      <destination airport="MEX" />
-      <destination airport="YUL" />
-      <destination airport="YYZ" />
-      <destination airport="SFO" />
-      <destination airport="NRT" />
-      <destination airport="FRA" />
-      <destination airport="CPH" />
-      <destination airport="DTW" />
-      <destination airport="LAS" />
-      <destination airport="PHX" />
+      <destination station="EWR" />
+      <destination station="CLE" />
+      <destination station="IAH" />
+      <destination station="BWI" />
+      <destination station="BOS" />
+      <destination station="LHR" />
+      <destination station="CDG" />
+      <destination station="MIA" />
+      <destination station="LAX" />
+      <destination station="ATL" />
+      <destination station="MEX" />
+      <destination station="YUL" />
+      <destination station="YYZ" />
+      <destination station="SFO" />
+      <destination station="NRT" />
+      <destination station="FRA" />
+      <destination station="CPH" />
+      <destination station="DTW" />
+      <destination station="LAS" />
+      <destination station="PHX" />
     </destinations>
     <fleet>
-      <aircraft name="Douglas DC-3" quantity="16" />
-      <aircraft name="Douglas DC-6B" quantity="7" />
+      <coach name="Douglas DC-3" quantity="16" />
+      <coach name="Douglas DC-6B" quantity="7" />
     </fleet>
     <AI>
-      <airline name="UA" homeBase="IAH">
-        <route departure="IAH" destination="LAX" airliner="Boeing 707-120B" quantity="2" />
-        <route departure="IAH" destination="MDW" airliner="Douglas DC-6B" quantity="2" />
-        <route departure="IAH" destination="MIA" airliner="Douglas DC-6B" quantity="1" />
-        <route departure="IAH" destination="LGA" airliner="Boeing 707-120B" quantity="1" />
-        <route departure="IAH" destination="EWR" airliner="Boeing 707-120B" quantity="1" />
-        <route departure="IAH" destination="MCI" airliner="Douglas DC-6B" quantity="1" />
-        <route departure="IAH" destination="DAL" airliner="Douglas DC-3" quantity="2" />
-      </airline>
-      <airline name="PA" homeBase="JFK">
-        <route departure="JFK" destination="BWI" airliner="Douglas DC-7" quantity="1" />
-        <route departure="JFK" destination="PHL" airliner="Douglas DC-7" quantity="1" />
-        <route departure="JFK" destination="BOS" airliner="Douglas DC-3" quantity="1" />
-        <route departure="JFK" destination="CLE" airliner="Boeing 707-120B" quantity="1" />
-        <route departure="JFK" destination="MDW" airliner="Boeing 707-120B" quantity="1" />
-        <route departure="JFK" destination="ATL" airliner="Boeing 727-100" quantity="1" />
-        <route departure="JFK" destination="MIA" airliner="Boeing 727-100" quantity="1" />
-        <route departure="JFK" destination="DAL" airliner="Boeing 727-100" quantity="1" />
-        <route departure="JFK" destination="YYZ" airliner="Boeing 727-100" quantity="1" />
-        <route departure="JFK" destination="YUL" airliner="Boeing 727-100" quantity="1" />
-      </airline>
+      <carrier name="UA" homeBase="IAH">
+        <route departure="IAH" destination="LAX" coach="Boeing 707-120B" quantity="2" />
+        <route departure="IAH" destination="MDW" coach="Douglas DC-6B" quantity="2" />
+        <route departure="IAH" destination="MIA" coach="Douglas DC-6B" quantity="1" />
+        <route departure="IAH" destination="LGA" coach="Boeing 707-120B" quantity="1" />
+        <route departure="IAH" destination="EWR" coach="Boeing 707-120B" quantity="1" />
+        <route departure="IAH" destination="MCI" coach="Douglas DC-6B" quantity="1" />
+        <route departure="IAH" destination="DAL" coach="Douglas DC-3" quantity="2" />
+      </carrier>
+      <carrier name="PA" homeBase="JFK">
+        <route departure="JFK" destination="BWI" coach="Douglas DC-7" quantity="1" />
+        <route departure="JFK" destination="PHL" coach="Douglas DC-7" quantity="1" />
+        <route departure="JFK" destination="BOS" coach="Douglas DC-3" quantity="1" />
+        <route departure="JFK" destination="CLE" coach="Boeing 707-120B" quantity="1" />
+        <route departure="JFK" destination="MDW" coach="Boeing 707-120B" quantity="1" />
+        <route departure="JFK" destination="ATL" coach="Boeing 727-100" quantity="1" />
+        <route departure="JFK" destination="MIA" coach="Boeing 727-100" quantity="1" />
+        <route departure="JFK" destination="DAL" coach="Boeing 727-100" quantity="1" />
+        <route departure="JFK" destination="YYZ" coach="Boeing 727-100" quantity="1" />
+        <route departure="JFK" destination="YUL" coach="Boeing 727-100" quantity="1" />
+      </carrier>
     </AI>
   </start>
   <modifiers>
     <paxDemand country="122" change="20" length="5" />
-    <paxDemand airport="JFK" change="10" length="6" />
-    <paxDemand airport="IAH" change="10" length="7" />
+    <paxDemand station="JFK" change="10" length="6" />
+    <paxDemand station="IAH" change="10" length="7" />
     <price engine="Jet" value="1.2" />
   </modifiers>
   <parameters>

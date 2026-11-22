@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -41,7 +41,7 @@ namespace TheBusProject.Models.General.Finances
 
         public static List<double> GetInvoiceList()
         {
-            var invoices = GameObject.GetInstance().HumanAirline.GetInvoices().MonthlyInvoices;
+            var invoices = GameObject.GetInstance().HumanCarrier.GetInvoices().MonthlyInvoices;
             lock (invoices)
             {
                 return invoices.Select(invoice => invoice.Amount).ToList();
@@ -54,8 +54,8 @@ namespace TheBusProject.Models.General.Finances
             AddInvoice(invoice.Type, invoice.Date.Year, invoice.Date.Month, invoice.Date.Day, invoice.Amount);
         }
 
-        // the day's amount of each type, found without going through every amount the airline ever had (thousands
-        // after a few years, for every payment of every flight); made again when the list changed from outside
+        // the day's amount of each type, found without going through every amount the carrier ever had (thousands
+        // after a few years, for every payment of every trip); made again when the list changed from outside
         [NonSerialized]
         private Dictionary<long, MonthlyInvoice> _index;
 

@@ -1,4 +1,4 @@
-﻿using TheBusProject.Infrastructure.Enums;
+using TheBusProject.Infrastructure.Enums;
 using TheBusProject.Models.General.Countries;
 
 namespace TheBusProject.Models.General
@@ -8,9 +8,9 @@ namespace TheBusProject.Models.General
         public int Id { get; set; }
         public Continent Continent { get; set; }
         public Region Region { get; set; }
-        public bool MajorAirports { get; set; }
+        public bool MajorStations { get; set; }
         public int StartYear { get; set; }
-        public AirlineFocus Focus { get; set; }
+        public CarrierFocus Focus { get; set; }
         public Difficulty Difficulty { get; set; }
         public int NumOfOpponents { get; set; }
         public bool RandomOpponents { get; set; }

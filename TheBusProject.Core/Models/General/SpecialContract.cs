@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airlines;
+using TheBusProject.Models.Carriers;
 using TheBusProject.Models.Routes;
 
 namespace TheBusProject.Models.General
@@ -12,9 +12,9 @@ namespace TheBusProject.Models.General
     [System.Serializable]
     public class SpecialContract : BaseModel
     {
-        public SpecialContract(SpecialContractType type, DateTime date, Airline airline)
+        public SpecialContract(SpecialContractType type, DateTime date, Carrier carrier)
         {
-            Airline = airline;
+            Carrier = carrier;
             Type = type;
             Date = date;
             IsOk = true;
@@ -36,8 +36,8 @@ namespace TheBusProject.Models.General
 
         #endregion
 
-        [Versioning("airline")]
-        public Airline Airline { get; set; }
+        [Versioning("carrier")]
+        public Carrier Carrier { get; set; }
 
         [Versioning("date")]
         public DateTime Date { get; set; }

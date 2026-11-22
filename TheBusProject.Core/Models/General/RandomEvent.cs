@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using TheBusProject.Helpers;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General.Countries;
 using TheBusProject.Models.Routes;
 
@@ -20,7 +20,7 @@ namespace TheBusProject.Models.General
         public RandomEvent(
             EventType type,
             Focus focus,
-            int airlineSafety,
+            int carrierSafety,
             int moneyEffect,
             string id,
             int frequency,
@@ -30,8 +30,8 @@ namespace TheBusProject.Models.General
             string message = "",
             bool critical = false,
             int custHappiness = 0,
-            int aircraftDamage = 0,
-            int airlineSecurity = 0,
+            int coachDamage = 0,
+            int carrierSecurity = 0,
             int empHappiness = 0,
             double paxDemand = 1,
             double cargoDemand = 1,
@@ -39,8 +39,8 @@ namespace TheBusProject.Models.General
         {
             DateOccurred = GameObject.GetInstance().GameTime;
             CustomerHappinessEffect = custHappiness;
-            AircraftDamageEffect = aircraftDamage;
-            AirlineSecurityEffect = airlineSecurity;
+            CoachDamageEffect = coachDamage;
+            CarrierSecurityEffect = carrierSecurity;
             EmployeeHappinessEffect = empHappiness;
             FinancialPenalty = 0;
             PaxDemandEffect = paxDemand;
@@ -79,31 +79,31 @@ namespace TheBusProject.Models.General
 
         public enum Focus
         {
-            Aircraft,
+            Coach,
 
-            Airport,
+            Station,
 
-            Airline
+            Carrier
         }
 
         #endregion
 
         #region Public Properties
 
-        public int AircraftDamageEffect { get; set; }
+        public int CoachDamageEffect { get; set; }
 
-        [Versioning("airline")]
-        public Airline Airline { get; set; }
+        [Versioning("carrier")]
+        public Carrier Carrier { get; set; }
 
-        public int AirlineSafetyEffect { get; set; }
+        public int CarrierSafetyEffect { get; set; }
 
-        public int AirlineSecurityEffect { get; set; }
+        public int CarrierSecurityEffect { get; set; }
 
-        [Versioning("airliner")]
-        public FleetAirliner Airliner { get; set; }
+        [Versioning("coach")]
+        public FleetCoach Coach { get; set; }
 
-        [Versioning("airport")]
-        public Airport Airport { get; set; }
+        [Versioning("station")]
+        public Station Station { get; set; }
 
         public double CargoDemandEffect { get; set; }
 
@@ -168,44 +168,44 @@ namespace TheBusProject.Models.General
 
         public static void CheckExpired()
         {
-            foreach (Airline airline in Airlines.Airlines.GetAllAirlines())
+            foreach (Carrier carrier in Carriers.Carriers.GetAllCarriers())
             {
-                foreach (RandomEvent rEvent in airline.EventLog)
+                foreach (RandomEvent rEvent in carrier.EventLog)
                 {
                     DateTime expDate = GameObject.GetInstance().GameTime.AddMonths(rEvent.EffectLength);
                     if (expDate < GameObject.GetInstance().GameTime)
                     {
-                        PassengerHelpers.ChangePaxDemand(airline, (1/rEvent.PaxDemandEffect));
-                        RemoveEvent(airline, rEvent);
+                        PassengerHelpers.ChangePaxDemand(carrier, (1/rEvent.PaxDemandEffect));
+                        RemoveEvent(carrier, rEvent);
                     }
                 }
             }
         }
 
-        public static void RemoveEvent(Airline airline, RandomEvent rEvent)
+        public static void RemoveEvent(Carrier carrier, RandomEvent rEvent)
         {
-            airline.EventLog.Remove(rEvent);
+            carrier.EventLog.Remove(rEvent);
         }
 
-        public void AddEvent(Airline airline, RandomEvent rEvent)
+        public void AddEvent(Carrier carrier, RandomEvent rEvent)
         {
-            airline.EventLog.Add(rEvent);
+            carrier.EventLog.Add(rEvent);
         }
 
-        public void ExecuteEvents(Airline airline, DateTime time)
+        public void ExecuteEvents(Carrier carrier, DateTime time)
         {
             var rnd = new Random();
-            foreach (RandomEvent rEvent in airline.EventLog)
+            foreach (RandomEvent rEvent in carrier.EventLog)
             {
                 if (rEvent.DateOccurred.DayOfYear == time.DayOfYear)
                 {
-                    rEvent.Airliner.Airliner.Condition += AircraftDamageEffect;
-                    airline.Money += rEvent.FinancialPenalty;
-                    airline.Scores.CHR.Add(rEvent.CustomerHappinessEffect);
-                    airline.Scores.EHR.Add(rEvent.EmployeeHappinessEffect);
-                    airline.Scores.Safety.Add(rEvent.AirlineSafetyEffect);
-                    airline.Scores.Security.Add(rEvent.AirlineSecurityEffect);
-                    PassengerHelpers.ChangePaxDemand(airline, (rEvent.PaxDemandEffect*rnd.Next(9, 11)/10));
+                    rEvent.Coach.Coach.Condition += CoachDamageEffect;
+                    carrier.Money += rEvent.FinancialPenalty;
+                    carrier.Scores.CHR.Add(rEvent.CustomerHappinessEffect);
+                    carrier.Scores.EHR.Add(rEvent.EmployeeHappinessEffect);
+                    carrier.Scores.Safety.Add(rEvent.CarrierSafetyEffect);
+                    carrier.Scores.Security.Add(rEvent.CarrierSecurityEffect);
+                    PassengerHelpers.ChangePaxDemand(carrier, (rEvent.PaxDemandEffect*rnd.Next(9, 11)/10));
                 }
             }
         }
@@ -254,7 +254,7 @@ namespace TheBusProject.Models.General
         }
 
         //gets x number of random events of a given type
-        public static List<RandomEvent> GetEvents(RandomEvent.EventType type, int number, Airline airline)
+        public static List<RandomEvent> GetEvents(RandomEvent.EventType type, int number, Carrier carrier)
         {
             var rnd = new Random();
             var rEvents = new Dictionary<int, RandomEvent>();
@@ -269,16 +269,16 @@ namespace TheBusProject.Models.General
                         r.DateOccurred = MathHelpers.GetRandomDate(
                             GameObject.GetInstance().GameTime,
                             GameObject.GetInstance().GameTime.AddMonths(12));
-                        r.Airline = airline;
-                        r.Airliner = AirlinerHelpers.GetRandomAirliner(airline);
-                        r.Route = r.Airliner.Routes[rnd.Next(r.Airliner.Routes.Count())];
+                        r.Carrier = carrier;
+                        r.Coach = CoachHelpers.GetRandomCoach(carrier);
+                        r.Route = r.Coach.Routes[rnd.Next(r.Coach.Routes.Count())];
                         r.Country = r.Route.Destination1.Profile.Country;
-                        r.Airport = r.Route.Destination1;
+                        r.Station = r.Route.Destination1;
 
-                        if (r.focus == RandomEvent.Focus.Airline)
+                        if (r.focus == RandomEvent.Focus.Carrier)
                         {
-                            r.Airliner = null;
-                            r.Airport = null;
+                            r.Coach = null;
+                            r.Station = null;
                             r.Country = null;
                             r.Route = null;
                         }

@@ -11,7 +11,7 @@ using TheBusProject.Presentation;
 namespace TheBusProject.Desktop.Views
 {
     /// <summary>
-    ///     A line chart of ChartData: a line per airline over the periods, the player's line thicker, gaps where a value
+    ///     A line chart of ChartData: a line per carrier over the periods, the player's line thicker, gaps where a value
     ///     isn't known. Pointing at the chart shows that period's values.
     /// </summary>
     public class LineChart : Control
@@ -74,7 +74,7 @@ namespace TheBusProject.Desktop.Views
         //
         // Plain logs can't show 0 or a loss, and both are ordinary here, so values below one unit keep a straight line
         // through zero and everything above it gains the same height per ten times, mirrored for losses. Four decades
-        // of the largest value are shown, which puts a 27,000 passenger airline and a 4,500,000 one on one chart.
+        // of the largest value are shown, which puts a 27,000 passenger carrier and a 4,500,000 one on one chart.
 
         private static double LogUnit(double maxAbs)
         {

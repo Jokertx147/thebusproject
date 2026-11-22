@@ -2,16 +2,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.Routes;
 
 namespace TheBusProject.Helpers
 {
     /// <summary>
-    ///     Every airline's routes by airport pair, so the passenger and cargo calculation for one flight doesn't have to
-    ///     look through all routes of all airlines. Rebuilt when a route is added or removed, a stopover changes, or the
+    ///     Every carrier's routes by station pair, so the passenger and cargo calculation for one trip doesn't have to
+    ///     look through all routes of all carriers. Rebuilt when a route is added or removed, a stopover changes, or the
     ///     day changes.
     /// </summary>
     public static class RouteIndex
@@ -20,9 +20,9 @@ namespace TheBusProject.Helpers
         {
             public int Version;
             public System.DateTime Day;
-            public readonly Dictionary<Airport, Dictionary<Airport, List<Route>>> Direct = new Dictionary<Airport, Dictionary<Airport, List<Route>>>();
-            public readonly Dictionary<Airport, Dictionary<Airport, List<Route>>> Legs = new Dictionary<Airport, Dictionary<Airport, List<Route>>>();
-            public readonly Dictionary<Airport, List<Route>> At = new Dictionary<Airport, List<Route>>();
+            public readonly Dictionary<Station, Dictionary<Station, List<Route>>> Direct = new Dictionary<Station, Dictionary<Station, List<Route>>>();
+            public readonly Dictionary<Station, Dictionary<Station, List<Route>>> Legs = new Dictionary<Station, Dictionary<Station, List<Route>>>();
+            public readonly Dictionary<Station, List<Route>> At = new Dictionary<Station, List<Route>>();
 
             // results worked out from this snapshot, dropped with it
             public readonly System.Collections.Concurrent.ConcurrentDictionary<object, object> Derived = new System.Collections.Concurrent.ConcurrentDictionary<object, object>();
@@ -52,9 +52,9 @@ namespace TheBusProject.Helpers
                 s = _snapshot;
                 if (s != null && s.Version == version && s.Day == day) return s;
                 s = new Snapshot { Version = version, Day = day };
-                foreach (Airline airline in Airlines.GetAllAirlines().ToList())
+                foreach (Carrier carrier in Carriers.GetAllCarriers().ToList())
                 {
-                    foreach (Route r in airline.Routes)
+                    foreach (Route r in carrier.Routes)
                     {
                         if (r?.Destination1 == null || r.Destination2 == null) continue;
                         AddBoth(s.Direct, r.Destination1, r.Destination2, r);
@@ -75,7 +75,7 @@ namespace TheBusProject.Helpers
             }
         }
 
-        private static void AddAt(Dictionary<Airport, List<Route>> map, Airport a, Route r)
+        private static void AddAt(Dictionary<Station, List<Route>> map, Station a, Route r)
         {
             List<Route> list;
             if (!map.TryGetValue(a, out list)) map[a] = list = new List<Route>();
@@ -94,52 +94,52 @@ namespace TheBusProject.Helpers
             return (T) d.GetOrAdd(key, make());
         }
 
-        /// <summary>Every airline's routes that start or end at the airport, in airline order. Don't change the list.</summary>
-        public static List<Route> At(Airport airport)
+        /// <summary>Every carrier's routes that start or end at the station, in carrier order. Don't change the list.</summary>
+        public static List<Route> At(Station station)
         {
             List<Route> list;
-            if (airport != null && Current().At.TryGetValue(airport, out list)) return list;
+            if (station != null && Current().At.TryGetValue(station, out list)) return list;
             return None;
         }
 
-        private static void AddBoth(Dictionary<Airport, Dictionary<Airport, List<Route>>> map, Airport a, Airport b, Route r)
+        private static void AddBoth(Dictionary<Station, Dictionary<Station, List<Route>>> map, Station a, Station b, Route r)
         {
             Add(map, a, b, r);
             if (a != b) Add(map, b, a, r);
         }
 
-        private static void Add(Dictionary<Airport, Dictionary<Airport, List<Route>>> map, Airport a, Airport b, Route r)
+        private static void Add(Dictionary<Station, Dictionary<Station, List<Route>>> map, Station a, Station b, Route r)
         {
-            Dictionary<Airport, List<Route>> inner;
-            if (!map.TryGetValue(a, out inner)) map[a] = inner = new Dictionary<Airport, List<Route>>();
+            Dictionary<Station, List<Route>> inner;
+            if (!map.TryGetValue(a, out inner)) map[a] = inner = new Dictionary<Station, List<Route>>();
             List<Route> list;
             if (!inner.TryGetValue(b, out list)) inner[b] = list = new List<Route>();
             // a route with several legs on the same pair is listed once
             if (list.Count == 0 || !ReferenceEquals(list[list.Count - 1], r)) list.Add(r);
         }
 
-        private static List<Route> Get(Dictionary<Airport, Dictionary<Airport, List<Route>>> map, Airport a, Airport b)
+        private static List<Route> Get(Dictionary<Station, Dictionary<Station, List<Route>>> map, Station a, Station b)
         {
-            Dictionary<Airport, List<Route>> inner;
+            Dictionary<Station, List<Route>> inner;
             List<Route> list;
             if (a != null && b != null && map.TryGetValue(a, out inner) && inner.TryGetValue(b, out list)) return list;
             return None;
         }
 
-        /// <summary>Routes flown nonstop between the two airports (either direction). Don't change the list.</summary>
-        public static List<Route> Direct(Airport a, Airport b)
+        /// <summary>Routes flown nonstop between the two stations (either direction). Don't change the list.</summary>
+        public static List<Route> Direct(Station a, Station b)
         {
             return Get(Current().Direct, a, b);
         }
 
-        /// <summary>Routes with a stopover leg between the two airports (either direction). Don't change the list.</summary>
-        public static List<Route> WithLeg(Airport a, Airport b)
+        /// <summary>Routes with a stopover leg between the two stations (either direction). Don't change the list.</summary>
+        public static List<Route> WithLeg(Station a, Station b)
         {
             return Get(Current().Legs, a, b);
         }
 
-        /// <summary>Whether any airline has a route between the two airports.</summary>
-        public static bool HasRoute(Airport a, Airport b)
+        /// <summary>Whether any carrier has a route between the two stations.</summary>
+        public static bool HasRoute(Station a, Station b)
         {
             return Direct(a, b).Count > 0;
         }

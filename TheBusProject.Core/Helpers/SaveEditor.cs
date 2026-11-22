@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.IO;
 using TheBusProject.Infrastructure;
@@ -17,7 +17,7 @@ namespace TheBusProject.Helpers
         }
 
         /// <summary>
-        ///     Sets the money of the player's airline in the named save (name without ".sav"). Returns a message for the user.
+        ///     Sets the money of the player's carrier in the named save (name without ".sav"). Returns a message for the user.
         /// </summary>
         public static string SetMoney(string saveName, double amount)
         {
@@ -36,14 +36,14 @@ namespace TheBusProject.Helpers
                 return "Could not read the save: " + path;
             }
 
-            var airline = save.Instance?.HumanAirline ?? save.Instance?.MainAirline;
-            if (airline == null)
+            var carrier = save.Instance?.HumanCarrier ?? save.Instance?.MainCarrier;
+            if (carrier == null)
             {
-                return "The save has no player airline.";
+                return "The save has no player carrier.";
             }
 
-            var old = airline.Money;
-            airline.Money = amount;
+            var old = carrier.Money;
+            carrier.Money = amount;
 
             // keep a backup, and write to a temporary file first so a failed write cannot destroy the save
             File.Copy(path, path + ".bak", true);
@@ -59,7 +59,7 @@ namespace TheBusProject.Helpers
             File.Delete(temp);
 
             return string.Format(CultureInfo.InvariantCulture, "{0}: money changed from {1:N0} to {2:N0}. Backup: {3}.bak",
-                airline.Profile?.Name ?? "Player airline", old, amount, path);
+                carrier.Profile?.Name ?? "Player carrier", old, amount, path);
         }
     }
 }

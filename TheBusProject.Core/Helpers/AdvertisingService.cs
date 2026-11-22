@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Countries;
 using TheBusProject.Models.General.Finances;
@@ -11,82 +11,82 @@ namespace TheBusProject.Helpers
 {
     /// <summary>
     ///     Advertising. Each channel (newspaper, radio, TV, internet) is set to none, local, national or global and
-    ///     costs money every month. Together they set the reputation the airline moves toward (50 with no
-    ///     advertising), and a better reputation makes passengers choose the airline more often. Campaigns aim
-    ///     extra advertising at one country or one airport for a few months.
+    ///     costs money every month. Together they set the reputation the carrier moves toward (50 with no
+    ///     advertising), and a better reputation makes passengers choose the carrier more often. Campaigns aim
+    ///     extra advertising at one country or one station for a few months.
     /// </summary>
     public static class AdvertisingService
     {
         public static readonly string[] CampaignSizes = { "Small", "Medium", "Large" };
 
-        public static string ChannelName(AdvertisementType.AirlineAdvertisementType type)
+        public static string ChannelName(AdvertisementType.CarrierAdvertisementType type)
         {
             switch (type)
             {
-                case AdvertisementType.AirlineAdvertisementType.Newspaper: return "Newspapers";
-                case AdvertisementType.AirlineAdvertisementType.Radio: return "Radio";
-                case AdvertisementType.AirlineAdvertisementType.Tv: return "TV";
+                case AdvertisementType.CarrierAdvertisementType.Newspaper: return "Newspapers";
+                case AdvertisementType.CarrierAdvertisementType.Radio: return "Radio";
+                case AdvertisementType.CarrierAdvertisementType.Tv: return "TV";
                 default: return "Internet";
             }
         }
 
         /// <summary>The channels that exist in the current year (the internet from 1995, TV from 1950, ...).</summary>
-        public static List<AdvertisementType.AirlineAdvertisementType> Channels()
+        public static List<AdvertisementType.CarrierAdvertisementType> Channels()
         {
             int year = GameObject.GetInstance().GameTime.Year;
-            return Enum.GetValues(typeof (AdvertisementType.AirlineAdvertisementType))
-                       .Cast<AdvertisementType.AirlineAdvertisementType>()
+            return Enum.GetValues(typeof (AdvertisementType.CarrierAdvertisementType))
+                       .Cast<AdvertisementType.CarrierAdvertisementType>()
                        .Where(t => year >= (int) t)
                        .ToList();
         }
 
-        public static List<AdvertisementType> Levels(AdvertisementType.AirlineAdvertisementType channel)
+        public static List<AdvertisementType> Levels(AdvertisementType.CarrierAdvertisementType channel)
         {
             return AdvertisementTypes.GetTypes(channel).OrderBy(t => t.ReputationLevel).ToList();
         }
 
-        public static AdvertisementType Current(Airline airline, AdvertisementType.AirlineAdvertisementType channel)
+        public static AdvertisementType Current(Carrier carrier, AdvertisementType.CarrierAdvertisementType channel)
         {
-            return airline.Advertisements.ContainsKey(channel) ? airline.Advertisements[channel] : AdvertisementTypes.GetBasicType(channel);
+            return carrier.Advertisements.ContainsKey(channel) ? carrier.Advertisements[channel] : AdvertisementTypes.GetBasicType(channel);
         }
 
-        public static void Set(Airline airline, AdvertisementType level)
+        public static void Set(Carrier carrier, AdvertisementType level)
         {
-            airline.SetAirlineAdvertisement(level);
+            carrier.SetCarrierAdvertisement(level);
         }
 
         /// <summary>The sum of the levels of the channels in use (0 to 12).</summary>
-        public static int TotalLevel(Airline airline)
+        public static int TotalLevel(Carrier carrier)
         {
-            return Channels().Sum(c => Current(airline, c).ReputationLevel);
+            return Channels().Sum(c => Current(carrier, c).ReputationLevel);
         }
 
-        public static double ChannelsMonthlyCost(Airline airline)
+        public static double ChannelsMonthlyCost(Carrier carrier)
         {
-            return Channels().Sum(c => Current(airline, c).Price);
+            return Channels().Sum(c => Current(carrier, c).Price);
         }
 
-        public static double CampaignsMonthlyCost(Airline airline)
+        public static double CampaignsMonthlyCost(Carrier carrier)
         {
             var now = GameObject.GetInstance().GameTime;
-            return Campaigns(airline).Where(c => c.End > now).Sum(c => c.MonthlyCost);
+            return Campaigns(carrier).Where(c => c.End > now).Sum(c => c.MonthlyCost);
         }
 
-        /// <summary>The reputation the airline moves toward with its current advertising.</summary>
-        public static int TargetReputation(Airline airline)
+        /// <summary>The reputation the carrier moves toward with its current advertising.</summary>
+        public static int TargetReputation(Carrier carrier)
         {
-            return Math.Min(100, 50 + 4*TotalLevel(airline));
+            return Math.Min(100, 50 + 4*TotalLevel(carrier));
         }
 
-        /// <summary>How much more often passengers choose the airline because of its reputation: 0.85 at 0, 1 at 50, 1.15 at 100.</summary>
-        public static double ReputationFactor(Airline airline)
+        /// <summary>How much more often passengers choose the carrier because of its reputation: 0.85 at 0, 1 at 50, 1.15 at 100.</summary>
+        public static double ReputationFactor(Carrier carrier)
         {
-            return 0.85 + Math.Max(0, Math.Min(100, airline.Reputation))*0.003;
+            return 0.85 + Math.Max(0, Math.Min(100, carrier.Reputation))*0.003;
         }
 
-        public static List<AdCampaign> Campaigns(Airline airline)
+        public static List<AdCampaign> Campaigns(Carrier carrier)
         {
-            return airline.AdCampaigns ?? (airline.AdCampaigns = new List<AdCampaign>());
+            return carrier.AdCampaigns ?? (carrier.AdCampaigns = new List<AdCampaign>());
         }
 
         public static double CampaignBoost(int level)
@@ -94,44 +94,44 @@ namespace TheBusProject.Helpers
             return level >= 3 ? 0.35 : level == 2 ? 0.2 : 0.1;
         }
 
-        /// <summary>The extra passenger share at an airport from running campaigns (1 when none applies).</summary>
-        public static double CampaignFactor(Airline airline, Airport airport)
+        /// <summary>The extra passenger share at an station from running campaigns (1 when none applies).</summary>
+        public static double CampaignFactor(Carrier carrier, Station station)
         {
-            var list = airline.AdCampaigns;
+            var list = carrier.AdCampaigns;
             if (list == null || list.Count == 0) return 1;
             var now = GameObject.GetInstance().GameTime;
             double best = 0;
             foreach (var c in list)
             {
                 if (c.End <= now || c.Start > now) continue;
-                bool hits = c.IsAirport
-                    ? c.Target == airport.Profile.IATACode
-                    : airport.Profile.Country != null && c.Target == airport.Profile.Country.Uid;
+                bool hits = c.IsStation
+                    ? c.Target == station.Profile.IATACode
+                    : station.Profile.Country != null && c.Target == station.Profile.Country.Uid;
                 if (hits) best = Math.Max(best, CampaignBoost(c.Level));
             }
             return 1 + best;
         }
 
-        /// <summary>The whole advertising effect on passengers choosing the airline at an airport.</summary>
-        public static double AirportFactor(Airline airline, Airport airport)
+        /// <summary>The whole advertising effect on passengers choosing the carrier at an station.</summary>
+        public static double StationFactor(Carrier carrier, Station station)
         {
-            return ReputationFactor(airline)*CampaignFactor(airline, airport);
+            return ReputationFactor(carrier)*CampaignFactor(carrier, station);
         }
 
         /// <summary>The monthly price of a campaign: bigger targets and bigger campaigns cost more.</summary>
-        public static double CampaignMonthlyCost(bool isAirport, string target, int level)
+        public static double CampaignMonthlyCost(bool isStation, string target, int level)
         {
             double size = 1;
-            if (isAirport)
+            if (isStation)
             {
-                var a = Airports.GetAirport(target);
+                var a = Stations.GetStation(target);
                 if (a != null) size = 1 + 0.5*(int) a.Profile.Size;
             }
             else
             {
                 var c = Countries.GetCountry(target);
-                int airports = c == null ? 10 : Airports.GetAllAirports().Count(a => a.Profile.Country == c);
-                size = 2 + Math.Min(8, airports/25.0);
+                int stations = c == null ? 10 : Stations.GetAllStations().Count(a => a.Profile.Country == c);
+                size = 2 + Math.Min(8, stations/25.0);
             }
             double perLevel = level >= 3 ? 30000 : level == 2 ? 15000 : 6000;
             return GeneralHelpers.GetInflationPrice(perLevel*size);
@@ -139,20 +139,20 @@ namespace TheBusProject.Helpers
 
         public static string TargetName(AdCampaign c)
         {
-            if (c.IsAirport)
+            if (c.IsStation)
             {
-                var a = Airports.GetAirport(c.Target);
+                var a = Stations.GetStation(c.Target);
                 return a == null ? c.Target : a.Profile.IATACode + " " + a.Profile.Name;
             }
             var country = Countries.GetCountry(c.Target);
             return country == null ? c.Target : country.Name;
         }
 
-        public static bool StartCampaign(Airline airline, bool isAirport, string target, int level, int months, out string message)
+        public static bool StartCampaign(Carrier carrier, bool isStation, string target, int level, int months, out string message)
         {
             if (string.IsNullOrEmpty(target))
             {
-                message = "Pick a country or an airport.";
+                message = "Pick a country or a station.";
                 return false;
             }
             if (months < 1 || months > 24 || level < 1 || level > 3)
@@ -161,16 +161,16 @@ namespace TheBusProject.Helpers
                 return false;
             }
             var now = GameObject.GetInstance().GameTime;
-            if (Campaigns(airline).Any(c => c.End > now && c.IsAirport == isAirport && c.Target == target))
+            if (Campaigns(carrier).Any(c => c.End > now && c.IsStation == isStation && c.Target == target))
             {
                 message = "A campaign there is already running. End it first or wait until it is over.";
                 return false;
             }
-            double monthly = CampaignMonthlyCost(isAirport, target, level);
-            var campaign = new AdCampaign(target, isAirport, level, now, now.AddMonths(months), monthly);
-            Campaigns(airline).Add(campaign);
+            double monthly = CampaignMonthlyCost(isStation, target, level);
+            var campaign = new AdCampaign(target, isStation, level, now, now.AddMonths(months), monthly);
+            Campaigns(carrier).Add(campaign);
             // the first month is paid now, the rest on the 1st of each month
-            AirlineHelpers.AddAirlineInvoice(airline, now, Invoice.InvoiceType.AirlineExpenses, -monthly);
+            CarrierHelpers.AddCarrierInvoice(carrier, now, Invoice.InvoiceType.CarrierExpenses, -monthly);
             message = string.Format(
                 "{0} campaign in {1} until {2}: +{3:0}% passenger share there, {4} a month.",
                 CampaignSizes[level - 1], TargetName(campaign), campaign.End.ToShortDateString(), CampaignBoost(level)*100,
@@ -178,25 +178,25 @@ namespace TheBusProject.Helpers
             return true;
         }
 
-        public static void EndCampaign(Airline airline, AdCampaign campaign)
+        public static void EndCampaign(Carrier carrier, AdCampaign campaign)
         {
-            Campaigns(airline).Remove(campaign);
+            Campaigns(carrier).Remove(campaign);
         }
 
         /// <summary>Monthly: pays the campaigns, removes finished ones and moves the reputation toward its target.</summary>
-        public static void ProcessMonth(Airline airline)
+        public static void ProcessMonth(Carrier carrier)
         {
             var now = GameObject.GetInstance().GameTime;
-            var list = Campaigns(airline);
+            var list = Campaigns(carrier);
             foreach (var c in list.ToList())
             {
                 if (c.End <= now)
                 {
                     list.Remove(c);
-                    if (airline.IsHuman)
+                    if (carrier.IsHuman)
                     {
                         GameObject.GetInstance().NewsBox.AddNews(
-                            new News(News.NewsType.AirlineNews, now, "Campaign over", "Your advertising campaign in " + TargetName(c) + " has ended."));
+                            new News(News.NewsType.CarrierNews, now, "Campaign over", "Your advertising campaign in " + TargetName(c) + " has ended."));
                     }
                     continue;
                 }
@@ -204,15 +204,15 @@ namespace TheBusProject.Helpers
                 int monthsBooked = (c.End.Year - c.Start.Year)*12 + c.End.Month - c.Start.Month;
                 int monthIndex = (now.Year - c.Start.Year)*12 + now.Month - c.Start.Month;
                 if (monthIndex >= 1 && monthIndex < monthsBooked)
-                    AirlineHelpers.AddAirlineInvoice(airline, now, Invoice.InvoiceType.AirlineExpenses, -c.MonthlyCost);
+                    CarrierHelpers.AddCarrierInvoice(carrier, now, Invoice.InvoiceType.CarrierExpenses, -c.MonthlyCost);
             }
 
-            int target = TargetReputation(airline);
-            int rep = airline.Reputation;
+            int target = TargetReputation(carrier);
+            int rep = carrier.Reputation;
             if (rep != target)
             {
                 int step = Math.Max(1, Math.Abs(target - rep)/4);
-                airline.Reputation = rep < target ? Math.Min(target, rep + step) : Math.Max(target, rep - step);
+                carrier.Reputation = rep < target ? Math.Min(target, rep + step) : Math.Max(target, rep - step);
             }
         }
     }

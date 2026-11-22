@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using TheBusProject.Infrastructure;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General.Countries;
 using TheBusProject.Models.General.Countries.Towns;
 
@@ -23,10 +23,10 @@ namespace TheBusProject.Models.General.Environment
             Weather.eWindSpeed windspeedMax,
             Country country,
             Town town,
-            Airport airport)
+            Station station)
         {
             Month = month;
-            Airport = airport;
+            Station = station;
             Country = country;
             Town = town;
             TemperatureMin = temperatureMin;
@@ -77,7 +77,7 @@ namespace TheBusProject.Models.General.Environment
             int precipitation,
             Weather.eWindSpeed windspeedMin,
             Weather.eWindSpeed windspeedMax,
-            Airport airport)
+            Station station)
             : this(
                 month,
                 temperatureMin,
@@ -85,9 +85,9 @@ namespace TheBusProject.Models.General.Environment
                 precipitation,
                 windspeedMin,
                 windspeedMax,
-                airport.Profile.Town.Country,
-                airport.Profile.Town,
-                airport)
+                station.Profile.Town.Country,
+                station.Profile.Town,
+                station)
         {
         }
 
@@ -99,8 +99,8 @@ namespace TheBusProject.Models.General.Environment
 
         #region Public Properties
 
-        [Versioning("airport")]
-        public Airport Airport { get; set; }
+        [Versioning("station")]
+        public Station Station { get; set; }
 
         [Versioning("country")]
         public Country Country { get; set; }
@@ -163,17 +163,17 @@ namespace TheBusProject.Models.General.Environment
             Averages.Clear();
         }
 
-        //returns the weather average for a specific airport and specific month
-        public static WeatherAverage GetWeatherAverage(int month, Airport airport)
+        //returns the weather average for a specific station and specific month
+        public static WeatherAverage GetWeatherAverage(int month, Station station)
         {
-            WeatherAverage airportAverage = Averages.Find(w => w.Airport == airport && w.Month == month);
-            WeatherAverage townAverage = Averages.Find(w => w.Town == airport.Profile.Town && w.Month == month);
+            WeatherAverage stationAverage = Averages.Find(w => w.Station == station && w.Month == month);
+            WeatherAverage townAverage = Averages.Find(w => w.Town == station.Profile.Town && w.Month == month);
             WeatherAverage countryAverage =
-                Averages.Find(w => w.Country == airport.Profile.Town.Country && w.Month == month);
+                Averages.Find(w => w.Country == station.Profile.Town.Country && w.Month == month);
 
-            if (airportAverage != null)
+            if (stationAverage != null)
             {
-                return airportAverage;
+                return stationAverage;
             }
 
             if (townAverage != null)

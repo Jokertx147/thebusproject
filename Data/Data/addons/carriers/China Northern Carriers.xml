@@ -1,0 +1,29 @@
+<carrier>
+  <profile name="China Northern Airlines" iata="CJ" logo="CJ" color="DarkBlue" country="148" CEO="Jin Chang Yu" mentality="Aggressive" market="Regional" preferedstation="SHE">
+    <narrative narrative="  China Northern Airlines existed from 1990-2003 when it merged with China Southern Airlines. It's hub was Shenyang Taoxian, and also had hubs at Harbin,Changchun and Sanya. It had 152 destinations mostly all in China but also a few in South Korea,Japan and North Korea. Some of the planes it had were A300's,MD-80s,MD-90s,and A321's.  " /></profile>
+  <info real="True" from="1990" to="2003" />
+  
+  
+  
+  
+  
+  <prefereds coaches="Airbus A300-600,Airbus A321-200,MD-82 (DC-9-82),MD-90-30"></prefereds>
+    
+    
+    
+    
+  <coaches>
+                   
+		  <coach type="Airbus A300-600" early="0" late="11"></coach>
+                 <coach type="Airbus A321-200" early="0" late="6"></coach>
+		 <coach type="MD-82 (DC-9-82)" early="0" late="25"></coach>
+	       	<coach type="MD-90-30" early="0" late="13"></coach>
+		
+</coaches>
+  
+  
+  
+  
+  
+  
+</carrier>

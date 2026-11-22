@@ -4,30 +4,30 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 using TheBusProject.Helpers;
-using TheBusProject.Models.Airliners;
-using TheBusProject.Models.Airlines;
-using TheBusProject.Models.Airports;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Carriers;
+using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Finances;
 
 namespace TheBusProject.Presentation
 {
-    public class AircraftItem
+    public class CoachItem
     {
-        public AircraftItem(Airliner airliner)
+        public CoachItem(Coach coach)
         {
-            Airliner = airliner;
+            Coach = coach;
             var f = new ValueCurrencyFormatter();
-            Name = airliner.Type.Name;
-            Year = airliner.BuiltDate.Year;
-            Range = airliner.Type.Range;
-            Seats = (airliner.Type as AirlinerPassengerType)?.MaxSeatingCapacity ?? 0;
-            PriceText = Convert.ToString(f.Convert(airliner.GetPrice()));
-            LeaseText = Convert.ToString(f.Convert(airliner.GetLeasingPrice())) + " / month";
-            Details = string.Format("built {0}  |  {1}  |  range {2}  |  {3}", Year, airliner.Type is AirlinerCargoType ? "cargo " + ((AirlinerCargoType) airliner.Type).CargoSize + " units" : Seats + " seats", DistanceFormatter.Km(Range), PriceText);
+            Name = coach.Type.Name;
+            Year = coach.BuiltDate.Year;
+            Range = coach.Type.Range;
+            Seats = (coach.Type as CoachPassengerType)?.MaxSeatingCapacity ?? 0;
+            PriceText = Convert.ToString(f.Convert(coach.GetPrice()));
+            LeaseText = Convert.ToString(f.Convert(coach.GetLeasingPrice())) + " / month";
+            Details = string.Format("built {0}  |  {1}  |  range {2}  |  {3}", Year, coach.Type is CoachCargoType ? "cargo " + ((CoachCargoType) coach.Type).CargoSize + " units" : Seats + " seats", DistanceFormatter.Km(Range), PriceText);
         }
 
-        public Airliner Airliner { get; }
+        public Coach Coach { get; }
         public string Name { get; }
         public int Year { get; }
         public long Range { get; }
@@ -37,32 +37,32 @@ namespace TheBusProject.Presentation
         public string Details { get; }
     }
 
-    /// <summary>Used aircraft market: buy an aircraft or lease it, placed at one of the airline's home airports.</summary>
+    /// <summary>Used coach market: buy an coach or lease it, placed at one of the carrier's home stations.</summary>
     public class MarketViewModel : ObservableObject
     {
-        private AircraftItem _selected;
-        private Airport _homebase;
-        private List<Airport> _homebases = new List<Airport>();
+        private CoachItem _selected;
+        private Station _homebase;
+        private List<Station> _homebases = new List<Station>();
         private string _status;
         private string _filter = "";
-        private List<AircraftItem> _all = new List<AircraftItem>();
+        private List<CoachItem> _all = new List<CoachItem>();
 
         private readonly Action _changed;
 
         public MarketViewModel(Action changed = null)
         {
             _changed = changed;
-            Aircraft = new ObservableCollection<AircraftItem>();
+            Coach = new ObservableCollection<CoachItem>();
             BuyCommand = new RelayCommand(() => Place(false), () => _selected != null);
             LeaseCommand = new RelayCommand(() => Place(true), () => _selected != null);
             Reload();
         }
 
-        public ObservableCollection<AircraftItem> Aircraft { get; }
+        public ObservableCollection<CoachItem> Coach { get; }
         public ICommand BuyCommand { get; }
         public ICommand LeaseCommand { get; }
 
-        public AircraftItem Selected
+        public CoachItem Selected
         {
             get { return _selected; }
             set
@@ -76,13 +76,13 @@ namespace TheBusProject.Presentation
             }
         }
 
-        public List<Airport> Homebases
+        public List<Station> Homebases
         {
             get { return _homebases; }
             private set { SetProperty(ref _homebases, value); }
         }
 
-        public Airport Homebase
+        public Station Homebase
         {
             get { return _homebase; }
             set { SetProperty(ref _homebase, value); }
@@ -94,7 +94,7 @@ namespace TheBusProject.Presentation
             private set { SetProperty(ref _status, value); }
         }
 
-        /// <summary>Text filter on the aircraft name.</summary>
+        /// <summary>Text filter on the coach name.</summary>
         public string Filter
         {
             get { return _filter; }
@@ -109,28 +109,28 @@ namespace TheBusProject.Presentation
 
         public void Reload()
         {
-            _all = Airliners.GetAirlinersForSale()
+            _all = Coaches.GetCoachesForSale()
                             .Where(
-                                a => (a.Type.TypeAirliner == AirlinerType.TypeOfAirliner.Passenger
-                                      || a.Type.TypeAirliner == AirlinerType.TypeOfAirliner.Mixed
-                                      || a.Type.TypeAirliner == AirlinerType.TypeOfAirliner.Cargo)
-                                     && AirlineTypeRules.CanUseType(GameObject.GetInstance().HumanAirline, a.Type))
+                                a => (a.Type.TypeCoach == CoachType.TypeOfCoach.Passenger
+                                      || a.Type.TypeCoach == CoachType.TypeOfCoach.Mixed
+                                      || a.Type.TypeCoach == CoachType.TypeOfCoach.Cargo)
+                                     && CarrierTypeRules.CanUseType(GameObject.GetInstance().HumanCarrier, a.Type))
                             .OrderByDescending(a => a.BuiltDate.Year)
                             .ThenBy(a => a.Type.Name)
-                            .Select(a => new AircraftItem(a))
+                            .Select(a => new CoachItem(a))
                             .ToList();
             ApplyFilter();
         }
 
         private void ApplyFilter()
         {
-            var keep = _selected?.Airliner;
-            Aircraft.Clear();
+            var keep = _selected?.Coach;
+            Coach.Clear();
             foreach (var a in _all.Where(a => a.Name.IndexOf(_filter, StringComparison.OrdinalIgnoreCase) >= 0).Take(400))
             {
-                Aircraft.Add(a);
+                Coach.Add(a);
             }
-            _selected = Aircraft.FirstOrDefault(a => a.Airliner == keep);
+            _selected = Coach.FirstOrDefault(a => a.Coach == keep);
             OnPropertyChanged(nameof(Selected));
         }
 
@@ -138,17 +138,17 @@ namespace TheBusProject.Presentation
         {
             if (_selected == null)
             {
-                Homebases = new List<Airport>();
+                Homebases = new List<Station>();
                 Homebase = null;
                 return;
             }
 
-            Airline airline = GameObject.GetInstance().HumanAirline;
-            long minRunway = _selected.Airliner.Type.MinRunwaylength;
-            Homebases = AirlineHelpers.GetHomebases(airline, minRunway);
+            Carrier carrier = GameObject.GetInstance().HumanCarrier;
+            long minRunway = _selected.Coach.Type.MinRunwaylength;
+            Homebases = CarrierHelpers.GetHomebases(carrier, minRunway);
             Homebase = Homebases.FirstOrDefault();
             Status = Homebases.Count == 0
-                ? "None of your airports can take this aircraft (runway, or no free service capacity). Get a contract at a bigger airport first."
+                ? "None of your stations can take this coach (runway, or no free service capacity). Get a contract at a bigger station first."
                 : null;
         }
 
@@ -161,57 +161,57 @@ namespace TheBusProject.Presentation
 
             if (_homebase == null)
             {
-                Status = "Pick a home airport for the aircraft first.";
+                Status = "Pick a home station for the coach first.";
                 return;
             }
 
-            Airline airline = GameObject.GetInstance().HumanAirline;
-            Airliner airliner = _selected.Airliner;
+            Carrier carrier = GameObject.GetInstance().HumanCarrier;
+            Coach coach = _selected.Coach;
 
-            if (airline.Contract != null && airline.Contract.Manufacturer != airliner.Type.Manufacturer)
+            if (carrier.Contract != null && carrier.Contract.Manufacturer != coach.Type.Manufacturer)
             {
-                Status = "You have a contract with " + airline.Contract.Manufacturer.Name
-                         + ". End it first, or pick an aircraft from that manufacturer.";
+                Status = "You have a contract with " + carrier.Contract.Manufacturer.Name
+                         + ". End it first, or pick a coach from that manufacturer.";
                 return;
             }
 
-            double discount = airline.Contract?.Discount ?? 0;
+            double discount = carrier.Contract?.Discount ?? 0;
 
             if (lease)
             {
-                double deposit = airliner.GetLeasingPrice() * 2;
-                if (deposit > airline.Money)
+                double deposit = coach.GetLeasingPrice() * 2;
+                if (deposit > carrier.Money)
                 {
                     Status = "You can't afford the leasing deposit (two months).";
                     return;
                 }
 
-                if (AirlineHelpers.NeedsNewRegistration(airline, airliner.TailNumber))
+                if (CarrierHelpers.NeedsNewRegistration(carrier, coach.TailNumber))
                 {
-                    airliner.TailNumber = airline.Profile.Country.TailNumbers.GetNextTailNumber(airline);
+                    coach.TailNumber = carrier.Profile.Country.TailNumbers.GetNextTailNumber(carrier);
                 }
 
-                airline.AddAirliner(FleetAirliner.PurchasedType.Leased, airliner, _homebase);
-                AirlineHelpers.AddAirlineInvoice(
-                    airline, GameObject.GetInstance().GameTime, Invoice.InvoiceType.Rents, -deposit);
+                carrier.AddCoach(FleetCoach.PurchasedType.Leased, coach, _homebase);
+                CarrierHelpers.AddCarrierInvoice(
+                    carrier, GameObject.GetInstance().GameTime, Invoice.InvoiceType.Rents, -deposit);
                 Status = "Leased " + _selected.Name + ".";
             }
             else
             {
-                double price = airliner.GetPrice() * ((100 - discount) / 100);
-                if (price > airline.Money)
+                double price = coach.GetPrice() * ((100 - discount) / 100);
+                if (price > carrier.Money)
                 {
-                    Status = "You can't afford this aircraft.";
+                    Status = "You can't afford this coach.";
                     return;
                 }
 
-                AirlineHelpers.BuyAirliner(airline, airliner, _homebase, discount);
+                CarrierHelpers.BuyCoach(carrier, coach, _homebase, discount);
                 Status = "Bought " + _selected.Name + ".";
             }
 
-            if (airline.Contract != null)
+            if (carrier.Contract != null)
             {
-                airline.Contract.PurchasedAirliners++;
+                carrier.Contract.PurchasedCoaches++;
             }
 
             string status = Status;

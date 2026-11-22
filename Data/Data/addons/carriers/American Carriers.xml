@@ -1,0 +1,51 @@
+﻿
+<carrier>
+<profile name="American Airlines" iata="AA" color="Red" country="122" CEO="Tom Horton" mentality="Aggressive" market="Global" preferedstation="DFW">
+  <narrative narrative="American Airlines is a major US airline operating it's headquarters at Dallas-Fort Worth, in operation since 1933. They operate over 1800 flights per day to 279 destinations around the world. The fleet consists of over 600 aircraft, notably the MD-82, 737, and 757.  " />
+<logos>
+<logo from="1945" to="1961" path="AA1945-1961"></logo>
+<logo from="1962" to="1968" path="AA1962-1968"></logo>
+<logo from="1969" to="2012" path="AA1969-2012"></logo>
+</logos>
+</profile>
+   <info real="True" from="1946" to="2199"></info>
+<startdata>
+         <coaches>
+	    <coach type="Airbus A300-600" early="0" late="35"></coach>
+	    <coach type="Airbus A319-100" early="0" late="65"></coach>
+	    <coach type="Airbus A321-200" early="0" late="65"></coach>
+	    <coach type="Airbus A321neo" early="0" late="130"></coach>
+	    <coach type="BAe 146-200" early="0" late="14"></coach>
+	    <coach type="Boeing 717-200" early="0" late="28"></coach>
+	    <coach type="Boeing 737-100" early="0" late="2"></coach>
+	    <coach type="Boeing 737-200" early="0" late="35"></coach>
+	    <coach type="Boeing 737-300" early="0" late="17"></coach>
+	     <coach type="Boeing 737-800" early="0" late="305"></coach>
+	     <coach type="Boeing 737 MAX 8" early="0" late="100"></coach>
+	     <coach type="Boeing 747SP" early="0" late="2"></coach>
+	     <coach type="Boeing 747-100" early="0" late="24"></coach>
+	     <coach type="Boeing 747-200B" early="0" late="1"></coach>
+	     <coach type="Boeing 757-200" early="0" late="153"></coach>
+	     <coach type="Boeing 767-200ER" early="0" late="28"></coach>
+	     <coach type="Boeing 767-300ER" early="0" late="58"></coach>
+	     <coach type="Boeing 777-200ER" early="0" late="47"></coach>
+	     <coach type="Boeing 777-300ER" early="0" late="20"></coach>
+	     <coach type="Boeing 787-8" early="12" late="25"></coach>
+	     <coach type="Boeing 787-9" early="30" late="60"></coach>
+	     <coach type="Fokker 100" early="0" late="75"></coach>
+	     <coach type="MD-11" early="0" late="21"></coach>
+	     <coach type="MD-81 (DC-9-81)" early="0" late="8"></coach>
+	     <coach type="MD-82 (DC-9-82)" early="0" late="262"></coach>
+	     <coach type="MD-83 (DC-9-83)" early="0" late="107"></coach>
+	     <coach type="MD-87 (DC-9-87)" early="0" late="5"></coach>
+	     <coach type="MD-90-30" early="0" late="5"></coach>
+	     <coach type="MD DC-10-10" early="15" late="19"></coach>
+	     <coach type="MD DC-10-30" early="0" late="7"></coach>
+	     <coach type="MD DC-10-40" early="0" late="40"></coach>
+	     
+	  </coaches>
+	  
+	  </startdata>
+	  
+	  
+	  </carrier>
