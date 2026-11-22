@@ -1,0 +1,480 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:v="using:TheBusProject.Desktop.Views"
+             x:Class="TheBusProject.Desktop.Views.AirlineView">
+  <Grid RowDefinitions="Auto,*" Margin="16">
+    <!-- top bar: airline, date, money, controls -->
+    <Border Background="#262626" CornerRadius="6" Padding="14" Margin="0,0,0,12">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Orientation="Horizontal" Spacing="14">
+        <Image Source="{Binding LogoPath, Converter={x:Static v:LogoConverter.Instance}, ConverterParameter=160}" Height="48" MaxWidth="120" Stretch="Uniform" VerticalAlignment="Center" />
+        <StackPanel Spacing="2">
+          <TextBlock Text="{Binding AirlineName}" FontSize="22" FontWeight="Bold" />
+          <StackPanel Orientation="Horizontal" Spacing="24">
+            <TextBlock Text="{Binding Date}" FontSize="16" />
+            <TextBlock Text="{Binding Money}" FontSize="16" />
+            <TextBlock Text="{Binding Status}" Opacity="0.7" VerticalAlignment="Center" />
+          </StackPanel>
+        </StackPanel>
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+          <Button Content="{Binding PauseText}" Command="{Binding TogglePauseCommand}" MinWidth="70" HorizontalContentAlignment="Center" />
+          <Button Content="+1 day" Command="{Binding SkipDayCommand}" ToolTip.Tip="Play one day as fast as possible, then pause" />
+          <Button Content="+1 week" Command="{Binding SkipWeekCommand}" ToolTip.Tip="Play seven days as fast as possible, then pause" />
+          <Button Content="Next month" Command="{Binding SkipMonthCommand}" ToolTip.Tip="Play to the 1st of next month as fast as possible, then pause (stops early if your cash goes below zero)" />
+          <ComboBox ItemsSource="{Binding Speeds}" SelectedItem="{Binding Speed}" MinWidth="230" />
+          <Button Content="Save" Command="{Binding SaveCommand}" />
+          <Button Content="Main menu" Command="{Binding MainMenuCommand}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="1" ColumnDefinitions="150,12,*">
+      <!-- the menu on the left, like the Windows version -->
+      <ListBox Classes="menu" ItemsSource="{Binding Pages}" SelectedIndex="{Binding Page}" VerticalAlignment="Top">
+        <ListBox.Styles>
+          <Style Selector="ListBox.menu ListBoxItem">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="14,10" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+            <Setter Property="CornerRadius" Value="4" />
+          </Style>
+        </ListBox.Styles>
+      </ListBox>
+
+      <TabControl Grid.Column="2" Classes="pages" SelectedIndex="{Binding Page}">
+        <TabControl.Styles>
+          <!-- the tab strip is hidden: the menu on the left chooses the page -->
+          <Style Selector="TabControl.pages /template/ ItemsPresenter#PART_ItemsPresenter">
+            <Setter Property="IsVisible" Value="False" />
+          </Style>
+          <Style Selector="TabControl.sub TabItem">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="MinHeight" Value="28" />
+            <Setter Property="Padding" Value="10,2" />
+          </Style>
+        </TabControl.Styles>
+
+        <!-- MY AIRLINE -->
+        <TabItem Header="My Airline">
+          <TabControl Classes="sub" SelectedIndex="{Binding MyAirlineTab}">
+            <TabItem Header="Overview">
+              <Grid RowDefinitions="Auto,*" Margin="0,14,0,0">
+                <StackPanel Spacing="4" Margin="0,0,0,10">
+                  <TextBlock Text="{Binding AirlineName}" FontSize="20" FontWeight="Bold" />
+                  <TextBlock Text="{Binding Summary}" FontSize="15" />
+                  <TextBlock Text="Order aircraft under Airliners, then create routes under Routes." Opacity="0.6" TextWrapping="Wrap" />
+                </StackPanel>
+                <v:WorldMapView Grid.Row="1" DataContext="{Binding Map}" />
+              </Grid>
+            </TabItem>
+            <TabItem Header="Monthly report">
+              <v:AirlineReportView DataContext="{Binding Report}" />
+            </TabItem>
+            <TabItem Header="Scenario" IsVisible="{Binding Scenario.HasScenario}">
+              <v:ScenarioView DataContext="{Binding Scenario}" />
+            </TabItem>
+            <TabItem Header="Fleet">
+              <Grid RowDefinitions="*,Auto">
+                <v:FleetOverviewView DataContext="{Binding Overview}" />
+                <Border Grid.Row="1" IsVisible="{Binding HasRefit}" Background="#262626" CornerRadius="6" Padding="12" Margin="0,10,0,0">
+                  <ScrollViewer MaxHeight="360">
+                    <StackPanel Spacing="8" DataContext="{Binding Refit}">
+                      <TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" />
+                      <v:CabinEditorView DataContext="{Binding Editor}" />
+                      <TextBlock Text="{Binding CostText}" Opacity="0.8" TextWrapping="Wrap" />
+                      <TextBlock Text="{Binding AllText}" Opacity="0.8" TextWrapping="Wrap" IsVisible="{Binding HasOthers}" />
+                      <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button Content="Refit the aircraft" Command="{Binding ApplyCommand}" />
+                        <Button Content="Refit all stopped ones of this type" Command="{Binding ApplyAllCommand}" IsVisible="{Binding HasOthers}" />
+                        <Button Content="Cancel" Command="{Binding CancelCommand}" />
+                      </StackPanel>
+                      <TextBlock Text="{Binding Status}" TextWrapping="Wrap" Foreground="OrangeRed" />
+                    </StackPanel>
+                  </ScrollViewer>
+                </Border>
+              </Grid>
+            </TabItem>
+            <TabItem Header="Fleet performance">
+              <v:FleetPerformanceView DataContext="{Binding FleetPerformance}" />
+            </TabItem>
+            <TabItem Header="Finances">
+              <v:FinanceView DataContext="{Binding Finance}" />
+            </TabItem>
+            <TabItem Header="Profile">
+              <v:ProfileView DataContext="{Binding Profile}" />
+            </TabItem>
+            <TabItem Header="Advertising">
+              <v:AdvertisingView DataContext="{Binding Advertising}" />
+            </TabItem>
+            <TabItem Header="Ratings">
+              <v:RatingsView DataContext="{Binding Ratings}" />
+            </TabItem>
+            <TabItem Header="License">
+              <v:LicenseView DataContext="{Binding License}" />
+            </TabItem>
+            <TabItem Header="Loans">
+              <v:LoansView DataContext="{Binding Loans}" />
+            </TabItem>
+            <TabItem Header="Maintenance">
+              <v:MaintenanceView DataContext="{Binding Maintenance}" />
+            </TabItem>
+            <TabItem Header="Insurance">
+              <v:InsuranceView DataContext="{Binding Insurance}" />
+            </TabItem>
+            <TabItem Header="Facilities">
+              <v:ServicesView DataContext="{Binding Services}" />
+            </TabItem>
+            <TabItem Header="Aircraft deals">
+              <v:AircraftDealsView DataContext="{Binding Deals}" />
+            </TabItem>
+            <TabItem Header="Fleet renewal">
+              <v:FleetRenewalView DataContext="{Binding Renewal}" />
+            </TabItem>
+            <TabItem Header="Charters">
+              <v:CharterView DataContext="{Binding Charter}" />
+            </TabItem>
+            <TabItem Header="Contracts">
+              <v:ContractsView DataContext="{Binding Contracts}" />
+            </TabItem>
+            <TabItem Header="Statistics">
+              <v:StatisticsView DataContext="{Binding Statistics}" />
+            </TabItem>
+            <TabItem Header="Best and worst">
+              <v:ProfitRankingView DataContext="{Binding Ranking}" />
+            </TabItem>
+          </TabControl>
+        </TabItem>
+
+        <!-- ROUTES -->
+        <TabItem Header="Routes">
+          <TabControl Classes="sub" SelectedIndex="{Binding RoutesTab}">
+          <TabItem Header="My routes">
+            <Grid ColumnDefinitions="300,12,*" Margin="0,10,0,0">
+              <Grid RowDefinitions="Auto,*">
+                <TextBlock Text="Routes" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,6" />
+                <ListBox Grid.Row="1" ItemsSource="{Binding Routes}" SelectedItem="{Binding SelectedRoute}">
+                  <ListBox.ItemTemplate>
+                    <DataTemplate>
+                      <StackPanel Margin="2">
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                        <TextBlock Opacity="0.7">
+                          <Run Text="{Binding Distance}" /><Run Text="  |  " /><Run Text="{Binding Balance}" />
+                        </TextBlock>
+                      </StackPanel>
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+              </Grid>
+
+              <ScrollViewer Grid.Column="2" IsVisible="{Binding HasRouteDetail}" DataContext="{Binding RouteDetail}">
+                <StackPanel Spacing="10">
+                  <TextBlock Text="{Binding Code}" FontSize="22" FontWeight="Bold" />
+                  <TextBlock Text="{Binding Title}" Opacity="0.8" />
+                  <TextBlock Text="{Binding Numbers}" TextWrapping="Wrap" />
+                  <TextBlock Text="{Binding AircraftText}" TextWrapping="Wrap" Opacity="0.8" />
+                  <Button Content="Assign an aircraft..." Command="{Binding AssignCommand}" IsVisible="{Binding ShowAssignButton}" HorizontalAlignment="Left" />
+                  <Button Content="Move to another aircraft..." Command="{Binding MoveCommand}" IsVisible="{Binding ShowMoveButton}" HorizontalAlignment="Left" />
+                  <Button Content="Replace one aircraft by another..." Command="{Binding OpenReplaceCommand}" IsVisible="{Binding ShowReplaceButton}" HorizontalAlignment="Left" />
+                  <Border IsVisible="{Binding IsReplacing}" Background="#262626" CornerRadius="6" Padding="14" MaxWidth="520" HorizontalAlignment="Left">
+                    <StackPanel Spacing="8">
+                      <TextBlock Text="Replace an aircraft" FontWeight="SemiBold" />
+                      <TextBlock Text="The other aircraft takes over the same flights at the same times; the rest of the route stays as it is." Opacity="0.7" TextWrapping="Wrap" />
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Replace" VerticalAlignment="Center" Width="60" />
+                        <ComboBox ItemsSource="{Binding ReplaceFromChoices}" SelectedItem="{Binding ReplaceFrom}" MinWidth="320" />
+                      </StackPanel>
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="with" VerticalAlignment="Center" Width="60" />
+                        <ComboBox ItemsSource="{Binding ReplaceToChoices}" SelectedItem="{Binding ReplaceTo}" MinWidth="320" MaxWidth="420" />
+                      </StackPanel>
+                      <TextBlock Text="{Binding ReplaceText}" TextWrapping="Wrap" Opacity="0.8" />
+                      <StackPanel Spacing="4" IsVisible="{Binding CanShift}">
+                        <TextBlock Text="{Binding ShiftText}" TextWrapping="Wrap" Opacity="0.8" />
+                        <Button Content="Replace and shift the times" Command="{Binding ShiftReplaceCommand}" />
+                      </StackPanel>
+                      <StackPanel Spacing="4" IsVisible="{Binding CanKeep}">
+                        <TextBlock Text="{Binding KeepText}" TextWrapping="Wrap" Opacity="0.8" />
+                        <Button Content="Replace and keep the flights that fit" Command="{Binding KeepReplaceCommand}" />
+                      </StackPanel>
+                      <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button Content="Replace" Command="{Binding ReplaceCommand}" IsVisible="{Binding CanReplaceSame}" />
+                        <Button Content="Cancel" Command="{Binding CloseReplaceCommand}" />
+                      </StackPanel>
+                    </StackPanel>
+                  </Border>
+                  <Border IsVisible="{Binding HasAssign}" Background="#262626" CornerRadius="6" Padding="14" MaxWidth="380" HorizontalAlignment="Left">
+                    <v:CreateRouteForm DataContext="{Binding Assign}" />
+                  </Border>
+
+                  <StackPanel Spacing="6" IsVisible="{Binding IsCargo}">
+                    <TextBlock Text="Cargo price" FontSize="16" FontWeight="SemiBold" Margin="0,8,0,0" />
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                      <TextBox Text="{Binding CargoPrice}" Width="120" />
+                      <TextBlock Text="per unit of cargo" VerticalAlignment="Center" Opacity="0.7" />
+                      <Button Content="-10%" Command="{Binding CargoDownCommand}" Padding="6,2" />
+                      <Button Content="+10%" Command="{Binding CargoUpCommand}" Padding="6,2" />
+                      <Button Content="Market" Command="{Binding CargoMarketCommand}" Padding="6,2" />
+                      <TextBlock Text="{Binding CargoMarketText}" VerticalAlignment="Center" Opacity="0.7" />
+                      <Button Content="Save price" Command="{Binding SaveCargoPriceCommand}" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding CargoEffectText}" Opacity="0.65" FontSize="12" />
+                    <TextBlock Text="{Binding Status}" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding PricingText}" TextWrapping="Wrap" Opacity="0.8" />
+                  </StackPanel>
+
+                  <TextBlock Text="Fares" FontSize="16" FontWeight="SemiBold" Margin="0,8,0,0" IsVisible="{Binding IsPassenger}" />
+                  <ItemsControl ItemsSource="{Binding Fares}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <StackPanel Margin="0,3" Spacing="2">
+                          <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="{Binding ClassName}" Width="130" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding Seats}" Width="50" VerticalAlignment="Center" Opacity="0.7" />
+                            <TextBox Text="{Binding Price}" Width="110" />
+                            <Button Content="-10%" Command="{Binding DownCommand}" Padding="6,2" />
+                            <Button Content="+10%" Command="{Binding UpCommand}" Padding="6,2" />
+                            <Button Content="Market" Command="{Binding MarketCommand}" Padding="6,2" />
+                            <TextBlock Text="{Binding MarketText}" VerticalAlignment="Center" Opacity="0.7" />
+                          </StackPanel>
+                          <TextBlock Text="{Binding EffectText}" Opacity="0.65" FontSize="12" Margin="188,0,0,0" />
+                        </StackPanel>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding IsPassenger}">
+                    <Button Content="Save fares" Command="{Binding SaveFaresCommand}" />
+                    <TextBlock Text="{Binding Status}" VerticalAlignment="Center" />
+                  </StackPanel>
+                  <TextBlock Text="{Binding PricingText}" TextWrapping="Wrap" Opacity="0.8" IsVisible="{Binding IsPassenger}" />
+
+                  <StackPanel Spacing="6" IsVisible="{Binding IsPassenger}">
+                    <StackPanel Spacing="6" DataContext="{Binding Service}">
+                      <TextBlock Text="Onboard service" FontSize="16" FontWeight="SemiBold" Margin="0,10,0,0" />
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Set all classes to" VerticalAlignment="Center" Opacity="0.7" />
+                        <Button Content="Basic" Command="{Binding BasicCommand}" />
+                        <Button Content="Standard" Command="{Binding StandardCommand}" />
+                        <Button Content="Premium" Command="{Binding PremiumCommand}" />
+                      </StackPanel>
+                      <ItemsControl ItemsSource="{Binding Classes}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate>
+                            <StackPanel Spacing="4" Margin="0,6,0,0">
+                              <TextBlock Text="{Binding ClassName}" FontWeight="SemiBold" />
+                              <ItemsControl ItemsSource="{Binding Rows}">
+                                <ItemsControl.ItemTemplate>
+                                  <DataTemplate>
+                                    <Grid ColumnDefinitions="120,*" Margin="0,2">
+                                      <TextBlock Text="{Binding TypeName}" VerticalAlignment="Center" Opacity="0.8" />
+                                      <ComboBox Grid.Column="1" ItemsSource="{Binding Options}" SelectedItem="{Binding Selected}" HorizontalAlignment="Stretch" />
+                                    </Grid>
+                                  </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                              </ItemsControl>
+                            </StackPanel>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                      <TextBlock Text="{Binding CostText}" TextWrapping="Wrap" Opacity="0.7" />
+                      <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button Content="Save service" Command="{Binding SaveCommand}" />
+                        <TextBlock Text="{Binding Status}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                      </StackPanel>
+
+                      <TextBlock Text="{Binding ScoreTitle}" FontWeight="SemiBold" Margin="0,10,0,0" TextWrapping="Wrap" />
+                      <ItemsControl ItemsSource="{Binding Scores}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate>
+                            <Grid ColumnDefinitions="190,*" Margin="0,1">
+                              <TextBlock Text="{Binding Name}" Opacity="0.8" />
+                              <TextBlock Grid.Column="1" Text="{Binding Value}" />
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+                  </StackPanel>
+
+                  <Border Height="1" Background="#404040" Margin="0,10" />
+                  <Button Content="Delete route" Command="{Binding DeleteCommand}" IsVisible="{Binding NotConfirmDelete}" HorizontalAlignment="Left" />
+                  <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding ConfirmDelete}">
+                    <TextBlock Text="Delete this route and its flights?" VerticalAlignment="Center" />
+                    <Button Content="Yes, delete" Command="{Binding ConfirmDeleteCommand}" />
+                    <Button Content="Cancel" Command="{Binding CancelDeleteCommand}" />
+                  </StackPanel>
+                </StackPanel>
+              </ScrollViewer>
+            </Grid>
+          </TabItem>
+          <TabItem Header="Create route">
+            <v:AirportsView DataContext="{Binding Airports}" />
+          </TabItem>
+          <TabItem Header="Connections">
+            <v:ConnectionsView DataContext="{Binding Connections}" />
+          </TabItem>
+          <TabItem Header="Route profits">
+            <v:RouteProfitView DataContext="{Binding RouteProfits}" />
+          </TabItem>
+          <TabItem Header="Suggestions">
+            <v:RouteSuggestionsView DataContext="{Binding Suggestions}" />
+          </TabItem>
+        </TabControl>
+        </TabItem>
+
+        <!-- AIRLINERS -->
+        <TabItem Header="Airliners">
+          <TabControl Classes="sub" SelectedIndex="{Binding AirlinersTab}">
+            <TabItem Header="New aircraft">
+              <v:NewAircraftView DataContext="{Binding NewAircraft}" />
+            </TabItem>
+            <TabItem Header="Used aircraft">
+              <v:MarketView DataContext="{Binding Market}" />
+            </TabItem>
+            <TabItem Header="Compare types">
+              <v:CompareTypesView DataContext="{Binding CompareTypes}" />
+            </TabItem>
+          </TabControl>
+        </TabItem>
+
+        <!-- AIRPORTS -->
+        <TabItem Header="Airports">
+          <TabControl Classes="sub" SelectedIndex="{Binding AirportsTab}">
+            <TabItem Header="Manage">
+              <v:AirportManagerView DataContext="{Binding AirportManager}" />
+            </TabItem>
+            <TabItem Header="Demand">
+              <v:DemandView DataContext="{Binding Demand}" />
+            </TabItem>
+            <TabItem Header="Contracts">
+              <v:GateContractsView DataContext="{Binding GateContracts}" />
+            </TabItem>
+            <TabItem Header="Traffic and gates">
+              <v:AirportStatsView DataContext="{Binding AirportStats}" />
+            </TabItem>
+          </TabControl>
+        </TabItem>
+
+        <!-- ALLIANCES -->
+        <TabItem Header="Alliances">
+          <v:AlliancesView DataContext="{Binding Alliances}" />
+        </TabItem>
+
+        <!-- STAFF -->
+        <TabItem Header="Staff">
+          <TabControl Classes="sub">
+            <TabItem Header="Pilots">
+              <v:PilotsView DataContext="{Binding Pilots}" />
+            </TabItem>
+            <TabItem Header="Flight schools">
+              <v:FlightSchoolsView DataContext="{Binding FlightSchools}" />
+            </TabItem>
+          </TabControl>
+        </TabItem>
+
+        <!-- AIRLINES -->
+        <TabItem Header="Airlines">
+          <TabControl Classes="sub" SelectedIndex="{Binding AirlinesTab}">
+            <TabItem Header="All airlines">
+              <v:AirlinesView DataContext="{Binding AirlineList}" />
+            </TabItem>
+            <TabItem Header="Competitors">
+              <v:CompetitorsView DataContext="{Binding Competitors}" />
+            </TabItem>
+            <TabItem Header="Codeshares">
+              <v:CodesharesView DataContext="{Binding Codeshares}" />
+            </TabItem>
+            <TabItem Header="Shares">
+              <v:SharesView DataContext="{Binding Shares}" />
+            </TabItem>
+            <TabItem Header="Subsidiaries">
+              <v:SubsidiariesView DataContext="{Binding Subsidiaries}" />
+            </TabItem>
+          </TabControl>
+        </TabItem>
+
+        <!-- FLIGHTS -->
+        <TabItem Header="Flights">
+          <TabControl Classes="sub" SelectedIndex="{Binding FlightsTab}">
+          <TabItem Header="Fleet">
+            <Grid RowDefinitions="Auto,*,Auto" Margin="0,10,0,0">
+              <TextBlock Text="Fleet" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,6" />
+              <ListBox Grid.Row="1" ItemsSource="{Binding Fleet}">
+                <ListBox.ItemTemplate>
+                  <DataTemplate>
+                    <Grid ColumnDefinitions="*,Auto" Margin="2">
+                      <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                          <Border IsVisible="{Binding IsIdle}" Background="#C26A00" CornerRadius="4" Padding="6,1" Margin="0,0,8,0" VerticalAlignment="Center"><TextBlock Text="IDLE" FontSize="11" FontWeight="Bold" Foreground="White" /></Border>
+                          <Border IsVisible="{Binding IsOnOrder}" Background="#1F6FB5" CornerRadius="4" Padding="6,1" Margin="0,0,8,0" VerticalAlignment="Center"><TextBlock Text="&#x2708; ON ORDER" FontSize="11" FontWeight="Bold" Foreground="White" /></Border>
+                          <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                        </StackPanel>
+                        <TextBlock Opacity="0.7">
+                          <Run Text="{Binding Type}" /><Run Text="  |  " /><Run Text="{Binding Status}" /><Run Text="  |  " /><Run Text="{Binding Homebase}" /><Run Text="  |  " /><Run Text="{Binding Crew}" /><Run Text="  |  " /><Run Text="{Binding Routes}" /><Run Text=" route(s)" />
+                        </TextBlock>
+                      </StackPanel>
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <Button Content="Schedule" Command="{Binding ScheduleCommand}" IsVisible="{Binding CanSchedule}" />
+                        <Button Content="Edit cabin" Command="{Binding EditCabinCommand}" IsVisible="{Binding CanEditCabin}" />
+                        <Button Content="Start" Command="{Binding StartCommand}" IsVisible="{Binding CanStart}" />
+                        <Button Content="Stop" Command="{Binding StopCommand}" IsVisible="{Binding CanStop}" />
+                      </StackPanel>
+                    </Grid>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+              <Border Grid.Row="2" IsVisible="{Binding HasRefit}" Background="#262626" CornerRadius="6" Padding="12" Margin="0,10,0,0">
+                <ScrollViewer MaxHeight="360">
+                  <StackPanel Spacing="8" DataContext="{Binding Refit}">
+                    <TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" />
+                    <v:CabinEditorView DataContext="{Binding Editor}" />
+                    <TextBlock Text="{Binding CostText}" Opacity="0.8" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding AllText}" Opacity="0.8" TextWrapping="Wrap" IsVisible="{Binding HasOthers}" />
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                      <Button Content="Refit the aircraft" Command="{Binding ApplyCommand}" />
+                      <Button Content="Refit all stopped ones of this type" Command="{Binding ApplyAllCommand}" IsVisible="{Binding HasOthers}" />
+                      <Button Content="Cancel" Command="{Binding CancelCommand}" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding Status}" TextWrapping="Wrap" Foreground="OrangeRed" />
+                  </StackPanel>
+                </ScrollViewer>
+              </Border>
+            </Grid>
+          </TabItem>
+          <TabItem Header="Edit timetable">
+            <v:TimetableView DataContext="{Binding Timetable}" />
+          </TabItem>
+          <TabItem Header="All flights">
+            <Grid RowDefinitions="Auto,*" Margin="0,10,0,0">
+              <TextBlock Text="Weekly flights" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,6" />
+              <ListBox Grid.Row="1" ItemsSource="{Binding Flights}">
+                <ListBox.ItemTemplate>
+                  <DataTemplate>
+                    <StackPanel Orientation="Horizontal" Spacing="16" Margin="2">
+                      <TextBlock Text="{Binding When}" MinWidth="130" />
+                      <TextBlock Text="{Binding Flight}" FontWeight="SemiBold" MinWidth="80" />
+                      <TextBlock Text="{Binding Route}" MinWidth="100" />
+                      <TextBlock Text="{Binding Aircraft}" Opacity="0.7" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+            </Grid>
+          </TabItem>
+        </TabControl>
+        </TabItem>
+
+        <!-- NEWS -->
+        <TabItem Header="News">
+          <v:NewsView DataContext="{Binding News}" />
+        </TabItem>
+
+        <!-- OPTIONS -->
+        <TabItem Header="Options">
+          <v:OptionsView DataContext="{Binding Options}" />
+        </TabItem>
+      </TabControl>
+    </Grid>
+  </Grid>
+</UserControl>

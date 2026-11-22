@@ -1,0 +1,54 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.Serialization;
+using TheBusProject.Infrastructure;
+using TheBusProject.Models.Airlines;
+using TheBusProject.Models.Routes;
+
+namespace TheBusProject.Models.General
+{
+    /*the class for a speial contract*/
+
+    [System.Serializable]
+    public class SpecialContract : BaseModel
+    {
+        public SpecialContract(SpecialContractType type, DateTime date, Airline airline)
+        {
+            Airline = airline;
+            Type = type;
+            Date = date;
+            IsOk = true;
+            Routes = new List<Route>();
+        }
+
+        private SpecialContract(SerializationInfo info, StreamingContext ctxt) : base(info, ctxt)
+        {
+        }
+
+        #region Public Methods and Operators
+
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            AddVersion(info, 1);
+
+            base.GetObjectData(info, context);
+        }
+
+        #endregion
+
+        [Versioning("airline")]
+        public Airline Airline { get; set; }
+
+        [Versioning("date")]
+        public DateTime Date { get; set; }
+
+        [Versioning("type")]
+        public SpecialContractType Type { get; set; }
+
+        [Versioning("isok")]
+        public bool IsOk { get; set; }
+
+        [Versioning("routes")]
+        public List<Route> Routes { get; set; }
+    }
+}

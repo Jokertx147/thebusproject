@@ -1,0 +1,570 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Globalization;
+using System.Linq;
+using System.Windows.Input;
+using TheBusProject.Helpers;
+using TheBusProject.Models.Airliners;
+using TheBusProject.Models.General;
+using TheBusProject.Models.General.Statistics;
+using TheBusProject.Models.Routes;
+
+namespace TheBusProject.Presentation
+{
+    public class FareItem : ObservableObject
+    {
+        private string _price;
+
+        public string ClassName { get; set; }
+        public AirlinerClass.ClassType Type { get; set; }
+        public string Seats { get; set; }
+
+        /// <summary>The market fare for this class on the route.</summary>
+        public double Market { get; set; }
+
+        public string MarketText => "market " + Convert.ToString(new ValueCurrencyFormatter().Convert(Market));
+
+        public string Price
+        {
+            get { return _price; }
+            set
+            {
+                if (SetProperty(ref _price, value)) OnPropertyChanged(nameof(EffectText));
+            }
+        }
+
+        /// <summary>What the typed fare does to demand.</summary>
+        public string EffectText
+        {
+            get
+            {
+                double fare;
+                if (!double.TryParse((_price ?? "").Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out fare) || Market <= 0) return "";
+                if (!PricingService.Realistic) return "";
+                double pct = fare/Market*100, demand = PricingService.DemandFactor(fare, Market, Type)*100;
+                return string.Format("{0:0}% of market, about {1:0}% of the normal demand", pct, demand);
+            }
+        }
+
+        public ICommand MarketCommand => new RelayCommand(() => Price = Market.ToString("0.00", CultureInfo.InvariantCulture));
+        public ICommand DownCommand => new RelayCommand(() => Scale(0.9));
+        public ICommand UpCommand => new RelayCommand(() => Scale(1.1));
+
+        private void Scale(double f)
+        {
+            double fare;
+            if (double.TryParse((_price ?? "").Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out fare))
+                Price = (fare*f).ToString("0.00", CultureInfo.InvariantCulture);
+        }
+    }
+
+    /// <summary>One route of the airline: numbers, fares (editable) and delete.</summary>
+    public class RouteDetailViewModel : ObservableObject
+    {
+        private readonly Route _route;
+        private readonly Action _changed;
+        private string _status;
+        private bool _confirmDelete;
+        private CreateRouteViewModel _assign;
+
+        public RouteDetailViewModel(Route route, Action changed)
+        {
+            _route = route;
+            _changed = changed;
+            Fares = new ObservableCollection<FareItem>();
+
+            Title = route.Destination1.Profile.Name + " - " + route.Destination2.Profile.Name;
+            Code = route.Destination1.Profile.IATACode + " - " + route.Destination2.Profile.IATACode;
+            IsPassenger = route is PassengerRoute;
+            IsCargo = route is CargoRoute;
+            if (IsCargo)
+            {
+                _cargoPrice = ((CargoRoute) route).PricePerUnit.ToString("0.00", CultureInfo.InvariantCulture);
+            }
+
+            SaveFaresCommand = new RelayCommand(SaveFares, () => IsPassenger);
+            SaveCargoPriceCommand = new RelayCommand(SaveCargoPrice, () => IsCargo);
+            AssignCommand = new RelayCommand(() => Assign = new CreateRouteViewModel(_route, OnAssignDone), () => CanAssign);
+            MoveCommand = new RelayCommand(() => Assign = new CreateRouteViewModel(_route, OnAssignDone, true), () => CanMove);
+            DeleteCommand = new RelayCommand(() => ConfirmDelete = true);
+            OpenReplaceCommand = new RelayCommand(OpenReplace, () => CanMove);
+            CloseReplaceCommand = new RelayCommand(() => IsReplacing = false);
+            ReplaceCommand = new RelayCommand(() => DoReplace(ReplaceMode.SameTimes), () => _replaceFrom != null && _replaceTo != null && _replaceTo.Value.CanReplace);
+            ShiftReplaceCommand = new RelayCommand(() => DoReplace(ReplaceMode.ShiftTimes), () => _replaceTo?.Value?.Shift != null);
+            KeepReplaceCommand = new RelayCommand(() => DoReplace(ReplaceMode.KeepFitting), () => _replaceTo?.Value?.Keep != null);
+            ConfirmDeleteCommand = new RelayCommand(Delete);
+            CancelDeleteCommand = new RelayCommand(() => ConfirmDelete = false);
+
+            if (IsPassenger)
+            {
+                Service = new RouteServiceViewModel(route);
+            }
+
+            RefreshNumbers();
+            LoadFares();
+        }
+
+        public string Title { get; }
+        public RouteServiceViewModel Service { get; }
+        public string Code { get; }
+        public bool IsPassenger { get; }
+        public bool IsCargo { get; }
+        public ICommand SaveCargoPriceCommand { get; }
+
+        private string _cargoPrice;
+
+        /// <summary>The price per unit of cargo of a cargo route.</summary>
+        public string CargoPrice
+        {
+            get { return _cargoPrice; }
+            set { if (SetProperty(ref _cargoPrice, value)) OnPropertyChanged(nameof(CargoEffectText)); }
+        }
+
+        private double CargoMarket => IsCargo ? PricingService.CargoMarketRate(_route.Destination1, _route.Destination2) : 0;
+
+        public string CargoMarketText => IsCargo ? "market " + Money(CargoMarket) : "";
+
+        /// <summary>What the typed cargo rate does to demand.</summary>
+        public string CargoEffectText
+        {
+            get
+            {
+                double p;
+                if (!IsCargo || !PricingService.Realistic || CargoMarket <= 0) return "";
+                if (!double.TryParse((_cargoPrice ?? "").Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out p)) return "";
+                return string.Format("{0:0}% of market, about {1:0}% of the normal cargo demand", p/CargoMarket*100, PricingService.CargoDemandFactor(p, CargoMarket)*100);
+            }
+        }
+
+        public ICommand CargoMarketCommand => new RelayCommand(() => CargoPrice = CargoMarket.ToString("0.00", CultureInfo.InvariantCulture));
+        public ICommand CargoDownCommand => new RelayCommand(() => ScaleCargo(0.9));
+        public ICommand CargoUpCommand => new RelayCommand(() => ScaleCargo(1.1));
+
+        private void ScaleCargo(double f)
+        {
+            double p;
+            if (double.TryParse((_cargoPrice ?? "").Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out p))
+                CargoPrice = (p*f).ToString("0.00", CultureInfo.InvariantCulture);
+        }
+
+        private void SaveCargoPrice()
+        {
+            double price;
+            var cr = _route as CargoRoute;
+            if (cr == null)
+            {
+                return;
+            }
+
+            if (!double.TryParse((_cargoPrice ?? "").Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out price) || price <= 0)
+            {
+                Status = "The price per unit must be a number above 0 (for example 8.50).";
+                return;
+            }
+
+            cr.PricePerUnit = price;
+            Status = "Price saved.";
+            UpdatePricing();
+        }
+        public string Numbers { get; private set; }
+        public string AircraftText { get; private set; }
+        public ObservableCollection<FareItem> Fares { get; }
+
+        public ICommand SaveFaresCommand { get; }
+        public ICommand DeleteCommand { get; }
+        public ICommand ConfirmDeleteCommand { get; }
+        public ICommand CancelDeleteCommand { get; }
+
+        public bool ConfirmDelete
+        {
+            get { return _confirmDelete; }
+            private set
+            {
+                if (SetProperty(ref _confirmDelete, value))
+                {
+                    OnPropertyChanged(nameof(NotConfirmDelete));
+                }
+            }
+        }
+
+        public bool NotConfirmDelete
+        {
+            get { return !_confirmDelete; }
+        }
+
+        public ICommand AssignCommand { get; }
+        public ICommand MoveCommand { get; }
+
+        // ---- replace one aircraft of the route by another, on the same flights ----
+
+        private bool _replacing;
+        private NamedChoice<FleetAirliner> _replaceFrom;
+        private NamedChoice<ReplacementOption> _replaceTo;
+
+        public ICommand OpenReplaceCommand { get; }
+        public ICommand CloseReplaceCommand { get; }
+        public ICommand ReplaceCommand { get; }
+        public ICommand ShiftReplaceCommand { get; }
+        public ICommand KeepReplaceCommand { get; }
+
+        public bool CanReplaceSame => _replaceTo?.Value?.CanReplace == true;
+        public bool CanShift => _replaceTo?.Value?.Shift != null;
+        public bool CanKeep => _replaceTo?.Value?.Keep != null;
+        public string ShiftText => CanShift ? "Shift the times: " + _replaceTo.Value.Shift.Summary + "." : null;
+        public string KeepText => CanKeep ? "Keep what fits: " + _replaceTo.Value.Keep.Summary + "." : null;
+
+        public ObservableCollection<NamedChoice<FleetAirliner>> ReplaceFromChoices { get; } = new ObservableCollection<NamedChoice<FleetAirliner>>();
+        public ObservableCollection<NamedChoice<ReplacementOption>> ReplaceToChoices { get; } = new ObservableCollection<NamedChoice<ReplacementOption>>();
+
+        public bool IsReplacing
+        {
+            get { return _replacing; }
+            private set
+            {
+                if (SetProperty(ref _replacing, value))
+                {
+                    OnPropertyChanged(nameof(ShowReplaceButton));
+                }
+            }
+        }
+
+        public bool ShowReplaceButton => CanMove && !_replacing && _assign == null;
+
+        public NamedChoice<FleetAirliner> ReplaceFrom
+        {
+            get { return _replaceFrom; }
+            set
+            {
+                if (SetProperty(ref _replaceFrom, value))
+                {
+                    LoadReplaceTo();
+                }
+            }
+        }
+
+        public NamedChoice<ReplacementOption> ReplaceTo
+        {
+            get { return _replaceTo; }
+            set
+            {
+                if (SetProperty(ref _replaceTo, value))
+                {
+                    OnPropertyChanged(nameof(ReplaceText));
+                    OnPropertyChanged(nameof(CanReplaceSame));
+                    OnPropertyChanged(nameof(CanShift));
+                    OnPropertyChanged(nameof(CanKeep));
+                    OnPropertyChanged(nameof(ShiftText));
+                    OnPropertyChanged(nameof(KeepText));
+                    (ReplaceCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                    (ShiftReplaceCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                    (KeepReplaceCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                }
+            }
+        }
+
+        public string ReplaceText
+        {
+            get
+            {
+                if (_replaceFrom == null) return null;
+                if (ReplaceToChoices.Count == 0) return "No other aircraft of the right kind in your fleet.";
+                if (_replaceTo == null) return null;
+                var from = _replaceFrom.Value;
+                int flights = _route.TimeTable.Entries.Count(e => e.Airliner == from);
+                return _replaceTo.Value.CanReplace
+                    ? _replaceTo.Value.Airliner.Name + " takes over the " + flights + " weekly flights of " + from.Name + " on this route, at the same times."
+                    : _replaceTo.Value.Shift != null || _replaceTo.Value.Keep != null
+                        ? _replaceTo.Value.Airliner.Name + " is too slow for the flights as they are. Pick how to make the route fit:"
+                        : _replaceTo.Value.Airliner.Name + " can't take over: " + _replaceTo.Value.Note + ".";
+            }
+        }
+
+        private void OpenReplace()
+        {
+            ReplaceFromChoices.Clear();
+            foreach (FleetAirliner f in _route.GetAirliners().OrderBy(f => f.Name))
+            {
+                ReplaceFromChoices.Add(new NamedChoice<FleetAirliner> {Name = f.Name + " (" + f.Airliner.Type.Name + ")", Value = f});
+            }
+            _replaceFrom = null;
+            ReplaceFrom = ReplaceFromChoices.FirstOrDefault();
+            IsReplacing = true;
+        }
+
+        private void LoadReplaceTo()
+        {
+            ReplaceToChoices.Clear();
+            if (_replaceFrom != null)
+            {
+                foreach (ReplacementOption o in AircraftReplaceService.Options(_route, _replaceFrom.Value))
+                {
+                    ReplaceToChoices.Add(new NamedChoice<ReplacementOption>
+                    {
+                        Name = o.Airliner.Name + " (" + o.Airliner.Airliner.Type.Name + "): " + (o.CanReplace ? o.Note : "can't, " + o.Note),
+                        Value = o
+                    });
+                }
+            }
+            _replaceTo = null;
+            ReplaceTo = ReplaceToChoices.FirstOrDefault(c => c.Value.CanReplace) ?? ReplaceToChoices.FirstOrDefault(c => c.Value.Shift != null || c.Value.Keep != null);
+            OnPropertyChanged(nameof(ReplaceText));
+        }
+
+        private void DoReplace(ReplaceMode mode)
+        {
+            string message;
+            bool ok = AircraftReplaceService.Replace(_route, _replaceFrom?.Value, _replaceTo?.Value?.Airliner, mode, out message);
+            Status = message;
+            if (ok)
+            {
+                IsReplacing = false;
+                _changed();
+                RefreshNumbers();
+            }
+            else
+            {
+                LoadReplaceTo();
+            }
+        }
+
+        /// <summary>The form to put an aircraft on this route, or null when it is closed.</summary>
+        public CreateRouteViewModel Assign
+        {
+            get { return _assign; }
+            private set
+            {
+                if (SetProperty(ref _assign, value))
+                {
+                    OnPropertyChanged(nameof(HasAssign));
+                    OnPropertyChanged(nameof(ShowAssignButton));
+                    OnPropertyChanged(nameof(ShowMoveButton));
+                    OnPropertyChanged(nameof(ShowReplaceButton));
+                }
+            }
+        }
+
+        public bool CanMove => _route.HasAirliner;
+
+        public bool ShowMoveButton => CanMove && _assign == null;
+
+        public bool HasAssign => _assign != null;
+
+        /// <summary>True when no aircraft flies this route.</summary>
+        public bool CanAssign => !_route.HasAirliner;
+
+        public bool ShowAssignButton => CanAssign && _assign == null;
+
+        private void OnAssignDone(string message)
+        {
+            Assign = null;
+            if (message != null)
+            {
+                Status = message;
+                _changed();
+            }
+
+            RefreshNumbers();
+        }
+
+        public string Status
+        {
+            get { return _status; }
+            private set { SetProperty(ref _status, value); }
+        }
+
+        private static string Money(double v)
+        {
+            return Convert.ToString(new ValueCurrencyFormatter().Convert(v));
+        }
+
+        /// <summary>Updates the figures (passengers, profit, aircraft); fares being edited are left alone.</summary>
+        public void RefreshNumbers()
+        {
+            double passengers = 0, capacity = 0;
+            try
+            {
+                passengers = Convert.ToDouble(
+                    _route.Statistics.GetTotalValue(StatisticsTypes.GetStatisticsType(IsCargo ? "Cargo" : "Passengers")));
+                capacity = Convert.ToDouble(_route.Statistics.GetTotalValue(StatisticsTypes.GetStatisticsType("Capacity")));
+            }
+            catch (Exception)
+            {
+                // no statistics yet
+            }
+
+            string load = capacity > 0 ? string.Format("{0:0}%", 100 * passengers / capacity) : "no flights yet";
+            Numbers = string.Format(
+                "{0}  |  {1:0} {2} carried  |  load factor {3}  |  profit {4}",
+                DistanceFormatter.Km(_route.GetDistance()), passengers, IsCargo ? "units of cargo" : "passengers", load, Money(_route.Balance));
+
+            var airliners = _route.GetAirliners();
+            AircraftText = airliners.Count == 0
+                ? "No aircraft is scheduled on this route."
+                : "Aircraft: " + string.Join(", ", airliners.Select(a => a.Name + " (" + a.Status + ")"));
+
+            OnPropertyChanged(nameof(Numbers));
+            OnPropertyChanged(nameof(AircraftText));
+            OnPropertyChanged(nameof(CanAssign));
+            OnPropertyChanged(nameof(ShowAssignButton));
+            OnPropertyChanged(nameof(CanMove));
+            OnPropertyChanged(nameof(ShowMoveButton));
+            OnPropertyChanged(nameof(ShowReplaceButton));
+            (OpenReplaceCommand as RelayCommand)?.RaiseCanExecuteChanged();
+            Service?.RefreshScores();
+        }
+
+        private void LoadFares()
+        {
+            Fares.Clear();
+            var pr = _route as PassengerRoute;
+            if (pr != null)
+            {
+                foreach (var c in pr.Classes)
+                {
+                    Fares.Add(
+                        new FareItem
+                        {
+                            Type = c.Type,
+                            ClassName = c.Type.ToString(),
+                            Seats = c.Seating.ToString(),
+                            Market = PricingService.MarketFare(pr.Destination1, pr.Destination2, c.Type),
+                            Price = c.FarePrice.ToString("0.00", CultureInfo.InvariantCulture)
+                        });
+                }
+            }
+            UpdatePricing();
+        }
+
+        /// <summary>Last month's money on the route, how full it flies and the break-even fare.</summary>
+        public string PricingText { get; private set; }
+
+        private void UpdatePricing()
+        {
+            var pr = _route as PassengerRoute;
+            if (_route is CargoRoute cargoRoute)
+            {
+                PricingText = CargoPricing(cargoRoute);
+                OnPropertyChanged(nameof(PricingText));
+                return;
+            }
+            if (pr == null)
+            {
+                PricingText = "";
+                OnPropertyChanged(nameof(PricingText));
+                return;
+            }
+            var f = new ValueCurrencyFormatter();
+            var m = PricingService.LastMonth(pr);
+            double load = PricingService.RecentLoad(pr);
+            double atLoad = load > 0.05 ? load : 0.8;
+            double be = PricingService.BreakEvenFare(pr, atLoad);
+            double be80 = PricingService.BreakEvenFare(pr, 0.8);
+            var lines = new List<string>();
+            lines.Add(m.Income == 0 && m.Costs == 0
+                ? "No flights last month."
+                : string.Format("Last month: income {0}, flight costs {1}, profit {2}.", f.Convert(m.Income), f.Convert(m.Costs), f.Convert(m.Profit)));
+            double month = ConnectionService.MonthLoad(pr);
+            if (month > 0.005) lines.Add(string.Format("Recently {0:0}% full{1}.", month*100, load > 0.05 ? string.Format(" ({0:0}% on average since it started)", load*100) : ""));
+            else if (load > 0.05) lines.Add(string.Format("Since it started the route has been {0:0}% full on average.", load*100));
+            var rivals = AIPricingService.Rivals(pr);
+            if (rivals.Count == 0)
+            {
+                lines.Add("No other airline flies this route.");
+            }
+            else
+            {
+                lines.Add("Other airlines here (they review their fares every week or two and answer cheaper rivals): " + string.Join("; ", rivals
+                    .OrderBy(AIPricingService.EconomyFare)
+                    .Select(r => string.Format("{0} economy {1}, {2:0}% full", r.Airline.Profile.Name, f.Convert(AIPricingService.EconomyFare(r)), ConnectionService.MonthLoad(r)*100))) + ".");
+            }
+            if (be > 0)
+            {
+                lines.Add(load > 0.05
+                    ? string.Format("Economy break-even fare at {0:0}% full: {1} (at 80% full: {2}). Business pays 3 and first 6 economy fares.", atLoad*100, f.Convert(be), f.Convert(be80))
+                    : string.Format("Economy break-even fare at 80% full: {0}. Business pays 3 and first 6 economy fares.", f.Convert(be80)));
+            }
+            if (PricingService.Realistic)
+                lines.Add("Fares above the market fare lose passengers (economy most, first class least); fares below it win more. When planes are full anyway, a higher fare is usually worth it.");
+            PricingText = string.Join(Environment.NewLine, lines);
+            OnPropertyChanged(nameof(PricingText));
+        }
+
+        /// <summary>The pricing help of a cargo route: last month, load, break-even rate and the rivals' rates.</summary>
+        private static string CargoPricing(CargoRoute cr)
+        {
+            var f = new ValueCurrencyFormatter();
+            var m = PricingService.LastMonth(cr);
+            double load = ConnectionService.MonthLoad(cr);
+            var lines = new List<string>();
+            lines.Add(m.Income == 0 && m.Costs == 0
+                ? "No flights last month."
+                : string.Format("Last month: income {0}, flight costs {1}, profit {2}.", f.Convert(m.Income), f.Convert(m.Costs), f.Convert(m.Profit)));
+            if (load > 0.005) lines.Add(string.Format("Recently {0:0}% of the cargo space was filled.", load*100));
+            double atLoad = load > 0.05 ? load : 0.75;
+            double be = PricingService.CargoBreakEvenRate(cr, atLoad);
+            double be75 = PricingService.CargoBreakEvenRate(cr, 0.75);
+            if (be > 0)
+                lines.Add(load > 0.05
+                    ? string.Format("Break-even rate per unit at {0:0}% full: {1} (at 75% full: {2}), including what the freighter costs to own.", atLoad*100, f.Convert(be), f.Convert(be75))
+                    : string.Format("Break-even rate per unit at 75% full: {0}, including what the freighter costs to own.", f.Convert(be75)));
+            var rivals = AIPricingService.CargoRivals(cr);
+            lines.Add(rivals.Count == 0
+                ? "No other airline flies cargo on this route."
+                : "Other cargo airlines here (they review their rates every week or two): " + string.Join("; ", rivals.OrderBy(r => r.PricePerUnit)
+                    .Select(r => string.Format("{0} {1} per unit, {2:0}% full", r.Airline.Profile.Name, f.Convert(r.PricePerUnit), ConnectionService.MonthLoad(r)*100))) + ".");
+            if (PricingService.Realistic)
+                lines.Add("A rate above the market rate loses cargo, one below it wins more. Short cargo flights need a higher rate per km than long ones: the market rate has a fixed part for handling.");
+            return string.Join(Environment.NewLine, lines);
+        }
+
+        private void SaveFares()
+        {
+            var pr = _route as PassengerRoute;
+            if (pr == null)
+            {
+                return;
+            }
+
+            foreach (var f in Fares)
+            {
+                double price;
+                if (!double.TryParse(f.Price.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out price) || price < 0)
+                {
+                    Status = "The " + f.ClassName + " fare must be a number (for example 129.50).";
+                    return;
+                }
+            }
+
+            foreach (var f in Fares)
+            {
+                pr.GetRouteAirlinerClass(f.Type).FarePrice =
+                    double.Parse(f.Price.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture);
+            }
+
+            Status = "Fares saved.";
+            UpdatePricing();
+        }
+
+        private void Delete()
+        {
+            var airline = GameObject.GetInstance().HumanAirline;
+
+            var contract = airline.SpecialContracts.Find(s => s.Routes.Contains(_route));
+            contract?.Routes.Remove(_route);
+
+            var airliners = _route.GetAirliners();
+            airline.RemoveRoute(_route);
+            foreach (var a in airliners)
+            {
+                a.RemoveRoute(_route);
+                if (a.Routes.Count == 0)
+                {
+                    a.Status = FleetAirliner.AirlinerStatus.Stopped;
+                }
+            }
+
+            _changed();
+        }
+    }
+}

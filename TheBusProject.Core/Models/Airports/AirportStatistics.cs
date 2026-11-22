@@ -1,0 +1,120 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Serialization;
+using TheBusProject.Infrastructure;
+using TheBusProject.Models.Airlines;
+using TheBusProject.Models.General.Statistics;
+
+namespace TheBusProject.Models.Airports
+{
+    /*! Airport statistics.
+ * This is used for statistics for an airport.
+ * The class needs no parameters
+ */
+
+    [Serializable]
+    public class AirportStatistics : BaseModel
+    {
+        #region Constructors and Destructors
+
+        public AirportStatistics()
+        {
+            Stats = new List<AirportStatisticsValue>();
+        }
+
+        private AirportStatistics(SerializationInfo info, StreamingContext ctxt) : base(info, ctxt)
+        {
+        }
+
+        #endregion
+
+        #region Public Properties
+
+        [Versioning("stats")]
+        public List<AirportStatisticsValue> Stats { get; set; }
+
+        #endregion
+
+        #region Public Methods and Operators
+
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            AddVersion(info, 1);
+
+            base.GetObjectData(info, context);
+        }
+
+        public void AddStatisticsValue(int year, Airline airline, StatisticsType type, int value)
+        {
+            lock (Stats)
+            {
+                AirportStatisticsValue item =
+                    Stats.Find(s => s != null && s.Year == year && s.Airline == airline && s.Stat.Shortname == type.Shortname);
+
+                if (item == null)
+                {
+                    Stats.Add(new AirportStatisticsValue(airline, year, type, value));
+                }
+                else
+                {
+                    item.Value += value;
+                }
+            }
+        }
+
+        //returns the value for a statistics type for an airline for a year
+        public double GetStatisticsValue(int year, Airline airline, StatisticsType type)
+        {
+            lock (Stats)
+            {
+                AirportStatisticsValue item =
+                    Stats.Find(s => s != null && s.Year == year && s.Airline == airline && s.Stat.Shortname == type.Shortname);
+
+                return item == null ? 0 : item.Value;
+            }
+        }
+
+        public double GetTotalValue(int year, StatisticsType type)
+        {
+            lock (Stats)
+            {
+                return Stats.Where(s => s != null && s.Year == year && s.Stat.Shortname == type.Shortname).Sum(s => s.Value);
+            }
+        }
+
+        //returns every year with statistics
+        public List<int> GetYears()
+        {
+            lock (Stats)
+            {
+                return Stats.Where(s => s != null).Select(s => s.Year).Distinct().ToList();
+            }
+        }
+
+        //adds the value for a statistics type to an airline for a year
+
+        //sets the value for a statistics type for an airline for a year
+        public void SetStatisticsValue(int year, Airline airline, StatisticsType type, int value)
+        {
+            lock (Stats)
+            {
+                AirportStatisticsValue item =
+                    Stats.Find(s => s != null && s.Year == year && s.Airline == airline && s.Stat.Shortname == type.Shortname);
+
+                if (item == null)
+                {
+                    Stats.Add(new AirportStatisticsValue(airline, year, type, value));
+                }
+                else
+                {
+                    item.Value = value;
+                }
+            }
+        }
+
+        #endregion
+
+        //returns the total value for a statistics type for a year
+    }
+}

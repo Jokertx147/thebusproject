@@ -1,0 +1,592 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Windows.Input;
+using TheBusProject.Helpers;
+using TheBusProject.Models.Airliners;
+using TheBusProject.Models.Airports;
+using TheBusProject.Models.General;
+using TheBusProject.Models.Routes;
+
+namespace TheBusProject.Presentation
+{
+    public class AircraftChoice
+    {
+        public string Name { get; set; }
+        public FleetAirliner Airliner { get; set; }
+        public override string ToString() { return Name; }
+    }
+
+    public class ContractChoice
+    {
+        public AirportContract.ContractType Type { get; set; }
+        public string Text { get; set; }
+        public override string ToString() { return Text; }
+    }
+
+    /// <summary>Offer to lease gates at an airport where the airline has none free.</summary>
+    public class GateOffer : ObservableObject
+    {
+        private readonly Airport _airport;
+        private readonly Action _signed;
+        private readonly Terminal.TerminalType _terminalType;
+        private ContractChoice _selected;
+
+        public GateOffer(Airport airport, Action signed, Terminal.TerminalType terminalType = Terminal.TerminalType.Passenger)
+        {
+            _airport = airport;
+            _signed = signed;
+            _terminalType = terminalType;
+            string kind = terminalType == Terminal.TerminalType.Cargo ? "cargo " : "";
+            var f = new ValueCurrencyFormatter();
+            int gates = Math.Min(2, RouteCreator.GetFreeGates(airport, terminalType));
+            CanLease = gates > 0;
+            Options = new List<ContractChoice>();
+
+            if (CanLease)
+            {
+                foreach (AirportContract.ContractType t in Enum.GetValues(typeof(AirportContract.ContractType)))
+                {
+                    double yearly = AirportHelpers.GetYearlyContractPayment(airport, t, gates, 2);
+                    Options.Add(new ContractChoice { Type = t, Text = string.Format("{0}  ({1}/year, {2} gate(s), 2 years)", t, f.Convert(yearly), gates) });
+                }
+                _selected = Options.First();
+            }
+
+            Title = airport.Profile.IATACode + " " + airport.Profile.Name;
+            Text = CanLease
+                ? "You have no free " + kind + "gate at " + Title + ". Lease gates there to create the route."
+                : terminalType == Terminal.TerminalType.Cargo
+                    ? "There are no free cargo gates at " + Title + " to lease. Build a cargo terminal there first (Airports tab > Build a terminal)."
+                    : "There are no free gates at " + Title + " to lease.";
+            LeaseCommand = new RelayCommand(Lease, () => CanLease);
+        }
+
+        public string Title { get; }
+        public string Text { get; }
+        public bool CanLease { get; }
+        public List<ContractChoice> Options { get; }
+        public ICommand LeaseCommand { get; }
+
+        public ContractChoice SelectedOption
+        {
+            get { return _selected; }
+            set { SetProperty(ref _selected, value); }
+        }
+
+        private void Lease()
+        {
+            if (_selected == null)
+            {
+                return;
+            }
+
+            RouteCreator.SignContract(_airport, _selected.Type, _terminalType);
+            _signed();
+        }
+    }
+
+    /// <summary>Create a passenger or cargo route between two airports, with an optional schedule for one aircraft.</summary>
+    public class CreateRouteViewModel : ObservableObject
+    {
+        private readonly Airport _origin, _destination;
+        private readonly Action<string> _done;
+        private readonly bool _cargo;
+        private readonly Route _existing;
+        private readonly bool _move;
+        private string _cargoPrice;
+        private bool _updating;
+        private ServiceTier _tier = ServiceTier.Standard;
+        private AircraftChoice _aircraft;
+        private OpsType _operation = OpsType.Regular;
+        private int _turnaround = 60;
+        private int _trips = 1;
+        private string _startTime;
+        private bool _startAirliner = true;
+        private string _info;
+        private bool _scheduleEnabled, _detailEnabled;
+
+        /// <summary>Assign an aircraft (and a schedule) to a route that was created without one.</summary>
+        public CreateRouteViewModel(Route existing, Action<string> done, bool move = false)
+            : this(existing.Destination1, existing.Destination2, done, existing.IsCargoRoute, existing, move)
+        {
+        }
+
+        public CreateRouteViewModel(Airport origin, Airport destination, Action<string> done, bool cargo = false, Route existing = null, bool move = false)
+        {
+            _existing = existing;
+            _move = move;
+            _origin = origin;
+            _destination = destination;
+            _done = done;
+            _cargo = cargo;
+            _cargoPrice = PassengerHelpers.GetCargoPrice(origin, destination).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+
+            Title = existing != null
+                ? string.Format(move ? "Move {0} - {1} to another aircraft" : "Assign an aircraft to {0} - {1}", origin.Profile.IATACode, destination.Profile.IATACode)
+                : string.Format("New {0}route {1} - {2}", cargo ? "cargo " : "", origin.Profile.IATACode, destination.Profile.IATACode);
+            Tiers = Enum.GetValues(typeof(ServiceTier)).Cast<ServiceTier>().ToList();
+            Operations = new List<OpsType> { OpsType.Regular, OpsType.Whole_Day };
+            Turnarounds = RouteCreator.TurnaroundOptions;
+            Trips = new ObservableCollection<int>();
+            StartTimes = new ObservableCollection<string>();
+            Offers = new ObservableCollection<GateOffer>();
+
+            Aircraft = new List<AircraftChoice>();
+            if (existing == null)
+            {
+                Aircraft.Add(new AircraftChoice { Name = "(assign an aircraft later)" });
+            }
+
+            Aircraft.AddRange(
+                RouteCreator.GetCandidateAirliners(origin, destination, cargo ? Route.RouteType.Cargo : Route.RouteType.Passenger)
+                            .Select(f => new AircraftChoice { Name = f.Name + " - " + f.Airliner.Type.Name, Airliner = f }));
+            _aircraft = existing == null
+                ? (Aircraft.Count > 1 ? Aircraft[1] : Aircraft[0])
+                : Aircraft.FirstOrDefault();
+
+            try
+            {
+                var why = RouteCreator.WhyNot(origin, destination, cargo ? Route.RouteType.Cargo : Route.RouteType.Passenger);
+                CantFly = why.Count == 0 ? null : "Can't fly it: " + string.Join(" ", why);
+            }
+            catch (Exception ex)
+            {
+                Infrastructure.StartupLog.Write("Route planner: listing the aircraft that can't fly failed: " + ex);
+            }
+
+            CreateCommand = new RelayCommand(Create);
+            CancelCommand = new RelayCommand(() => _done(null));
+
+            SetDefaultTurnaround();
+            RefreshSchedule();
+            RefreshGates();
+        }
+
+        public string Title { get; }
+
+        /// <summary>The player's idle aircraft that can't fly the route, and why (runway or range), or null.</summary>
+        public string CantFly { get; }
+
+        public bool HasCantFly => !string.IsNullOrEmpty(CantFly);
+        public List<ServiceTier> Tiers { get; }
+        public List<AircraftChoice> Aircraft { get; }
+        public List<OpsType> Operations { get; }
+        public List<int> Turnarounds { get; }
+        public ObservableCollection<int> Trips { get; }
+        public ObservableCollection<string> StartTimes { get; }
+        public ObservableCollection<GateOffer> Offers { get; }
+        public ICommand CreateCommand { get; }
+        public ICommand CancelCommand { get; }
+
+        public bool IsCargo
+        {
+            get { return _cargo; }
+        }
+
+        public bool IsPassenger
+        {
+            get { return !_cargo; }
+        }
+
+        public bool IsNewRoute
+        {
+            get { return _existing == null; }
+        }
+
+        public bool ShowTier
+        {
+            get { return !_cargo && _existing == null; }
+        }
+
+        public bool ShowPrice
+        {
+            get { return _cargo && _existing == null; }
+        }
+
+        public string CreateLabel
+        {
+            get { return _existing == null ? "Create route" : _move ? "Move route" : "Assign aircraft"; }
+        }
+
+        /// <summary>The price per unit of cargo the route starts with.</summary>
+        public string CargoPrice
+        {
+            get { return _cargoPrice; }
+            set { SetProperty(ref _cargoPrice, value); }
+        }
+
+        public string AircraftLabel
+        {
+            get { return _cargo ? "Cargo aircraft (only aircraft without routes)" : "Aircraft (only aircraft without routes)"; }
+        }
+
+        private Terminal.TerminalType TerminalKind
+        {
+            get { return _cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger; }
+        }
+
+        public ServiceTier Tier
+        {
+            get { return _tier; }
+            set { SetProperty(ref _tier, value); }
+        }
+
+        public AircraftChoice SelectedAircraft
+        {
+            get { return _aircraft; }
+            set
+            {
+                if (value != null && SetProperty(ref _aircraft, value))
+                {
+                    SetDefaultTurnaround();
+                    RefreshSchedule();
+                }
+            }
+        }
+
+        public OpsType Operation
+        {
+            get { return _operation; }
+            set
+            {
+                if (SetProperty(ref _operation, value))
+                {
+                    RefreshSchedule();
+                }
+            }
+        }
+
+        public int Turnaround
+        {
+            get { return _turnaround; }
+            set
+            {
+                if (SetProperty(ref _turnaround, value))
+                {
+                    RefreshSchedule();
+                }
+            }
+        }
+
+        public int RoundTrips
+        {
+            get { return _trips; }
+            set
+            {
+                if (SetProperty(ref _trips, value))
+                {
+                    RefreshStartTimes();
+                    RefreshForecast();
+                }
+            }
+        }
+
+        public string StartTime
+        {
+            get { return _startTime; }
+            set { SetProperty(ref _startTime, value); }
+        }
+
+        public bool StartAirliner
+        {
+            get { return _startAirliner; }
+            set { SetProperty(ref _startAirliner, value); }
+        }
+
+        public string Info
+        {
+            get { return _info; }
+            private set { SetProperty(ref _info, value); }
+        }
+
+        /// <summary>True when an aircraft is chosen, so the schedule options apply.</summary>
+        public bool ScheduleEnabled
+        {
+            get { return _scheduleEnabled; }
+            private set { SetProperty(ref _scheduleEnabled, value); }
+        }
+
+        /// <summary>False on long-haul routes, where the schedule is weekly and made automatically.</summary>
+        public bool DetailEnabled
+        {
+            get { return _detailEnabled; }
+            private set { SetProperty(ref _detailEnabled, value); }
+        }
+
+        public bool HasOffers
+        {
+            get { return Offers.Count > 0; }
+        }
+
+        private FleetAirliner Airliner
+        {
+            get { return _aircraft?.Airliner; }
+        }
+
+        private void SetDefaultTurnaround()
+        {
+            _updating = true;
+            int minutes = Airliner == null ? 60 : (int)FleetAirlinerHelpers.GetMinTimeBetweenFlights(Airliner).TotalMinutes;
+            int best = RouteCreator.TurnaroundOptions.FirstOrDefault(o => o >= minutes);
+            _turnaround = best == 0 ? RouteCreator.TurnaroundOptions.Last() : best;
+            OnPropertyChanged(nameof(Turnaround));
+            _updating = false;
+        }
+
+        private void RefreshSchedule()
+        {
+            if (_updating)
+            {
+                return;
+            }
+
+            ScheduleEnabled = Airliner != null;
+            Trips.Clear();
+            StartTimes.Clear();
+
+            if (Airliner == null)
+            {
+                DetailEnabled = false;
+                if (_existing != null)
+                {
+                    Info = "None of your " + (_cargo ? "cargo " : "") + "aircraft without a route can fly this route (range or runway). Buy one under Airliners.";
+                    return;
+                }
+
+                Info = Aircraft.Count == 1
+                    ? "None of your " + (_cargo ? "cargo " : "") + "aircraft can fly this route (range, runway, or already on a route). The route is created without a schedule; assign an aircraft later."
+                    : "The route is created without a schedule; assign an aircraft later.";
+                return;
+            }
+
+            var type = Airliner.Airliner.Type;
+            if (RouteCreator.IsLongRoute(_origin, _destination, type, _turnaround))
+            {
+                DetailEnabled = false;
+                Info = "This is a long-haul route, so a weekly schedule is created.";
+                return;
+            }
+
+            DetailEnabled = true;
+            int max = RouteCreator.GetMaxRoundTrips(_origin, _destination, type, _turnaround, _operation);
+            for (int i = 1; i <= max; i++)
+            {
+                Trips.Add(i);
+            }
+
+            // the default is the number of round trips the forecast says earns the most a day (passenger routes),
+            // not the most the aircraft can fly
+            _suggested = null;
+            int pick = max;
+            if (!_cargo && GameObject.GetInstance()?.HumanAirline != null)
+            {
+                try
+                {
+                    List<RouteForecast> all;
+                    _suggested = RouteForecastService.Best(GameObject.GetInstance().HumanAirline, _origin, _destination, Airliner, max, out all, _move ? _existing : null);
+                    pick = _suggested.RoundTrips;
+                }
+                catch (Exception ex)
+                {
+                    Infrastructure.StartupLog.Write("Route forecast failed: " + ex);
+                    _suggested = null;
+                }
+            }
+
+            _updating = true;
+            _trips = pick;
+            OnPropertyChanged(nameof(RoundTrips));
+            _updating = false;
+
+            RefreshStartTimes();
+            RefreshForecast();
+        }
+
+        private RouteForecast _suggested;
+        private string _forecast;
+
+        /// <summary>The forecast at the chosen number of round trips (null for cargo, long-haul or no aircraft).</summary>
+        public RouteForecast CurrentForecast { get; private set; }
+
+        /// <summary>The forecast at the suggested number of round trips.</summary>
+        public RouteForecast SuggestedForecast => _suggested;
+
+        /// <summary>What the route is expected to do at the chosen number of round trips, and the suggestion.</summary>
+        public string Forecast
+        {
+            get { return _forecast; }
+            private set
+            {
+                if (SetProperty(ref _forecast, value)) OnPropertyChanged(nameof(HasForecast));
+            }
+        }
+
+        public bool HasForecast => !string.IsNullOrEmpty(_forecast);
+
+        private static string Cash(double v)
+        {
+            return (v < 0 ? "-$" : "$") + Math.Abs(Math.Round(v)).ToString("N0");
+        }
+
+        private void RefreshForecast()
+        {
+            CurrentForecast = null;
+            if (_cargo || Airliner == null || _suggested == null || !DetailEnabled || GameObject.GetInstance()?.HumanAirline == null)
+            {
+                Forecast = null;
+                return;
+            }
+            RouteForecast now;
+            try
+            {
+                now = RouteForecastService.Forecast(GameObject.GetInstance().HumanAirline, _origin, _destination, Airliner, Math.Max(1, _trips), _move ? _existing : null);
+            }
+            catch (Exception ex)
+            {
+                Infrastructure.StartupLog.Write("Route forecast failed: " + ex);
+                Forecast = null;
+                return;
+            }
+            CurrentForecast = now;
+            string text = string.Format("Forecast at {0} round trip{1} a day: about {2:0}% full ({3:0} of {4} seats), {5} income and {6} costs a flight, {7} a day.",
+                now.RoundTrips, now.RoundTrips == 1 ? "" : "s", now.Load*100, now.PassengersPerFlight, now.Seats, Cash(now.RevenuePerFlight), Cash(now.CostPerFlight), Cash(now.ProfitPerDay));
+            if (_suggested.ProfitPerDay < 0)
+            {
+                text += string.Format(" This aircraft is likely to lose money here however often it flies (the least loss is at {0} a day, {1} a day){2}. A different aircraft or destination may do better.",
+                    _suggested.RoundTrips, Cash(_suggested.ProfitPerDay), _suggested.Rivals > 0 ? ": " + _suggested.Rivals + " other route" + (_suggested.Rivals == 1 ? "" : "s") + " already fly the pair" : "");
+            }
+            else if (_suggested.RoundTrips != now.RoundTrips)
+            {
+                text += string.Format(" Suggested: {0} a day (about {1:0}% full, {2} a day).", _suggested.RoundTrips, _suggested.Load*100, Cash(_suggested.ProfitPerDay));
+            }
+            else
+            {
+                text += " This is the suggested number: the most profit a day.";
+            }
+            Forecast = text + " An estimate: rivals change fares and schedules, and connecting passengers come on top.";
+        }
+
+        private void RefreshStartTimes()
+        {
+            if (_updating || Airliner == null)
+            {
+                return;
+            }
+
+            StartTimes.Clear();
+            foreach (TimeSpan t in RouteCreator.GetStartTimes(
+                _origin, _destination, Airliner.Airliner.Type, _turnaround, _trips, _operation))
+            {
+                StartTimes.Add(t.ToString(@"hh\:mm"));
+            }
+
+            StartTime = StartTimes.FirstOrDefault();
+            Info = "";
+        }
+
+        private void RefreshGates()
+        {
+            Offers.Clear();
+            foreach (Airport a in new[] { _origin, _destination }.Distinct())
+            {
+                if (!AirportHelpers.HasFreeGates(a, GameObject.GetInstance().HumanAirline, TerminalKind))
+                {
+                    if (RouteCreator.NeedsContract(a, TerminalKind))
+                    {
+                        Offers.Add(new GateOffer(a, RefreshGates, TerminalKind));
+                    }
+                    else
+                    {
+                        Info = "All your gates at " + a.Profile.Name + " are in use. Free a gate or extend your contract there first.";
+                    }
+                }
+            }
+
+            OnPropertyChanged(nameof(HasOffers));
+        }
+
+        private void AssignExisting()
+        {
+            if (Airliner == null)
+            {
+                Info = "Pick an aircraft first.";
+                return;
+            }
+
+            var request = new NewRouteRequest
+            {
+                Airliner = Airliner,
+                StartAirliner = _startAirliner,
+                Operation = _operation,
+                TurnaroundMinutes = _turnaround,
+                RoundTripsPerDay = _trips < 1 ? 1 : _trips,
+                StartTime = _startTime == null ? new TimeSpan(6, 0, 0) : TimeSpan.Parse(_startTime)
+            };
+
+            string message;
+            if (!(_move ? RouteCreator.MoveRoute(_existing, request, out message) : RouteCreator.AssignAircraft(_existing, request, out message)))
+            {
+                Info = message;
+                return;
+            }
+
+            _done(message);
+        }
+
+        private void Create()
+        {
+            RefreshGates();
+            if (Offers.Count > 0)
+            {
+                Info = "Lease the missing gates first (see above).";
+                return;
+            }
+
+            if (_existing != null)
+            {
+                AssignExisting();
+                return;
+            }
+
+            double cargoPrice = 0;
+            if (_cargo
+                && (!double.TryParse(
+                        (_cargoPrice ?? "").Replace(',', '.'),
+                        System.Globalization.NumberStyles.Float,
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        out cargoPrice)
+                    || cargoPrice <= 0))
+            {
+                Info = "The price per unit must be a number above 0 (for example 8.50).";
+                return;
+            }
+
+            var request = new NewRouteRequest
+            {
+                RouteType = _cargo ? Route.RouteType.Cargo : Route.RouteType.Passenger,
+                CargoPrice = cargoPrice,
+                Origin = _origin,
+                Destination = _destination,
+                Tier = _tier,
+                Airliner = Airliner,
+                StartAirliner = _startAirliner,
+                Operation = _operation,
+                TurnaroundMinutes = _turnaround,
+                RoundTripsPerDay = _trips < 1 ? 1 : _trips,
+                StartTime = _startTime == null ? new TimeSpan(6, 0, 0) : TimeSpan.Parse(_startTime)
+            };
+
+            string message;
+            var route = RouteCreator.Create(request, out message);
+            if (route == null)
+            {
+                Info = message;
+                return;
+            }
+
+            _done(message);
+        }
+    }
+}
