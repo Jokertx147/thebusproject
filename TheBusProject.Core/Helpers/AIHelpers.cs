@@ -2033,7 +2033,7 @@ namespace TheBusProject.Helpers
                             }
 
                             fCoach.Status = FleetCoach.CoachStatus.ToRouteStart;
-                            CarrierHelpers.HireCoachPilots(fCoach);
+                            CarrierHelpers.HireCoachDrivers(fCoach);
 
                             route.LastUpdated = GameObject.GetInstance().GameTime;
                         }

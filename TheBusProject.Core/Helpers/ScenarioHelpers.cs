@@ -46,9 +46,9 @@ namespace TheBusProject.Helpers
 
             CoachHelpers.CreateStartUpCoaches();
 
-            int pilotsPool = 100*Carriers.GetAllCarriers().Count;
+            int driversPool = 100*Carriers.GetAllCarriers().Count;
 
-            GeneralHelpers.CreatePilots(pilotsPool);
+            GeneralHelpers.CreateDrivers(driversPool);
 
             int instructorsPool = 75*Carriers.GetAllCarriers().Count;
 
@@ -287,7 +287,7 @@ namespace TheBusProject.Helpers
                 AIHelpers.CreateRouteTimeTable(route, fCoach);
 
                 fCoach.Status = FleetCoach.CoachStatus.ToRouteStart;
-                CarrierHelpers.HireCoachPilots(fCoach);
+                CarrierHelpers.HireCoachDrivers(fCoach);
 
                 route.LastUpdated = GameObject.GetInstance().GameTime;
             }

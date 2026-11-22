@@ -1,18 +1,18 @@
-﻿using System;
+using System;
 using System.Runtime.Serialization;
 using TheBusProject.Helpers;
 using TheBusProject.Infrastructure;
 using TheBusProject.Models.General.Countries.Towns;
 
-namespace TheBusProject.Models.Pilots
+namespace TheBusProject.Models.Drivers
 {
-    //the class for the profile of a pilot
+    //the class for the profile of a driver
     [Serializable]
-    public class PilotProfile : BaseModel
+    public class DriverProfile : BaseModel
     {
         #region Constructors and Destructors
 
-        public PilotProfile(string firstname, string lastname, DateTime birthdate, Town town)
+        public DriverProfile(string firstname, string lastname, DateTime birthdate, Town town)
         {
             Firstname = firstname;
             Lastname = lastname;
@@ -20,7 +20,7 @@ namespace TheBusProject.Models.Pilots
             Birthdate = birthdate;
         }
 
-        private PilotProfile(SerializationInfo info, StreamingContext ctxt) : base(info, ctxt)
+        private DriverProfile(SerializationInfo info, StreamingContext ctxt) : base(info, ctxt)
         {
         }
 

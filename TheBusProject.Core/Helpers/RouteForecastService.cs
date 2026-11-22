@@ -182,7 +182,7 @@ namespace TheBusProject.Helpers
             int maxSeats = a.Type is CoachPassengerType pt ? pt.MaxSeatingCapacity : seats;
             double fuel = fuelPrice*km*maxSeats*a.FuelConsumption*0.55 + fuelPrice*km*a.FuelConsumption*pax*0.45;
             double fees = StationHelpers.GetLandingFee(to, a) + 5*pax;
-            double cabin = (a.Type is CoachPassengerType p2 ? p2.CabinCrew : 0)*hours*carrier.Fees.GetValue(FeeTypes.GetType("Cabin Wage"));
+            double cabin = (a.Type is CoachPassengerType p2 ? p2.Attendants : 0)*hours*carrier.Fees.GetValue(FeeTypes.GetType("Cabin Wage"));
             var parts = TripCosts.Calculate(a, km, hours, revenue);
             double ownership = tripsPerMonth > 0 ? OwnershipService.MonthlyCost(f)/tripsPerMonth : 0;
             return fuel + fees + cabin + parts.Total + ownership;

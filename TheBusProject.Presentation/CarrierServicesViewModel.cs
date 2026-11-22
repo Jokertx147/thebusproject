@@ -8,7 +8,7 @@ using TheBusProject.Helpers;
 using TheBusProject.Models.Carriers;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Finances;
-using TheBusProject.Models.Pilots;
+using TheBusProject.Models.Drivers;
 using TheBusProject.Models.Routes;
 
 namespace TheBusProject.Presentation
@@ -27,7 +27,7 @@ namespace TheBusProject.Presentation
 
     /// <summary>
     ///     The facilities of the carrier itself (frequent flyer program, booking systems, Wi-Fi, newspapers...): what they cost,
-    ///     what they unlock on the trips and buying or selling them. Pilot training facilities are bought here too.
+    ///     what they unlock on the trips and buying or selling them. Driver training facilities are bought here too.
     /// </summary>
     public class CarrierServicesViewModel : ObservableObject
     {
@@ -69,8 +69,8 @@ namespace TheBusProject.Presentation
             get
             {
                 return _training == null
-                    ? "Pick a coach family to train pilots for."
-                    : "Price " + Money(_training.Facility.Price) + ", " + Money(_training.Facility.MonthlyCost) + " a month. Pilots of your carrier can then be trained for this family.";
+                    ? "Pick a coach family to train drivers for."
+                    : "Price " + Money(_training.Facility.Price) + ", " + Money(_training.Facility.MonthlyCost) + " a month. Drivers of your carrier can then be trained for this family.";
             }
         }
 
@@ -144,7 +144,7 @@ namespace TheBusProject.Presentation
                     Command = new RelayCommand(() => { if (owned) AskSell(facility); else AskBuy(facility); })
                 };
 
-                if (f is PilotTrainingFacility)
+                if (f is DriverTrainingFacility)
                 {
                     if (!owned)
                     {

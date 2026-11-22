@@ -267,10 +267,10 @@ namespace TheBusProject.Helpers
                 };
 
 
-            StartupLog.Write("LoadGame: creating pilots");
-            //create some pilots for the game
-            int pilotsPool = 100*Carriers.GetAllCarriers().Count;
-            GeneralHelpers.CreatePilots(pilotsPool);
+            StartupLog.Write("LoadGame: creating drivers");
+            //create some drivers for the game
+            int driversPool = 100*Carriers.GetAllCarriers().Count;
+            GeneralHelpers.CreateDrivers(driversPool);
             int instructorsPool = 75*Carriers.GetAllCarriers().Count;
             GeneralHelpers.CreateInstructors(instructorsPool);
 

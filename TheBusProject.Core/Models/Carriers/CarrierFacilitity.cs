@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 using TheBusProject.Helpers;
 using TheBusProject.Infrastructure;
 using TheBusProject.Models.General;
-using TheBusProject.Models.Pilots;
+using TheBusProject.Models.Drivers;
 
 namespace TheBusProject.Models.Carriers
 {
@@ -84,7 +84,7 @@ namespace TheBusProject.Models.Carriers
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            if (!(this is PilotTrainingFacility))
+            if (!(this is DriverTrainingFacility))
             {
                 AddVersion(info, 1);
             }

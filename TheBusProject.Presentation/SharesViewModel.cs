@@ -302,7 +302,7 @@ namespace TheBusProject.Presentation
             }
             string what = asSubsidiary
                 ? "It keeps its name, logo and money and its management keeps running it as your subsidiary."
-                : "Its coach, routes, gates, pilots, cash and loans join your carrier and its name disappears.";
+                : "Its coach, routes, gates, drivers, cash and loans join your carrier and its name disappears.";
             SetPending(
                 string.Format("Take over {0} for {1}? {2} This can't be undone.", a.Profile.Name, Money(SharesService.TakeoverCost(Me, a)), what),
                 () => { string m; Done(SharesService.TakeOver(Me, a, asSubsidiary, out m), m); });

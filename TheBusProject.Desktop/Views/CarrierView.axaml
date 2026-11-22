@@ -364,8 +364,8 @@
         <!-- STAFF -->
         <TabItem Header="Staff">
           <TabControl Classes="sub">
-            <TabItem Header="Pilots">
-              <v:PilotsView DataContext="{Binding Pilots}" />
+            <TabItem Header="Drivers">
+              <v:DriversView DataContext="{Binding Drivers}" />
             </TabItem>
             <TabItem Header="Trip schools">
               <v:TripSchoolsView DataContext="{Binding TripSchools}" />

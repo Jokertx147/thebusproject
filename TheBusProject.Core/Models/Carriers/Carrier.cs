@@ -12,7 +12,7 @@ using TheBusProject.Models.General;
 using TheBusProject.Models.General.Countries;
 using TheBusProject.Models.General.Finances;
 using TheBusProject.Models.General.Statistics;
-using TheBusProject.Models.Pilots;
+using TheBusProject.Models.Drivers;
 using TheBusProject.Models.Routes;
 
 namespace TheBusProject.Models.Carriers
@@ -66,9 +66,9 @@ namespace TheBusProject.Models.Carriers
 
             CreateStandardAdvertisement();
 
-            Pilots = new List<Pilot>();
+            Drivers = new List<Driver>();
             TripSchools = new List<TripSchool>();
-            AutoAssignPilots = true;
+            AutoAssignDrivers = true;
             Budget = new CarrierBudget();
         }
 
@@ -204,20 +204,20 @@ namespace TheBusProject.Models.Carriers
         [Versioning("fleetvalue")]
         public long FleetValue { get; set; }
 
-        /// <summary>When on, pilots without an coach (new graduates, pilots back from training) are put on coach that need a pilot of their type.</summary>
-        [Versioning("autoassignpilots")]
-        public bool AutoAssignPilots { get; set; }
+        /// <summary>When on, drivers without an coach (new graduates, drivers back from training) are put on coach that need a driver of their type.</summary>
+        [Versioning("autoassigndrivers")]
+        public bool AutoAssignDrivers { get; set; }
 
         /// <summary>When on, an idle coach that is scheduled to fly from another station gets a ferry trip there first (it costs fuel and takes time).</summary>
         [Versioning("autoferry")]
         public bool AutoFerry { get; set; } = true;
 
-        /// <summary>What the carrier pays its pilots, as a percent of the market salary (100 = market).</summary>
-        [Versioning("pilotpaypercent")]
-        public double PilotPayPercent { get; set; } = 100;
+        /// <summary>What the carrier pays its drivers, as a percent of the market salary (100 = market).</summary>
+        [Versioning("driverpaypercent")]
+        public double DriverPayPercent { get; set; } = 100;
 
-        [Versioning("lastpilotbonus")]
-        public DateTime LastPilotBonus { get; set; }
+        [Versioning("lastdriverbonus")]
+        public DateTime LastDriverBonus { get; set; }
 
         [Versioning("tripschools")]
         public List<TripSchool> TripSchools { get; set; }
@@ -271,8 +271,8 @@ namespace TheBusProject.Models.Carriers
         [Versioning("overallscore")]
         public int OverallScore { get; set; }
 
-        [Versioning("pilots")]
-        public List<Pilot> Pilots { get; set; }
+        [Versioning("drivers")]
+        public List<Driver> Drivers { get; set; }
 
         [Versioning("policies")]
         public List<CarrierPolicy> Policies { get; set; }
@@ -451,18 +451,18 @@ namespace TheBusProject.Models.Carriers
             }
         }
 
-        public void AddPilot(Pilot pilot)
+        public void AddDriver(Driver driver)
         {
-            if (pilot == null)
+            if (driver == null)
             {
-                throw new NullReferenceException("Pilot is null at Carrier.cs/addPilot");
+                throw new NullReferenceException("Driver is null at Carrier.cs/addDriver");
             }
 
-            lock (Pilots)
+            lock (Drivers)
             {
-                Pilots.Add(pilot);
-                pilot.Carrier = this;
-                pilot.Morale = Math.Max(pilot.Morale, 65);
+                Drivers.Add(driver);
+                driver.Carrier = this;
+                driver.Morale = Math.Max(driver.Morale, 65);
             }
         }
 
@@ -704,10 +704,10 @@ namespace TheBusProject.Models.Carriers
         {
             int instructors = TripSchools.Sum(f => f.NumberOfInstructors);
 
-            int cockpitCrew = Pilots.Count;
+            int cabCrew = Drivers.Count;
             int cabinCrew =
                 Routes.Where(r => r.Type == Route.RouteType.Passenger)
-                      .Sum(r => ((PassengerRoute) r).GetTotalCabinCrew());
+                      .Sum(r => ((PassengerRoute) r).GetTotalAttendants());
 
             int serviceCrew =
                 Stations.SelectMany(a => a.GetCurrentStationFacilities(this))
@@ -718,7 +718,7 @@ namespace TheBusProject.Models.Carriers
                         .Where(a => a.EmployeeType == StationFacility.EmployeeTypes.Maintenance)
                         .Sum(a => a.NumberOfEmployees);
 
-            return cockpitCrew + cabinCrew + serviceCrew + maintenanceCrew + instructors;
+            return cabCrew + cabinCrew + serviceCrew + maintenanceCrew + instructors;
         }
 
         public double GetProfit()
@@ -857,12 +857,12 @@ namespace TheBusProject.Models.Carriers
             Loans.Remove(loan);
         }
 
-        public void RemovePilot(Pilot pilot)
+        public void RemoveDriver(Driver driver)
         {
-            Pilots.Remove(pilot);
-            pilot.Carrier = null;
+            Drivers.Remove(driver);
+            driver.Carrier = null;
 
-            pilot.Coach?.RemovePilot(pilot);
+            driver.Coach?.RemoveDriver(driver);
         }
 
         public void RemoveRoute(Route route)

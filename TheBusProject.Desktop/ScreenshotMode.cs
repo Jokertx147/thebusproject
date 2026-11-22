@@ -139,7 +139,7 @@ namespace TheBusProject.Desktop
                 // four coach: three get a route, the fourth is delivered during the weeks played and left idle
                 foreach (int skip in new[] {40, 90, 140, 60}) Buy(av, skip);
                 foreach (var f in me.Fleet.ToList())
-                    if (f.Pilots.Count < f.Coach.Type.CockpitCrew) CarrierHelpers.HireCoachPilots(f);
+                    if (f.Drivers.Count < f.Coach.Type.DriverCrew) CarrierHelpers.HireCoachDrivers(f);
                 int give = Math.Max(1, me.Fleet.Count - 1);
                 for (int i = 0; i < give; i++)
                 {

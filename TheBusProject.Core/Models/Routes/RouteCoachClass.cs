@@ -66,7 +66,7 @@ namespace TheBusProject.Models.Routes
             base.GetObjectData(info, context);
         }
 
-        //public int CabinCrew { get; set; }
+        //public int Attendants { get; set; }
 
         //adds a facility to the route class
         public void AddFacility(RouteFacility facility)

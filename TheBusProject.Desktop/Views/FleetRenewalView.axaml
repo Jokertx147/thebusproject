@@ -4,7 +4,7 @@
   <ScrollViewer Margin="0,10,0,0">
     <StackPanel Spacing="10" MaxWidth="900" HorizontalAlignment="Left">
       <TextBlock Text="Fleet renewal" FontSize="16" FontWeight="SemiBold" />
-      <TextBlock Text="Replace every coach of one type by another type. Each new coach takes over the old one's routes; idle coach of the new type are used first, then coach from the market. Pilots who can run the new type move with it, the rest are hired." Opacity="0.7" TextWrapping="Wrap" />
+      <TextBlock Text="Replace every coach of one type by another type. Each new coach takes over the old one's routes; idle coach of the new type are used first, then coach from the market. Drivers who can run the new type move with it, the rest are hired." Opacity="0.7" TextWrapping="Wrap" />
       <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" >
         <TextBlock Grid.Row="0" Text="Replace" VerticalAlignment="Center" Margin="0,0,10,6" />
         <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding OldTypes}" SelectedItem="{Binding OldType}" MinWidth="360" Margin="0,0,0,6" />

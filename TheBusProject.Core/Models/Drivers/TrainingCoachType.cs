@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 using TheBusProject.Helpers;
 using TheBusProject.Infrastructure;
 
-namespace TheBusProject.Models.Pilots
+namespace TheBusProject.Models.Drivers
 {
     //the class for the coach for training for students
     [Serializable]

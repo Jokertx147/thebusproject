@@ -77,7 +77,7 @@ namespace TheBusProject.Helpers
             // tolls, road tax and tyres per km, more for a heavier coach (about 3 cents a km in 2007)
             p.EnRoute = km*GeneralHelpers.GetInflationPrice(0.002 + 0.00004*cap);
             // the driver's time (the drivers you hire by name are paid separately)
-            int crew = Math.Max(1, coach.Type.CockpitCrew) + (coach.Type is CoachPassengerType pt ? pt.CabinCrew : 0);
+            int crew = Math.Max(1, coach.Type.DriverCrew) + (coach.Type is CoachPassengerType pt ? pt.Attendants : 0);
             p.Crew = hours*crew*GeneralHelpers.GetInflationPrice(4.0);
             p.Distribution = Math.Max(0, tickets)*DistributionShare(coach.Carrier);
             // offices, IT, marketing and everything else that isn't a trip

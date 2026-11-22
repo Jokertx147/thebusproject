@@ -443,7 +443,7 @@ namespace TheBusProject.Helpers
             }
             else if (request.StartCoach)
             {
-                if (coach.Pilots.Count == coach.Coach.Type.CockpitCrew)
+                if (coach.Drivers.Count == coach.Coach.Type.DriverCrew)
                 {
                     coach.Status = GameObject.GetInstance().DayRoundEnabled
                         ? FleetCoach.CoachStatus.OnRoute
@@ -452,7 +452,7 @@ namespace TheBusProject.Helpers
                 }
                 else
                 {
-                    message += " " + coach.Name + " has no full pilot crew yet, so it was not started.";
+                    message += " " + coach.Name + " has no full driver crew yet, so it was not started.";
                 }
             }
             else

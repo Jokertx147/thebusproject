@@ -244,7 +244,7 @@ namespace TheBusProject.Helpers
             if (CharterService.IsOnCharter(f)) return "it is out on a charter";
             if (CoachDealService.IsLeasedOut(f)) return "it is leased out";
             if (MaintenanceService.IsGrounded(f)) return "it is grounded";
-            if (f.Pilots.Count < f.Coach.Type.CockpitCrew) return "it needs a full pilot crew (" + f.Pilots.Count + "/" + f.Coach.Type.CockpitCrew + ")";
+            if (f.Drivers.Count < f.Coach.Type.DriverCrew) return "it needs a full driver crew (" + f.Drivers.Count + "/" + f.Coach.Type.DriverCrew + ")";
             return null;
         }
 
@@ -277,7 +277,7 @@ namespace TheBusProject.Helpers
             if (CharterService.IsOnCharter(f)) return "At " + at + ", out on a charter.";
             if (CoachDealService.IsLeasedOut(f)) return "At " + at + ", leased out.";
             if (f.Routes.Count == 0) return "At " + at + ". No routes: schedule it from here, or use Ferry to bring it to one of your stations.";
-            if (f.Status == FleetCoach.CoachStatus.Stopped) return "At " + at + ". It is stopped: press Start for it to run its schedule" + (f.Pilots.Count < f.Coach.Type.CockpitCrew ? " (it first needs a full pilot crew)" : "") + ".";
+            if (f.Status == FleetCoach.CoachStatus.Stopped) return "At " + at + ". It is stopped: press Start for it to run its schedule" + (f.Drivers.Count < f.Coach.Type.DriverCrew ? " (it first needs a full driver crew)" : "") + ".";
             if (MaintenanceService.IsGrounded(f)) return "At " + at + ", grounded until " + f.GroundedToDate.ToShortDateString() + ".";
             var entries = f.Routes.SelectMany(r => r.TimeTable.Entries.Where(e => e.Coach == f)).ToList();
             if (entries.Count == 0) return "At " + at + ". It has routes but no trips in a timetable: add trips under its route's timetable.";

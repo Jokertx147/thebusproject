@@ -161,13 +161,13 @@ namespace TheBusProject.Helpers
             {
                 double sWage = carrier.Fees.GetValue(FeeTypes.GetType("Support Wage"));
                 double mWage = carrier.Fees.GetValue(FeeTypes.GetType("Maintenance Wage"));
-                double pWage = carrier.Fees.GetValue(FeeTypes.GetType("Pilot Base Salary")); // *carrier.Pilots.Count();
+                double pWage = carrier.Fees.GetValue(FeeTypes.GetType("Driver Base Salary")); // *carrier.Drivers.Count();
                 double cWage = carrier.Fees.GetValue(FeeTypes.GetType("Cabin Wage"));
                 double iWage = carrier.Fees.GetValue(FeeTypes.GetType("Instructor Base Salary"));
-                // *PilotModel.TripSchool.MaxNumberOfInstructors;
+                // *DriverModel.TripSchool.MaxNumberOfInstructors;
                 int cabinCrew =
                     carrier.Routes.Where(r => r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed)
-                           .Sum(r => ((PassengerRoute) r).GetTotalCabinCrew());
+                           .Sum(r => ((PassengerRoute) r).GetTotalAttendants());
                 int serviceCrew =
                     carrier.Stations.SelectMany(a => a.GetCurrentStationFacilities(carrier))
                            .Where(a => a.EmployeeType == StationFacility.EmployeeTypes.Support)
@@ -305,7 +305,7 @@ namespace TheBusProject.Helpers
             return valueDictionary.ToDictionary(v => v.Key, x => (upper - lower)*((x.Value - min)/gap) + lower);
         }
 
-        //returns a dictionary of unassigned pilots
+        //returns a dictionary of unassigned drivers
 
         //just a helper method to get a score for a given year
         public static int GetScore(Carrier carrier, int year)
@@ -363,15 +363,15 @@ namespace TheBusProject.Helpers
             return uDistPrice;
         }
 
-        public static Dictionary<Carrier, double> GetUnassignedPilots()
+        public static Dictionary<Carrier, double> GetUnassignedDrivers()
         {
-            var unassignedPilots = new Dictionary<Carrier, double>();
+            var unassignedDrivers = new Dictionary<Carrier, double>();
             foreach (Carrier carrier in Carriers.GetAllCarriers())
             {
-                double unPilots = carrier.Pilots.Count(p => p.Coach == null);
-                unassignedPilots.Add(carrier, unPilots);
+                double unDrivers = carrier.Drivers.Count(p => p.Coach == null);
+                unassignedDrivers.Add(carrier, unDrivers);
             }
-            return unassignedPilots;
+            return unassignedDrivers;
         }
 
         public static int GetWeeklyScore(Carrier carrier)

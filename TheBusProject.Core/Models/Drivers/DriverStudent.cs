@@ -3,11 +3,11 @@ using System.Runtime.Serialization;
 using TheBusProject.Helpers;
 using TheBusProject.Infrastructure;
 
-namespace TheBusProject.Models.Pilots
+namespace TheBusProject.Models.Drivers
 {
-    //the class for a pilot student
+    //the class for a driver student
     [Serializable]
-    public class PilotStudent : BaseModel
+    public class DriverStudent : BaseModel
     {
         #region Constants
 
@@ -17,11 +17,11 @@ namespace TheBusProject.Models.Pilots
 
         #region Constructors and Destructors
 
-        public PilotStudent(
-            PilotProfile profile,
+        public DriverStudent(
+            DriverProfile profile,
             DateTime startDate,
             Instructor instructor,
-            PilotRating rating,
+            DriverRating rating,
             string coachfamily)
         {
             Rating = rating;
@@ -32,11 +32,11 @@ namespace TheBusProject.Models.Pilots
             CoachFamily = coachfamily;
         }
 
-        private PilotStudent(SerializationInfo info, StreamingContext ctxt) : base(info, ctxt)
+        private DriverStudent(SerializationInfo info, StreamingContext ctxt) : base(info, ctxt)
         {
             if (Version == 1)
             {
-                Rating = GeneralHelpers.GetPilotStudentRating(this);
+                Rating = GeneralHelpers.GetDriverStudentRating(this);
             }
             if (Version < 3)
             {
@@ -62,10 +62,10 @@ namespace TheBusProject.Models.Pilots
         public Instructor Instructor { get; set; }
 
         [Versioning("profile")]
-        public PilotProfile Profile { get; set; }
+        public DriverProfile Profile { get; set; }
 
         [Versioning("rating", Version = 2)]
-        public PilotRating Rating { get; set; }
+        public DriverRating Rating { get; set; }
 
         [Versioning("startdate")]
         public DateTime StartDate { get; set; }

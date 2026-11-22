@@ -99,13 +99,13 @@ namespace TheBusProject.Models.Routes
         }
 
         //returns the total number of cabin crew for the route based on coach
-        public int GetTotalCabinCrew()
+        public int GetTotalAttendants()
         {
             int cabinCrew = 0;
 
             if (GetCoaches().Count > 0)
             {
-                cabinCrew = GetCoaches().Sum(a => ((CoachPassengerType) a.Coach.Type).CabinCrew);
+                cabinCrew = GetCoaches().Sum(a => ((CoachPassengerType) a.Coach.Type).Attendants);
             }
 
             return cabinCrew;

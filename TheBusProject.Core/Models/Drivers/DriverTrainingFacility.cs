@@ -3,15 +3,15 @@ using System.Runtime.Serialization;
 using TheBusProject.Infrastructure;
 using TheBusProject.Models.Carriers;
 
-namespace TheBusProject.Models.Pilots
+namespace TheBusProject.Models.Drivers
 {
-    //the facility for pilot training
+    //the facility for driver training
     [Serializable]
-    public class PilotTrainingFacility : CarrierFacility
+    public class DriverTrainingFacility : CarrierFacility
     {
         #region Constructors and Destructors
 
-        public PilotTrainingFacility(
+        public DriverTrainingFacility(
             string section,
             string uid,
             double price,
@@ -25,7 +25,7 @@ namespace TheBusProject.Models.Pilots
             CoachFamily = coachfamily;
         }
 
-        private PilotTrainingFacility(SerializationInfo info, StreamingContext ctxt)
+        private DriverTrainingFacility(SerializationInfo info, StreamingContext ctxt)
             : base(info, ctxt)
         {
         }

@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 using TheBusProject.Helpers;
 using TheBusProject.Infrastructure;
 
-namespace TheBusProject.Models.Pilots
+namespace TheBusProject.Models.Drivers
 {
     //the class for a trip school instructor
     [Serializable]
@@ -12,18 +12,18 @@ namespace TheBusProject.Models.Pilots
     {
         #region Constructors and Destructors
 
-        public Instructor(PilotProfile profile, PilotRating rating)
+        public Instructor(DriverProfile profile, DriverRating rating)
         {
             Profile = profile;
             Rating = rating;
-            Students = new List<PilotStudent>();
+            Students = new List<DriverStudent>();
         }
 
         private Instructor(SerializationInfo info, StreamingContext ctxt) : base(info, ctxt)
         {
             if (Version == 1)
             {
-                Rating = GeneralHelpers.GetPilotRating();
+                Rating = GeneralHelpers.GetDriverRating();
             }
         }
 
@@ -35,13 +35,13 @@ namespace TheBusProject.Models.Pilots
         public TripSchool TripSchool { get; set; }
 
         [Versioning("profile")]
-        public PilotProfile Profile { get; set; }
+        public DriverProfile Profile { get; set; }
 
         [Versioning("rating")]
-        public PilotRating Rating { get; set; }
+        public DriverRating Rating { get; set; }
 
         [Versioning("students")]
-        public List<PilotStudent> Students { get; set; }
+        public List<DriverStudent> Students { get; set; }
 
         #endregion
 
@@ -55,13 +55,13 @@ namespace TheBusProject.Models.Pilots
         }
 
         //adds a student to the instructor
-        public void AddStudent(PilotStudent student)
+        public void AddStudent(DriverStudent student)
         {
             Students.Add(student);
         }
 
         //removes a students from the instructor
-        public void RemoveStudent(PilotStudent student)
+        public void RemoveStudent(DriverStudent student)
         {
             Students.Remove(student);
         }

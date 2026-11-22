@@ -22,7 +22,7 @@ using TheBusProject.Models.General.Finances;
 using TheBusProject.Models.General.Scenarios;
 using TheBusProject.Models.General.Statistics;
 using TheBusProject.Models.Passengers;
-using TheBusProject.Models.Pilots;
+using TheBusProject.Models.Drivers;
 using TheBusProject.Models.Routes;
 
 namespace TheBusProject.Helpers
@@ -142,7 +142,7 @@ namespace TheBusProject.Helpers
 
                         if (coachType == CoachType.TypeOfCoach.Passenger)
                         {
-                            int cabincrew = Convert.ToInt16(coachTypeNode.Attributes["cabincrew"].Value);
+                            int attendants = Convert.ToInt16(coachTypeNode.Attributes["attendants"].Value);
                             int passengers = Convert.ToInt16(coachTypeNode.Attributes["passengers"].Value);
                             int maxclasses = Convert.ToInt16(coachTypeNode.Attributes["maxclasses"].Value);
 
@@ -151,8 +151,8 @@ namespace TheBusProject.Helpers
                                 coachTypeName,
                                 "",
                                 passengers,
-                                baseType.CockpitCrew,
-                                cabincrew,
+                                baseType.DriverCrew,
+                                attendants,
                                 0,
                                 0,
                                 baseType.Wingspan,
@@ -180,7 +180,7 @@ namespace TheBusProject.Helpers
                                 baseType.Manufacturer,
                                 coachTypeName,
                                 "",
-                                baseType.CockpitCrew,
+                                baseType.DriverCrew,
                                 cargo,
                                 0,
                                 0,
@@ -615,12 +615,12 @@ namespace TheBusProject.Helpers
                     instructorNode.Attributes["birthdate"].Value,
                     new CultureInfo("de-DE", false));
                 Town town = Towns.GetTown(instructorNode.Attributes["town"].Value);
-                //Pilot.PilotRating rating = (Pilot.PilotRating)TheBusProject.Infrastructure.DataParsing.ParseEnum(typeof(Pilot.PilotRating), instructorNode.Attributes["rating"].Value);
+                //Driver.DriverRating rating = (Driver.DriverRating)TheBusProject.Infrastructure.DataParsing.ParseEnum(typeof(Driver.DriverRating), instructorNode.Attributes["rating"].Value);
                 string id = instructorNode.Attributes["id"].Value;
 
                 var instructor = new Instructor(
-                    new PilotProfile(firstname, lastname, birthdate, town),
-                    PilotRatings.GetRating("A"));
+                    new DriverProfile(firstname, lastname, birthdate, town),
+                    DriverRatings.GetRating("A"));
 
                 if (id != "-")
                 {
@@ -635,7 +635,7 @@ namespace TheBusProject.Helpers
 
                 foreach (XmlElement studentNode in studentsList)
                 {
-                    PilotStudent student =
+                    DriverStudent student =
                         instructor.TripSchool.Students.Find(
                             s => s.Profile.Name == studentNode.Attributes["name"].Value);
                     student.Instructor = instructor;
@@ -650,67 +650,67 @@ namespace TheBusProject.Helpers
                 GeneralHelpers.CreateInstructors(75*Carriers.GetAllCarriers().Count);
             }
 
-            Pilots.Clear();
+            Drivers.Clear();
 
-            XmlNodeList pilotsList = root.SelectNodes("//pilots/pilot");
+            XmlNodeList driversList = root.SelectNodes("//drivers/driver");
 
-            foreach (XmlElement pilotNode in pilotsList)
+            foreach (XmlElement driverNode in driversList)
             {
-                string firstname = pilotNode.Attributes["firstname"].Value;
-                string lastname = pilotNode.Attributes["lastname"].Value;
+                string firstname = driverNode.Attributes["firstname"].Value;
+                string lastname = driverNode.Attributes["lastname"].Value;
                 DateTime birthdate = DateTime.Parse(
-                    pilotNode.Attributes["birthdate"].Value,
+                    driverNode.Attributes["birthdate"].Value,
                     new CultureInfo("de-DE", false));
-                Town town = Towns.GetTown(pilotNode.Attributes["town"].Value);
+                Town town = Towns.GetTown(driverNode.Attributes["town"].Value);
                 DateTime educationdate = DateTime.Parse(
-                    pilotNode.Attributes["education"].Value,
+                    driverNode.Attributes["education"].Value,
                     new CultureInfo("de-DE", false));
 
-                //Pilot.PilotRating rating = (Pilot.PilotRating)TheBusProject.Infrastructure.DataParsing.ParseEnum(typeof(Pilot.PilotRating), pilotNode.Attributes["rating"].Value);
+                //Driver.DriverRating rating = (Driver.DriverRating)TheBusProject.Infrastructure.DataParsing.ParseEnum(typeof(Driver.DriverRating), driverNode.Attributes["rating"].Value);
 
-                var pilot = new Pilot(
-                    new PilotProfile(firstname, lastname, birthdate, town),
+                var driver = new Driver(
+                    new DriverProfile(firstname, lastname, birthdate, town),
                     educationdate,
-                    PilotRatings.GetRating("B"));
+                    DriverRatings.GetRating("B"));
 
-                if (pilotNode.Attributes["carrier"].Value != "-")
+                if (driverNode.Attributes["carrier"].Value != "-")
                 {
-                    Carrier pilotCarrier = Carriers.GetCarrier(pilotNode.Attributes["carrier"].Value);
+                    Carrier driverCarrier = Carriers.GetCarrier(driverNode.Attributes["carrier"].Value);
                     DateTime carriersigneddate = DateTime.Parse(
-                        pilotNode.Attributes["carriersigned"].Value,
+                        driverNode.Attributes["carriersigned"].Value,
                         new CultureInfo("de-DE", false));
 
-                    pilotCarrier.AddPilot(pilot);
-                    pilot.CarrierSignedDate = carriersigneddate;
+                    driverCarrier.AddDriver(driver);
+                    driver.CarrierSignedDate = carriersigneddate;
 
-                    if (pilotNode.Attributes["coach"].Value != "-")
+                    if (driverNode.Attributes["coach"].Value != "-")
                     {
                         FleetCoach coach =
-                            pilotCarrier.Fleet.Find(f => f.Coach.ID == pilotNode.Attributes["coach"].Value);
+                            driverCarrier.Fleet.Find(f => f.Coach.ID == driverNode.Attributes["coach"].Value);
 
                         if (coach != null)
                         {
-                            pilot.Coach = coach;
-                            coach.AddPilot(pilot);
+                            driver.Coach = coach;
+                            coach.AddDriver(driver);
                         }
                     }
                 }
 
-                Pilots.AddPilot(pilot);
+                Drivers.AddDriver(driver);
             }
 
-            if (Pilots.GetNumberOfPilots() == 0)
+            if (Drivers.GetNumberOfDrivers() == 0)
             {
                 var rnd = new Random();
 
-                GeneralHelpers.CreatePilots(100*Carriers.GetAllCarriers().Count);
+                GeneralHelpers.CreateDrivers(100*Carriers.GetAllCarriers().Count);
 
                 foreach (FleetCoach coach in Carriers.GetAllCarriers().SelectMany(a => a.Fleet))
                 {
-                    Pilot pilot = Pilots.GetPilots()[rnd.Next(Pilots.GetNumberOfPilots())];
-                    coach.Coach.Carrier.AddPilot(pilot);
-                    pilot.Coach = coach;
-                    coach.AddPilot(pilot);
+                    Driver driver = Drivers.GetDrivers()[rnd.Next(Drivers.GetNumberOfDrivers())];
+                    coach.Coach.Carrier.AddDriver(driver);
+                    driver.Coach = coach;
+                    coach.AddDriver(driver);
                 }
             }
 
@@ -1026,8 +1026,8 @@ namespace TheBusProject.Helpers
                 if (coachType.TypeCoach == CoachType.TypeOfCoach.Passenger)
                 {
                     coachTypeNode.SetAttribute(
-                        "cabincrew",
-                        ((CoachPassengerType) coachType).CabinCrew.ToString(CultureInfo.InvariantCulture));
+                        "attendants",
+                        ((CoachPassengerType) coachType).Attendants.ToString(CultureInfo.InvariantCulture));
                     coachTypeNode.SetAttribute(
                         "passengers",
                         ((CoachPassengerType) coachType).MaxSeatingCapacity.ToString(CultureInfo.InvariantCulture));
@@ -1281,7 +1281,7 @@ namespace TheBusProject.Helpers
                     tripSchoolNode.AppendChild(trainingCoachesNode);
 
                     XmlElement studentsNode = xmlDoc.CreateElement("students");
-                    foreach (PilotStudent student in fs.Students)
+                    foreach (DriverStudent student in fs.Students)
                     {
                         XmlElement studentNode = xmlDoc.CreateElement("student");
 
@@ -1721,7 +1721,7 @@ namespace TheBusProject.Helpers
 
                 XmlElement studentsNode = xmlDoc.CreateElement("students");
 
-                foreach (PilotStudent student in instructor.Students)
+                foreach (DriverStudent student in instructor.Students)
                 {
                     XmlElement studentNode = xmlDoc.CreateElement("student");
                     studentNode.SetAttribute("name", student.Profile.Name);
@@ -1736,25 +1736,25 @@ namespace TheBusProject.Helpers
 
             root.AppendChild(instructorsNode);
 
-            XmlElement pilotsNode = xmlDoc.CreateElement("pilots");
+            XmlElement driversNode = xmlDoc.CreateElement("drivers");
 
-            foreach (Pilot pilot in Pilots.GetPilots())
+            foreach (Driver driver in Drivers.GetDrivers())
             {
-                XmlElement pilotNode = xmlDoc.CreateElement("pilot");
-                pilotNode.SetAttribute("firstname", pilot.Profile.Firstname);
-                pilotNode.SetAttribute("lastname", pilot.Profile.Lastname);
-                pilotNode.SetAttribute("birthdate", pilot.Profile.Birthdate.ToString(new CultureInfo("de-DE")));
-                pilotNode.SetAttribute("town", pilot.Profile.Town.Name);
-                pilotNode.SetAttribute("education", pilot.EducationTime.ToString(new CultureInfo("de-DE")));
-                pilotNode.SetAttribute("rating", pilot.Rating.ToString());
-                pilotNode.SetAttribute("carrier", pilot.Carrier == null ? "-" : pilot.Carrier.Profile.IATACode);
-                pilotNode.SetAttribute("carriersigned", pilot.CarrierSignedDate.ToString(new CultureInfo("de-DE")));
-                pilotNode.SetAttribute("coach", pilot.Coach == null ? "-" : pilot.Coach.Coach.ID);
+                XmlElement driverNode = xmlDoc.CreateElement("driver");
+                driverNode.SetAttribute("firstname", driver.Profile.Firstname);
+                driverNode.SetAttribute("lastname", driver.Profile.Lastname);
+                driverNode.SetAttribute("birthdate", driver.Profile.Birthdate.ToString(new CultureInfo("de-DE")));
+                driverNode.SetAttribute("town", driver.Profile.Town.Name);
+                driverNode.SetAttribute("education", driver.EducationTime.ToString(new CultureInfo("de-DE")));
+                driverNode.SetAttribute("rating", driver.Rating.ToString());
+                driverNode.SetAttribute("carrier", driver.Carrier == null ? "-" : driver.Carrier.Profile.IATACode);
+                driverNode.SetAttribute("carriersigned", driver.CarrierSignedDate.ToString(new CultureInfo("de-DE")));
+                driverNode.SetAttribute("coach", driver.Coach == null ? "-" : driver.Coach.Coach.ID);
 
-                pilotsNode.AppendChild(pilotNode);
+                driversNode.AppendChild(driverNode);
             }
 
-            root.AppendChild(pilotsNode);
+            root.AppendChild(driversNode);
 
             XmlElement alliancesNode = xmlDoc.CreateElement("alliances");
             foreach (Alliance alliance in Alliances.GetAlliances())
@@ -2232,8 +2232,8 @@ namespace TheBusProject.Helpers
                         new CultureInfo("de-DE", false));
 
                     fs.AddStudent(
-                        new PilotStudent(
-                            new PilotProfile(firstname, lastname, birthdate, town),
+                        new DriverStudent(
+                            new DriverProfile(firstname, lastname, birthdate, town),
                             startdate,
                             null,
                             null,

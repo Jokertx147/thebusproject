@@ -428,11 +428,11 @@ namespace TheBusProject.Helpers
 
             if (coach.CurrentTrip.IsPassengerTrip())
             {
-                int cabinCrew = ((CoachPassengerType) coach.Coach.Type).CabinCrew;
+                int cabinCrew = ((CoachPassengerType) coach.Coach.Type).Attendants;
 
                 wages = cabinCrew*triptime.TotalHours
                         *coach.Coach.Carrier.Fees.GetValue(FeeTypes.GetType("Cabin Wage"));
-                // +(coach.CurrentTrip.Entry.TimeTable.Route.getTotalCabinCrew() * coach.Coach.Carrier.Fees.getValue(FeeTypes.GetType("Cabin kilometer rate")) * fdistance) + (coach.Coach.Type.CockpitCrew * coach.Coach.Carrier.Fees.getValue(FeeTypes.GetType("Cockpit kilometer rate")) * fdistance);
+                // +(coach.CurrentTrip.Entry.TimeTable.Route.getTotalAttendants() * coach.Coach.Carrier.Fees.getValue(FeeTypes.GetType("Cabin kilometer rate")) * fdistance) + (coach.Coach.Type.DriverCrew * coach.Coach.Carrier.Fees.getValue(FeeTypes.GetType("Cab kilometer rate")) * fdistance);
                 // holiday pay is 50% more; the carrier is charged what the route shows
                 HolidayYearEvent holiday = HolidayYear.GetHoliday(
                     carrier.Profile.Country,

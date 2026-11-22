@@ -6,11 +6,11 @@ using TheBusProject.Infrastructure;
 using TheBusProject.Models.Coaches;
 using TheBusProject.Models.Carriers;
 
-namespace TheBusProject.Models.Pilots
+namespace TheBusProject.Models.Drivers
 {
-    //the class for a pilot
+    //the class for a driver
     [Serializable]
-    public class Pilot : BaseModel
+    public class Driver : BaseModel
     {
         #region Constants
 
@@ -20,7 +20,7 @@ namespace TheBusProject.Models.Pilots
 
         #region Constructors and Destructors
 
-        public Pilot(PilotProfile profile, DateTime educationTime, PilotRating rating)
+        public Driver(DriverProfile profile, DateTime educationTime, DriverRating rating)
         {
             Profile = profile;
             EducationTime = educationTime;
@@ -28,15 +28,15 @@ namespace TheBusProject.Models.Pilots
             Coaches = new List<string>();
         }
 
-        private Pilot(SerializationInfo info, StreamingContext ctxt) : base(info, ctxt)
+        private Driver(SerializationInfo info, StreamingContext ctxt) : base(info, ctxt)
         {
             if (Version == 1)
             {
-                Rating = GeneralHelpers.GetPilotRating();
+                Rating = GeneralHelpers.GetDriverRating();
             }
             if (Version < 3)
             {
-                Coaches = GeneralHelpers.GetPilotCoaches(this);
+                Coaches = GeneralHelpers.GetDriverCoaches(this);
                 Training = null;
             }
         }
@@ -48,7 +48,7 @@ namespace TheBusProject.Models.Pilots
         [Versioning("coaches", Version = 3)]
         public List<string> Coaches { get; set; }
 
-        /// <summary>0 to 100: how happy the pilot is at his carrier.</summary>
+        /// <summary>0 to 100: how happy the driver is at his carrier.</summary>
         [Versioning("morale")]
         public double Morale { get; set; } = 70;
 
@@ -67,13 +67,13 @@ namespace TheBusProject.Models.Pilots
         public bool OnTraining => Training != null;
 
         [Versioning("profile")]
-        public PilotProfile Profile { get; set; }
+        public DriverProfile Profile { get; set; }
 
-        [Versioning("pilotrating", Version = 2)]
-        public PilotRating Rating { get; set; }
+        [Versioning("driverrating", Version = 2)]
+        public DriverRating Rating { get; set; }
 
         [Versioning("training", Version = 3)]
-        public PilotTraining Training { get; set; }
+        public DriverTraining Training { get; set; }
 
         #endregion
 
@@ -86,13 +86,13 @@ namespace TheBusProject.Models.Pilots
             base.GetObjectData(info, context);
         }
 
-        //adds an coach type family which the pilot expirence
+        //adds an coach type family which the driver expirence
         public void AddCoachFamily(string family)
         {
             Coaches.Add(family);
         }
 
-        //sets the carrier for a pilot
+        //sets the carrier for a driver
         public void SetCarrier(Carrier carrier, DateTime signDate)
         {
             Carrier = carrier;
@@ -102,80 +102,80 @@ namespace TheBusProject.Models.Pilots
         #endregion
     }
 
-    //the list of pilots
-    public class Pilots
+    //the list of drivers
+    public class Drivers
     {
         #region Static Fields
 
-        private static readonly List<Pilot> pilots = new List<Pilot>();
+        private static readonly List<Driver> drivers = new List<Driver>();
 
         #endregion
 
         #region Public Methods and Operators
 
-        public static void AddPilot(Pilot pilot)
+        public static void AddDriver(Driver driver)
         {
-            lock (pilots)
+            lock (drivers)
             {
-                if (pilot != null)
+                if (driver != null)
                 {
-                    pilots.Add(pilot);
+                    drivers.Add(driver);
                 }
             }
         }
 
-        //clears the list of pilots
+        //clears the list of drivers
         public static void Clear()
         {
-            pilots.Clear();
+            drivers.Clear();
         }
 
-        public static int GetNumberOfPilots()
+        public static int GetNumberOfDrivers()
         {
-            return pilots.Count;
+            return drivers.Count;
         }
 
-        public static int GetNumberOfUnassignedPilots()
+        public static int GetNumberOfUnassignedDrivers()
         {
-            return GetUnassignedPilots().Count;
+            return GetUnassignedDrivers().Count;
         }
 
-        //returns all pilots
-        public static List<Pilot> GetPilots()
+        //returns all drivers
+        public static List<Driver> GetDrivers()
         {
-            return pilots;
+            return drivers;
         }
 
-        //returns all unassigned pilots
-        public static List<Pilot> GetUnassignedPilots()
+        //returns all unassigned drivers
+        public static List<Driver> GetUnassignedDrivers()
         {
-            List<Pilot> unassigned = pilots.FindAll(p => p.Carrier == null);
+            List<Driver> unassigned = drivers.FindAll(p => p.Carrier == null);
 
             if (unassigned.Count < 5)
             {
-                GeneralHelpers.CreatePilots(10);
+                GeneralHelpers.CreateDrivers(10);
 
-                return GetUnassignedPilots();
+                return GetUnassignedDrivers();
             }
 
             return unassigned;
         }
 
-        public static List<Pilot> GetUnassignedPilots(Predicate<Pilot> match)
+        public static List<Driver> GetUnassignedDrivers(Predicate<Driver> match)
         {
-            return GetUnassignedPilots().FindAll(match);
+            return GetUnassignedDrivers().FindAll(match);
         }
 
-        //removes a pilot from the list
-        public static void RemovePilot(Pilot pilot)
+        //removes a driver from the list
+        public static void RemoveDriver(Driver driver)
         {
-            pilots.Remove(pilot);
+            drivers.Remove(driver);
         }
 
         #endregion
 
-        //adds a pilot to the list
+        //adds a driver to the list
 
-        //counts the number of unassigned pilots
+        //counts the number of unassigned drivers
     }
 }

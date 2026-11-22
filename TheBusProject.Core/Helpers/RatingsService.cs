@@ -7,7 +7,7 @@ using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Finances;
 using TheBusProject.Models.General.Statistics;
-using TheBusProject.Models.Pilots;
+using TheBusProject.Models.Drivers;
 using TheBusProject.Models.Routes;
 
 namespace TheBusProject.Helpers
@@ -207,13 +207,13 @@ namespace TheBusProject.Helpers
         {
             var t = new RatingTarget(Employee);
 
-            if (carrier.Pilots.Count > 0)
+            if (carrier.Drivers.Count > 0)
             {
-                double morale = PilotMoraleService.Average(carrier);
-                t.Add(string.Format("Pilot morale {0:0} ({1})", morale, PilotMoraleService.MoodText(morale)), Clamp((morale - 65)*0.5, -20, 15));
+                double morale = DriverMoraleService.Average(carrier);
+                t.Add(string.Format("Driver morale {0:0} ({1})", morale, DriverMoraleService.MoodText(morale)), Clamp((morale - 65)*0.5, -20, 15));
             }
 
-            var wages = FeeTypes.GetTypes(FeeType.EFeeType.Wage).Where(w => !w.Name.StartsWith("Cockpit")).ToList();
+            var wages = FeeTypes.GetTypes(FeeType.EFeeType.Wage).Where(w => !w.Name.StartsWith("Cab")).ToList();
             if (wages.Count > 0 && carrier.Fees != null)
             {
                 double ratio = wages.Average(w => w.DefaultValue > 0 ? carrier.Fees.GetValue(w)/w.DefaultValue : 1);
@@ -222,7 +222,7 @@ namespace TheBusProject.Helpers
 
             if (carrier.Money < 0) t.Add("The carrier is in debt", -8);
 
-            t.Tip = "Pay pilots well (Staff > Pilots > pay), keep cabin, maintenance and support wages at or above normal (Finances > fees), and keep pilots running rather than sitting unassigned.";
+            t.Tip = "Pay drivers well (Staff > Drivers > pay), keep cabin, maintenance and support wages at or above normal (Finances > fees), and keep drivers running rather than sitting unassigned.";
             return t;
         }
 
@@ -267,15 +267,15 @@ namespace TheBusProject.Helpers
                 t.Add("Coach with overdue checks", -OverdueShare(carrier, fleet)*20);
             }
 
-            var ratings = PilotRatings.GetRatings().OrderBy(r => r.CostIndex).ToList();
-            var pilots = carrier.Pilots.ToList().Where(p => p.Rating != null).ToList();
-            if (ratings.Count > 1 && pilots.Count > 0)
+            var ratings = DriverRatings.GetRatings().OrderBy(r => r.CostIndex).ToList();
+            var drivers = carrier.Drivers.ToList().Where(p => p.Rating != null).ToList();
+            if (ratings.Count > 1 && drivers.Count > 0)
             {
-                double level = pilots.Average(p => (double) ratings.IndexOf(p.Rating))/(ratings.Count - 1);
-                t.Add(string.Format("Pilot ratings ({0:0}% of the top)", level*100), Clamp((level - 0.4)*20, -8, 12));
+                double level = drivers.Average(p => (double) ratings.IndexOf(p.Rating))/(ratings.Count - 1);
+                t.Add(string.Format("Driver ratings ({0:0}% of the top)", level*100), Clamp((level - 0.4)*20, -8, 12));
             }
 
-            t.Tip = "Keep coach in good condition, replace old coach and hire or train higher rated pilots.";
+            t.Tip = "Keep coach in good condition, replace old coach and hire or train higher rated drivers.";
             return t;
         }
 

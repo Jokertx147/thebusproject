@@ -9,40 +9,40 @@ using TheBusProject.Models.General;
 using TheBusProject.Models.General.Countries;
 using TheBusProject.Models.General.Countries.Towns;
 using TheBusProject.Models.General.Finances;
-using TheBusProject.Models.Pilots;
+using TheBusProject.Models.Drivers;
 
 namespace TheBusProject.Helpers
 {
-    /// <summary>Keeps the world supplied with pilots and instructors, so there is always somebody to hire.</summary>
-    public static class PilotSupply
+    /// <summary>Keeps the world supplied with drivers and instructors, so there is always somebody to hire.</summary>
+    public static class DriverSupply
     {
-        /// <summary>Pilots for hire that can fly one coach family, at least.</summary>
+        /// <summary>Drivers for hire that can fly one coach family, at least.</summary>
         public const int MinPerFamily = 40;
 
-        public const int MinPilots = 120;
+        public const int MinDrivers = 120;
         public const int MinInstructors = 40;
 
         public static int CountFor(string family)
         {
-            return Pilots.GetPilots().Count(p => p.Carrier == null && p.Coaches != null && p.Coaches.Contains(family));
+            return Drivers.GetDrivers().Count(p => p.Carrier == null && p.Coaches != null && p.Coaches.Contains(family));
         }
 
-        /// <summary>Makes sure there are enough pilots for hire who can fly the family. Returns how many were created.</summary>
+        /// <summary>Makes sure there are enough drivers for hire who can fly the family. Returns how many were created.</summary>
         public static int EnsureFamily(string family, int minimum = MinPerFamily)
         {
             if (string.IsNullOrEmpty(family)) return 0;
             int have = CountFor(family);
             if (have >= minimum) return 0;
-            GeneralHelpers.CreatePilots(minimum - have, family);
+            GeneralHelpers.CreateDrivers(minimum - have, family);
             return minimum - have;
         }
 
-        public static void EnsureAnyPilots(int minimum = MinPilots)
+        public static void EnsureAnyDrivers(int minimum = MinDrivers)
         {
-            int have = Pilots.GetPilots().Count(p => p.Carrier == null);
+            int have = Drivers.GetDrivers().Count(p => p.Carrier == null);
             if (have < minimum)
             {
-                GeneralHelpers.CreatePilots(minimum - have);
+                GeneralHelpers.CreateDrivers(minimum - have);
             }
         }
 
@@ -55,10 +55,10 @@ namespace TheBusProject.Helpers
             }
         }
 
-        /// <summary>Monthly top up for the player: pilots for every family the fleet flies, and instructors.</summary>
+        /// <summary>Monthly top up for the player: drivers for every family the fleet flies, and instructors.</summary>
         public static void TopUp(Carrier carrier)
         {
-            EnsureAnyPilots();
+            EnsureAnyDrivers();
             EnsureInstructors();
             if (carrier == null) return;
             foreach (string family in carrier.Fleet.Select(f => f.Coach.Type.CoachFamily).Distinct().ToList())
@@ -75,7 +75,7 @@ namespace TheBusProject.Helpers
         private static Random Rnd => Random.Shared;
 
         public static double BuildPrice => GeneralHelpers.GetInflationPrice(267050);
-        public static double StudentPrice => GeneralHelpers.GetInflationPrice(PilotStudent.StudentCost);
+        public static double StudentPrice => GeneralHelpers.GetInflationPrice(DriverStudent.StudentCost);
 
         private static string Money(double v)
         {
@@ -158,9 +158,9 @@ namespace TheBusProject.Helpers
         }
 
         /// <summary>The ratings a new student can get: those who can train in an coach with a free seat.</summary>
-        public static List<PilotRating> PossibleRatings(TripSchool school)
+        public static List<DriverRating> PossibleRatings(TripSchool school)
         {
-            return PilotRatings.GetRatings()
+            return DriverRatings.GetRatings()
                                .Where(r => r.Coaches.Any(t => school.TrainingCoaches.Any(a => a.Type == t && FreeSeats(school, a) > 0)))
                                .ToList();
         }
@@ -203,7 +203,7 @@ namespace TheBusProject.Helpers
             }
 
             var possible = PossibleRatings(school);
-            var rating = GeneralHelpers.GetPilotStudentRating(instructor, possible);
+            var rating = GeneralHelpers.GetDriverStudentRating(instructor, possible);
             if (!possible.Contains(rating)) rating = possible[Rnd.Next(possible.Count)];
 
             var free = school.TrainingCoaches.Where(a => FreeSeats(school, a) > 0).ToList();
@@ -213,9 +213,9 @@ namespace TheBusProject.Helpers
             if (towns == null || towns.Count == 0) towns = Towns.GetTowns();
             Town town = towns[Rnd.Next(towns.Count)];
             DateTime birthdate = MathHelpers.GetRandomDate(Game.GameTime.AddYears(-35), Game.GameTime.AddYears(-23));
-            var profile = new PilotProfile(Names.GetInstance().GetRandomFirstName(town.Country), Names.GetInstance().GetRandomLastName(town.Country), birthdate, town);
+            var profile = new DriverProfile(Names.GetInstance().GetRandomFirstName(town.Country), Names.GetInstance().GetRandomLastName(town.Country), birthdate, town);
 
-            var student = new PilotStudent(profile, Game.GameTime, instructor, rating, family) {Coach = coach};
+            var student = new DriverStudent(profile, Game.GameTime, instructor, rating, family) {Coach = coach};
             school.AddStudent(student);
             instructor.AddStudent(student);
             double price = StudentPrice;
@@ -226,7 +226,7 @@ namespace TheBusProject.Helpers
             return true;
         }
 
-        public static void CancelStudent(TripSchool school, PilotStudent student)
+        public static void CancelStudent(TripSchool school, DriverStudent student)
         {
             school.RemoveStudent(student);
             student.Instructor?.RemoveStudent(student);
@@ -296,48 +296,48 @@ namespace TheBusProject.Helpers
             return true;
         }
 
-        // ---- type training of pilots you have hired ----
+        // ---- type training of drivers you have hired ----
 
-        /// <summary>A day of a substitute pilot, while a pilot who flies an coach is away on training.</summary>
+        /// <summary>A day of a substitute driver, while a driver who flies an coach is away on training.</summary>
         public const double SubstituteDayPrice = 500;
 
-        public static List<string> TrainingFamilies(Pilot pilot)
+        public static List<string> TrainingFamilies(Driver driver)
         {
-            return Families().Where(f => pilot.Coaches == null || !pilot.Coaches.Contains(f)).ToList();
+            return Families().Where(f => driver.Coaches == null || !driver.Coaches.Contains(f)).ToList();
         }
 
-        public static double GetSubstitutePrice(Pilot pilot, string family)
+        public static double GetSubstitutePrice(Driver driver, string family)
         {
-            return pilot.Coach == null ? 0 : GeneralHelpers.GetInflationPrice(CarrierHelpers.GetTrainingDays(pilot, family)*SubstituteDayPrice);
+            return driver.Coach == null ? 0 : GeneralHelpers.GetInflationPrice(CarrierHelpers.GetTrainingDays(driver, family)*SubstituteDayPrice);
         }
 
-        public static double GetTrainingCost(Pilot pilot, string family)
+        public static double GetTrainingCost(Driver driver, string family)
         {
-            return CarrierHelpers.GetTrainingPrice(pilot, family) + GetSubstitutePrice(pilot, family);
+            return CarrierHelpers.GetTrainingPrice(driver, family) + GetSubstitutePrice(driver, family);
         }
 
-        /// <summary>Sends a pilot of the carrier to training for another coach family. The pilot can fly it when the training ends.</summary>
-        public static bool TrainPilot(Carrier carrier, Pilot pilot, string family, out string message)
+        /// <summary>Sends a driver of the carrier to training for another coach family. The driver can fly it when the training ends.</summary>
+        public static bool TrainDriver(Carrier carrier, Driver driver, string family, out string message)
         {
-            if (pilot == null || pilot.Carrier != carrier)
+            if (driver == null || driver.Carrier != carrier)
             {
-                message = "Choose one of your pilots.";
+                message = "Choose one of your drivers.";
                 return false;
             }
-            if (pilot.Training != null)
+            if (driver.Training != null)
             {
-                message = pilot.Profile.Name + " is already training for the " + pilot.Training.CoachFamily + ".";
+                message = driver.Profile.Name + " is already training for the " + driver.Training.CoachFamily + ".";
                 return false;
             }
-            if (string.IsNullOrEmpty(family) || (pilot.Coaches != null && pilot.Coaches.Contains(family)))
+            if (string.IsNullOrEmpty(family) || (driver.Coaches != null && driver.Coaches.Contains(family)))
             {
-                message = "Choose a coach family " + pilot.Profile.Name + " cannot run yet.";
+                message = "Choose a coach family " + driver.Profile.Name + " cannot run yet.";
                 return false;
             }
 
-            double training = CarrierHelpers.GetTrainingPrice(pilot, family);
-            double substitute = GetSubstitutePrice(pilot, family);
-            int days = CarrierHelpers.GetTrainingDays(pilot, family);
+            double training = CarrierHelpers.GetTrainingPrice(driver, family);
+            double substitute = GetSubstitutePrice(driver, family);
+            int days = CarrierHelpers.GetTrainingDays(driver, family);
             if (carrier.Money < training + substitute)
             {
                 message = "Not enough money: the training costs " + Money(training + substitute) + ".";
@@ -348,33 +348,33 @@ namespace TheBusProject.Helpers
             {
                 CarrierHelpers.AddCarrierInvoice(carrier, Game.GameTime, Invoice.InvoiceType.CarrierExpenses, -substitute);
             }
-            CarrierHelpers.SendForTraining(carrier, pilot, family, days, training);
-            message = pilot.Profile.Name + " is training for the " + family + " for " + days + " days, until " + DateDisplay.Format(pilot.Training.EndDate) + ". It costs "
-                      + Money(training) + (substitute > 0 ? " plus " + Money(substitute) + " for a substitute pilot on " + pilot.Coach.Name : "") + ".";
+            CarrierHelpers.SendForTraining(carrier, driver, family, days, training);
+            message = driver.Profile.Name + " is training for the " + family + " for " + days + " days, until " + DateDisplay.Format(driver.Training.EndDate) + ". It costs "
+                      + Money(training) + (substitute > 0 ? " plus " + Money(substitute) + " for a substitute driver on " + driver.Coach.Name : "") + ".";
             return true;
         }
 
-        // ---- assigning pilots to coach ----
+        // ---- assigning drivers to coach ----
 
-        /// <summary>Coach that can take this pilot: the cockpit is not full and the pilot can fly the family. The coach he flies now is left out.</summary>
-        public static List<FleetCoach> AssignTargets(Carrier carrier, Pilot pilot)
+        /// <summary>Coach that can take this driver: the cab is not full and the driver can fly the family. The coach he flies now is left out.</summary>
+        public static List<FleetCoach> AssignTargets(Carrier carrier, Driver driver)
         {
-            if (pilot == null || pilot.Coaches == null) return new List<FleetCoach>();
+            if (driver == null || driver.Coaches == null) return new List<FleetCoach>();
             return carrier.Fleet
-                          .Where(f => f != pilot.Coach && f.Pilots.Count < f.Coach.Type.CockpitCrew && pilot.Coaches.Contains(f.Coach.Type.CoachFamily))
+                          .Where(f => f != driver.Coach && f.Drivers.Count < f.Coach.Type.DriverCrew && driver.Coaches.Contains(f.Coach.Type.CoachFamily))
                           .OrderBy(f => f.Name).ToList();
         }
 
-        public static bool AssignPilot(Carrier carrier, Pilot pilot, FleetCoach target, out string message)
+        public static bool AssignDriver(Carrier carrier, Driver driver, FleetCoach target, out string message)
         {
-            if (pilot == null || pilot.Carrier != carrier)
+            if (driver == null || driver.Carrier != carrier)
             {
-                message = "Choose one of your pilots.";
+                message = "Choose one of your drivers.";
                 return false;
             }
-            if (pilot.Training != null)
+            if (driver.Training != null)
             {
-                message = pilot.Profile.Name + " is away on training until " + DateDisplay.Format(pilot.Training.EndDate) + ".";
+                message = driver.Profile.Name + " is away on training until " + DateDisplay.Format(driver.Training.EndDate) + ".";
                 return false;
             }
             if (target == null || !carrier.Fleet.Contains(target))
@@ -382,48 +382,48 @@ namespace TheBusProject.Helpers
                 message = "Choose one of your coach.";
                 return false;
             }
-            if (pilot.Coaches == null || !pilot.Coaches.Contains(target.Coach.Type.CoachFamily))
+            if (driver.Coaches == null || !driver.Coaches.Contains(target.Coach.Type.CoachFamily))
             {
-                message = pilot.Profile.Name + " cannot run the " + target.Coach.Type.CoachFamily + ". Train him for it first.";
+                message = driver.Profile.Name + " cannot run the " + target.Coach.Type.CoachFamily + ". Train him for it first.";
                 return false;
             }
-            if (target.Pilots.Count >= target.Coach.Type.CockpitCrew)
+            if (target.Drivers.Count >= target.Coach.Type.DriverCrew)
             {
-                message = target.Name + " has a full cockpit crew already.";
+                message = target.Name + " has a full cab crew already.";
                 return false;
             }
 
-            string from = pilot.Coach?.Name;
-            pilot.Coach?.RemovePilot(pilot);
-            target.AddPilot(pilot);
-            message = pilot.Profile.Name + " now runs " + target.Name + (from != null ? " (was on " + from + ")" : "") + ".";
+            string from = driver.Coach?.Name;
+            driver.Coach?.RemoveDriver(driver);
+            target.AddDriver(driver);
+            message = driver.Profile.Name + " now runs " + target.Name + (from != null ? " (was on " + from + ")" : "") + ".";
             return true;
         }
 
-        public static bool UnassignPilot(Carrier carrier, Pilot pilot, out string message)
+        public static bool UnassignDriver(Carrier carrier, Driver driver, out string message)
         {
-            if (pilot == null || pilot.Carrier != carrier || pilot.Coach == null)
+            if (driver == null || driver.Carrier != carrier || driver.Coach == null)
             {
-                message = "That pilot has no coach.";
+                message = "That driver has no coach.";
                 return false;
             }
-            string name = pilot.Coach.Name;
-            pilot.Coach.RemovePilot(pilot);
-            message = pilot.Profile.Name + " leaves " + name + " and is without a coach.";
+            string name = driver.Coach.Name;
+            driver.Coach.RemoveDriver(driver);
+            message = driver.Profile.Name + " leaves " + name + " and is without a coach.";
             return true;
         }
 
-        /// <summary>Puts pilots who have no coach (new graduates, for example) on coach that need pilots and match their type.</summary>
-        public static int AssignIdlePilots(Carrier carrier)
+        /// <summary>Puts drivers who have no coach (new graduates, for example) on coach that need drivers and match their type.</summary>
+        public static int AssignIdleDrivers(Carrier carrier)
         {
             int n = 0;
-            foreach (var pilot in carrier.Pilots.Where(p => p.Coach == null && p.Training == null).ToList())
+            foreach (var driver in carrier.Drivers.Where(p => p.Coach == null && p.Training == null).ToList())
             {
                 var target = carrier.Fleet.FirstOrDefault(
-                    f => f.Pilots.Count < f.Coach.Type.CockpitCrew && pilot.Coaches != null && pilot.Coaches.Contains(f.Coach.Type.CoachFamily));
+                    f => f.Drivers.Count < f.Coach.Type.DriverCrew && driver.Coaches != null && driver.Coaches.Contains(f.Coach.Type.CoachFamily));
                 if (target == null) continue;
-                pilot.Coach = target;
-                target.AddPilot(pilot);
+                driver.Coach = target;
+                target.AddDriver(driver);
                 n++;
             }
             return n;

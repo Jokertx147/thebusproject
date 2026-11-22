@@ -241,7 +241,7 @@ namespace TheBusProject.Helpers
         }
 
         /// <summary>
-        ///     Buys all of the target's shares. Merged, its fleet, routes, gates, pilots and money join your carrier;
+        ///     Buys all of the target's shares. Merged, its fleet, routes, gates, drivers and money join your carrier;
         ///     as a subsidiary it keeps flying under its own name with its own money, run by its management.
         /// </summary>
         public static bool TakeOver(Carrier buyer, Carrier target, bool asSubsidiary, out string message)
@@ -301,7 +301,7 @@ namespace TheBusProject.Helpers
                 CarrierHelpers.AddCarrierInvoice(buyer, game.GameTime, Invoice.InvoiceType.CarrierExpenses, target.Money);
                 foreach (var loan in target.Loans.ToList()) buyer.Loans.Add(loan);
                 Carriers.RemoveCarrier(target);
-                message = string.Format("{0} has been merged into your carrier for {1}. Its coach, routes, gates, pilots and cash ({2}) are yours now.", name, Money(cost), Money(target.Money));
+                message = string.Format("{0} has been merged into your carrier for {1}. Its coach, routes, gates, drivers and cash ({2}) are yours now.", name, Money(cost), Money(target.Money));
             }
 
             game.NewsBox.AddNews(new News(News.NewsType.CarrierNews, game.GameTime, "Takeover", message));

@@ -427,21 +427,21 @@ namespace TheBusProject.Helpers
             return bases.FirstOrDefault();
         }
 
-        // takes the old coach's pilots that may fly the new type, and hires the rest
+        // takes the old coach's drivers that may fly the new type, and hires the rest
         private static void Crew(FleetCoach old, FleetCoach nw)
         {
             string family = nw.Coach.Type.CoachFamily;
-            foreach (var pilot in old.Pilots.ToList())
+            foreach (var driver in old.Drivers.ToList())
             {
-                if (nw.Pilots.Count >= nw.Coach.Type.CockpitCrew) break;
-                if (pilot.Coaches == null || !pilot.Coaches.Contains(family)) continue;
-                old.RemovePilot(pilot);
-                pilot.Coach = nw;
-                nw.AddPilot(pilot);
+                if (nw.Drivers.Count >= nw.Coach.Type.DriverCrew) break;
+                if (driver.Coaches == null || !driver.Coaches.Contains(family)) continue;
+                old.RemoveDriver(driver);
+                driver.Coach = nw;
+                nw.AddDriver(driver);
             }
-            if (nw.Pilots.Count < nw.Coach.Type.CockpitCrew)
+            if (nw.Drivers.Count < nw.Coach.Type.DriverCrew)
             {
-                CarrierHelpers.HireCoachPilots(nw);
+                CarrierHelpers.HireCoachDrivers(nw);
             }
         }
 
@@ -462,7 +462,7 @@ namespace TheBusProject.Helpers
                 return old.Name + " is not paid in full, so it is kept.";
             }
             long price = old.Purchased == FleetCoach.PurchasedType.Bought ? old.Coach.GetPrice() : 0;
-            foreach (var pilot in old.Pilots.ToList()) old.RemovePilot(pilot);
+            foreach (var driver in old.Drivers.ToList()) old.RemoveDriver(driver);
             carrier.RemoveCoach(old);
             if (price > 0)
             {

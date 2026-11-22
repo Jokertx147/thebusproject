@@ -6,7 +6,7 @@ using TheBusProject.Models.Carriers;
 using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
 using TheBusProject.Models.General.Finances;
-using TheBusProject.Models.Pilots;
+using TheBusProject.Models.Drivers;
 using TheBusProject.Models.Routes;
 
 namespace TheBusProject.Models.Coaches
@@ -41,7 +41,7 @@ namespace TheBusProject.Models.Coaches
             //new GeoCoordinate(this.Homebase.Profile.Coordinates.Latitude,this.Homebase.Profile.Coordinates.Longitude);
 
             Routes = new List<Route>();
-            Pilots = new List<Pilot>();
+            Drivers = new List<Driver>();
             InsurancePolicies = new List<CoachInsurance>();
             MaintenanceHistory = new Dictionary<Invoice, string>();
 
@@ -237,13 +237,13 @@ namespace TheBusProject.Models.Coaches
             set { _name = value; }
         }
 
-        public int NumberOfPilots => Pilots.Count;
+        public int NumberOfDrivers => Drivers.Count;
 
         [Versioning("oosdate")]
         public DateTime OOSDate { get; set; }
 
-        [Versioning("pilots")]
-        public List<Pilot> Pilots { get; set; }
+        [Versioning("drivers")]
+        public List<Driver> Drivers { get; set; }
 
         [Versioning("purchased")]
         public PurchasedType Purchased { get; set; }
@@ -305,17 +305,17 @@ namespace TheBusProject.Models.Coaches
             base.GetObjectData(info, context);
         }
 
-        //adds a pilot to the coach
-        public void AddPilot(Pilot pilot)
+        //adds a driver to the coach
+        public void AddDriver(Driver driver)
         {
-            lock (Pilots)
+            lock (Drivers)
             {
-                Pilots.Add(pilot);
-                pilot.Coach = this;
+                Drivers.Add(driver);
+                driver.Coach = this;
             }
         }
 
-        //removes a pilot from the coach
+        //removes a driver from the coach
 
         //adds a route to the coach
         public void AddRoute(Route route)
@@ -323,12 +323,12 @@ namespace TheBusProject.Models.Coaches
             Routes.Add(route);
         }
 
-        public void RemovePilot(Pilot pilot)
+        public void RemoveDriver(Driver driver)
         {
-            lock (Pilots)
+            lock (Drivers)
             {
-                Pilots.Remove(pilot);
-                pilot.Coach = null;
+                Drivers.Remove(driver);
+                driver.Coach = null;
             }
         }
 

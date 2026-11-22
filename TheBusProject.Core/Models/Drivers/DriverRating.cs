@@ -4,15 +4,15 @@ using System.Linq;
 using System.Runtime.Serialization;
 using TheBusProject.Infrastructure;
 
-namespace TheBusProject.Models.Pilots
+namespace TheBusProject.Models.Drivers
 {
-    //the class for the rating for a pilot
+    //the class for the rating for a driver
     [Serializable]
-    public class PilotRating : BaseModel, IComparable<PilotRating>
+    public class DriverRating : BaseModel, IComparable<DriverRating>
     {
         #region Constructors and Destructors
 
-        public PilotRating(string name, int trainingdays, int costindex)
+        public DriverRating(string name, int trainingdays, int costindex)
         {
             Name = name;
             TrainingDays = trainingdays;
@@ -20,9 +20,9 @@ namespace TheBusProject.Models.Pilots
             Coaches = new List<TrainingCoachType>();
         }
 
-        //adds a training coach which the rating (pilot) uses in training
+        //adds a training coach which the rating (driver) uses in training
 
-        private PilotRating(SerializationInfo info, StreamingContext ctxt) : base(info, ctxt)
+        private DriverRating(SerializationInfo info, StreamingContext ctxt) : base(info, ctxt)
         {
         }
 
@@ -46,7 +46,7 @@ namespace TheBusProject.Models.Pilots
 
         #region Public Methods and Operators
 
-        public int CompareTo(PilotRating other)
+        public int CompareTo(DriverRating other)
         {
             return CostIndex.CompareTo(other.CostIndex);
         }
@@ -66,35 +66,35 @@ namespace TheBusProject.Models.Pilots
         #endregion
     }
 
-    //the list of pilot ratings
-    public class PilotRatings
+    //the list of driver ratings
+    public class DriverRatings
     {
         #region Static Fields
 
-        private static List<PilotRating> _ratings = new List<PilotRating>();
+        private static List<DriverRating> _ratings = new List<DriverRating>();
 
         #endregion
 
         #region Public Methods and Operators
 
-        public static void AddRating(PilotRating rating)
+        public static void AddRating(DriverRating rating)
         {
             _ratings.Add(rating);
         }
 
         public static void Clear()
         {
-            _ratings = new List<PilotRating>();
+            _ratings = new List<DriverRating>();
         }
 
         //returns the rating with a name
-        public static PilotRating GetRating(string name)
+        public static DriverRating GetRating(string name)
         {
             return _ratings.FirstOrDefault(r => r.Name == name);
         }
 
         //returns the list of ratings 
-        public static List<PilotRating> GetRatings()
+        public static List<DriverRating> GetRatings()
         {
             return _ratings;
         }
@@ -103,6 +103,6 @@ namespace TheBusProject.Models.Pilots
 
         //adds a rating to the list
 
-        //clears the pilot ratings
+        //clears the driver ratings
     }
 }

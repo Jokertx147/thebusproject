@@ -112,7 +112,7 @@ namespace TheBusProject.Presentation
             Market = new MarketViewModel(OnGameChanged);
             NewCoach = new NewCoachViewModel(OnGameChanged);
             Stations = new StationsViewModel(OnGameChanged);
-            Pilots = new PilotsViewModel(OnGameChanged);
+            Drivers = new DriversViewModel(OnGameChanged);
             Finance = new FinanceViewModel();
             StationManager = new StationManagerViewModel(OnGameChanged);
             Loans = new LoansViewModel(OnGameChanged);
@@ -315,7 +315,7 @@ namespace TheBusProject.Presentation
         public MarketViewModel Market { get; }
         public NewCoachViewModel NewCoach { get; }
         public StationsViewModel Stations { get; }
-        public PilotsViewModel Pilots { get; }
+        public DriversViewModel Drivers { get; }
         public FinanceViewModel Finance { get; }
         public StationManagerViewModel StationManager { get; }
         public LoansViewModel Loans { get; }
@@ -509,7 +509,7 @@ namespace TheBusProject.Presentation
         private void OnGameChanged()
         {
             Stations.ReloadAdvice();
-            Pilots.Reload();
+            Drivers.Reload();
             StationManager?.Reload();
             Loans?.Reload();
             Maintenance?.Reload();
@@ -716,7 +716,7 @@ namespace TheBusProject.Presentation
             var fleet = carrier.Fleet.ToList();
             var routes = carrier.Routes.ToList();
             var entries = routes.SelectMany(r => r.TimeTable.Entries).ToList();
-            string signature = string.Join(",", fleet.Select(f => f.Name + f.Status + f.Routes.Count + f.Pilots.Count + (f.Coach.BuiltDate > game.GameTime ? "u" : "")))
+            string signature = string.Join(",", fleet.Select(f => f.Name + f.Status + f.Routes.Count + f.Drivers.Count + (f.Coach.BuiltDate > game.GameTime ? "u" : "")))
                                + "|" + routes.Count + "|" + entries.Count;
             if (signature != _signature)
             {
@@ -738,7 +738,7 @@ namespace TheBusProject.Presentation
                             Routes = f.Routes.Count,
                             IsIdle = f.Routes.Count == 0 && f.Coach.BuiltDate <= game.GameTime,
                             IsOnOrder = f.Coach.BuiltDate > game.GameTime,
-                            Crew = f.Pilots.Count + "/" + f.Coach.Type.CockpitCrew + " pilots",
+                            Crew = f.Drivers.Count + "/" + f.Coach.Type.DriverCrew + " drivers",
                             CanStart = f.Status == FleetCoach.CoachStatus.Stopped && f.Coach.BuiltDate <= game.GameTime,
                             CanStop = f.Status != FleetCoach.CoachStatus.Stopped && f.Coach.BuiltDate <= game.GameTime,
                             Note = f.Routes.Count == 0 ? "no route yet" : null,

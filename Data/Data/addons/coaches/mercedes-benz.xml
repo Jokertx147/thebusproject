@@ -5,28 +5,28 @@
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="12.0" range="1400" speed="100" fuelcapacity="640" consumption="0.0098"
            runwaylengthrequired="0" />
-    <capacity passengers="49" cockpitcrew="1" cabincrew="0" maxclasses="2" />
+    <capacity passengers="49" drivers="1" attendants="0" maxclasses="2" />
     <produced from="1980" to="1994" rate="40" />
   </coach>
   <coach manufacturer="Mercedes-Benz" name="Setra S 315 HD" image="Setra S 315 HD" price="75894">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="12.0" range="1500" speed="105" fuelcapacity="640" consumption="0.0088"
            runwaylengthrequired="0" />
-    <capacity passengers="49" cockpitcrew="1" cabincrew="0" maxclasses="2" />
+    <capacity passengers="49" drivers="1" attendants="0" maxclasses="2" />
     <produced from="1994" to="2003" rate="40" />
   </coach>
   <coach manufacturer="Mercedes-Benz" name="Setra S 417 HDH" image="Setra S 417 HDH" price="112613">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="13.9" range="1800" speed="110" fuelcapacity="700" consumption="0.0072"
            runwaylengthrequired="0" />
-    <capacity passengers="55" cockpitcrew="1" cabincrew="0" maxclasses="2" />
+    <capacity passengers="55" drivers="1" attendants="0" maxclasses="2" />
     <produced from="2003" to="2199" rate="40" />
   </coach>
   <coach manufacturer="Mercedes-Benz" name="Setra S 407 HDH" image="Setra S 407 HDH" price="102960">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="12.2" range="1700" speed="110" fuelcapacity="660" consumption="0.0079"
            runwaylengthrequired="0" />
-    <capacity passengers="46" cockpitcrew="1" cabincrew="0" maxclasses="2" />
+    <capacity passengers="46" drivers="1" attendants="0" maxclasses="2" />
     <produced from="2003" to="2015" rate="40" />
   </coach>
 </coaches>

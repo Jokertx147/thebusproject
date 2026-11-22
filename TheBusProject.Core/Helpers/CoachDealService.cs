@@ -76,7 +76,7 @@ namespace TheBusProject.Helpers
                 message = "No carrier wants it right now.";
                 return false;
             }
-            foreach (var pilot in f.Pilots.ToList()) f.RemovePilot(pilot);
+            foreach (var driver in f.Drivers.ToList()) f.RemoveDriver(driver);
             f.LeaseOutTo = lessee;
             f.LeaseOutStart = game.GameTime.Date;
             f.LeaseOutUntil = game.GameTime.Date.AddMonths(months);
@@ -162,7 +162,7 @@ namespace TheBusProject.Helpers
                         double price = f.SaleAsk;
                         carrier.RemoveCoach(f);
                         CarrierHelpers.AddCarrierInvoice(carrier, game.GameTime, Invoice.InvoiceType.Purchases, price);
-                        foreach (var pilot in f.Pilots.ToList()) f.RemovePilot(pilot);
+                        foreach (var driver in f.Drivers.ToList()) f.RemoveDriver(driver);
                         news.Add(f.Name + " (" + f.Coach.Type.Name + ") sold for " + price.ToString("N0") + " after " + (int) (game.GameTime.Date - f.SaleSince).TotalDays + " days.");
                         f.SaleAsk = 0;
                     }

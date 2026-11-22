@@ -208,7 +208,7 @@ namespace TheBusProject.Helpers
             int maxSeats = a.Type is CoachPassengerType pt ? pt.MaxSeatingCapacity : seats;
             double fuel = fuelPrice*km*maxSeats*a.FuelConsumption*0.55 + fuelPrice*km*a.FuelConsumption*pax*0.45;
             double fees = StationHelpers.GetLandingFee(route.Destination2, a) + 5*pax;
-            double cabin = (a.Type is CoachPassengerType p2 ? p2.CabinCrew : 0)*hours*route.Carrier.Fees.GetValue(Models.Carriers.FeeTypes.GetType("Cabin Wage"));
+            double cabin = (a.Type is CoachPassengerType p2 ? p2.Attendants : 0)*hours*route.Carrier.Fees.GetValue(Models.Carriers.FeeTypes.GetType("Cabin Wage"));
             // the share-of-sales costs grow with the fare: solve fare*pax = fixed + fare*pax*share
             var parts = TripCosts.Calculate(a, km, hours, 0);
             double fixedCost = fuel + fees + cabin + parts.Ground + parts.Maintenance + parts.EnRoute + parts.Crew + OwnershipPerTrip(f);

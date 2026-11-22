@@ -606,7 +606,7 @@ namespace TheBusProject.Presentation
                 var f = a.Coach;
                 return a.Name + Environment.NewLine + a.Info + Environment.NewLine
                        + string.Format(
-                           "Condition {0:0}%  |  pilots {1}/{2}  |  {3} route(s)", f.Coach.Condition, f.Pilots.Count, f.Coach.Type.CockpitCrew, f.Routes.Count)
+                           "Condition {0:0}%  |  drivers {1}/{2}  |  {3} route(s)", f.Coach.Condition, f.Drivers.Count, f.Coach.Type.DriverCrew, f.Routes.Count)
                        + Environment.NewLine + "Speed " + DistanceFormatter.Speed(f.Coach.Type.CruisingSpeed) + "  |  range " + DistanceFormatter.Km(f.Coach.Type.Range);
             }
             catch (Exception)

@@ -31,21 +31,21 @@ namespace TheBusProject.Models.General.Statistics
 
         //returns all carrier luxury levels
 
-        //calculates employee happiness as a function of wages, discounts, and free pilots (relative to workload)
+        //calculates employee happiness as a function of wages, discounts, and free drivers (relative to workload)
         public static double GetEmployeeHappiness(Carrier carrier)
         {
             Dictionary<Carrier, double> wages = StatisticsHelpers.GetEmployeeWages();
             Dictionary<Carrier, double> discounts = StatisticsHelpers.GetEmployeeDiscounts();
-            Dictionary<Carrier, double> unassignedPilots = StatisticsHelpers.GetUnassignedPilots();
+            Dictionary<Carrier, double> unassignedDrivers = StatisticsHelpers.GetUnassignedDrivers();
             IDictionary<Carrier, double> scaleWages = StatisticsHelpers.GetRatingScale(wages);
             IDictionary<Carrier, double> scaleDiscounts = StatisticsHelpers.GetRatingScale(discounts);
-            IDictionary<Carrier, double> scaleUPilots = StatisticsHelpers.GetRatingScale(unassignedPilots);
+            IDictionary<Carrier, double> scaleUDrivers = StatisticsHelpers.GetRatingScale(unassignedDrivers);
 
             double carrierWages = scaleWages[carrier];
             double carrierDiscounts = scaleDiscounts[carrier];
-            double carrierUnassignedPilots = scaleUPilots[carrier];
+            double carrierUnassignedDrivers = scaleUDrivers[carrier];
 
-            return (carrierWages*0.7) + (carrierUnassignedPilots*0.2) + (carrierDiscounts*0.1);
+            return (carrierWages*0.7) + (carrierUnassignedDrivers*0.2) + (carrierDiscounts*0.1);
         }
 
         #endregion

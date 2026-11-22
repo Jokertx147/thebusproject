@@ -146,7 +146,7 @@ namespace TheBusProject.Helpers
             {
                 carrier.RemoveCoach(sell);
             }
-            foreach (var pilot in sell.Pilots.ToList()) sell.RemovePilot(pilot);
+            foreach (var driver in sell.Drivers.ToList()) sell.RemoveDriver(driver);
             CarrierHelpers.AddCarrierInvoice(carrier, now, Invoice.InvoiceType.Purchases, price);
             return sell;
         }

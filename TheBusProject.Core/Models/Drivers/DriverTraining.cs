@@ -2,21 +2,21 @@ using System;
 using System.Runtime.Serialization;
 using TheBusProject.Infrastructure;
 
-namespace TheBusProject.Models.Pilots
+namespace TheBusProject.Models.Drivers
 {
-    //the class for a pilot on training
+    //the class for a driver on training
     [Serializable]
-    public class PilotTraining : BaseModel
+    public class DriverTraining : BaseModel
     {
         #region Constructors and Destructors
 
-        public PilotTraining(string coachfamily, DateTime enddate)
+        public DriverTraining(string coachfamily, DateTime enddate)
         {
             EndDate = enddate;
             CoachFamily = coachfamily;
         }
 
-        private PilotTraining(SerializationInfo info, StreamingContext ctxt) : base(info, ctxt)
+        private DriverTraining(SerializationInfo info, StreamingContext ctxt) : base(info, ctxt)
         {
         }
 

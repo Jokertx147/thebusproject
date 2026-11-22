@@ -20,7 +20,7 @@ using TheBusProject.Models.General.HistoricEvents;
 using TheBusProject.Models.General.Holidays;
 using TheBusProject.Models.General.Statistics;
 using TheBusProject.Models.Passengers;
-using TheBusProject.Models.Pilots;
+using TheBusProject.Models.Drivers;
 using TheBusProject.Models.Routes;
 
 namespace TheBusProject.Helpers
@@ -506,11 +506,11 @@ namespace TheBusProject.Helpers
 
             if (coach.CurrentTrip.IsPassengerTrip())
             {
-                int cabinCrew = ((CoachPassengerType) coach.Coach.Type).CabinCrew;
+                int cabinCrew = ((CoachPassengerType) coach.Coach.Type).Attendants;
 
                 wages = cabinCrew*triptime.TotalHours
                         *coach.Coach.Carrier.Fees.GetValue(FeeTypes.GetType("Cabin Wage"));
-                // +(coach.CurrentTrip.Entry.TimeTable.Route.getTotalCabinCrew() * coach.Coach.Carrier.Fees.getValue(FeeTypes.GetType("Cabin kilometer rate")) * fdistance) + (coach.Coach.Type.CockpitCrew * coach.Coach.Carrier.Fees.getValue(FeeTypes.GetType("Cockpit kilometer rate")) * fdistance);
+                // +(coach.CurrentTrip.Entry.TimeTable.Route.getTotalAttendants() * coach.Coach.Carrier.Fees.getValue(FeeTypes.GetType("Cabin kilometer rate")) * fdistance) + (coach.Coach.Type.DriverCrew * coach.Coach.Carrier.Fees.getValue(FeeTypes.GetType("Cab kilometer rate")) * fdistance);
                 // holiday pay is 50% more; the carrier is charged what the route shows
                 HolidayYearEvent holiday = HolidayYear.GetHoliday(
                     carrier.Profile.Country,
@@ -1043,11 +1043,11 @@ namespace TheBusProject.Helpers
                                   $"{aType.Manufacturer.Name} has finished the design of {aType.Name} and it is now available for purchase"));
 
                 if (
-                    !CarrierFacilities.GetFacilities(f => f is PilotTrainingFacility)
-                                      .Exists(f => ((PilotTrainingFacility) f).CoachFamily == aType.CoachFamily))
+                    !CarrierFacilities.GetFacilities(f => f is DriverTrainingFacility)
+                                      .Exists(f => ((DriverTrainingFacility) f).CoachFamily == aType.CoachFamily))
                 {
                     CarrierFacilities.AddFacility(
-                        new PilotTrainingFacility(
+                        new DriverTrainingFacility(
                             "carrierfacilities",
                             aType.CoachFamily,
                             9000,
@@ -1594,7 +1594,7 @@ namespace TheBusProject.Helpers
                     carrier.Contract = null;
                 }
                 //checks for students educated
-                IEnumerable<PilotStudent> educatedStudents =
+                IEnumerable<DriverStudent> educatedStudents =
                     carrier.TripSchools.SelectMany(
                         f =>
                         f.Students.FindAll(
@@ -1602,21 +1602,21 @@ namespace TheBusProject.Helpers
                             s.EndDate.ToShortDateString()
                             == GameObject.GetInstance().GameTime.ToShortDateString()));
 
-                foreach (PilotStudent student in educatedStudents)
+                foreach (DriverStudent student in educatedStudents)
                 {
-                    var pilot = new Pilot(student.Profile, GameObject.GetInstance().GameTime, student.Rating);
+                    var driver = new Driver(student.Profile, GameObject.GetInstance().GameTime, student.Rating);
 
                     if (student.CoachFamily != "")
                     {
-                        pilot.AddCoachFamily(student.CoachFamily);
+                        driver.AddCoachFamily(student.CoachFamily);
                     }
 
                     student.Instructor.RemoveStudent(student);
                     student.Instructor.TripSchool.RemoveStudent(student);
                     student.Instructor = null;
 
-                    carrier.AddPilot(pilot);
-                    pilot.CarrierSignedDate = GameObject.GetInstance().GameTime;
+                    carrier.AddDriver(driver);
+                    driver.CarrierSignedDate = GameObject.GetInstance().GameTime;
 
                     if (carrier.IsHuman)
                     {
@@ -1628,20 +1628,20 @@ namespace TheBusProject.Helpers
                                           Translator.GetInstance().GetString("News", "1006"),
                                           string.Format(
                                               Translator.GetInstance().GetString("News", "1006", "message"),
-                                              pilot.Profile.Name)));
+                                              driver.Profile.Name)));
                     }
                 }
 
-                IEnumerable<Pilot> trainedPilots =
-                    carrier.Pilots.Where(
+                IEnumerable<Driver> trainedDrivers =
+                    carrier.Drivers.Where(
                         p =>
                         p.Training != null
                         && p.Training.EndDate.ToShortDateString()
                         == GameObject.GetInstance().GameTime.ToShortDateString());
 
-                foreach (Pilot pilot in trainedPilots)
+                foreach (Driver driver in trainedDrivers)
                 {
-                    pilot.AddCoachFamily(pilot.Training.CoachFamily);
+                    driver.AddCoachFamily(driver.Training.CoachFamily);
 
                     if (carrier.IsHuman)
                     {
@@ -1653,17 +1653,17 @@ namespace TheBusProject.Helpers
                                           Translator.GetInstance().GetString("News", "1015"),
                                           string.Format(
                                               Translator.GetInstance().GetString("News", "1015", "message"),
-                                              pilot.Profile.Name,
-                                              pilot.Training.CoachFamily)));
+                                              driver.Profile.Name,
+                                              driver.Training.CoachFamily)));
                     }
 
-                    pilot.Training = null;
+                    driver.Training = null;
                 }
 
-                //new graduates and pilots back from training go to coach that need a pilot, when the player wants it
-                if (carrier.IsHuman && carrier.AutoAssignPilots)
+                //new graduates and drivers back from training go to coach that need a driver, when the player wants it
+                if (carrier.IsHuman && carrier.AutoAssignDrivers)
                 {
-                    TripSchoolService.AssignIdlePilots(carrier);
+                    TripSchoolService.AssignIdleDrivers(carrier);
                 }
             } //);
             //checks for mergers
@@ -1967,9 +1967,9 @@ namespace TheBusProject.Helpers
                 carrier.RemoveCoach(coach);
             }
 
-            foreach (Pilot pilot in new List<Pilot>(carrier.Pilots))
+            foreach (Driver driver in new List<Driver>(carrier.Drivers))
             {
-                carrier.RemovePilot(pilot);
+                carrier.RemoveDriver(driver);
             }
 
             foreach (Alliance alliance in new List<Alliance>(carrier.Alliances))
@@ -2204,22 +2204,22 @@ namespace TheBusProject.Helpers
                     Invoice.InvoiceType.CarrierExpenses,
                     amount);
             }
-            //check if pilots are retireing
-            const int retirementAge = Pilot.RetirementAge;
+            //check if drivers are retireing
+            const int retirementAge = Driver.RetirementAge;
 
             //Parallel.ForEach(
             //    Carriers.GetAllCarriers(),
             //    carrier =>
             foreach (Carrier carrier in Carriers.GetAllCarriers())
             {
-                List<Pilot> pilotsToRetire =
-                    carrier.Pilots.FindAll(
+                List<Driver> driversToRetire =
+                    carrier.Drivers.FindAll(
                         p =>
                         p.Profile.Birthdate.AddYears(retirementAge).AddMonths(-1)
                         < GameObject.GetInstance().GameTime);
-                var pilotsToRetirement =
-                    new List<Pilot>(
-                        carrier.Pilots.FindAll(
+                var driversToRetirement =
+                    new List<Driver>(
+                        carrier.Drivers.FindAll(
                             p => p.Profile.Birthdate.AddYears(retirementAge) < GameObject.GetInstance().GameTime));
 
                 IEnumerable<Instructor> instructorsToRetire =
@@ -2233,7 +2233,7 @@ namespace TheBusProject.Helpers
                         carrier.TripSchools.SelectMany(f => f.Instructors)
                                .Where(i => i.Profile.Birthdate.AddYears(retirementAge) < GameObject.GetInstance().GameTime));
 
-                foreach (Pilot pilot in pilotsToRetire)
+                foreach (Driver driver in driversToRetire)
                 {
                     if (carrier.IsHuman)
                     {
@@ -2245,41 +2245,41 @@ namespace TheBusProject.Helpers
                                           Translator.GetInstance().GetString("News", "1007"),
                                           string.Format(
                                               Translator.GetInstance().GetString("News", "1007", "message"),
-                                              pilot.Profile.Name,
-                                              pilot.Profile.Age + 1)));
+                                              driver.Profile.Name,
+                                              driver.Profile.Age + 1)));
                     }
                     else
                     {
-                        if (pilot.Coach != null)
+                        if (driver.Coach != null)
                         {
-                            if (Pilots.GetNumberOfUnassignedPilots() == 0)
+                            if (Drivers.GetNumberOfUnassignedDrivers() == 0)
                             {
-                                GeneralHelpers.CreatePilots(10);
+                                GeneralHelpers.CreateDrivers(10);
                             }
 
-                            Pilot newPilot =
-                                Pilots.GetUnassignedPilots()
+                            Driver newDriver =
+                                Drivers.GetUnassignedDrivers()
                                       .Find(
                                           p =>
-                                          p.Rating == pilot.Rating
-                                          && p.Coaches.Contains(pilot.Coach.Coach.Type.CoachFamily));
+                                          p.Rating == driver.Rating
+                                          && p.Coaches.Contains(driver.Coach.Coach.Type.CoachFamily));
 
-                            if (newPilot == null)
+                            if (newDriver == null)
                             {
-                                GeneralHelpers.CreatePilots(4, pilot.Coach.Coach.Type.CoachFamily);
-                                Pilot pilot1 = pilot;
-                                newPilot =
-                                    Pilots.GetUnassignedPilots(
-                                        p => p.Coaches.Contains(pilot1.Coach.Coach.Type.CoachFamily))[0];
+                                GeneralHelpers.CreateDrivers(4, driver.Coach.Coach.Type.CoachFamily);
+                                Driver driver1 = driver;
+                                newDriver =
+                                    Drivers.GetUnassignedDrivers(
+                                        p => p.Coaches.Contains(driver1.Coach.Coach.Type.CoachFamily))[0];
                             }
 
-                            carrier.AddPilot(newPilot);
+                            carrier.AddDriver(newDriver);
 
-                            newPilot.Coach = pilot.Coach;
-                            newPilot.Coach.AddPilot(newPilot);
+                            newDriver.Coach = driver.Coach;
+                            newDriver.Coach.AddDriver(newDriver);
 
-                            pilot.Coach.RemovePilot(pilot);
-                            pilot.Coach = null;
+                            driver.Coach.RemoveDriver(driver);
+                            driver.Coach = null;
                         }
                     }
                 }
@@ -2301,11 +2301,11 @@ namespace TheBusProject.Helpers
                     }
                 }
 
-                foreach (Pilot pilot in pilotsToRetirement)
+                foreach (Driver driver in driversToRetirement)
                 {
-                    if (pilot.Coach != null)
+                    if (driver.Coach != null)
                     {
-                        //pilot.Coach.Status = FleetCoach.CoachStatus.Stopped;
+                        //driver.Coach.Status = FleetCoach.CoachStatus.Stopped;
 
                         if (carrier.IsHuman)
                         {
@@ -2317,62 +2317,62 @@ namespace TheBusProject.Helpers
                                               Translator.GetInstance().GetString("News", "1010"),
                                               string.Format(
                                                   Translator.GetInstance().GetString("News", "1010", "message"),
-                                                  pilot.Profile.Name,
-                                                  pilot.Coach.Name)));
-                            if (pilot.Coach != null)
+                                                  driver.Profile.Name,
+                                                  driver.Coach.Name)));
+                            if (driver.Coach != null)
                             {
-                                if (Pilots.GetNumberOfUnassignedPilots() == 0)
+                                if (Drivers.GetNumberOfUnassignedDrivers() == 0)
                                 {
-                                    GeneralHelpers.CreatePilots(10);
+                                    GeneralHelpers.CreateDrivers(10);
                                 }
 
-                                if (GameObject.GetInstance().HumanCarrier.Pilots.Exists(p => p.Coach == null))
+                                if (GameObject.GetInstance().HumanCarrier.Drivers.Exists(p => p.Coach == null))
                                 {
-                                    Pilot newPilot =
-                                        GameObject.GetInstance().HumanCarrier.Pilots.Find(p => p.Coach == null);
+                                    Driver newDriver =
+                                        GameObject.GetInstance().HumanCarrier.Drivers.Find(p => p.Coach == null);
 
-                                    newPilot.Coach = pilot.Coach;
-                                    newPilot.Coach.AddPilot(newPilot);
+                                    newDriver.Coach = driver.Coach;
+                                    newDriver.Coach.AddDriver(newDriver);
                                 }
                                 else
                                 {
-                                    Pilot pilot1 = pilot;
-                                    List<Pilot> pilots =
-                                        Pilots.GetUnassignedPilots(
+                                    Driver driver1 = driver;
+                                    List<Driver> drivers =
+                                        Drivers.GetUnassignedDrivers(
                                             p =>
                                             p.Profile.Town.Country
-                                            == pilot1.Coach.Coach.Carrier.Profile.Country
-                                            && p.Coaches.Contains(pilot1.Coach.Coach.Type.CoachFamily));
+                                            == driver1.Coach.Coach.Carrier.Profile.Country
+                                            && p.Coaches.Contains(driver1.Coach.Coach.Type.CoachFamily));
 
-                                    if (pilots.Count == 0)
+                                    if (drivers.Count == 0)
                                     {
-                                        Pilot pilot2 = pilot;
-                                        pilots =
-                                            Pilots.GetUnassignedPilots(
+                                        Driver driver2 = driver;
+                                        drivers =
+                                            Drivers.GetUnassignedDrivers(
                                                 p =>
                                                 p.Profile.Town.Country.Region
-                                                == pilot2.Coach.Coach.Carrier.Profile.Country.Region
-                                                && p.Coaches.Contains(pilot2.Coach.Coach.Type.CoachFamily));
+                                                == driver2.Coach.Coach.Carrier.Profile.Country.Region
+                                                && p.Coaches.Contains(driver2.Coach.Coach.Type.CoachFamily));
                                     }
 
-                                    if (pilots.Count == 0)
+                                    if (drivers.Count == 0)
                                     {
-                                        GeneralHelpers.CreatePilots(4, pilot.Coach.Coach.Type.CoachFamily);
-                                        Pilot pilot2 = pilot;
-                                        pilots =
-                                            Pilots.GetUnassignedPilots(
-                                                p => p.Coaches.Contains(pilot2.Coach.Coach.Type.CoachFamily));
+                                        GeneralHelpers.CreateDrivers(4, driver.Coach.Coach.Type.CoachFamily);
+                                        Driver driver2 = driver;
+                                        drivers =
+                                            Drivers.GetUnassignedDrivers(
+                                                p => p.Coaches.Contains(driver2.Coach.Coach.Type.CoachFamily));
                                     }
 
-                                    Pilot newPilot = pilots.First();
+                                    Driver newDriver = drivers.First();
 
-                                    pilot.Coach.Coach.Carrier.AddPilot(newPilot);
-                                    newPilot.Coach = pilot.Coach;
-                                    newPilot.Coach.AddPilot(newPilot);
+                                    driver.Coach.Coach.Carrier.AddDriver(newDriver);
+                                    newDriver.Coach = driver.Coach;
+                                    newDriver.Coach.AddDriver(newDriver);
                                 }
                             }
                         }
-                        pilot.Coach.RemovePilot(pilot);
+                        driver.Coach.RemoveDriver(driver);
                     }
                     else
                     {
@@ -2386,12 +2386,12 @@ namespace TheBusProject.Helpers
                                               Translator.GetInstance().GetString("News", "1009"),
                                               string.Format(
                                                   Translator.GetInstance().GetString("News", "1009", "message"),
-                                                  pilot.Profile.Name)));
+                                                  driver.Profile.Name)));
                         }
                     }
-                    carrier.RemovePilot(pilot);
-                    pilot.Carrier = null;
-                    Pilots.RemovePilot(pilot);
+                    carrier.RemoveDriver(driver);
+                    driver.Carrier = null;
+                    Drivers.RemoveDriver(driver);
                 }
 
                 foreach (Instructor instructor in instructorsToRetirement)
@@ -2417,7 +2417,7 @@ namespace TheBusProject.Helpers
                                         Rnd.Next(Instructors.GetUnassignedInstructors().Count)];
                             }
 
-                            foreach (PilotStudent student in instructor.Students)
+                            foreach (DriverStudent student in instructor.Students)
                             {
                                 student.Instructor = newInstructor;
                             }
@@ -2444,7 +2444,7 @@ namespace TheBusProject.Helpers
                         {
                             while (instructor.Students.Count > 0)
                             {
-                                PilotStudent student = instructor.Students[0];
+                                DriverStudent student = instructor.Students[0];
 
                                 Instructor newInstructor =
                                     instructor.TripSchool.Instructors.Find(
@@ -2494,16 +2494,16 @@ namespace TheBusProject.Helpers
                 }
 
                 //wages
-                foreach (Pilot pilot in carrier.Pilots)
+                foreach (Driver driver in carrier.Drivers)
                 {
-                    double salary = CarrierHelpers.GetPilotSalary(carrier, pilot);
+                    double salary = CarrierHelpers.GetDriverSalary(carrier, driver);
                     CarrierHelpers.AddCarrierInvoice(
                         carrier,
                         GameObject.GetInstance().GameTime,
                         Invoice.InvoiceType.Wages,
                         -salary);
 
-                    pilot.Coach?.Data.AddOperatingValue(new OperatingValue("Salary", GameObject.GetInstance().GameTime.Year, GameObject.GetInstance().GameTime.Month, -salary));
+                    driver.Coach?.Data.AddOperatingValue(new OperatingValue("Salary", GameObject.GetInstance().GameTime.Year, GameObject.GetInstance().GameTime.Month, -salary));
                 }
 
                 foreach (Instructor instructor in carrier.TripSchools.SelectMany(f => f.Instructors))
@@ -2769,16 +2769,16 @@ namespace TheBusProject.Helpers
                 if (carrier == GameObject.GetInstance().HumanCarrier)
                 {
                     MaintenanceService.ProcessMonth(carrier);
-                    PilotSupply.TopUp(carrier);
-                    PilotMoraleService.ProcessMonth(carrier);
+                    DriverSupply.TopUp(carrier);
+                    DriverMoraleService.ProcessMonth(carrier);
                 }
 
                 RandomEvent.CheckExpired();
             } //);
 
-            if (Pilots.GetNumberOfUnassignedPilots() < 25)
+            if (Drivers.GetNumberOfUnassignedDrivers() < 25)
             {
-                GeneralHelpers.CreatePilots(100);
+                GeneralHelpers.CreateDrivers(100);
             }
 
             if (Instructors.GetNumberOfUnassignedInstructors() < 20)
@@ -2904,14 +2904,14 @@ namespace TheBusProject.Helpers
                 }
             } //);
 
-            //removes the oldest pilots/instructors and creates some new ones
-            List<Pilot> oldPilots = Pilots.GetUnassignedPilots().OrderByDescending(p => p.Profile.Age).ToList();
+            //removes the oldest drivers/instructors and creates some new ones
+            List<Driver> oldDrivers = Drivers.GetUnassignedDrivers().OrderByDescending(p => p.Profile.Age).ToList();
             List<Instructor> oldInstructors =
                 Instructors.GetUnassignedInstructors().OrderByDescending(i => i.Profile.Age).ToList();
 
-            for (int i = 0; i < Math.Min(15, oldPilots.Count); i++)
+            for (int i = 0; i < Math.Min(15, oldDrivers.Count); i++)
             {
-                Pilots.RemovePilot(oldPilots[i]);
+                Drivers.RemoveDriver(oldDrivers[i]);
             }
 
             for (int i = 0; i < Math.Min(10, oldInstructors.Count); i++)
@@ -2919,7 +2919,7 @@ namespace TheBusProject.Helpers
                 Instructors.RemoveInstructor(oldInstructors[i]);
             }
 
-            GeneralHelpers.CreatePilots(15);
+            GeneralHelpers.CreateDrivers(15);
             GeneralHelpers.CreateInstructors(10);
 
             foreach (Carrier carrier in Carriers.GetAllCarriers())

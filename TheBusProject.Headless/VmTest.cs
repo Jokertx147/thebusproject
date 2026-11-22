@@ -290,8 +290,8 @@ static class VmTest
                 double fuel = fuelPrice * km * t.MaxSeatingCapacity * a.FuelConsumption * 0.55 + fuelPrice * km * a.FuelConsumption * pax * 0.45;
                 double landing = TheBusProject.Helpers.StationHelpers.GetLandingFee(atl, a);
                 double tax = 5 * pax;
-                double cabin = t.CabinCrew * hours * me.Fees.GetValue(TheBusProject.Models.Carriers.FeeTypes.GetType("Cabin Wage"));
-                double pilotMonth = t.CockpitCrew * TheBusProject.Helpers.GeneralHelpers.GetInflationPrice(1) * 0 ;
+                double cabin = t.Attendants * hours * me.Fees.GetValue(TheBusProject.Models.Carriers.FeeTypes.GetType("Cabin Wage"));
+                double driverMonth = t.DriverCrew * TheBusProject.Helpers.GeneralHelpers.GetInflationPrice(1) * 0 ;
                 var pc = TheBusProject.Helpers.TripCosts.Calculate(a, km, hours, tickets);
                 double oldCost = fuel + landing + tax + cabin;
                 double newCost = oldCost + pc.Total;
@@ -480,7 +480,7 @@ static class VmTest
         if (ap.Create != null) ap.Create.CreateCommand.Execute(null);
         var route = h.Routes.First(r => r.HasCoach);
         var a = route.GetCoaches()[0];
-        if (a.Pilots.Count < a.Coach.Type.CockpitCrew) TheBusProject.Helpers.CarrierHelpers.HireCoachPilots(a);
+        if (a.Drivers.Count < a.Coach.Type.DriverCrew) TheBusProject.Helpers.CarrierHelpers.HireCoachDrivers(a);
         if (a.Status == TheBusProject.Models.Coaches.FleetCoach.CoachStatus.Stopped) a.Status = TheBusProject.Models.Coaches.FleetCoach.CoachStatus.OnRoute;
 
         // a second coach of the same kind that can fly the route: the cheapest one, of the same type when there is one
@@ -492,7 +492,7 @@ static class VmTest
         Console.WriteLine("  fleet: " + string.Join(", ", h.Fleet.Select(f => f.Name + " " + f.Coach.Type.Name)));
         var b = h.Fleet.FirstOrDefault(f => f != a);
         if (b == null) { Console.WriteLine("  FAILED could not buy a second coach"); Environment.Exit(1); }
-        if (b.Pilots.Count < b.Coach.Type.CockpitCrew) TheBusProject.Helpers.CarrierHelpers.HireCoachPilots(b);
+        if (b.Drivers.Count < b.Coach.Type.DriverCrew) TheBusProject.Helpers.CarrierHelpers.HireCoachDrivers(b);
         int trips = route.TimeTable.Entries.Count(e => e.Coach == a);
         Console.WriteLine("  route " + route.Destination1.Profile.IATACode + "-" + route.Destination2.Profile.IATACode + " run by " + a.Name + " (" + trips + " weekly trips), spare " + b.Name);
         int seats0 = route.ConnectSeats;
@@ -565,7 +565,7 @@ static class VmTest
             Console.WriteLine("  packed " + packed.Count + " trips of " + a.Name + " back to back, clash " + (TheBusProject.Helpers.CoachReplaceService.FirstClash(a, packed) ?? "none"));
             var slow = TheBusProject.Helpers.CarrierHelpers.CreateCoach(h, slowType);
             h.AddCoach(slow);
-            TheBusProject.Helpers.CarrierHelpers.HireCoachPilots(slow);
+            TheBusProject.Helpers.CarrierHelpers.HireCoachDrivers(slow);
             rd.OpenReplaceCommand.Execute(null);
             var choice = rd.ReplaceToChoices.FirstOrDefault(c => c.Value.Coach == slow);
             Console.WriteLine("  slow " + slow.Name + " (" + slowType.Name + ", " + slowType.CruisingSpeed + " km/h vs " + a.Coach.Type.CruisingSpeed + "): " + choice?.Name);
@@ -652,7 +652,7 @@ static class VmTest
         if (ap.Create != null) ap.Create.CreateCommand.Execute(null);
         var route = h.Routes.First(r => r.HasCoach);
         var a = route.GetCoaches()[0];
-        if (a.Pilots.Count < a.Coach.Type.CockpitCrew) TheBusProject.Helpers.CarrierHelpers.HireCoachPilots(a);
+        if (a.Drivers.Count < a.Coach.Type.DriverCrew) TheBusProject.Helpers.CarrierHelpers.HireCoachDrivers(a);
         if (a.Status == TheBusProject.Models.Coaches.FleetCoach.CoachStatus.Stopped) a.Status = TheBusProject.Models.Coaches.FleetCoach.CoachStatus.OnRoute;
         var oldType = a.Coach.Type;
         // an idle one of the same type
@@ -684,9 +684,9 @@ static class VmTest
         var now = route.GetCoaches();
         var nw = now.FirstOrDefault();
         var newTimes = route.TimeTable.Entries.Where(e => e.Coach == nw).Select(e => e.Day + " " + e.Time).OrderBy(x => x).ToList();
-        Console.WriteLine("  route now run by " + string.Join(", ", now.Select(f => f.Name + " (" + f.Coach.Type.Name + ", pilots " + f.Pilots.Count + "/" + f.Coach.Type.CockpitCrew + ", " + f.Status + ")"))
+        Console.WriteLine("  route now run by " + string.Join(", ", now.Select(f => f.Name + " (" + f.Coach.Type.Name + ", drivers " + f.Drivers.Count + "/" + f.Coach.Type.DriverCrew + ", " + f.Status + ")"))
                           + " | same times " + oldTimes.SequenceEqual(newTimes) + " | old ones in the fleet " + h.Fleet.Count(f => f.Coach.Type == oldType) + " | money " + money0.ToString("N0") + " -> " + h.Money.ToString("N0"));
-        if (nw == null || nw.Coach.Type != pick.Value || !oldTimes.SequenceEqual(newTimes) || h.Fleet.Any(f => f.Coach.Type == oldType) || nw.Pilots.Count < nw.Coach.Type.CockpitCrew)
+        if (nw == null || nw.Coach.Type != pick.Value || !oldTimes.SequenceEqual(newTimes) || h.Fleet.Any(f => f.Coach.Type == oldType) || nw.Drivers.Count < nw.Coach.Type.DriverCrew)
         { Console.WriteLine("  FAILED renewal"); Environment.Exit(1); }
         int seats = route.ConnectSeats;
         for (int i = 0; i < 3; i++) TheBusProject.Helpers.GameObjectHelpers.SimulateTurn();
@@ -722,7 +722,7 @@ static class VmTest
         }
         foreach (var f in h.Fleet)
         {
-            if (f.Pilots.Count < f.Coach.Type.CockpitCrew) TheBusProject.Helpers.CarrierHelpers.HireCoachPilots(f);
+            if (f.Drivers.Count < f.Coach.Type.DriverCrew) TheBusProject.Helpers.CarrierHelpers.HireCoachDrivers(f);
             if (f.Routes.Count > 0 && f.Status == TheBusProject.Models.Coaches.FleetCoach.CoachStatus.Stopped) f.Status = TheBusProject.Models.Coaches.FleetCoach.CoachStatus.OnRoute;
         }
         Console.WriteLine("  routes: " + string.Join(", ", h.Routes.Select(r => r.Destination1.Profile.IATACode + "-" + r.Destination2.Profile.IATACode + " (" + string.Join(",", r.GetCoaches().Select(x => x.Name)) + ")")));
@@ -1068,7 +1068,7 @@ static class VmTest
         foreach (var item in mk.Coach.OrderBy(x => x.Coach.GetPrice()).Skip(40).Take(200)) { mk.Selected = item; if (mk.Homebase != null) break; }
         mk.BuyCommand.Execute(null);
         av.Refresh();
-        foreach (var f in h.Fleet) if (f.Pilots.Count < f.Coach.Type.CockpitCrew) TheBusProject.Helpers.CarrierHelpers.HireCoachPilots(f);
+        foreach (var f in h.Fleet) if (f.Drivers.Count < f.Coach.Type.DriverCrew) TheBusProject.Helpers.CarrierHelpers.HireCoachDrivers(f);
         var sv = av.Suggestions;
         await sv.Reload();
         var top = sv.Coach.First(a => a.Suggestions.Count > 0).Suggestions[0];
@@ -1112,7 +1112,7 @@ static class VmTest
         foreach (var item in mk.Coach.OrderBy(x => x.Coach.GetPrice()).Skip(skip).Take(200)) { mk.Selected = item; if (mk.Homebase != null) break; }
         mk.BuyCommand.Execute(null);
         av.Refresh();
-        foreach (var f in h.Fleet) if (f.Pilots.Count < f.Coach.Type.CockpitCrew) TheBusProject.Helpers.CarrierHelpers.HireCoachPilots(f);
+        foreach (var f in h.Fleet) if (f.Drivers.Count < f.Coach.Type.DriverCrew) TheBusProject.Helpers.CarrierHelpers.HireCoachDrivers(f);
         var sv = av.Suggestions;
         await sv.Reload();
         var top = sv.Coach.First(a => a.Suggestions.Count > 0).Suggestions[0];
@@ -1597,7 +1597,7 @@ static class VmTest
             mk.BuyCommand.Execute(null);
         }
         av.Refresh();
-        foreach (var f in h.Fleet) if (f.Pilots.Count < f.Coach.Type.CockpitCrew) TheBusProject.Helpers.CarrierHelpers.HireCoachPilots(f);
+        foreach (var f in h.Fleet) if (f.Drivers.Count < f.Coach.Type.DriverCrew) TheBusProject.Helpers.CarrierHelpers.HireCoachDrivers(f);
         var idle = TheBusProject.Helpers.RouteSuggestionService.IdleCoach(h);
         Console.WriteLine("  idle: " + string.Join(", ", idle.Select(f => f.Name + " " + f.Coach.Type.Name + " (" + f.Coach.GetTotalSeatCapacity() + " seats, " + f.Coach.Range + " km)")));
         if (idle.Count < 2) fail("no idle coach to suggest for");
@@ -1703,7 +1703,7 @@ static class VmTest
         }
         foreach (var f in h.Fleet)
         {
-            if (f.Pilots.Count < f.Coach.Type.CockpitCrew) TheBusProject.Helpers.CarrierHelpers.HireCoachPilots(f);
+            if (f.Drivers.Count < f.Coach.Type.DriverCrew) TheBusProject.Helpers.CarrierHelpers.HireCoachDrivers(f);
             if (f.Routes.Count > 0 && f.Status == TheBusProject.Models.Coaches.FleetCoach.CoachStatus.Stopped) f.Status = TheBusProject.Models.Coaches.FleetCoach.CoachStatus.OnRoute;
         }
     }
@@ -2277,7 +2277,7 @@ static class VmTest
             var al = new TheBusProject.Models.Coaches.Coach("rk" + i, type, "N-RK" + i, g.GameTime.AddYears(-1)) { Carrier = me };
             TheBusProject.Models.Coaches.Coaches.AddCoach(al);
             var f = TheBusProject.Helpers.CarrierHelpers.AddCoach(me, al, home, false);
-            TheBusProject.Helpers.CarrierHelpers.HireCoachPilots(f);
+            TheBusProject.Helpers.CarrierHelpers.HireCoachDrivers(f);
             shared.Add(f);
         }
 
@@ -2396,7 +2396,7 @@ static class VmTest
             var al = new TheBusProject.Models.Coaches.Coach("gt", type, "N-GT", g.GameTime.AddYears(-1)) { Carrier = me };
             TheBusProject.Models.Coaches.Coaches.AddCoach(al);
             var f = TheBusProject.Helpers.CarrierHelpers.AddCoach(me, al, home, false);
-            TheBusProject.Helpers.CarrierHelpers.HireCoachPilots(f);
+            TheBusProject.Helpers.CarrierHelpers.HireCoachDrivers(f);
             string why;
             var route = (TheBusProject.Models.Routes.PassengerRoute) TheBusProject.Helpers.RouteCreator.Create(
                 new TheBusProject.Helpers.NewRouteRequest { Origin = home, Destination = away, RouteType = TheBusProject.Models.Routes.Route.RouteType.Passenger }, out why);
@@ -2524,7 +2524,7 @@ static class VmTest
         var al = new TheBusProject.Models.Coaches.Coach("be", type, "N-BE1", g.GameTime.AddYears(-1)) { Carrier = me };
         TheBusProject.Models.Coaches.Coaches.AddCoach(al);
         var f = TheBusProject.Helpers.CarrierHelpers.AddCoach(me, al, home, false);
-        TheBusProject.Helpers.CarrierHelpers.HireCoachPilots(f);
+        TheBusProject.Helpers.CarrierHelpers.HireCoachDrivers(f);
         var dest = TheBusProject.Models.Stations.Stations.GetAllStations()
             .Where(x => x != home && x.Profile.Town != null
                         && TheBusProject.Helpers.MathHelpers.GetDistance(home, x) > 600
@@ -2597,7 +2597,7 @@ static class VmTest
         var al = new TheBusProject.Models.Coaches.Coach("sch", type, "N-SCH", g.GameTime.AddYears(-1)) { Carrier = me };
         TheBusProject.Models.Coaches.Coaches.AddCoach(al);
         var f = TheBusProject.Helpers.CarrierHelpers.AddCoach(me, al, home, false);
-        TheBusProject.Helpers.CarrierHelpers.HireCoachPilots(f);
+        TheBusProject.Helpers.CarrierHelpers.HireCoachDrivers(f);
         var dest = TheBusProject.Models.Stations.Stations.GetAllStations()
             .Where(x => x != home && x.Profile.Town != null
                         && TheBusProject.Helpers.MathHelpers.GetDistance(home, x) > 300
@@ -4011,7 +4011,7 @@ static class VmTest
         }
         foreach (var f in h.Fleet)
         {
-            if (f.Pilots.Count < f.Coach.Type.CockpitCrew) TheBusProject.Helpers.CarrierHelpers.HireCoachPilots(f);
+            if (f.Drivers.Count < f.Coach.Type.DriverCrew) TheBusProject.Helpers.CarrierHelpers.HireCoachDrivers(f);
             if (f.Routes.Count > 0 && f.Status == TheBusProject.Models.Coaches.FleetCoach.CoachStatus.Stopped) f.Status = TheBusProject.Models.Coaches.FleetCoach.CoachStatus.OnRoute;
         }
         var g = TheBusProject.Models.General.GameObject.GetInstance();
@@ -4121,7 +4121,7 @@ static class VmTest
         if (ap.Create != null) ap.Create.CreateCommand.Execute(null);
         var route = h.Routes.First(r => r.HasCoach);
         var a = route.GetCoaches()[0];
-        if (a.Pilots.Count < a.Coach.Type.CockpitCrew) TheBusProject.Helpers.CarrierHelpers.HireCoachPilots(a);
+        if (a.Drivers.Count < a.Coach.Type.DriverCrew) TheBusProject.Helpers.CarrierHelpers.HireCoachDrivers(a);
         if (a.Status == TheBusProject.Models.Coaches.FleetCoach.CoachStatus.Stopped) a.Status = TheBusProject.Models.Coaches.FleetCoach.CoachStatus.OnRoute;
         var oldType = a.Coach.Type;
         var oldTimes = route.TimeTable.Entries.Where(e => e.Coach == a).Select(e => e.Day + " " + e.Time).OrderBy(x => x).ToList();
@@ -4170,7 +4170,7 @@ static class VmTest
         route = h.Routes.First(r => r.Destination1.Profile.IATACode + "-" + r.Destination2.Profile.IATACode == code);
         Console.WriteLine("  after load: " + nw.Name + " replaces " + nw.ReplacesOnDelivery?.Name + " (same object as in the fleet: " + (nw.ReplacesOnDelivery == a) + ")");
         if (nw.ReplacesOnDelivery != a) { Console.WriteLine("  FAILED link lost on load"); Environment.Exit(1); }
-        if (a.Pilots.Count < a.Coach.Type.CockpitCrew) TheBusProject.Helpers.CarrierHelpers.HireCoachPilots(a);
+        if (a.Drivers.Count < a.Coach.Type.DriverCrew) TheBusProject.Helpers.CarrierHelpers.HireCoachDrivers(a);
 
         double moneyBefore = h.Money;
         while (g.GameTime.Date <= delivery.AddDays(1)) TheBusProject.Helpers.GameObjectHelpers.SimulateTurn();
@@ -4178,7 +4178,7 @@ static class VmTest
         Console.WriteLine("  " + g.GameTime.ToShortDateString() + ": " + news?.Subject + " | " + news?.Body?.Replace("\n", " / "));
         var now = route.GetCoaches();
         var newTimes = route.TimeTable.Entries.Where(e => e.Coach == nw).Select(e => e.Day + " " + e.Time).OrderBy(x => x).ToList();
-        Console.WriteLine("  route now run by " + string.Join(", ", now.Select(f => f.Name + " " + f.Coach.Type.Name + " pilots " + f.Pilots.Count + "/" + f.Coach.Type.CockpitCrew + " " + f.Status))
+        Console.WriteLine("  route now run by " + string.Join(", ", now.Select(f => f.Name + " " + f.Coach.Type.Name + " drivers " + f.Drivers.Count + "/" + f.Coach.Type.DriverCrew + " " + f.Status))
                           + " | same times " + oldTimes.SequenceEqual(newTimes) + " | " + a.Name + " in fleet " + h.Fleet.Contains(a) + " | paid " + nw.Purchased + " | waiting " + TheBusProject.Helpers.FleetRenewalService.Pending().Count);
         if (!now.Contains(nw) || now.Contains(a) || h.Fleet.Contains(a) || nw.ReplacesOnDelivery != null || news == null || nw.Purchased != TheBusProject.Models.Coaches.FleetCoach.PurchasedType.Bought)
         { Console.WriteLine("  FAILED handover"); Environment.Exit(1); }
@@ -4437,7 +4437,7 @@ static class VmTest
         }
         foreach (var f in me.Fleet.ToList())
         {
-            if (f.Pilots.Count < f.Coach.Type.CockpitCrew) { TheBusProject.Helpers.PilotSupply.EnsureFamily(f.Coach.Type.CoachFamily); TheBusProject.Helpers.CarrierHelpers.HireCoachPilots(f); }
+            if (f.Drivers.Count < f.Coach.Type.DriverCrew) { TheBusProject.Helpers.DriverSupply.EnsureFamily(f.Coach.Type.CoachFamily); TheBusProject.Helpers.CarrierHelpers.HireCoachDrivers(f); }
             if (f.HasRoute) TheBusProject.Presentation.FleetOverviewViewModel.TryStart(f);
         }
         Console.WriteLine("routes " + me.Routes.Count + ": " + string.Join(", ", me.Routes.Select(r => r.Destination1.Profile.IATACode + "-" + r.Destination2.Profile.IATACode + " " + TheBusProject.Helpers.MathHelpers.GetDistance(r.Destination1, r.Destination2).ToString("N0") + "km")));
@@ -4527,6 +4527,111 @@ static class VmTest
     }
 
     // short tests of the newest pages: run with "vm quick"
+    /// <summary>
+    ///     "vm milestone": the first milestone, start to finish. What a coach costs new, used and on lease; one of
+    ///     each bought; a route opened with a timetable and fares; a month run; and what the month earned.
+    /// </summary>
+    static void MilestoneTest(CarrierViewModel av)
+    {
+        var g = TheBusProject.Models.General.GameObject.GetInstance();
+        var me = g.HumanCarrier;
+        Func<double, string> M = v => (v < 0 ? "-$" : "$") + Math.Abs(v).ToString("N0");
+
+        Console.WriteLine("MILESTONE: BUY OR LEASE A COACH, RUN ONE ROUTE, SEE THE MONEY");
+        Console.WriteLine("  " + me.Profile.Name + ", " + g.GameTime.ToString("MMMM yyyy") + ", cash " + M(me.Money));
+
+        Console.WriteLine("THE SHOWROOM: what the makers will sell you new");
+        var nv = av.NewCoach;
+        foreach (var maker in nv.Types.Select(t => t.Type.Manufacturer.Name).Distinct().OrderBy(x => x))
+        {
+            foreach (var item in nv.Types.Where(t => t.Type.Manufacturer.Name == maker)
+                                         .OrderByDescending(t => t.Type.Price).Take(3))
+            {
+                var t = (TheBusProject.Models.Coaches.CoachPassengerType)item.Type;
+                var sample = new TheBusProject.Models.Coaches.Coach("show", t, "N-SHOW", g.GameTime);
+                Console.WriteLine(string.Format("  {0,-26} {1,3} seats  new {2,10}  lease {3,9} a month  {4:#,0} km range",
+                                                t.Name, t.MaxSeatingCapacity, M(t.Price), M(sample.GetLeasingPrice()), t.Range));
+            }
+        }
+
+        Console.WriteLine("THE USED MARKET: what is for sale and for lease today");
+        var mk = av.Market;
+        Console.WriteLine("  " + mk.Coach.Count + " coaches on the market");
+        foreach (var item in mk.Coach.OrderBy(a => a.Coach.GetPrice()).Take(5))
+        {
+            Console.WriteLine("  " + item.Name + "  |  " + item.PriceText);
+        }
+
+        Console.WriteLine("BUYING ONE AND LEASING ONE");
+        double cash0 = me.Money;
+        // buy the cheapest coach on the market that can be based somewhere
+        TheBusProject.Presentation.CoachItem buy = null, lease = null;
+        foreach (var item in mk.Coach.OrderBy(a => a.Coach.GetPrice()))
+        {
+            mk.Selected = item;
+            if (mk.Homebase == null) continue;
+            if (buy == null) { buy = item; continue; }
+            if (lease == null && item.Coach.Type != buy.Coach.Type) { lease = item; break; }
+        }
+        mk.Selected = buy; mk.BuyCommand.Execute(null);
+        Console.WriteLine("  bought: " + mk.Status);
+        mk.Selected = lease; mk.LeaseCommand.Execute(null);
+        Console.WriteLine("  leased: " + mk.Status);
+        av.Refresh();
+        Console.WriteLine("  fleet " + av.Fleet.Count + ", cash " + M(cash0) + " -> " + M(me.Money));
+        foreach (var f in me.Fleet)
+        {
+            bool leased = f.Purchased == TheBusProject.Models.Coaches.FleetCoach.PurchasedType.Leased;
+            double monthly = leased ? f.Coach.GetLeasingPrice() : TheBusProject.Helpers.OwnershipService.MonthlyCost(f);
+            TheBusProject.Helpers.CarrierHelpers.HireCoachDrivers(f);
+            Console.WriteLine(string.Format("  {0,-10} {1,-22} {2,3} seats  {3,-6}  {4,8} a month  {5} driver(s) hired",
+                                            f.Name, f.Coach.Type.Name, f.Coach.GetTotalSeatCapacity(),
+                                            leased ? "leased" : "owned", M(monthly), f.Drivers.Count));
+        }
+
+        Console.WriteLine("OPENING A ROUTE");
+        var home = me.Fleet[0].Homebase;
+        var sv = TheBusProject.Helpers.RouteSuggestionService.ForIdle(me);
+        var best = sv.SelectMany(x => x.Value).OrderByDescending(x => x.GainPerDay).FirstOrDefault();
+        if (best == null) { Console.WriteLine("  no route suggested from " + home.Profile.IATACode); Environment.Exit(1); }
+        Console.WriteLine(string.Format("  the best route for {0}: {1} ({2:#,0} km), about {3:#,0} passengers a day want it, {4} rival(s)",
+                                        best.Coach.Name, best.Name, best.Km, best.DailyDemand, best.Forecast.Rivals));
+        Console.WriteLine(string.Format("  the forecast at {0} round trip(s) a day: {1:0}% full, {2} a day from the trips, {3} a day after the coach's own cost",
+                                        best.Forecast.RoundTrips, best.Forecast.Load*100, M(best.Forecast.ProfitPerDay), M(best.NetPerDay)));
+        var plan = new RouteSuggestionsViewModel(() => { }, (a, b, f) => { });
+        var open = plan.Open(best);
+        Console.WriteLine("  open: " + plan.Status);
+        if (!open) Environment.Exit(1);
+        var route = (TheBusProject.Models.Routes.PassengerRoute)me.Routes.Last();
+        foreach (var cl in route.Classes)
+        {
+            Console.WriteLine(string.Format("  fare {0}: {1}  (the going rate is {2})", cl.Type, M(cl.FarePrice),
+                                            M(TheBusProject.Helpers.PricingService.MarketFare(route.Destination1, route.Destination2, cl.Type))));
+        }
+        Console.WriteLine("  timetable: " + route.TimeTable.Entries.Count + " trips a week");
+        foreach (var e in route.TimeTable.Entries.OrderBy(x => x.Day).ThenBy(x => x.Time).Take(6))
+        {
+            Console.WriteLine("    " + e.Day + " " + e.Time.ToString(@"hh\:mm") + " to " + e.Destination.Station.Profile.IATACode + " as " + e.Destination.TripCode);
+        }
+
+        Console.WriteLine("RUNNING IT");
+        for (int m = 0; m < 2; m++)
+        {
+            int month = g.GameTime.Month;
+            while (g.GameTime.Month == month) TheBusProject.Helpers.GameObjectHelpers.SimulateTurn();
+            var done = g.GameTime.AddMonths(-1);
+            double tickets = TheBusProject.Helpers.RouteProfitService.Month(route, TheBusProject.Models.General.Finances.Invoice.InvoiceType.Tickets, done.Year, done.Month);
+            double onroad = TheBusProject.Helpers.RouteProfitService.Month(route, TheBusProject.Models.General.Finances.Invoice.InvoiceType.TripExpenses, done.Year, done.Month);
+            double profit = TheBusProject.Helpers.RouteProfitService.Month(route, done.Year, done.Month);
+            double own = me.Fleet.Sum(f => TheBusProject.Helpers.OwnershipService.MonthlyCost(f));
+            Console.WriteLine(string.Format("  {0:MMMM yyyy}: {1:0}% full, tickets {2}, the trips cost {3}, the route made {4}; the fleet cost {5} to keep; cash {6}",
+                                            done, TheBusProject.Helpers.ConnectionService.MonthLoad(route)*100,
+                                            M(tickets), M(onroad), M(profit), M(own), M(me.Money)));
+        }
+        Console.WriteLine("MILESTONE TEST OK");
+        Environment.Exit(0);
+    }
+
     static void QuickTests(CarrierViewModel av)
     {
         Console.WriteLine("STATION TYPE TEST");
@@ -4581,7 +4686,7 @@ static class VmTest
                 cr.CreateCommand.Execute(null);
                 Console.WriteLine("  route: " + ap.Status);
             }
-            TheBusProject.Helpers.PilotSupply.TopUp(TheBusProject.Models.General.GameObject.GetInstance().HumanCarrier);
+            TheBusProject.Helpers.DriverSupply.TopUp(TheBusProject.Models.General.GameObject.GetInstance().HumanCarrier);
         }
         var rv = av.Ratings;
         rv.Reload();
@@ -4735,7 +4840,7 @@ static class VmTest
             var me6 = TheBusProject.Models.General.GameObject.GetInstance().HumanCarrier;
             foreach (var f6 in me6.Fleet.ToList())
             {
-                if (f6.Pilots.Count < f6.Coach.Type.CockpitCrew) { TheBusProject.Helpers.PilotSupply.EnsureFamily(f6.Coach.Type.CoachFamily); TheBusProject.Helpers.CarrierHelpers.HireCoachPilots(f6); }
+                if (f6.Drivers.Count < f6.Coach.Type.DriverCrew) { TheBusProject.Helpers.DriverSupply.EnsureFamily(f6.Coach.Type.CoachFamily); TheBusProject.Helpers.CarrierHelpers.HireCoachDrivers(f6); }
                 if (f6.HasRoute) Console.WriteLine("  start " + f6.Name + ": " + TheBusProject.Presentation.FleetOverviewViewModel.TryStart(f6));
             }
             var sw6 = System.Diagnostics.Stopwatch.StartNew();
@@ -5383,6 +5488,7 @@ static class VmTest
             await Wait(() => shell.Current is CarrierViewModel, "game created");
             var av = (CarrierViewModel)shell.Current;
             Console.WriteLine("CARRIER SCREEN: " + av.CarrierName + " " + av.Date + " " + av.Money + " fleet=" + av.Fleet.Count + " routes=" + av.Routes.Count + " running=" + av.IsRunning);
+            if (Environment.GetCommandLineArgs().Contains("milestone")) { MilestoneTest(av); return; }
             if (Environment.GetCommandLineArgs().Contains("quick")) { QuickTests(av); return; }
             if (Environment.GetCommandLineArgs().Contains("cargo")) { CargoProbe(); return; }
             if (Environment.GetCommandLineArgs().Contains("carriers")) { CarriersProbe(); return; }
@@ -5722,12 +5828,12 @@ static class VmTest
             var buy = am.Terminals.FirstOrDefault(t => t.CanBuy);
             if (buy != null) { buy.BuyCommand.Execute(null); Console.WriteLine("buy pending: " + am.PendingText); am.CancelPendingCommand.Execute(null); }
             // crew the coach, then start it
-            var pv = av.Pilots;
+            var pv = av.Drivers;
             Console.WriteLine("targets: " + string.Join(" | ", pv.Targets.Select(t => t.Name)) + " ; available(any)=" + pv.Available.Count);
             pv.Target = pv.Targets.First(t => t.Coach != null);
             Console.WriteLine("available for target=" + pv.Available.Count);
             pv.HireCrewCommand.Execute(null);
-            Console.WriteLine("pilots: " + pv.Status + " hired=" + pv.Hired.Count);
+            Console.WriteLine("drivers: " + pv.Status + " hired=" + pv.Hired.Count);
             av.Refresh();
             var fi = av.Fleet.First();
             Console.WriteLine("fleet: " + fi.Name + " " + fi.Status + " " + fi.Crew + " canStart=" + fi.CanStart);
@@ -6413,22 +6519,22 @@ static class VmTest
                 if (k1 != "1,000 km" || k2 != "800 km/h" || k3 != "2,500 m" || m1 != "621 mi" || m2 != "497 mph" || m3 != "8,202 ft") { Console.WriteLine("  FAILED distance"); Environment.Exit(1); }
             }
             {
-                Console.WriteLine("PILOT SUPPLY AND TRIP SCHOOL TEST");
+                Console.WriteLine("DRIVER SUPPLY AND TRIP SCHOOL TEST");
                 var gs = TheBusProject.Models.General.GameObject.GetInstance();
                 var hs = gs.HumanCarrier;
-                // pilots never run out
-                int made = TheBusProject.Helpers.PilotSupply.EnsureFamily("Zeppelin NT");
-                int madeAgain = TheBusProject.Helpers.PilotSupply.EnsureFamily("Zeppelin NT");
-                TheBusProject.Helpers.PilotSupply.EnsureAnyPilots();
-                int pool = TheBusProject.Models.Pilots.Pilots.GetPilots().Count(p0 => p0.Carrier == null);
-                Console.WriteLine("  new family: created " + made + ", again " + madeAgain + ", pool " + pool + ", for the family " + TheBusProject.Helpers.PilotSupply.CountFor("Zeppelin NT"));
-                if (made != TheBusProject.Helpers.PilotSupply.MinPerFamily || madeAgain != 0 || pool < TheBusProject.Helpers.PilotSupply.MinPilots) { Console.WriteLine("  FAILED pilot supply"); Environment.Exit(1); }
-                foreach (var p1 in TheBusProject.Models.Pilots.Pilots.GetPilots().Where(p1 => p1.Carrier == null && p1.Coaches != null && p1.Coaches.Contains("Zeppelin NT")).ToList()) p1.Carrier = hs; //all taken
-                int gone = TheBusProject.Helpers.PilotSupply.CountFor("Zeppelin NT");
-                var refill = TheBusProject.Helpers.PilotSupply.EnsureFamily("Zeppelin NT");
+                // drivers never run out
+                int made = TheBusProject.Helpers.DriverSupply.EnsureFamily("Zeppelin NT");
+                int madeAgain = TheBusProject.Helpers.DriverSupply.EnsureFamily("Zeppelin NT");
+                TheBusProject.Helpers.DriverSupply.EnsureAnyDrivers();
+                int pool = TheBusProject.Models.Drivers.Drivers.GetDrivers().Count(p0 => p0.Carrier == null);
+                Console.WriteLine("  new family: created " + made + ", again " + madeAgain + ", pool " + pool + ", for the family " + TheBusProject.Helpers.DriverSupply.CountFor("Zeppelin NT"));
+                if (made != TheBusProject.Helpers.DriverSupply.MinPerFamily || madeAgain != 0 || pool < TheBusProject.Helpers.DriverSupply.MinDrivers) { Console.WriteLine("  FAILED driver supply"); Environment.Exit(1); }
+                foreach (var p1 in TheBusProject.Models.Drivers.Drivers.GetDrivers().Where(p1 => p1.Carrier == null && p1.Coaches != null && p1.Coaches.Contains("Zeppelin NT")).ToList()) p1.Carrier = hs; //all taken
+                int gone = TheBusProject.Helpers.DriverSupply.CountFor("Zeppelin NT");
+                var refill = TheBusProject.Helpers.DriverSupply.EnsureFamily("Zeppelin NT");
                 Console.WriteLine("  all taken: " + gone + " left, refilled with " + refill);
-                foreach (var p1 in TheBusProject.Models.Pilots.Pilots.GetPilots().Where(p1 => p1.Carrier == hs && p1.Coaches != null && p1.Coaches.Contains("Zeppelin NT") && !hs.Pilots.Contains(p1)).ToList()) p1.Carrier = null;
-                if (gone != 0 || refill != TheBusProject.Helpers.PilotSupply.MinPerFamily) { Console.WriteLine("  FAILED refill"); Environment.Exit(1); }
+                foreach (var p1 in TheBusProject.Models.Drivers.Drivers.GetDrivers().Where(p1 => p1.Carrier == hs && p1.Coaches != null && p1.Coaches.Contains("Zeppelin NT") && !hs.Drivers.Contains(p1)).ToList()) p1.Carrier = null;
+                if (gone != 0 || refill != TheBusProject.Helpers.DriverSupply.MinPerFamily) { Console.WriteLine("  FAILED refill"); Environment.Exit(1); }
 
                 // trip school
                 TheBusProject.Helpers.CarrierHelpers.AddCarrierInvoice(hs, gs.GameTime, TheBusProject.Models.General.Finances.Invoice.InvoiceType.CarrierExpenses, 50000000);
@@ -6443,7 +6549,7 @@ static class VmTest
                 else
                 {
                     Console.WriteLine("  (no station can take a school, building one directly)");
-                    hs.AddTripSchool(new TheBusProject.Models.Pilots.TripSchool(hs.Stations[0]));
+                    hs.AddTripSchool(new TheBusProject.Models.Drivers.TripSchool(hs.Stations[0]));
                     fsv.Reload();
                 }
                 Console.WriteLine("  built: " + fsv.Status + " | schools " + fsv.Schools.Count);
@@ -6489,70 +6595,70 @@ static class VmTest
                 var grad = school.Students[0];
                 string fam = grad.CoachFamily;
                 grad.EndDate = gs.GameTime;
-                int pilotsBefore = hs.Pilots.Count;
+                int driversBefore = hs.Drivers.Count;
                 typeof(TheBusProject.Helpers.GameObjectHelpers).GetMethod("DoDailyUpdate", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).Invoke(null, null);
-                var graduate = hs.Pilots.FirstOrDefault(p2 => p2.Profile == grad.Profile);
-                Console.WriteLine("  graduation: pilots " + pilotsBefore + " -> " + hs.Pilots.Count + " | students left " + school.Students.Count + " | pilot " + (graduate != null ? graduate.Profile.Name + " runs " + string.Join(",", graduate.Coaches) + " on " + (graduate.Coach != null ? graduate.Coach.Name : "no coach yet") : "MISSING"));
+                var graduate = hs.Drivers.FirstOrDefault(p2 => p2.Profile == grad.Profile);
+                Console.WriteLine("  graduation: drivers " + driversBefore + " -> " + hs.Drivers.Count + " | students left " + school.Students.Count + " | driver " + (graduate != null ? graduate.Profile.Name + " runs " + string.Join(",", graduate.Coaches) + " on " + (graduate.Coach != null ? graduate.Coach.Name : "no coach yet") : "MISSING"));
                 if (graduate == null || !graduate.Coaches.Contains(fam) || school.Students.Count != 1 || grad.Instructor != null) { Console.WriteLine("  FAILED graduation"); Environment.Exit(1); }
 
                 fsv.Reload();
                 double mClose = gs.HumanMoney;
                 fsv.CloseCommand.Execute(null);
                 fsv.ConfirmCommand.Execute(null);
-                Console.WriteLine("  closed: " + fsv.Status + " | schools " + fsv.Schools.Count + " | money " + (gs.HumanMoney - mClose).ToString("0") + " | instructors back on the market: " + TheBusProject.Models.Pilots.Instructors.GetUnassignedInstructors().Count(i1 => school.Instructors.Contains(i1)));
+                Console.WriteLine("  closed: " + fsv.Status + " | schools " + fsv.Schools.Count + " | money " + (gs.HumanMoney - mClose).ToString("0") + " | instructors back on the market: " + TheBusProject.Models.Drivers.Instructors.GetUnassignedInstructors().Count(i1 => school.Instructors.Contains(i1)));
                 if (fsv.Schools.Count != 0 || !(gs.HumanMoney > mClose)) { Console.WriteLine("  FAILED close"); Environment.Exit(1); }
 
-                // the pilots tab: a family with nobody for hire is refilled
-                var pvm = new PilotsViewModel(() => { });
+                // the drivers tab: a family with nobody for hire is refilled
+                var pvm = new DriversViewModel(() => { });
                 int ni = pvm.Available.Count;
-                Console.WriteLine("  pilots tab: " + ni + " pilots for hire");
-                if (ni == 0) { Console.WriteLine("  FAILED pilots for hire"); Environment.Exit(1); }
+                Console.WriteLine("  drivers tab: " + ni + " drivers for hire");
+                if (ni == 0) { Console.WriteLine("  FAILED drivers for hire"); Environment.Exit(1); }
 
-                // type training for a pilot without an coach
+                // type training for a driver without an coach
                 pvm.Reload();
-                Console.WriteLine("  your pilots: " + pvm.Hired.Count + ", marked without coach: " + pvm.Hired.Count(h => h.IsIdle));
-                if (!pvm.Hired.Any(h => h.IsIdle && h.Pilot == graduate)) { Console.WriteLine("  FAILED idle marker"); Environment.Exit(1); }
-                pvm.TrainPilot = pvm.TrainPilots.First(c => c.Value == graduate);
-                Console.WriteLine("  train: " + pvm.TrainPilots.Count + " pilot(s) without coach, " + pvm.TrainFamilies.Count + " families, first: " + pvm.TrainFamilies[0].Name + " | " + pvm.TrainHint);
+                Console.WriteLine("  your drivers: " + pvm.Hired.Count + ", marked without coach: " + pvm.Hired.Count(h => h.IsIdle));
+                if (!pvm.Hired.Any(h => h.IsIdle && h.Driver == graduate)) { Console.WriteLine("  FAILED idle marker"); Environment.Exit(1); }
+                pvm.TrainDriver = pvm.TrainDrivers.First(c => c.Value == graduate);
+                Console.WriteLine("  train: " + pvm.TrainDrivers.Count + " driver(s) without coach, " + pvm.TrainFamilies.Count + " families, first: " + pvm.TrainFamilies[0].Name + " | " + pvm.TrainHint);
                 string tf = pvm.TrainFamilies[0].Value;
                 double mTrain = gs.HumanMoney;
                 pvm.TrainCommand.Execute(null);
                 Console.WriteLine("  pending: " + pvm.PendingText);
                 pvm.ConfirmCommand.Execute(null);
-                Console.WriteLine("  trained: " + pvm.Status + " | money " + (gs.HumanMoney - mTrain).ToString("0") + " | " + pvm.Hired.First(h => h.Pilot == graduate).Assignment);
-                if (graduate.Training == null || graduate.Training.CoachFamily != tf || !(gs.HumanMoney < mTrain) || pvm.TrainPilots.Any(c => c.Value == graduate)) { Console.WriteLine("  FAILED training start"); Environment.Exit(1); }
+                Console.WriteLine("  trained: " + pvm.Status + " | money " + (gs.HumanMoney - mTrain).ToString("0") + " | " + pvm.Hired.First(h => h.Driver == graduate).Assignment);
+                if (graduate.Training == null || graduate.Training.CoachFamily != tf || !(gs.HumanMoney < mTrain) || pvm.TrainDrivers.Any(c => c.Value == graduate)) { Console.WriteLine("  FAILED training start"); Environment.Exit(1); }
                 string mt;
-                bool again2 = TheBusProject.Helpers.TripSchoolService.TrainPilot(hs, graduate, tf, out mt);
+                bool again2 = TheBusProject.Helpers.TripSchoolService.TrainDriver(hs, graduate, tf, out mt);
                 Console.WriteLine("  twice: " + again2 + " | " + mt);
                 graduate.Training.EndDate = gs.GameTime;
                 typeof(TheBusProject.Helpers.GameObjectHelpers).GetMethod("DoDailyUpdate", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).Invoke(null, null);
                 Console.WriteLine("  after training: runs " + string.Join(",", graduate.Coaches) + " | training " + (graduate.Training == null ? "done" : "still on"));
                 if (again2 || graduate.Training != null || !graduate.Coaches.Contains(tf)) { Console.WriteLine("  FAILED training end"); Environment.Exit(1); }
 
-                // assigning pilots
-                var manned = hs.Fleet.First(f0 => f0.Pilots.Count > 0);
-                var q = manned.Pilots[0];
+                // assigning drivers
+                var manned = hs.Fleet.First(f0 => f0.Drivers.Count > 0);
+                var q = manned.Drivers[0];
                 pvm.AutoAssign = false;
                 string ma;
-                bool un = TheBusProject.Helpers.TripSchoolService.UnassignPilot(hs, q, out ma);
+                bool un = TheBusProject.Helpers.TripSchoolService.UnassignDriver(hs, q, out ma);
                 Console.WriteLine("  unassign: " + un + " | " + ma);
                 pvm.Reload();
-                pvm.AssignPilot = pvm.AssignPilots.First(c => c.Value == q);
-                Console.WriteLine("  assign: " + pvm.AssignPilots.Count + " pilots, first: " + pvm.AssignPilots[0].Name + " | targets " + string.Join(";", pvm.AssignTargets.Select(c => c.Name)) + " | " + pvm.AssignHint);
+                pvm.AssignDriver = pvm.AssignDrivers.First(c => c.Value == q);
+                Console.WriteLine("  assign: " + pvm.AssignDrivers.Count + " drivers, first: " + pvm.AssignDrivers[0].Name + " | targets " + string.Join(";", pvm.AssignTargets.Select(c => c.Name)) + " | " + pvm.AssignHint);
                 if (!un || q.Coach != null || !pvm.AssignTargets.Any(c => c.Value == manned)) { Console.WriteLine("  FAILED assign targets"); Environment.Exit(1); }
                 pvm.AssignTarget = pvm.AssignTargets.First(c => c.Value == manned);
                 pvm.AssignCommand.Execute(null);
                 Console.WriteLine("  assigned: " + pvm.Status);
-                if (q.Coach != manned || !manned.Pilots.Contains(q)) { Console.WriteLine("  FAILED assign"); Environment.Exit(1); }
+                if (q.Coach != manned || !manned.Drivers.Contains(q)) { Console.WriteLine("  FAILED assign"); Environment.Exit(1); }
                 string mb;
-                bool wrong = TheBusProject.Helpers.TripSchoolService.AssignPilot(hs, graduate, manned, out mb);
+                bool wrong = TheBusProject.Helpers.TripSchoolService.AssignDriver(hs, graduate, manned, out mb);
                 Console.WriteLine("  wrong type or full: " + wrong + " | " + mb);
                 if (wrong) { Console.WriteLine("  FAILED assign guard"); Environment.Exit(1); }
-                //automatic: switching it on puts idle pilots on the coach that need them
-                TheBusProject.Helpers.TripSchoolService.UnassignPilot(hs, q, out ma);
+                //automatic: switching it on puts idle drivers on the coach that need them
+                TheBusProject.Helpers.TripSchoolService.UnassignDriver(hs, q, out ma);
                 pvm.AutoAssign = true;
                 Console.WriteLine("  automatic on: " + pvm.Status + " | " + q.Profile.Name + " -> " + (q.Coach != null ? q.Coach.Name : "no coach"));
-                if (!hs.AutoAssignPilots || q.Coach != manned) { Console.WriteLine("  FAILED auto assign"); Environment.Exit(1); }
+                if (!hs.AutoAssignDrivers || q.Coach != manned) { Console.WriteLine("  FAILED auto assign"); Environment.Exit(1); }
             }
             {
                 Console.WriteLine("CHARTER TEST");
@@ -6562,7 +6668,7 @@ static class VmTest
                 TheBusProject.Helpers.CharterService.Refresh(true);
                 Console.WriteLine("  random offers: " + TheBusProject.Helpers.CharterService.Offers.Count);
                 if (TheBusProject.Helpers.CharterService.Offers.Count == 0) { Console.WriteLine("  FAILED no offers"); Environment.Exit(1); }
-                var cf = ca.Fleet.FirstOrDefault(x => x.Coach.BuiltDate <= cg.GameTime && x.Coach.Type is TheBusProject.Models.Coaches.CoachPassengerType && x.Pilots.Count >= x.Coach.Type.CockpitCrew && x.CurrentPosition != null);
+                var cf = ca.Fleet.FirstOrDefault(x => x.Coach.BuiltDate <= cg.GameTime && x.Coach.Type is TheBusProject.Models.Coaches.CoachPassengerType && x.Drivers.Count >= x.Coach.Type.DriverCrew && x.CurrentPosition != null);
                 if (cf == null) { Console.WriteLine("  (no crewed passenger coach, skipped)"); }
                 else
                 {
@@ -6659,56 +6765,56 @@ static class VmTest
                 }
             }
             {
-                Console.WriteLine("PILOT PAY AND MORALE TEST");
+                Console.WriteLine("DRIVER PAY AND MORALE TEST");
                 var pg = TheBusProject.Models.General.GameObject.GetInstance();
                 var pa = pg.HumanCarrier;
                 TheBusProject.Helpers.CarrierHelpers.AddCarrierInvoice(pa, pg.GameTime, TheBusProject.Models.General.Finances.Invoice.InvoiceType.Rents, 50000000);
-                var pmv = new TheBusProject.Presentation.PilotsViewModel(() => { });
+                var pmv = new TheBusProject.Presentation.DriversViewModel(() => { });
                 Console.WriteLine("  " + pmv.MoraleText + " | " + pmv.PayText);
-                if (pa.Pilots.Count == 0) { Console.WriteLine("  FAILED no pilots"); Environment.Exit(1); }
-                double pay100 = TheBusProject.Helpers.PilotMoraleService.Payroll(pa, 100), pay130 = TheBusProject.Helpers.PilotMoraleService.Payroll(pa, 130);
+                if (pa.Drivers.Count == 0) { Console.WriteLine("  FAILED no drivers"); Environment.Exit(1); }
+                double pay100 = TheBusProject.Helpers.DriverMoraleService.Payroll(pa, 100), pay130 = TheBusProject.Helpers.DriverMoraleService.Payroll(pa, 130);
                 Console.WriteLine("  payroll 100%: " + pay100.ToString("N0") + " 130%: " + pay130.ToString("N0"));
                 if (pay130 <= pay100 * 1.25) { Console.WriteLine("  FAILED payroll scales"); Environment.Exit(1); }
                 pmv.PayLevel = pmv.PayLevels.First(c => c.Value == 130);
-                Console.WriteLine("  set pay: " + pmv.Status + " | percent " + pa.PilotPayPercent);
-                if (pa.PilotPayPercent != 130) { Console.WriteLine("  FAILED set pay"); Environment.Exit(1); }
-                var anyPilot = pa.Pilots[0];
-                double before = TheBusProject.Helpers.CarrierHelpers.GetPilotSalary(pa, anyPilot);
-                pa.PilotPayPercent = 100;
-                double after = TheBusProject.Helpers.CarrierHelpers.GetPilotSalary(pa, anyPilot);
-                Console.WriteLine("  one pilot salary 130%: " + before.ToString("N2") + " 100%: " + after.ToString("N2"));
+                Console.WriteLine("  set pay: " + pmv.Status + " | percent " + pa.DriverPayPercent);
+                if (pa.DriverPayPercent != 130) { Console.WriteLine("  FAILED set pay"); Environment.Exit(1); }
+                var anyDriver = pa.Drivers[0];
+                double before = TheBusProject.Helpers.CarrierHelpers.GetDriverSalary(pa, anyDriver);
+                pa.DriverPayPercent = 100;
+                double after = TheBusProject.Helpers.CarrierHelpers.GetDriverSalary(pa, anyDriver);
+                Console.WriteLine("  one driver salary 130%: " + before.ToString("N2") + " 100%: " + after.ToString("N2"));
                 if (Math.Abs(before / after - 1.3) > 0.001) { Console.WriteLine("  FAILED salary factor"); Environment.Exit(1); }
-                //low pay -> morale falls and pilots quit
-                pa.PilotPayPercent = 70;
-                foreach (var pp in pa.Pilots.ToList()) pp.Morale = 40;
-                int before0 = pa.Pilots.Count; int quits = 0;
-                // only idle pilots fall low enough to quit at 70% pay (pilots on coach settle near 38)
-                bool anyIdle = pa.Pilots.Any(pp => pp.Coach == null && pp.Training == null);
+                //low pay -> morale falls and drivers quit
+                pa.DriverPayPercent = 70;
+                foreach (var pp in pa.Drivers.ToList()) pp.Morale = 40;
+                int before0 = pa.Drivers.Count; int quits = 0;
+                // only idle drivers fall low enough to quit at 70% pay (drivers on coach settle near 38)
+                bool anyIdle = pa.Drivers.Any(pp => pp.Coach == null && pp.Training == null);
                 // quitting is a matter of chance each month: give it up to three years when it hasn't happened in one
-                for (int mth = 0; mth < 36 && (mth < 12 || (anyIdle && quits == 0)); mth++) quits += TheBusProject.Helpers.PilotMoraleService.ProcessMonth(pa).Count;
-                Console.WriteLine("  12 months at 70%: avg morale " + TheBusProject.Helpers.PilotMoraleService.Average(pa).ToString("0.0") + ", pilots " + before0 + " -> " + pa.Pilots.Count + ", quit " + quits);
-                if ((anyIdle && quits == 0) || pa.Pilots.Count != before0 - quits) { Console.WriteLine("  FAILED nobody quit"); Environment.Exit(1); }
+                for (int mth = 0; mth < 36 && (mth < 12 || (anyIdle && quits == 0)); mth++) quits += TheBusProject.Helpers.DriverMoraleService.ProcessMonth(pa).Count;
+                Console.WriteLine("  12 months at 70%: avg morale " + TheBusProject.Helpers.DriverMoraleService.Average(pa).ToString("0.0") + ", drivers " + before0 + " -> " + pa.Drivers.Count + ", quit " + quits);
+                if ((anyIdle && quits == 0) || pa.Drivers.Count != before0 - quits) { Console.WriteLine("  FAILED nobody quit"); Environment.Exit(1); }
                 //high pay -> morale rises
-                pa.PilotPayPercent = 130;
-                foreach (var pp in pa.Pilots.ToList()) pp.Morale = 40;
-                for (int mth = 0; mth < 12; mth++) TheBusProject.Helpers.PilotMoraleService.ProcessMonth(pa);
-                double hi = TheBusProject.Helpers.PilotMoraleService.Average(pa);
-                Console.WriteLine("  12 months at 130%: avg morale " + hi.ToString("0.0") + " (" + TheBusProject.Helpers.PilotMoraleService.MoodText(hi) + ")");
+                pa.DriverPayPercent = 130;
+                foreach (var pp in pa.Drivers.ToList()) pp.Morale = 40;
+                for (int mth = 0; mth < 12; mth++) TheBusProject.Helpers.DriverMoraleService.ProcessMonth(pa);
+                double hi = TheBusProject.Helpers.DriverMoraleService.Average(pa);
+                Console.WriteLine("  12 months at 130%: avg morale " + hi.ToString("0.0") + " (" + TheBusProject.Helpers.DriverMoraleService.MoodText(hi) + ")");
                 if (hi <= 55) { Console.WriteLine("  FAILED morale should rise"); Environment.Exit(1); }
                 //bonus
-                pa.PilotPayPercent = 100; pa.LastPilotBonus = DateTime.MinValue;
-                foreach (var pp in pa.Pilots.ToList()) pp.Morale = 50;
+                pa.DriverPayPercent = 100; pa.LastDriverBonus = DateTime.MinValue;
+                foreach (var pp in pa.Drivers.ToList()) pp.Morale = 50;
                 pmv.Reload();
                 double pm0 = pa.Money;
                 pmv.BonusCommand.Execute(null);
                 Console.WriteLine("  bonus asks: " + pmv.PendingText);
                 pmv.ConfirmCommand.Execute(null);
-                Console.WriteLine("  bonus: " + pmv.Status + " | cost " + (pm0 - pa.Money).ToString("N0") + " | avg morale " + TheBusProject.Helpers.PilotMoraleService.Average(pa).ToString("0"));
-                if (pa.Money >= pm0 || TheBusProject.Helpers.PilotMoraleService.Average(pa) < 64) { Console.WriteLine("  FAILED bonus"); Environment.Exit(1); }
+                Console.WriteLine("  bonus: " + pmv.Status + " | cost " + (pm0 - pa.Money).ToString("N0") + " | avg morale " + TheBusProject.Helpers.DriverMoraleService.Average(pa).ToString("0"));
+                if (pa.Money >= pm0 || TheBusProject.Helpers.DriverMoraleService.Average(pa) < 64) { Console.WriteLine("  FAILED bonus"); Environment.Exit(1); }
                 pmv.BonusCommand.Execute(null);
                 Console.WriteLine("  second bonus at once: " + pmv.Status);
                 if (pmv.HasPending) { Console.WriteLine("  FAILED bonus cooldown"); Environment.Exit(1); }
-                pa.PilotPayPercent = 100;
+                pa.DriverPayPercent = 100;
             }
             {
                 Console.WriteLine("WIFI TEST");
@@ -6793,9 +6899,9 @@ static class VmTest
                 var ma = mg.HumanCarrier;
                 TheBusProject.Helpers.CarrierHelpers.AddCarrierInvoice(ma, mg.GameTime, TheBusProject.Models.General.Finances.Invoice.InvoiceType.Rents, 50000000);
                 var mf = ma.Fleet.FirstOrDefault(x => x.Coach.BuiltDate <= mg.GameTime);
-                if (mf != null && mf.Pilots.Count < mf.Coach.Type.CockpitCrew) { TheBusProject.Helpers.PilotSupply.EnsureFamily(mf.Coach.Type.CoachFamily); TheBusProject.Helpers.CarrierHelpers.HireCoachPilots(mf); }
+                if (mf != null && mf.Drivers.Count < mf.Coach.Type.DriverCrew) { TheBusProject.Helpers.DriverSupply.EnsureFamily(mf.Coach.Type.CoachFamily); TheBusProject.Helpers.CarrierHelpers.HireCoachDrivers(mf); }
                 var kiv = TheBusProject.Models.Stations.Stations.GetAllStations().FirstOrDefault(x => x.Profile.IATACode == "KIV");
-                if (mf == null || kiv == null) { Console.WriteLine("  (coach " + (mf != null) + " or KIV " + (kiv != null) + " missing, skipped; fleet " + ma.Fleet.Count + ", crewed " + ma.Fleet.Count(x => x.Pilots.Count >= x.Coach.Type.CockpitCrew) + ")"); }
+                if (mf == null || kiv == null) { Console.WriteLine("  (coach " + (mf != null) + " or KIV " + (kiv != null) + " missing, skipped; fleet " + ma.Fleet.Count + ", crewed " + ma.Fleet.Count(x => x.Drivers.Count >= x.Coach.Type.DriverCrew) + ")"); }
                 else
                 {
                     var savedRoutes = mf.Routes; var savedStatus = mf.Status;

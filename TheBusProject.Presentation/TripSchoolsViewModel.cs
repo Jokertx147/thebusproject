@@ -8,7 +8,7 @@ using TheBusProject.Helpers;
 using TheBusProject.Models.Carriers;
 using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
-using TheBusProject.Models.Pilots;
+using TheBusProject.Models.Drivers;
 
 namespace TheBusProject.Presentation
 {
@@ -39,13 +39,13 @@ namespace TheBusProject.Presentation
 
     public class StudentItem
     {
-        public PilotStudent Student { get; set; }
+        public DriverStudent Student { get; set; }
         public string Text { get; set; }
         public string Detail { get; set; }
         public ICommand CancelCommand { get; set; }
     }
 
-    /// <summary>Trip schools: pilots of your own, trained by instructors in training coach.</summary>
+    /// <summary>Trip schools: drivers of your own, trained by instructors in training coach.</summary>
     public class TripSchoolsViewModel : ObservableObject
     {
         private readonly Action _changed;
@@ -187,7 +187,7 @@ namespace TheBusProject.Presentation
                 return;
             }
 
-            PilotSupply.EnsureInstructors();
+            DriverSupply.EnsureInstructors();
             var keep = _selected?.School;
             Schools.Clear();
             foreach (var s in carrier.TripSchools.OrderBy(s => s.Name))
@@ -221,7 +221,7 @@ namespace TheBusProject.Presentation
             int students = carrier.TripSchools.Sum(s => s.NumberOfStudents);
             int instructors = carrier.TripSchools.Sum(s => s.NumberOfInstructors);
             Summary = carrier.TripSchools.Count == 0
-                ? "You have no trip school. Build one at a hub or at a station with a service facility, hire instructors, buy a training coach, and train pilots of your own for "
+                ? "You have no trip school. Build one at a hub or at a station with a service facility, hire instructors, buy a training coach, and train drivers of your own for "
                   + Money(TripSchoolService.StudentPrice) + " each."
                 : string.Format(
                     "{0} trip school(s)  |  {1} instructors  |  {2} students in training. A school costs {3} to build, a student {4}.",
@@ -270,7 +270,7 @@ namespace TheBusProject.Presentation
 
             if (school.NumberOfInstructors < TripSchool.MaxNumberOfInstructors)
             {
-                foreach (var i in TheBusProject.Models.Pilots.Instructors.GetUnassignedInstructors().OrderBy(i => i.Rating.CostIndex).ThenBy(i => i.Profile.Name).Take(60))
+                foreach (var i in TheBusProject.Models.Drivers.Instructors.GetUnassignedInstructors().OrderBy(i => i.Rating.CostIndex).ThenBy(i => i.Profile.Name).Take(60))
                 {
                     var instructor = i;
                     Market.Add(
@@ -344,7 +344,7 @@ namespace TheBusProject.Presentation
                 "{0}  |  {1} instructors  |  {2} training seats  |  room for {3} students ({4} in training)",
                 school.Name, school.NumberOfInstructors, TripSchoolService.Seats(school), TripSchoolService.Capacity(school), school.NumberOfStudents);
             StudentHint = TripSchoolService.GetStudentBlocker(carrier, school)
-                          ?? "A student costs " + Money(TripSchoolService.StudentPrice) + " and graduates in about 70 to 150 days, depending on the rating. The pilot then joins your carrier and goes to a coach that needs a pilot of that family.";
+                          ?? "A student costs " + Money(TripSchoolService.StudentPrice) + " and graduates in about 70 to 150 days, depending on the rating. The driver then joins your carrier and goes to a coach that needs a driver of that family.";
             OnPropertyChanged(nameof(SchoolInfo));
             OnPropertyChanged(nameof(StudentHint));
         }
@@ -488,7 +488,7 @@ namespace TheBusProject.Presentation
                 });
         }
 
-        private void AskCancel(TripSchool school, PilotStudent student)
+        private void AskCancel(TripSchool school, DriverStudent student)
         {
             SetPending(
                 "Send " + student.Profile.Name + " home? The fee is not paid back.",

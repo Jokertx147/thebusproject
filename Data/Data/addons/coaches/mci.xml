@@ -5,56 +5,56 @@
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="12.2" range="1500" speed="100" fuelcapacity="663" consumption="0.0096"
            runwaylengthrequired="0" />
-    <capacity passengers="47" cockpitcrew="1" cabincrew="0" maxclasses="2" />
+    <capacity passengers="47" drivers="1" attendants="0" maxclasses="2" />
     <produced from="1978" to="1990" rate="40" />
   </coach>
   <coach manufacturer="MCI" name="MCI 102DL3" image="MCI 102DL3" price="65401">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="13.7" range="1600" speed="100" fuelcapacity="719" consumption="0.0084"
            runwaylengthrequired="0" />
-    <capacity passengers="55" cockpitcrew="1" cabincrew="0" maxclasses="2" />
+    <capacity passengers="55" drivers="1" attendants="0" maxclasses="2" />
     <produced from="1992" to="2000" rate="40" />
   </coach>
   <coach manufacturer="MCI" name="MCI E4500" image="MCI E4500" price="78082">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="13.7" range="1700" speed="105" fuelcapacity="719" consumption="0.0080"
            runwaylengthrequired="0" />
-    <capacity passengers="55" cockpitcrew="1" cabincrew="0" maxclasses="2" />
+    <capacity passengers="55" drivers="1" attendants="0" maxclasses="2" />
     <produced from="1998" to="2008" rate="40" />
   </coach>
   <coach manufacturer="MCI" name="MCI J4500" image="MCI J4500" price="108696">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="13.7" range="1800" speed="105" fuelcapacity="719" consumption="0.0074"
            runwaylengthrequired="0" />
-    <capacity passengers="56" cockpitcrew="1" cabincrew="0" maxclasses="2" />
+    <capacity passengers="56" drivers="1" attendants="0" maxclasses="2" />
     <produced from="2001" to="2199" rate="40" />
   </coach>
   <coach manufacturer="MCI" name="MCI D4505" image="MCI D4505" price="86610">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="13.7" range="1750" speed="105" fuelcapacity="719" consumption="0.0075"
            runwaylengthrequired="0" />
-    <capacity passengers="56" cockpitcrew="1" cabincrew="0" maxclasses="2" />
+    <capacity passengers="56" drivers="1" attendants="0" maxclasses="2" />
     <produced from="2008" to="2199" rate="40" />
   </coach>
   <coach manufacturer="MCI" name="MCI D4500 CT" image="MCI D4500 CT" price="100362">
     <type body="NarrowBody" rangetype="ShortRange" engine="Diesel" />
     <specs wingspan="2.6" length="13.7" range="1700" speed="105" fuelcapacity="719" consumption="0.0077"
            runwaylengthrequired="0" />
-    <capacity passengers="57" cockpitcrew="1" cabincrew="0" maxclasses="2" />
+    <capacity passengers="57" drivers="1" attendants="0" maxclasses="2" />
     <produced from="2002" to="2199" rate="40" />
   </coach>
   <coach type="Cargo" manufacturer="MCI" name="MCI 102DL3 Courier" image="MCI 102DL3 Courier" price="63291">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="13.7" range="1600" speed="100" fuelcapacity="719" consumption="0.0084"
            runwaylengthrequired="0" />
-    <capacity cockpitcrew="1" cargo="36" />
+    <capacity drivers="1" cargo="36" />
     <produced from="1992" to="2005" rate="12" />
   </coach>
   <coach type="Cargo" manufacturer="MCI" name="MCI D4505 Express Parcel" image="MCI D4505 Express Parcel" price="82486">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="13.7" range="1750" speed="105" fuelcapacity="719" consumption="0.0075"
            runwaylengthrequired="0" />
-    <capacity cockpitcrew="1" cargo="42" />
+    <capacity drivers="1" cargo="42" />
     <produced from="2008" to="2199" rate="12" />
   </coach>
 </coaches>

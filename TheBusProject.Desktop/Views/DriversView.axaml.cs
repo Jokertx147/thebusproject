@@ -2,9 +2,9 @@ using Avalonia.Controls;
 
 namespace TheBusProject.Desktop.Views
 {
-    public partial class PilotsView : UserControl
+    public partial class DriversView : UserControl
     {
-        public PilotsView()
+        public DriversView()
         {
             InitializeComponent();
         }

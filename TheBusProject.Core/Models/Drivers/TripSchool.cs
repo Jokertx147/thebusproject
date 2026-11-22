@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 using TheBusProject.Infrastructure;
 using TheBusProject.Models.Stations;
 
-namespace TheBusProject.Models.Pilots
+namespace TheBusProject.Models.Drivers
 {
     //the class for a trip school
     [Serializable]
@@ -26,7 +26,7 @@ namespace TheBusProject.Models.Pilots
 
             Station = station;
             Name = $"Trip School {Station.Profile.Town.Name}";
-            Students = new List<PilotStudent>();
+            Students = new List<DriverStudent>();
             Instructors = new List<Instructor>();
             TrainingCoaches = new List<TrainingCoach>();
             ID = id.ToString();
@@ -58,7 +58,7 @@ namespace TheBusProject.Models.Pilots
         public int NumberOfStudents => Students.Count;
 
         [Versioning("students")]
-        public List<PilotStudent> Students { get; set; }
+        public List<DriverStudent> Students { get; set; }
 
         [Versioning("coaches")]
         public List<TrainingCoach> TrainingCoaches { get; set; }
@@ -83,7 +83,7 @@ namespace TheBusProject.Models.Pilots
         //removes an instructor from the trip school
 
         //adds a student to the trip school
-        public void AddStudent(PilotStudent student)
+        public void AddStudent(DriverStudent student)
         {
             Students.Add(student);
         }
@@ -99,7 +99,7 @@ namespace TheBusProject.Models.Pilots
         }
 
         //removes a student from the trip school
-        public void RemoveStudent(PilotStudent student)
+        public void RemoveStudent(DriverStudent student)
         {
             Students.Remove(student);
         }

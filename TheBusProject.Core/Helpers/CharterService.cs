@@ -156,7 +156,7 @@ namespace TheBusProject.Helpers
             if ((f.Coach.Type is CoachCargoType) != o.IsCargo) return o.IsCargo ? "not a cargo coach" : "not a passenger coach";
             if (CapacityOf(f) < o.Amount) return "too small (" + CapacityOf(f) + ")";
             if (f.Coach.Range < o.Distance) return "range too short";
-            if (f.Pilots.Count < f.Coach.Type.CockpitCrew) return "no full crew";
+            if (f.Drivers.Count < f.Coach.Type.DriverCrew) return "no full crew";
             if (f.CurrentPosition == null) return "position unknown";
             if (f.Coach.Range < MathHelpers.GetDistance(f.CurrentPosition, o.From)) return "too far from the pick-up";
             if (f.Coach.MinRunwaylength > o.From.GetMaxRunwayLength() || f.Coach.MinRunwaylength > o.To.GetMaxRunwayLength())

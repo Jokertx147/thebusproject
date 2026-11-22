@@ -27,7 +27,7 @@
                 <Run Text="{Binding Cabin}" /><Run Text="  |  " /><Run Text="{Binding Status}" /><Run Text="  |  " /><Run Text="{Binding Homebase}" /><Run Text="  |  " /><Run Text="{Binding Routes}" /><Run Text=" route(s)" />
               </TextBlock>
               <TextBlock Opacity="0.75">
-                <Run Text="{Binding Ownership}" /><Run Text="  |  age " /><Run Text="{Binding Age}" /><Run Text="  |  condition " /><Run Text="{Binding Condition}" /><Run Text="  |  pilots " /><Run Text="{Binding Crew}" /><Run Text="  |  value " /><Run Text="{Binding Value}" />
+                <Run Text="{Binding Ownership}" /><Run Text="  |  age " /><Run Text="{Binding Age}" /><Run Text="  |  condition " /><Run Text="{Binding Condition}" /><Run Text="  |  drivers " /><Run Text="{Binding Crew}" /><Run Text="  |  value " /><Run Text="{Binding Value}" />
               </TextBlock>
             </StackPanel>
           </DataTemplate>

@@ -413,14 +413,14 @@ namespace TheBusProject.Helpers
             {
                 toNow = to.Name + " is running it.";
             }
-            else if (to.Pilots.Count >= to.Coach.Type.CockpitCrew)
+            else if (to.Drivers.Count >= to.Coach.Type.DriverCrew)
             {
                 to.Status = GameObject.GetInstance().DayRoundEnabled ? FleetCoach.CoachStatus.OnRoute : FleetCoach.CoachStatus.ToRouteStart;
                 toNow = to.Name + " is running it.";
             }
             else
             {
-                toNow = to.Name + " has no full pilot crew yet, so it stays stopped until it has one.";
+                toNow = to.Name + " has no full driver crew yet, so it stays stopped until it has one.";
             }
 
             RouteIndex.Invalidate();

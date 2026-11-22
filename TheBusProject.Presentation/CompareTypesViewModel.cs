@@ -167,7 +167,7 @@ namespace TheBusProject.Presentation
                 bool cargo = t.TypeCoach == CoachType.TypeOfCoach.Cargo;
                 double fuel = CoachHistoryService.FuelPerTrip(t, km);
                 string cannot = CoachHistoryService.CanFly(t, km, a, b);
-                int crew = t.CockpitCrew + (t is CoachPassengerType p ? p.CabinCrew : 0);
+                int crew = t.DriverCrew + (t is CoachPassengerType p ? p.Attendants : 0);
                 Columns.Add(new CompareColumn
                 {
                     Type = t,
@@ -181,7 +181,7 @@ namespace TheBusProject.Presentation
                         t.Range.ToString("N0") + " km",
                         t.CruisingSpeed.ToString("N0") + " km/h",
                         t.MinRunwaylength.ToString("N0") + " m",
-                        crew + (t.CockpitCrew > 0 ? " (" + t.CockpitCrew + " pilots)" : ""),
+                        crew + (t.DriverCrew > 0 ? " (" + t.DriverCrew + " drivers)" : ""),
                         Money(CoachHistoryService.FuelPerSeat100(t)),
                         t.Produced.From.Year + " to " + (t.Produced.To.Year > now.Year + 50 ? "now" : t.Produced.To.Year.ToString()),
                         CoachHistoryService.TripTime(t, km).ToString(@"h\:mm"),

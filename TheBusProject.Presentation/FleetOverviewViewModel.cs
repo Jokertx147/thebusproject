@@ -242,9 +242,9 @@ namespace TheBusProject.Presentation
             {
                 return f.Name + " has no route. Create a route for it first.";
             }
-            if (f.Pilots.Count < f.Coach.Type.CockpitCrew)
+            if (f.Drivers.Count < f.Coach.Type.DriverCrew)
             {
-                return f.Name + " needs " + f.Coach.Type.CockpitCrew + " pilots (it has " + f.Pilots.Count + "). Hire them under Staff > Pilots.";
+                return f.Name + " needs " + f.Coach.Type.DriverCrew + " drivers (it has " + f.Drivers.Count + "). Hire them under Staff > Drivers.";
             }
             f.Status = GameObject.GetInstance().DayRoundEnabled
                 ? FleetCoach.CoachStatus.OnRoute
@@ -322,9 +322,9 @@ namespace TheBusProject.Presentation
                 CarrierHelpers.AddCarrierInvoice(carrier, GameObject.GetInstance().GameTime, Invoice.InvoiceType.Purchases, price);
             }
 
-            foreach (var pilot in f.Pilots.ToList())
+            foreach (var driver in f.Drivers.ToList())
             {
-                f.RemovePilot(pilot);
+                f.RemoveDriver(driver);
             }
 
             Status = price > 0 ? f.Name + " sold for " + Money(price) + "." : f.Name + " is gone.";
@@ -402,7 +402,7 @@ namespace TheBusProject.Presentation
                 Routes = f.Routes.Count,
                 IsIdle = f.Routes.Count == 0 && a.BuiltDate <= game.GameTime && !CoachDealService.IsLeasedOut(f) && !CharterService.IsOnCharter(f),
                 IsOnOrder = a.BuiltDate > game.GameTime,
-                Crew = f.Pilots.Count + "/" + a.Type.CockpitCrew,
+                Crew = f.Drivers.Count + "/" + a.Type.DriverCrew,
                 Value = Money(value),
                 ValueNumber = value
             };
@@ -427,7 +427,7 @@ namespace TheBusProject.Presentation
                 Details.Add("Range: " + DistanceFormatter.Km(a.Range) + ", cruising speed " + DistanceFormatter.Speed(a.CruisingSpeed)
                             + ", runway " + DistanceFormatter.Metres(a.MinRunwaylength));
                 if (a.EngineType != null) Details.Add("Engine: " + EngineTypes.FullName(a.EngineType) + (EngineTypes.Describe(a.EngineType) == "" ? "" : " (" + EngineTypes.Describe(a.EngineType) + ")"));
-                Details.Add("Pilots: " + r.Crew);
+                Details.Add("Drivers: " + r.Crew);
                 Details.Add("Value: " + r.Value);
 
                 foreach (var c in a.Classes.OrderBy(c => (int) c.Type).ToList())

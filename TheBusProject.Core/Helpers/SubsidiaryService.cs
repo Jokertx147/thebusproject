@@ -116,11 +116,11 @@ namespace TheBusProject.Helpers
                 sub.RemoveRoute(route);
                 parent.AddRoute(route);
             }
-            foreach (var pilot in sub.Pilots.ToList())
+            foreach (var driver in sub.Drivers.ToList())
             {
-                sub.RemovePilot(pilot);
-                pilot.Carrier = parent;
-                parent.AddPilot(pilot);
+                sub.RemoveDriver(driver);
+                driver.Carrier = parent;
+                parent.AddDriver(driver);
             }
             CarrierHelpers.CloseSubsidiaryCarrier(sub);
             message = string.Format("{0} is now part of your carrier: {1} coach, {2} route(s) and {3} came over.", name, fleet, routes, Money(money));

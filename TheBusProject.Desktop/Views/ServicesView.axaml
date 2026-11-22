@@ -32,7 +32,7 @@
         </ItemsControl.ItemTemplate>
       </ItemsControl>
 
-      <TextBlock Text="Pilot training" FontSize="16" FontWeight="SemiBold" Margin="0,8,0,0" />
+      <TextBlock Text="Driver training" FontSize="16" FontWeight="SemiBold" Margin="0,8,0,0" />
       <StackPanel Orientation="Horizontal" Spacing="10">
         <ComboBox ItemsSource="{Binding TrainingChoices}" SelectedItem="{Binding SelectedTraining}" MinWidth="240" />
         <Button Content="Buy training facility" Command="{Binding BuyTrainingCommand}" />

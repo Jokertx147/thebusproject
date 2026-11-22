@@ -243,7 +243,7 @@ namespace TheBusProject.Presentation
                 return;
             }
             SetPending(
-                "Fold " + s.Profile.Name + " into your carrier? Its coach, routes, gates, pilots and " + Money(s.Money) + " come over and its name disappears.",
+                "Fold " + s.Profile.Name + " into your carrier? Its coach, routes, gates, drivers and " + Money(s.Money) + " come over and its name disappears.",
                 () => { string m; Done(SubsidiaryService.FoldIn(me, s, out m), m); });
         }
     }

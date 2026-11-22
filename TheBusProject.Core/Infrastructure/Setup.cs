@@ -22,7 +22,7 @@ using TheBusProject.Models.General.Holidays;
 using TheBusProject.Models.General.Scenarios;
 using TheBusProject.Models.General.Statistics;
 using TheBusProject.Models.Passengers;
-using TheBusProject.Models.Pilots;
+using TheBusProject.Models.Drivers;
 using TheBusProject.Models.Routes;
 
 namespace TheBusProject.Infrastructure
@@ -463,7 +463,7 @@ namespace TheBusProject.Infrastructure
                 CreateFeeTypes();
                 CreateTripFacilities();
                 CreateTrainingCoachTypes();
-                CreatePilotRatings();
+                CreateDriverRatings();
 
                 LoadStandardConfigurations();
                 LoadCoachTypeConfigurations();
@@ -704,7 +704,7 @@ namespace TheBusProject.Infrastructure
             CoachTypes.Clear();
             EngineTypes.Clear();
             FeeTypes.Clear();
-            PilotRatings.Clear();
+            DriverRatings.Clear();
             Alliances.Clear();
             TripRestrictions.Clear();
             Inflations.Clear();
@@ -714,7 +714,7 @@ namespace TheBusProject.Infrastructure
             RandomEvents.Clear();
             WeatherAverages.Clear();
             DifficultyLevels.Clear();
-            Pilots.Clear();
+            Drivers.Clear();
             Instructors.Clear();
             TrainingCoachTypes.Clear();
             Scenarios.Clear();
@@ -929,7 +929,7 @@ namespace TheBusProject.Infrastructure
                                     leaseCoach);
                                 fCoach.AddRoute(route);
                                 fCoach.Status = FleetCoach.CoachStatus.ToRouteStart;
-                                CarrierHelpers.HireCoachPilots(fCoach);
+                                CarrierHelpers.HireCoachDrivers(fCoach);
 
                                 if (route != null)
                                 {
@@ -1027,7 +1027,7 @@ namespace TheBusProject.Infrastructure
                                     carrier.Stations[0],
                                     leaseCoach);
                                 fCoach.Status = FleetCoach.CoachStatus.Stopped;
-                                CarrierHelpers.HireCoachPilots(fCoach);
+                                CarrierHelpers.HireCoachDrivers(fCoach);
 
                                 CoachHelpers.CreateCoachClasses(fCoach.Coach);
                             }
@@ -1129,7 +1129,7 @@ namespace TheBusProject.Infrastructure
                                         leaseCoach);
                                     fCoach.AddRoute(route);
                                     fCoach.Status = FleetCoach.CoachStatus.ToRouteStart;
-                                    CarrierHelpers.HireCoachPilots(fCoach);
+                                    CarrierHelpers.HireCoachDrivers(fCoach);
 
                                     if (route != null)
                                     {
@@ -1351,7 +1351,7 @@ namespace TheBusProject.Infrastructure
                             stationHomeBase) {Status = FleetCoach.CoachStatus.ToRouteStart};
                     fCoach.AddRoute(route);
                     CoachHelpers.CreateCoachClasses(fCoach.Coach);
-                    CarrierHelpers.HireCoachPilots(fCoach);
+                    CarrierHelpers.HireCoachDrivers(fCoach);
 
                     carrier.AddCoach(fCoach);
 
@@ -1423,12 +1423,12 @@ namespace TheBusProject.Infrastructure
         private static void CreateFeeTypes()
         {
             //wages
-            FeeTypes.AddType(new FeeType(FeeType.EFeeType.Wage, "Cockpit Wage", 4.11, 3.75, 12.75, 100));
+            FeeTypes.AddType(new FeeType(FeeType.EFeeType.Wage, "Cab Wage", 4.11, 3.75, 12.75, 100));
             FeeTypes.AddType(new FeeType(FeeType.EFeeType.Wage, "Maintenance Wage", 3.95, 3.0, 4.25, 100));
             FeeTypes.AddType(new FeeType(FeeType.EFeeType.Wage, "Support Wage", 2.65, 1, 3, 100));
             FeeTypes.AddType(new FeeType(FeeType.EFeeType.Wage, "Cabin Wage", 1.9, 1, 4, 100));
             FeeTypes.AddType(new FeeType(FeeType.EFeeType.Wage, "Instructor Base Salary", 267.00, 200, 300, 100));
-            FeeTypes.AddType(new FeeType(FeeType.EFeeType.Wage, "Pilot Base Salary", 133.53, 100, 150, 100));
+            FeeTypes.AddType(new FeeType(FeeType.EFeeType.Wage, "Driver Base Salary", 133.53, 100, 150, 100));
 
             //food and drinks
             FeeTypes.AddType(new FeeType(FeeType.EFeeType.FoodDrinks, "Alcholic Drinks", 0.75, 0.5, 1.1, 75));
@@ -1636,36 +1636,36 @@ namespace TheBusProject.Infrastructure
             HubTypes.AddHubType(new HubType("Fortress hub", 75000, HubType.TypeOfHub.FortressHub));
         }
 
-        private static void CreatePilotRatings()
+        private static void CreateDriverRatings()
         {
-            var ratingA = new PilotRating("A", 70, 3);
+            var ratingA = new DriverRating("A", 70, 3);
             ratingA.AddCoach(TrainingCoachTypes.GetCoachType("Cessna 172"));
             ratingA.AddCoach(TrainingCoachTypes.GetCoachType("Beechcraft King Air 350"));
-            PilotRatings.AddRating(ratingA);
+            DriverRatings.AddRating(ratingA);
 
-            var ratingB = new PilotRating("B", 85, 4);
+            var ratingB = new DriverRating("B", 85, 4);
             ratingB.AddCoach(TrainingCoachTypes.GetCoachType("Cessna 172"));
             ratingB.AddCoach(TrainingCoachTypes.GetCoachType("Beechcraft King Air 350"));
-            PilotRatings.AddRating(ratingB);
+            DriverRatings.AddRating(ratingB);
 
-            var ratingC = new PilotRating("C", 95, 5);
+            var ratingC = new DriverRating("C", 95, 5);
             ratingC.AddCoach(TrainingCoachTypes.GetCoachType("Beechcraft King Air 350"));
-            PilotRatings.AddRating(ratingC);
+            DriverRatings.AddRating(ratingC);
 
-            var ratingD = new PilotRating("D", 120, 7);
+            var ratingD = new DriverRating("D", 120, 7);
             ratingD.AddCoach(TrainingCoachTypes.GetCoachType("Beechcraft King Air 350"));
-            PilotRatings.AddRating(ratingD);
+            DriverRatings.AddRating(ratingD);
 
-            var ratingE = new PilotRating("E", 150, 10);
+            var ratingE = new DriverRating("E", 150, 10);
             ratingE.AddCoach(TrainingCoachTypes.GetCoachType("Beechcraft King Air 350"));
-            PilotRatings.AddRating(ratingE);
+            DriverRatings.AddRating(ratingE);
         }
 
-        private static void CreatePilots()
+        private static void CreateDrivers()
         {
-            int pilotsPool = 100*Carriers.GetAllCarriers().Count;
+            int driversPool = 100*Carriers.GetAllCarriers().Count;
 
-            GeneralHelpers.CreatePilots(pilotsPool);
+            GeneralHelpers.CreateDrivers(driversPool);
 
             int instructorsPool = 75*Carriers.GetAllCarriers().Count;
 
@@ -2184,16 +2184,16 @@ namespace TheBusProject.Infrastructure
                         if (coachType == CoachType.TypeOfCoach.Helicopter)
                         {
                             int passengers = Convert.ToInt16(capacityElement.Attributes["passengers"].Value);
-                            int cockpitcrew = Convert.ToInt16(capacityElement.Attributes["cockpitcrew"].Value);
-                            int cabincrew = Convert.ToInt16(capacityElement.Attributes["cabincrew"].Value);
+                            int drivers = Convert.ToInt16(capacityElement.Attributes["drivers"].Value);
+                            int attendants = Convert.ToInt16(capacityElement.Attributes["attendants"].Value);
                             int maxClasses = Convert.ToInt16(capacityElement.Attributes["maxclasses"].Value);
                             type = new CoachPassengerType(
                                 manufacturer,
                                 name,
                                 family,
                                 passengers,
-                                cockpitcrew,
-                                cabincrew,
+                                drivers,
+                                attendants,
                                 speed,
                                 range,
                                 wingspan,
@@ -2215,16 +2215,16 @@ namespace TheBusProject.Infrastructure
                         if (coachType == CoachType.TypeOfCoach.Passenger)
                         {
                             int passengers = Convert.ToInt16(capacityElement.Attributes["passengers"].Value);
-                            int cockpitcrew = Convert.ToInt16(capacityElement.Attributes["cockpitcrew"].Value);
-                            int cabincrew = Convert.ToInt16(capacityElement.Attributes["cabincrew"].Value);
+                            int drivers = Convert.ToInt16(capacityElement.Attributes["drivers"].Value);
+                            int attendants = Convert.ToInt16(capacityElement.Attributes["attendants"].Value);
                             int maxClasses = Convert.ToInt16(capacityElement.Attributes["maxclasses"].Value);
                             type = new CoachPassengerType(
                                 manufacturer,
                                 name,
                                 family,
                                 passengers,
-                                cockpitcrew,
-                                cabincrew,
+                                drivers,
+                                attendants,
                                 speed,
                                 range,
                                 wingspan,
@@ -2244,7 +2244,7 @@ namespace TheBusProject.Infrastructure
                         }
                         if (coachType == CoachType.TypeOfCoach.Cargo)
                         {
-                            int cockpitcrew = Convert.ToInt16(capacityElement.Attributes["cockpitcrew"].Value);
+                            int drivers = Convert.ToInt16(capacityElement.Attributes["drivers"].Value);
                             double cargo = Convert.ToDouble(
                                 capacityElement.Attributes["cargo"].Value,
                                 CultureInfo.GetCultureInfo("en-US").NumberFormat);
@@ -2252,7 +2252,7 @@ namespace TheBusProject.Infrastructure
                                 manufacturer,
                                 name,
                                 family,
-                                cockpitcrew,
+                                drivers,
                                 cargo,
                                 speed,
                                 range,
@@ -2273,11 +2273,11 @@ namespace TheBusProject.Infrastructure
                         if (coachType == CoachType.TypeOfCoach.Mixed)
                         {
                             int passengers = Convert.ToInt16(capacityElement.Attributes["passengers"].Value);
-                            int cockpitcrew = Convert.ToInt16(capacityElement.Attributes["cockpitcrew"].Value);
+                            int drivers = Convert.ToInt16(capacityElement.Attributes["drivers"].Value);
                             double cargo = Convert.ToDouble(
                                 capacityElement.Attributes["cargo"].Value,
                                 CultureInfo.GetCultureInfo("en-US").NumberFormat);
-                            int cabincrew = Convert.ToInt16(capacityElement.Attributes["cabincrew"].Value);
+                            int attendants = Convert.ToInt16(capacityElement.Attributes["attendants"].Value);
                             int maxClasses = Convert.ToInt16(capacityElement.Attributes["maxclasses"].Value);
 
                             type = new CoachCombiType(
@@ -2285,8 +2285,8 @@ namespace TheBusProject.Infrastructure
                                 name,
                                 family,
                                 passengers,
-                                cockpitcrew,
-                                cabincrew,
+                                drivers,
+                                attendants,
                                 speed,
                                 range,
                                 wingspan,
@@ -4473,11 +4473,11 @@ namespace TheBusProject.Infrastructure
 
         private static void SetupMainGame()
         {
-            StartupLog.Write("SetupMainGame: creating pilots");
-            CreatePilots();
-            StartupLog.Write("SetupMainGame: pilots done");
+            StartupLog.Write("SetupMainGame: creating drivers");
+            CreateDrivers();
+            StartupLog.Write("SetupMainGame: drivers done");
 
-            //creates the facilities for pilot training
+            //creates the facilities for driver training
             IEnumerable<string> coachFamilies =
                 CoachTypes.GetTypes(
                     t =>
@@ -4489,7 +4489,7 @@ namespace TheBusProject.Infrastructure
             foreach (string family in coachFamilies)
             {
                 CarrierFacilities.AddFacility(
-                    new PilotTrainingFacility(
+                    new DriverTrainingFacility(
                         "carrierfacilities",
                         family,
                         9000,
@@ -4500,7 +4500,7 @@ namespace TheBusProject.Infrastructure
                         family));
             }
 
-            StartupLog.Write("SetupMainGame: pilot training facilities done, setting station facilities for " + Stations.GetAllStations().Count + " stations and " + Carriers.GetAllCarriers().Count + " carriers");
+            StartupLog.Write("SetupMainGame: driver training facilities done, setting station facilities for " + Stations.GetAllStations().Count + " stations and " + Carriers.GetAllCarriers().Count + " carriers");
             //sets all the facilities at an station to none for all carriers
             Parallel.ForEach(
                 Stations.GetAllStations(),

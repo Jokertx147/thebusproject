@@ -20,7 +20,7 @@ namespace TheBusProject.Models.Coaches
             TypeOfCoach typeOfCoach,
             string name,
             string family,
-            int cockpitCrew,
+            int cabCrew,
             double speed,
             long range,
             double wingspan,
@@ -47,7 +47,7 @@ namespace TheBusProject.Models.Coaches
             Wingspan = wingspan;
             Length = length;
             Weight = weight;
-            CockpitCrew = cockpitCrew;
+            DriverCrew = cabCrew;
             Price = price;
             FuelConsumption = consumption;
             Produced = produced;
@@ -133,8 +133,8 @@ namespace TheBusProject.Models.Coaches
 
         public int Capacity => GetCapacity();
 
-        [Versioning("cockpit")]
-        public int CockpitCrew { get; set; }
+        [Versioning("cab")]
+        public int DriverCrew { get; set; }
 
         [Versioning("engine")]
         public TypeOfEngine Engine { get; set; }
@@ -242,8 +242,8 @@ namespace TheBusProject.Models.Coaches
             string name,
             string family,
             int seating,
-            int cockpitcrew,
-            int cabincrew,
+            int drivers,
+            int attendants,
             double speed,
             long range,
             double wingspan,
@@ -266,7 +266,7 @@ namespace TheBusProject.Models.Coaches
                 TypeOfCoach.Passenger,
                 name,
                 family,
-                cockpitcrew,
+                drivers,
                 speed,
                 range,
                 wingspan,
@@ -285,7 +285,7 @@ namespace TheBusProject.Models.Coaches
                 standardType)
         {
             MaxSeatingCapacity = seating;
-            CabinCrew = cabincrew;
+            Attendants = attendants;
             MaxCoachClasses = maxCoachClasses;
         }
 
@@ -298,8 +298,8 @@ namespace TheBusProject.Models.Coaches
 
         #region Public Properties
 
-        [Versioning("cabincrew")]
-        public int CabinCrew { get; set; }
+        [Versioning("attendants")]
+        public int Attendants { get; set; }
 
         [Versioning("maxclasses")]
         public int MaxCoachClasses { get; set; }
@@ -338,8 +338,8 @@ namespace TheBusProject.Models.Coaches
             string name,
             string family,
             int seating,
-            int cockpitcrew,
-            int cabincrew,
+            int drivers,
+            int attendants,
             double speed,
             long range,
             double wingspan,
@@ -363,8 +363,8 @@ namespace TheBusProject.Models.Coaches
                 name,
                 family,
                 seating,
-                cockpitcrew,
-                cabincrew,
+                drivers,
+                attendants,
                 speed,
                 range,
                 wingspan,
@@ -423,7 +423,7 @@ namespace TheBusProject.Models.Coaches
             Manufacturer manufacturer,
             string name,
             string family,
-            int cockpitcrew,
+            int drivers,
             double cargoSize,
             double speed,
             long range,
@@ -446,7 +446,7 @@ namespace TheBusProject.Models.Coaches
                 TypeOfCoach.Cargo,
                 name,
                 family,
-                cockpitcrew,
+                drivers,
                 speed,
                 range,
                 wingspan,

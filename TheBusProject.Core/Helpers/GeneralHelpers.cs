@@ -10,7 +10,7 @@ using TheBusProject.Models.General;
 using TheBusProject.Models.General.Countries.Towns;
 using TheBusProject.Models.General.Environment;
 using TheBusProject.Models.General.Holidays;
-using TheBusProject.Models.Pilots;
+using TheBusProject.Models.Drivers;
 using TheBusProject.Models.Routes;
 
 namespace TheBusProject.Helpers
@@ -65,9 +65,11 @@ namespace TheBusProject.Helpers
 
         public static int ClassToPriceFactor(CoachClass.ClassType type)
         {
+            // a coach's premium seating is nothing like an airline cabin: business is about twice the line fare
+            // and first about three times, not three and six
             if (type == CoachClass.ClassType.BusinessClass)
             {
-                return 3;
+                return 2;
             }
             if (type == CoachClass.ClassType.EconomyClass)
             {
@@ -75,7 +77,7 @@ namespace TheBusProject.Helpers
             }
             if (type == CoachClass.ClassType.FirstClass)
             {
-                return 6;
+                return 3;
             }
             return 1;
         }
@@ -155,24 +157,24 @@ namespace TheBusProject.Helpers
                 Town town = towns[rnd.Next(towns.Count)];
                 DateTime birthdate =
                     MathHelpers.GetRandomDate(
-                        GameObject.GetInstance().GameTime.AddYears(-Pilot.RetirementAge),
+                        GameObject.GetInstance().GameTime.AddYears(-Driver.RetirementAge),
                         GameObject.GetInstance().GameTime.AddYears(-23));
-                var profile = new PilotProfile(
+                var profile = new DriverProfile(
                     Names.GetInstance().GetRandomFirstName(town.Country),
                     Names.GetInstance().GetRandomLastName(town.Country),
                     birthdate,
                     town);
 
-                var rankings = new Dictionary<PilotRating, int>
+                var rankings = new Dictionary<DriverRating, int>
                     {
-                        {PilotRatings.GetRating("A"), 10},
-                        {PilotRatings.GetRating("B"), 20},
-                        {PilotRatings.GetRating("C"), 40},
-                        {PilotRatings.GetRating("D"), 20},
-                        {PilotRatings.GetRating("E"), 10}
+                        {DriverRatings.GetRating("A"), 10},
+                        {DriverRatings.GetRating("B"), 20},
+                        {DriverRatings.GetRating("C"), 40},
+                        {DriverRatings.GetRating("D"), 20},
+                        {DriverRatings.GetRating("E"), 10}
                     };
 
-                PilotRating ranking = AIHelpers.GetRandomItem(rankings);
+                DriverRating ranking = AIHelpers.GetRandomItem(rankings);
 
                 var instructor = new Instructor(profile, ranking);
 
@@ -180,7 +182,7 @@ namespace TheBusProject.Helpers
             }
         }
 
-        public static void CreatePilots(int count, string coachFamily)
+        public static void CreateDrivers(int count, string coachFamily)
         {
             List<Town> towns = Towns.GetTowns();
 
@@ -190,35 +192,35 @@ namespace TheBusProject.Helpers
                 Town town = towns[rnd.Next(towns.Count)];
                 DateTime birthdate =
                     MathHelpers.GetRandomDate(
-                        GameObject.GetInstance().GameTime.AddYears(-Pilot.RetirementAge),
+                        GameObject.GetInstance().GameTime.AddYears(-Driver.RetirementAge),
                         GameObject.GetInstance().GameTime.AddYears(-23));
 
-                var profile = new PilotProfile(
+                var profile = new DriverProfile(
                     Names.GetInstance().GetRandomFirstName(town.Country),
                     Names.GetInstance().GetRandomLastName(town.Country),
                     birthdate,
                     town);
 
-                PilotRating rating = GetPilotRating();
+                DriverRating rating = GetDriverRating();
 
                 int fromYear = Math.Min(GameObject.GetInstance().GameTime.Year - 1, birthdate.AddYears(23).Year);
                 int toYear = Math.Min(
                     GameObject.GetInstance().GameTime.Year,
-                    birthdate.AddYears(Pilot.RetirementAge).Year);
+                    birthdate.AddYears(Driver.RetirementAge).Year);
 
                 DateTime educationTime = MathHelpers.GetRandomDate(birthdate.AddYears(23), new DateTime(toYear, 1, 1));
-                var pilot = new Pilot(profile, educationTime, rating);
+                var driver = new Driver(profile, educationTime, rating);
 
-                pilot.Coaches = GetPilotCoaches(pilot);
-                pilot.Coaches.RemoveAt(0);
-                pilot.Coaches.Add(coachFamily);
+                driver.Coaches = GetDriverCoaches(driver);
+                driver.Coaches.RemoveAt(0);
+                driver.Coaches.Add(coachFamily);
 
-                Pilots.AddPilot(pilot);
+                Drivers.AddDriver(driver);
             }
         }
 
-        //creates a number of pilots
-        public static void CreatePilots(int count)
+        //creates a number of drivers
+        public static void CreateDrivers(int count)
         {
             List<Town> towns = Towns.GetTowns();
 
@@ -228,28 +230,28 @@ namespace TheBusProject.Helpers
                 Town town = towns[rnd.Next(towns.Count)];
                 DateTime birthdate =
                     MathHelpers.GetRandomDate(
-                        GameObject.GetInstance().GameTime.AddYears(-Pilot.RetirementAge),
+                        GameObject.GetInstance().GameTime.AddYears(-Driver.RetirementAge),
                         GameObject.GetInstance().GameTime.AddYears(-23));
 
-                var profile = new PilotProfile(
+                var profile = new DriverProfile(
                     Names.GetInstance().GetRandomFirstName(town.Country),
                     Names.GetInstance().GetRandomLastName(town.Country),
                     birthdate,
                     town);
 
-                PilotRating rating = GetPilotRating();
+                DriverRating rating = GetDriverRating();
 
                 int fromYear = Math.Min(GameObject.GetInstance().GameTime.Year - 1, birthdate.AddYears(23).Year);
                 int toYear = Math.Min(
                     GameObject.GetInstance().GameTime.Year,
-                    birthdate.AddYears(Pilot.RetirementAge).Year);
+                    birthdate.AddYears(Driver.RetirementAge).Year);
 
                 DateTime educationTime = MathHelpers.GetRandomDate(birthdate.AddYears(23), new DateTime(toYear, 1, 1));
-                var pilot = new Pilot(profile, educationTime, rating);
+                var driver = new Driver(profile, educationTime, rating);
 
-                pilot.Coaches = GetPilotCoaches(pilot);
+                driver.Coaches = GetDriverCoaches(driver);
 
-                Pilots.AddPilot(pilot);
+                Drivers.AddDriver(driver);
             }
         }
 
@@ -419,7 +421,7 @@ namespace TheBusProject.Helpers
             return newPrice;
         }
 
-        public static List<string> GetPilotCoaches(Pilot pilot)
+        public static List<string> GetDriverCoaches(Driver driver)
         {
             int year = GameObject.GetInstance().GameTime.Year;
 
@@ -434,7 +436,7 @@ namespace TheBusProject.Helpers
             var rnd = new Random();
             var families = new List<string>();
 
-            int numberOfCoaches = PilotRatings.GetRatings().IndexOf(pilot.Rating) + 1;
+            int numberOfCoaches = DriverRatings.GetRatings().IndexOf(driver.Rating) + 1;
 
             for (int i = 0; i < numberOfCoaches; i++)
             {
@@ -448,31 +450,31 @@ namespace TheBusProject.Helpers
             return families;
         }
 
-        //returns a rating for a pilot
-        public static PilotRating GetPilotRating()
+        //returns a rating for a driver
+        public static DriverRating GetDriverRating()
         {
-            var ratings = new Dictionary<PilotRating, int>
+            var ratings = new Dictionary<DriverRating, int>
                 {
-                    {PilotRatings.GetRating("A"), 10},
-                    {PilotRatings.GetRating("B"), 20},
-                    {PilotRatings.GetRating("C"), 40},
-                    {PilotRatings.GetRating("D"), 20},
-                    {PilotRatings.GetRating("E"), 10}
+                    {DriverRatings.GetRating("A"), 10},
+                    {DriverRatings.GetRating("B"), 20},
+                    {DriverRatings.GetRating("C"), 40},
+                    {DriverRatings.GetRating("D"), 20},
+                    {DriverRatings.GetRating("E"), 10}
                 };
 
             return AIHelpers.GetRandomItem(ratings);
         }
 
-        //creates the rating for a pilot student
-        public static PilotRating GetPilotStudentRating(Instructor instructor, List<PilotRating> ratings)
+        //creates the rating for a driver student
+        public static DriverRating GetDriverStudentRating(Instructor instructor, List<DriverRating> ratings)
         {
-            PilotRating instructorRanking = instructor.Rating;
+            DriverRating instructorRanking = instructor.Rating;
             int coachCoeff = instructor.TripSchool.TrainingCoaches.Exists(a => a.Type.MaxNumberOfStudents > 5)
                                     ? 10
                                     : 0;
 
-            int instructorRankingIndex = PilotRatings.GetRatings().IndexOf(instructorRanking);
-            var rankings = new Dictionary<PilotRating, int>();
+            int instructorRankingIndex = DriverRatings.GetRatings().IndexOf(instructorRanking);
+            var rankings = new Dictionary<DriverRating, int>();
 
             if (ratings.Contains(instructorRanking))
             {
@@ -481,16 +483,16 @@ namespace TheBusProject.Helpers
 
             if (instructorRankingIndex > 0)
             {
-                PilotRating prevRating = PilotRatings.GetRatings()[instructorRankingIndex - 1];
+                DriverRating prevRating = DriverRatings.GetRatings()[instructorRankingIndex - 1];
 
                 if (ratings.Contains(prevRating))
                 {
                     rankings.Add(prevRating, 35 - coachCoeff);
                 }
             }
-            if (instructorRankingIndex < PilotRatings.GetRatings().Count - 1)
+            if (instructorRankingIndex < DriverRatings.GetRatings().Count - 1)
             {
-                PilotRating nextRating = PilotRatings.GetRatings()[instructorRankingIndex + 1];
+                DriverRating nextRating = DriverRatings.GetRatings()[instructorRankingIndex + 1];
 
                 if (ratings.Contains(nextRating))
                 {
@@ -505,46 +507,46 @@ namespace TheBusProject.Helpers
 
             if (rankings.Count == 0)
             {
-                return GetPilotRating();
+                return GetDriverRating();
             }
 
-            PilotRating rating = AIHelpers.GetRandomItem(rankings);
+            DriverRating rating = AIHelpers.GetRandomItem(rankings);
 
             return rating;
         }
 
-        //creates the pilot rating for a pilot student
-        public static PilotRating GetPilotStudentRating(Instructor instructor)
+        //creates the driver rating for a driver student
+        public static DriverRating GetDriverStudentRating(Instructor instructor)
         {
-            PilotRating instructorRanking = instructor.Rating;
+            DriverRating instructorRanking = instructor.Rating;
             int coachCoeff = instructor.TripSchool.TrainingCoaches.Exists(a => a.Type.MaxNumberOfStudents > 5)
                                     ? 10
                                     : 0;
 
-            int instructorRankingIndex = PilotRatings.GetRatings().IndexOf(instructorRanking);
-            var rankings = new Dictionary<PilotRating, int> {{instructorRanking, 50}};
+            int instructorRankingIndex = DriverRatings.GetRatings().IndexOf(instructorRanking);
+            var rankings = new Dictionary<DriverRating, int> {{instructorRanking, 50}};
 
             if (instructorRankingIndex > 0)
             {
-                PilotRating prevRating = PilotRatings.GetRatings()[instructorRankingIndex - 1];
+                DriverRating prevRating = DriverRatings.GetRatings()[instructorRankingIndex - 1];
                 rankings.Add(prevRating, 35 - coachCoeff);
             }
-            if (instructorRankingIndex < PilotRatings.GetRatings().Count)
+            if (instructorRankingIndex < DriverRatings.GetRatings().Count)
             {
-                PilotRating nextRating = PilotRatings.GetRatings()[instructorRankingIndex + 1];
+                DriverRating nextRating = DriverRatings.GetRatings()[instructorRankingIndex + 1];
 
                 rankings.Add(nextRating, 15 + coachCoeff);
             }
 
-            PilotRating rating = AIHelpers.GetRandomItem(rankings);
+            DriverRating rating = AIHelpers.GetRandomItem(rankings);
 
             return rating;
         }
 
-        //creates the pilot rating for a pilot student
-        public static PilotRating GetPilotStudentRating(PilotStudent student)
+        //creates the driver rating for a driver student
+        public static DriverRating GetDriverStudentRating(DriverStudent student)
         {
-            return GetPilotStudentRating(student.Instructor);
+            return GetDriverStudentRating(student.Instructor);
         }
 
         public static Weather.Season GetSeason(DateTime date)
@@ -567,7 +569,7 @@ namespace TheBusProject.Helpers
 
         #endregion
 
-        //creates a number of pilots with a specific coach
+        //creates a number of drivers with a specific coach
     }
 
     public static class EnumHelper

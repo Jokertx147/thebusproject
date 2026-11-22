@@ -11,7 +11,7 @@ using TheBusProject.Models.General;
 using TheBusProject.Models.General.Countries;
 using TheBusProject.Models.General.Finances;
 using TheBusProject.Models.Passengers;
-using TheBusProject.Models.Pilots;
+using TheBusProject.Models.Drivers;
 using TheBusProject.Models.Routes;
 
 namespace TheBusProject.Helpers
@@ -353,9 +353,9 @@ namespace TheBusProject.Helpers
         //returns if the carrier has training facilities for a specific coach family
         public static bool HasTrainingFacility(Carrier carrier, string coachfamily)
         {
-            IEnumerable<CarrierFacility> facilities = carrier.Facilities.Where(f => f is PilotTrainingFacility);
+            IEnumerable<CarrierFacility> facilities = carrier.Facilities.Where(f => f is DriverTrainingFacility);
 
-            return facilities.SingleOrDefault(f => ((PilotTrainingFacility) f).CoachFamily == coachfamily) != null;
+            return facilities.SingleOrDefault(f => ((DriverTrainingFacility) f).CoachFamily == coachfamily) != null;
         }
 
         //launches a subsidiary to operate on its own
@@ -476,64 +476,64 @@ namespace TheBusProject.Helpers
             return sCarrier;
         }
 
-        //hires the pilots for a specific coach
-        public static void HireCoachPilots(FleetCoach coach)
+        //hires the drivers for a specific coach
+        public static void HireCoachDrivers(FleetCoach coach)
         {
-            if (Pilots.GetNumberOfUnassignedPilots() < 10)
-                GeneralHelpers.CreatePilots(50);
+            if (Drivers.GetNumberOfUnassignedDrivers() < 10)
+                GeneralHelpers.CreateDrivers(50);
 
-            while (coach.Coach.Type.CockpitCrew > coach.NumberOfPilots)
+            while (coach.Coach.Type.DriverCrew > coach.NumberOfDrivers)
             {
-                List<Pilot> pilots = Pilots.GetUnassignedPilots(p => p.Profile.Town.Country == coach.Coach.Carrier.Profile.Country && p.Coaches.Contains(coach.Coach.Type.CoachFamily));
+                List<Driver> drivers = Drivers.GetUnassignedDrivers(p => p.Profile.Town.Country == coach.Coach.Carrier.Profile.Country && p.Coaches.Contains(coach.Coach.Type.CoachFamily));
 
-                if (pilots.Count == 0)
-                    pilots =
-                        Pilots.GetUnassignedPilots(p => p.Profile.Town.Country.Region == coach.Coach.Carrier.Profile.Country.Region && p.Coaches.Contains(coach.Coach.Type.CoachFamily));
+                if (drivers.Count == 0)
+                    drivers =
+                        Drivers.GetUnassignedDrivers(p => p.Profile.Town.Country.Region == coach.Coach.Carrier.Profile.Country.Region && p.Coaches.Contains(coach.Coach.Type.CoachFamily));
 
-                if (pilots.Count == 0)
-                    pilots = Pilots.GetUnassignedPilots(p => p.Coaches.Contains(coach.Coach.Type.CoachFamily));
+                if (drivers.Count == 0)
+                    drivers = Drivers.GetUnassignedDrivers(p => p.Coaches.Contains(coach.Coach.Type.CoachFamily));
 
-                if (pilots.Count == 0)
+                if (drivers.Count == 0)
                 {
-                    GeneralHelpers.CreatePilots(4, coach.Coach.Type.CoachFamily);
-                    HireCoachPilots(coach);
+                    GeneralHelpers.CreateDrivers(4, coach.Coach.Type.CoachFamily);
+                    HireCoachDrivers(coach);
                 }
 
-                Pilot pilot = pilots.OrderByDescending(p => p.Rating.CostIndex).FirstOrDefault();
+                Driver driver = drivers.OrderByDescending(p => p.Rating.CostIndex).FirstOrDefault();
 
-                if (pilot != null)
+                if (driver != null)
                 {
-                    coach.Coach.Carrier.AddPilot(pilot);
+                    coach.Coach.Carrier.AddDriver(driver);
 
-                    pilot.Coach = coach;
-                    coach.AddPilot(pilot);
+                    driver.Coach = coach;
+                    coach.AddDriver(driver);
                 }
                 else
-                    GeneralHelpers.CreatePilots(50);
+                    GeneralHelpers.CreateDrivers(50);
             }
         }
 
-        //returns the price for training a pilot
-        public static double GetTrainingPrice(Pilot pilot, string coachfamily)
+        //returns the price for training a driver
+        public static double GetTrainingPrice(Driver driver, string coachfamily)
         {
             double dayTrainingPrice = GeneralHelpers.GetInflationPrice(750);
 
-            int days = GetTrainingDays(pilot, coachfamily);
+            int days = GetTrainingDays(driver, coachfamily);
 
-            if (HasTrainingFacility(pilot.Carrier, coachfamily))
+            if (HasTrainingFacility(driver.Carrier, coachfamily))
                 return dayTrainingPrice;
             return days*dayTrainingPrice;
         }
 
-        //returns the number of training days a pilot 
-        public static int GetTrainingDays(Pilot pilot, string coachfamily)
+        //returns the number of training days a driver 
+        public static int GetTrainingDays(Driver driver, string coachfamily)
         {
             Manufacturer manufacturer = CoachTypes.GetTypes(t => t.CoachFamily == coachfamily).Select(t => t.Manufacturer).FirstOrDefault();
 
             bool hasManufacturer = false;
             if (manufacturer != null)
             {
-                foreach (string family in pilot.Coaches)
+                foreach (string family in driver.Coaches)
                 {
                     string family1 = family;
                     Manufacturer tManufacturer = CoachTypes.GetTypes(t => t.CoachFamily == family1).Select(t => t.Manufacturer).FirstOrDefault();
@@ -548,12 +548,12 @@ namespace TheBusProject.Helpers
             return 14;
         }
 
-        //send a pilot for an carrier on training
-        public static void SendForTraining(Carrier carrier, Pilot pilot, string coachfamily, int trainingdays, double price)
+        //send a driver for an carrier on training
+        public static void SendForTraining(Carrier carrier, Driver driver, string coachfamily, int trainingdays, double price)
         {
             AddCarrierInvoice(carrier, GameObject.GetInstance().GameTime, Invoice.InvoiceType.CarrierExpenses, -price);
 
-            pilot.Training = new PilotTraining(coachfamily, GameObject.GetInstance().GameTime.AddDays(trainingdays));
+            driver.Training = new DriverTraining(coachfamily, GameObject.GetInstance().GameTime.AddDays(trainingdays));
         }
 
         //returns the discount factor for a manufactorer for an carrier and for a period
@@ -716,9 +716,9 @@ namespace TheBusProject.Helpers
         {
             double instructorFee = carrier.TripSchools.Sum(f => f.NumberOfInstructors)*carrier.Fees.GetValue(FeeTypes.GetType("Instructor Base Salary"));
 
-            double cockpitCrewFee = carrier.Pilots.Count*carrier.Fees.GetValue(FeeTypes.GetType("Cockpit Wage"));
+            double cabCrewFee = carrier.Drivers.Count*carrier.Fees.GetValue(FeeTypes.GetType("Cab Wage"));
 
-            double cabinCrewFee = carrier.Routes.Where(r => r.Type == Route.RouteType.Passenger).Sum(r => ((PassengerRoute) r).GetTotalCabinCrew())*
+            double cabinCrewFee = carrier.Routes.Where(r => r.Type == Route.RouteType.Passenger).Sum(r => ((PassengerRoute) r).GetTotalAttendants())*
                                   carrier.Fees.GetValue(FeeTypes.GetType("Cabin Wage"));
 
             double serviceCrewFee =
@@ -728,7 +728,7 @@ namespace TheBusProject.Helpers
                 carrier.Stations.SelectMany(a => a.GetCurrentStationFacilities(carrier)).Where(a => a.EmployeeType == StationFacility.EmployeeTypes.Maintenance).Sum(a => a.NumberOfEmployees)*
                 carrier.Fees.GetValue(FeeTypes.GetType("Maintenance Wage"));
 
-            return instructorFee + cockpitCrewFee + cabinCrewFee + serviceCrewFee + maintenanceCrewFee;
+            return instructorFee + cabCrewFee + cabinCrewFee + serviceCrewFee + maintenanceCrewFee;
         }
 
         //returns the number of routes out of an station for an carrier
@@ -875,13 +875,13 @@ namespace TheBusProject.Helpers
                 carrierFrom.RemoveRoute(route);
                 carrierTo.AddRoute(route);
             }
-            while (carrierFrom.Pilots.Count > 0)
+            while (carrierFrom.Drivers.Count > 0)
             {
-                Pilot pilot = carrierFrom.Pilots[0];
-                carrierFrom.RemovePilot(pilot);
+                Driver driver = carrierFrom.Drivers[0];
+                carrierFrom.RemoveDriver(driver);
 
-                pilot.Carrier = carrierTo;
-                carrierTo.AddPilot(pilot);
+                driver.Carrier = carrierTo;
+                carrierTo.AddDriver(driver);
             }
             while (carrierFrom.Stations.Count > 0)
             {
@@ -1026,14 +1026,14 @@ namespace TheBusProject.Helpers
             return status;
         }
 
-        //returns the salary for a pilot at an carrier
-        public static double GetPilotSalary(Carrier carrier, Pilot pilot)
+        //returns the salary for a driver at an carrier
+        public static double GetDriverSalary(Carrier carrier, Driver driver)
         {
-            double pilotBasePrice = carrier.Fees.GetValue(FeeTypes.GetType("Pilot Base Salary")); //GeneralHelpers.GetInflationPrice(133.53);<
+            double driverBasePrice = carrier.Fees.GetValue(FeeTypes.GetType("Driver Base Salary")); //GeneralHelpers.GetInflationPrice(133.53);<
 
-            double pilotExperienceFee = pilot.Coaches.Count*GeneralHelpers.GetInflationPrice(20.3);
+            double driverExperienceFee = driver.Coaches.Count*GeneralHelpers.GetInflationPrice(20.3);
 
-            return (pilot.Rating.CostIndex*pilotBasePrice + pilotExperienceFee)*PilotMoraleService.PayFactor(carrier);
+            return (driver.Rating.CostIndex*driverBasePrice + driverExperienceFee)*DriverMoraleService.PayFactor(carrier);
         }
 
         private enum RouteOkStatus
