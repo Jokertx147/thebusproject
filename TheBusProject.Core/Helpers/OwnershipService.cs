@@ -18,7 +18,13 @@ namespace TheBusProject.Helpers
     /// </summary>
     public static class OwnershipService
     {
-        public const double MonthlyShare = 0.005;
+        /// <summary>
+        ///     What owning a coach costs each month, as a share of its value: depreciation and the money tied up in
+        ///     it. A coach written off over fifteen years loses about 6.7% of its value a year on its own, and the
+        ///     capital costs more on top, so a bit under 1% a month is the honest figure. Greyhound's depreciation
+        ///     and operating rents together came to 14.3% of its revenue.
+        /// </summary>
+        public const double MonthlyShare = 0.009;
 
         /// <summary>What a sold coach fetches, as a share of its value, and how often an carrier can sell one.</summary>
         public const double SalePriceShare = 0.75;

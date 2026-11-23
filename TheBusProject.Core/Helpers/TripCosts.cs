@@ -11,16 +11,24 @@ namespace TheBusProject.Helpers
     /// <summary>The extra costs of one trip that the original game did not charge.</summary>
     public class TripCostParts
     {
-        public double Ground, Maintenance, EnRoute, Crew, Distribution, Overhead;
-        public double Total => Ground + Maintenance + EnRoute + Crew + Distribution + Overhead;
+        public double Ground, Maintenance, EnRoute, Crew, Distribution, Overhead, Insurance;
+        public double Total => Ground + Maintenance + EnRoute + Crew + Distribution + Overhead + Insurance;
     }
 
     /// <summary>
-    ///     Realistic trip costs. Besides fuel, landing fees and catering, every trip now pays for ground handling,
-    ///     line maintenance per trip hour, en-route air traffic charges, trip crew time (an coach flying all
-    ///     day needs several crews, not the one the game hires), ticket sales and distribution, and overhead. All
-    ///     amounts are in the game's base-year money and follow inflation. Options sets the level (original,
-    ///     realistic, tough).
+    ///     What a trip really costs. Besides fuel, station fees and refreshments, every trip pays for the station
+    ///     stand, the garage per hour on the road, tolls and road tax per km, the driver's time (a coach working
+    ///     all day needs several drivers, not the one the game hires), liability insurance, ticket sales and
+    ///     overhead. All amounts are in the game's base-year money and follow inflation. Options sets the level
+    ///     (original, realistic, tough).
+    ///
+    ///     The weights come from Greyhound's own accounts for 2004, where $956.7m of revenue earned an operating
+    ///     margin of nought and a net loss of 2.4%: maintenance 10.6% of revenue, transportation 24.5%, agents'
+    ///     commissions and station costs 17.7%, insurance and safety 7.8%, general and administrative 13.4%,
+    ///     depreciation 6.3%, rents 8.0%. Intercity coach is a thin business and the game should feel like it.
+    ///     Most of what was added here is charged by the hour and the mile rather than off the ticket, because a
+    ///     coach that runs half empty still burns the fuel, the driver and the garage, and ought to lose money
+    ///     rather than merely earn less.
     /// </summary>
     public static class TripCosts
     {
@@ -39,7 +47,7 @@ namespace TheBusProject.Helpers
             {
                 case 0: return "Original: trips pay only fuel, station fees, passenger taxes and refreshments. Almost every route makes money.";
                 case 2: return "Tough: like Realistic, but the added costs are 40% higher. Only well-run routes make money.";
-                default: return "Realistic: trips also pay the station's departure fee, maintenance per hour on the road, tolls and road tax per km, the driver's time, ticket sales (5 to 8%) and overhead (7%), and owned coaches cost 0.5% of their value a month whether they run or not. Short busy routes still earn well, long thin ones can lose.";
+                default: return "Realistic: trips also pay the station's stand, the garage per hour on the road, tolls and road tax per km, the driver's time, liability insurance, ticket sales (5 to 8%) and overhead (9%), and owned coaches cost 0.5% of their value a month whether they run or not. The weights follow a real coach company's accounts, where the margin on the whole business was about nothing. A busy route earns well; a half-empty one loses money rather than merely earning less.";
             }
         }
 
@@ -69,19 +77,23 @@ namespace TheBusProject.Helpers
             if (!Enabled || coach == null) return p;
             double cap = Capacity(coach);
             hours = Math.Max(0.3, hours);
-            // base-year amounts (about 1/7 of 2007 dollars): a 56 seat coach pays about $20 a departure in 2007
-            p.Ground = GeneralHelpers.GetInflationPrice(1.5 + 0.03*cap);
-            // the garage: a part per hour on the road plus a part that grows with the coach's price (about $25 an
-            // hour for a 56 seat coach in 2007, which is roughly 25 cents a mile)
-            p.Maintenance = hours*(GeneralHelpers.GetInflationPrice(1.2 + 0.045*cap) + 0.000004*coach.Type.Price);
+            // the stand and the people who work it. Greyhound's agents' commissions and station costs together
+            // were 17.7% of revenue, so a departure is dearer than the $20 this used to charge
+            p.Ground = GeneralHelpers.GetInflationPrice(2.6 + 0.055*cap);
+            // the garage: a part per hour on the road plus a part that grows with the coach's price. Greyhound
+            // spent 10.6% of its revenue here, 35 cents of every bus mile, about twice what this charged before
+            p.Maintenance = hours*(GeneralHelpers.GetInflationPrice(2.4 + 0.09*cap) + 0.000008*coach.Type.Price);
             // tolls, road tax and tyres per km, more for a heavier coach (about 3 cents a km in 2007)
             p.EnRoute = km*GeneralHelpers.GetInflationPrice(0.002 + 0.00004*cap);
             // the driver's time (the drivers you hire by name are paid separately)
             int crew = Math.Max(1, coach.Type.DriverCrew) + (coach.Type is CoachPassengerType pt ? pt.Attendants : 0);
-            p.Crew = hours*crew*GeneralHelpers.GetInflationPrice(4.0);
+            p.Crew = hours*crew*GeneralHelpers.GetInflationPrice(7.0);
+            // liability cover, which a coach carries whether anybody is aboard or not: 7.8% of Greyhound's revenue
+            // and 26 cents of every bus mile. By the hour and the seat, so an empty run pays it in full
+            p.Insurance = hours*GeneralHelpers.GetInflationPrice(2.4 + 0.05*cap) + 0.0000028*coach.Type.Price;
             p.Distribution = Math.Max(0, tickets)*DistributionShare(coach.Carrier);
             // offices, IT, marketing and everything else that isn't a trip
-            p.Overhead = Math.Max(0, tickets)*0.07;
+            p.Overhead = Math.Max(0, tickets)*0.09;
             double f = Factor;
             // the game pays little for cargo: freighters (no cabin, cheaper handling per load) pay half
             if (coach.Type is CoachCargoType) f *= 0.5;
@@ -91,6 +103,7 @@ namespace TheBusProject.Helpers
             p.Crew *= f;
             p.Distribution *= f;
             p.Overhead *= f;
+            p.Insurance *= f;
             return p;
         }
 
@@ -106,10 +119,11 @@ namespace TheBusProject.Helpers
 
             CarrierHelpers.AddCarrierInvoice(carrier, now, Invoice.InvoiceType.TripExpenses, -(p.Ground + p.EnRoute));
             CarrierHelpers.AddCarrierInvoice(carrier, now, Invoice.InvoiceType.Maintenances, -p.Maintenance);
+            CarrierHelpers.AddCarrierInvoice(carrier, now, Invoice.InvoiceType.Fees, -p.Insurance);
             CarrierHelpers.AddCarrierInvoice(carrier, now, Invoice.InvoiceType.Wages, -p.Crew);
             CarrierHelpers.AddCarrierInvoice(carrier, now, Invoice.InvoiceType.CarrierExpenses, -(p.Distribution + p.Overhead));
 
-            route?.AddRouteInvoice(new Invoice(now, Invoice.InvoiceType.TripExpenses, -(p.Ground + p.EnRoute + p.Distribution + p.Overhead)));
+            route?.AddRouteInvoice(new Invoice(now, Invoice.InvoiceType.TripExpenses, -(p.Ground + p.EnRoute + p.Distribution + p.Overhead + p.Insurance)));
             route?.AddRouteInvoice(new Invoice(now, Invoice.InvoiceType.Maintenances, -p.Maintenance));
             route?.AddRouteInvoice(new Invoice(now, Invoice.InvoiceType.Wages, -p.Crew));
 
@@ -122,6 +136,7 @@ namespace TheBusProject.Helpers
                 d.AddOperatingValue(new OperatingValue("Crew", now.Year, now.Month, -p.Crew));
                 d.AddOperatingValue(new OperatingValue("Ticket sales", now.Year, now.Month, -p.Distribution));
                 d.AddOperatingValue(new OperatingValue("Overhead", now.Year, now.Month, -p.Overhead));
+                d.AddOperatingValue(new OperatingValue("Insurance", now.Year, now.Month, -p.Insurance));
             }
             coach.Statistics?.AddStatisticsValue(now.Year, Models.General.Statistics.StatisticsTypes.GetStatisticsType("Coach_Income"), -p.Total);
             return p.Total;
