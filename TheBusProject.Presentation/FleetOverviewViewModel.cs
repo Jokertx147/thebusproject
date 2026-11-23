@@ -440,8 +440,16 @@ namespace TheBusProject.Presentation
                 var money = new ValueCurrencyFormatter();
                 foreach (var route in f.Routes.ToList())
                 {
+                    // this used to print the route's whole life as a fraction, which on a route whose first coach
+                    // is still on the road is nought over nought: "NaN% full". It now says so, and otherwise shows
+                    // the month, which is what every other screen means by full.
                     string filling;
-                    try { filling = string.Format("{0:0}% full", route.FillingDegree * 100); }
+                    try
+                    {
+                        filling = ConnectionService.HasCarried(route)
+                                      ? string.Format("{0:0}% full", ConnectionService.MonthLoad(route)*100)
+                                      : "no trips finished yet";
+                    }
                     catch (Exception) { filling = "-"; }
                     RouteLines.Add(
                         new OverviewRouteLine

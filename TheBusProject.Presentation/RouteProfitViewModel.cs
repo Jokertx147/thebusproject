@@ -128,7 +128,7 @@ namespace TheBusProject.Presentation
                     Numbers = string.Join("  |  ", new[]
                     {
                         "last month " + Money(f.LastMonth),
-                        f.Load > 0 ? string.Format("{0:0}% full", f.Load*100) : "no load yet",
+                        ConnectionService.HasCarried(f.Route) ? string.Format("{0:0}% full", f.Load*100) : "no trips finished yet",
                         f.WeeklyTrips + " trips a week",
                         f.ProfitPerTrip != 0 ? Money(f.ProfitPerTrip) + " a trip" : null,
                         fare.Length > 0 ? fare : null,

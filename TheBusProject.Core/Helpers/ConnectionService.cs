@@ -369,6 +369,31 @@ namespace TheBusProject.Helpers
         ///     The share of seats filled: last month when it flew enough, else this month so far, else since the route
         ///     started; 0 when unknown.
         /// </summary>
+        /// <summary>
+        ///     Whether this route has carried anything there is a figure for. A route opened this morning has a
+        ///     coach on it and a timetable, but nothing has arrived anywhere yet, so its passengers over its seats
+        ///     is nought over nought. That is not a number, and reporting it as nought per cent full tells the
+        ///     player their new route is running empty when it has not yet run at all.
+        /// </summary>
+        public static bool HasCarried(Route route)
+        {
+            if (route == null) return false;
+
+            int key = MonthKey(GameObject.GetInstance().GameTime);
+            lock (route)
+            {
+                if ((route.ConnectMonth == key || route.ConnectMonth == key - 1)
+                    && (route.ConnectSeats > 0 || route.ConnectLastSeats > 0)) return true;
+            }
+
+            if (route.HasStopovers)
+                return route.Stopovers.SelectMany(s => s.Legs).Distinct().Any(HasCarried);
+
+            double seats = Convert.ToDouble(
+                route.Statistics.GetTotalValue(Models.General.Statistics.StatisticsTypes.GetStatisticsType("Capacity")));
+            return seats > 0;
+        }
+
         public static double MonthLoad(Route route)
         {
             int key = MonthKey(GameObject.GetInstance().GameTime);

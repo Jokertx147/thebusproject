@@ -4672,7 +4672,7 @@ static class VmTest
 
         var sw = System.Diagnostics.Stopwatch.StartNew();
         double worstCash = me.Money;
-        int boughtAll = 0, openedAll = 0, noSuggestion = 0;
+        int boughtAll = 0, openedAll = 0, noSuggestion = 0, emptyButWorked = 0;
 
         for (int y = 0; y < years; y++)
         {
@@ -4723,6 +4723,17 @@ static class VmTest
                                  g.GameTime.Year, me.Fleet.Count, routes.Count, load*100, M(revenue), last, M(me.Money), alive, M(marketFare),
                                  me.Fleet.Count(f => f.HasRoute == false)));
 
+            // a route with a coach on it and a timetable must never be reported as running empty when the truth
+            // is that none of its trips has finished yet: nought over nought is not nought per cent full
+            foreach (var r in routes)
+            {
+                if (TheBusProject.Helpers.ConnectionService.HasCarried(r)) continue;
+                int entries = r.TimeTable == null ? 0 : r.TimeTable.Entries.Count;
+                bool worked = me.Fleet.Any(x => x.Routes.Contains(r));
+                if (!worked || entries == 0) continue;
+                if (TheBusProject.Helpers.ConnectionService.MonthLoad(r) <= 0) emptyButWorked++;
+            }
+
             if (double.IsNaN(me.Money) || double.IsInfinity(me.Money)) fail("the carrier's money is not a number");
             if (load < 0 || load > 1.0001) fail("a load factor of " + (load*100).ToString("0") + "%");
             foreach (var r in routes)
@@ -4738,6 +4749,8 @@ static class VmTest
 
         int rivalsLeft = TheBusProject.Models.Carriers.Carriers.GetAllCarriers().Count(c => c != me);
         Console.WriteLine("  rivals: " + rivalsAtStart + " at the start, " + rivalsLeft + " after " + years + " years");
+        Console.WriteLine("  routes caught reading 0% with a coach on them and no finished trip: " + emptyButWorked
+                          + " (each one says \"no trips finished yet\" on the screens instead)");
         int idle = me.Fleet.Count(f => f.HasRoute == false);
         Console.WriteLine("  the planner ran dry " + noSuggestion + " time(s); " + idle + " of " + me.Fleet.Count + " coaches are standing in the yard at the end");
         if (openedAll == 0) fail("the planner never offered a route worth opening in " + years + " years");
@@ -4822,6 +4835,22 @@ static class VmTest
         Console.WriteLine("  open: " + plan.Status);
         if (!open) Environment.Exit(1);
         var route = (TheBusProject.Models.Routes.PassengerRoute)me.Routes.Last();
+
+        // the moment it opens there is a coach on it and a timetable, and not one trip has finished. The screens
+        // must not call that running empty: passengers over seats is nought over nought, which is not a number.
+        bool carriedYet = TheBusProject.Helpers.ConnectionService.HasCarried(route);
+        double freshLoad = TheBusProject.Helpers.ConnectionService.MonthLoad(route);
+        double freshFill = route.FillingDegree;
+        Console.WriteLine(string.Format("  the hour it opened: carried anything? {0}; MonthLoad {1:0}%; FillingDegree {2}",
+                                        carriedYet, freshLoad*100, double.IsNaN(freshFill) ? "not a number" : (freshFill*100).ToString("0") + "%"));
+        if (carriedYet) { Console.WriteLine("  FAILED a route says it has carried passengers before running a trip"); Environment.Exit(1); }
+        var ranking = new TheBusProject.Presentation.ProfitRankingViewModel();
+        ranking.Reload();
+        string shown = string.Join(" ", ranking.Best.Concat(ranking.Worst).Select(b => b.Detail));
+        Console.WriteLine("  the ranking screen says: " + (shown.Length > 160 ? shown.Substring(0, 160) : shown));
+        if (shown.Contains("0% full")) { Console.WriteLine("  FAILED a route with no finished trip is shown as 0% full"); Environment.Exit(1); }
+        if (shown.Contains("NaN")) { Console.WriteLine("  FAILED a route's load is shown as NaN"); Environment.Exit(1); }
+
         foreach (var cl in route.Classes)
         {
             Console.WriteLine(string.Format("  fare {0}: {1}  (the going rate is {2})", cl.Type, M(cl.FarePrice),
@@ -4859,6 +4888,24 @@ static class VmTest
                 if (Math.Abs(v) >= 1) Console.WriteLine(string.Format("    {0,-16} {1,12}", kind, M(v)));
             }
         }
+        // and the other half of it: once the coaches have been out, the figure is real and the screens show it
+        if (!TheBusProject.Helpers.ConnectionService.HasCarried(route))
+        {
+            Console.WriteLine("  FAILED after two months of running, the route still says no trip has finished");
+            Environment.Exit(1);
+        }
+
+        var ranked = new TheBusProject.Presentation.ProfitRankingViewModel();
+        ranked.Reload();
+        string after = string.Join(" ", ranked.Best.Concat(ranked.Worst).Select(b => b.Detail));
+        Console.WriteLine("  after two months the ranking says: " + (after.Length > 150 ? after.Substring(0, 150) : after));
+        if (after.Contains("NaN")) { Console.WriteLine("  FAILED a route's load is shown as NaN"); Environment.Exit(1); }
+        if (after.Length > 0 && !after.Contains("% full") && !after.Contains("no trips finished yet"))
+        {
+            Console.WriteLine("  FAILED the ranking screen shows no load at all for a route that has been running");
+            Environment.Exit(1);
+        }
+
         Console.WriteLine("MILESTONE TEST OK");
         Environment.Exit(0);
     }
@@ -7282,21 +7329,25 @@ static class VmTest
                 // the graduate may already be on a coach, and only drivers without one can be sent for training
                 pvm.TrainDriver = pvm.TrainDrivers.FirstOrDefault(c => c.Value == graduate) ?? pvm.TrainDrivers.FirstOrDefault();
                 if (pvm.TrainDriver == null) { Console.WriteLine("  FAILED no driver free to train"); Environment.Exit(1); }
+                // whoever actually goes to school: the graduate when he is free, and somebody else when automatic
+                // assignment has already put him on a coach. Checking the graduate either way failed about one run
+                // in five, on nothing worse than which driver the game had found work for first.
+                var atSchool = pvm.TrainDriver.Value;
                 Console.WriteLine("  train: " + pvm.TrainDrivers.Count + " driver(s) without coach, " + pvm.TrainFamilies.Count + " families, first: " + pvm.TrainFamilies[0].Name + " | " + pvm.TrainHint);
                 string tf = pvm.TrainFamilies[0].Value;
                 double mTrain = gs.HumanMoney;
                 pvm.TrainCommand.Execute(null);
                 Console.WriteLine("  pending: " + pvm.PendingText);
                 pvm.ConfirmCommand.Execute(null);
-                Console.WriteLine("  trained: " + pvm.Status + " | money " + (gs.HumanMoney - mTrain).ToString("0") + " | " + pvm.Hired.First(h => h.Driver == graduate).Assignment);
-                if (graduate.Training == null || graduate.Training.CoachFamily != tf || !(gs.HumanMoney < mTrain) || pvm.TrainDrivers.Any(c => c.Value == graduate)) { Console.WriteLine("  FAILED training start"); Environment.Exit(1); }
+                Console.WriteLine("  trained: " + pvm.Status + " | money " + (gs.HumanMoney - mTrain).ToString("0") + " | " + pvm.Hired.First(h => h.Driver == atSchool).Assignment);
+                if (atSchool.Training == null || atSchool.Training.CoachFamily != tf || !(gs.HumanMoney < mTrain) || pvm.TrainDrivers.Any(c => c.Value == atSchool)) { Console.WriteLine("  FAILED training start"); Environment.Exit(1); }
                 string mt;
-                bool again2 = TheBusProject.Helpers.TripSchoolService.TrainDriver(hs, graduate, tf, out mt);
+                bool again2 = TheBusProject.Helpers.TripSchoolService.TrainDriver(hs, atSchool, tf, out mt);
                 Console.WriteLine("  twice: " + again2 + " | " + mt);
-                graduate.Training.EndDate = gs.GameTime;
+                atSchool.Training.EndDate = gs.GameTime;
                 typeof(TheBusProject.Helpers.GameObjectHelpers).GetMethod("DoDailyUpdate", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).Invoke(null, null);
-                Console.WriteLine("  after training: runs " + string.Join(",", graduate.Coaches) + " | training " + (graduate.Training == null ? "done" : "still on"));
-                if (again2 || graduate.Training != null || !graduate.Coaches.Contains(tf)) { Console.WriteLine("  FAILED training end"); Environment.Exit(1); }
+                Console.WriteLine("  after training: runs " + string.Join(",", atSchool.Coaches) + " | training " + (atSchool.Training == null ? "done" : "still on"));
+                if (again2 || atSchool.Training != null || !atSchool.Coaches.Contains(tf)) { Console.WriteLine("  FAILED training end"); Environment.Exit(1); }
 
                 // assigning drivers
                 var manned = hs.Fleet.First(f0 => f0.Drivers.Count > 0);

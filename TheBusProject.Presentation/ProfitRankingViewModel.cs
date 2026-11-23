@@ -160,8 +160,10 @@ namespace TheBusProject.Presentation
                     Amount = Money(value),
                     Route = r.Route,
                     Detail = string.Format(
-                        "{0} {1}  |  {2:0}% full  |  {3} trips a week{4}",
-                        Money(value), AmountHeading, r.Load*100, r.WeeklyTrips,
+                        "{0} {1}  |  {2}  |  {3} trips a week{4}",
+                        Money(value), AmountHeading,
+                        ConnectionService.HasCarried(r.Route) ? string.Format("{0:0}% full", r.Load*100) : "no trips finished yet",
+                        r.WeeklyTrips,
                         string.IsNullOrEmpty(r.Coach) ? "" : "  |  " + r.Coach)
                 });
             }
