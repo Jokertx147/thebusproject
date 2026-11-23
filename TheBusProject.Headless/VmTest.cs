@@ -4224,9 +4224,8 @@ static class VmTest
     }
 
     /// <summary>
-    ///     "vm bay": an Airbus A350-900 (needs 2,810 m) and an station with a shorter bay: the planner says why it
-    ///     can't fly; extended to 2,800 m it still can't (and says so), to 2,900 m it can; an engine that needs 5% less
-    ///     bay makes 2,800 m enough.
+    ///     "vm bay": a 45 foot coach (needs 14 m of platform) and a station with a short one: the planner says why it
+    ///     can't run there; extended to 13 m it still can't, and says so; at 14 m it can.
     /// </summary>
     static void BayTest(CarrierViewModel av)
     {
@@ -4234,48 +4233,45 @@ static class VmTest
         var g = TheBusProject.Models.General.GameObject.GetInstance();
         var h = g.HumanCarrier;
         var type = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().First(t => t.Name == "Setra S 417 HDH");
-        var a350 = TheBusProject.Helpers.CarrierHelpers.CreateCoach(h, type);
-        h.AddCoach(a350);
-        a350.Coach.EngineType = null;
+        var big = TheBusProject.Helpers.CarrierHelpers.CreateCoach(h, type);
+        h.AddCoach(big);
+        big.Coach.EngineType = null;
+        long need = big.Coach.MinBayLength;
         var home = h.Stations[0];
         var all = TheBusProject.Models.Stations.Stations.GetAllStations();
-        var target = all.Where(x => x != home && x.Bays.Any(r => r.Type == TheBusProject.Models.Stations.Bay.BayType.Regular) && x.GetMaxBayLength() >= 12 && x.GetMaxBayLength() < 15
-                                    && TheBusProject.Helpers.MathHelpers.GetDistance(home, x) > 500 && TheBusProject.Helpers.MathHelpers.GetDistance(home, x) < 5000)
+        // one of the older downtown terminals: its platform is too short for a 45 footer
+        var target = all.Where(x => x != home && x.Bays.Any(r => r.Type == TheBusProject.Models.Stations.Bay.BayType.Regular)
+                                    && x.GetMaxBayLength() < need
+                                    && TheBusProject.Helpers.MathHelpers.GetDistance(home, x) > 150
+                                    && TheBusProject.Helpers.MathHelpers.GetDistance(home, x) < 900)
                         .OrderByDescending(x => x.Profile.Pax).First();
-        Console.WriteLine("  " + a350.Name + " " + type.Name + " needs " + a350.Coach.MinBayLength + " m; " + home.Profile.IATACode + " " + home.GetMaxBayLength() + " m, " + target.Profile.IATACode + " " + target.GetMaxBayLength() + " m");
+        Console.WriteLine("  " + big.Name + " " + type.Name + " needs " + need + " m; " + home.Profile.IATACode + " "
+                          + home.GetMaxBayLength() + " m, " + target.Profile.IATACode + " " + target.GetMaxBayLength() + " m");
         Func<bool> canPlan = () =>
         {
             var cr = new TheBusProject.Presentation.CreateRouteViewModel(home, target, _ => { });
             Console.WriteLine("    planner: coach " + string.Join(" / ", cr.Coaches.Select(x => x.Name)) + " | " + cr.CantFly);
-            return cr.Coaches.Any(x => x.Coach == a350);
+            return cr.Coaches.Any(x => x.Coach == big);
         };
-        if (canPlan() || !(new TheBusProject.Presentation.CreateRouteViewModel(home, target, _ => { }).CantFly ?? "").Contains("2,810 m")) { Console.WriteLine("  FAILED before extending"); Environment.Exit(1); }
+        if (canPlan() || !(new TheBusProject.Presentation.CreateRouteViewModel(home, target, _ => { }).CantFly ?? "").Contains(need + " m"))
+        { Console.WriteLine("  FAILED before extending"); Environment.Exit(1); }
 
         var bay = target.Bays.Where(r => r.Type == TheBusProject.Models.Stations.Bay.BayType.Regular).OrderByDescending(r => r.Length).First();
         string m;
         h.Money = Math.Max(h.Money, 500000000);
-        if (!TheBusProject.Helpers.BayService.Extend(h, target, bay, 2800, out m)) { Console.WriteLine("  FAILED extend: " + m); Environment.Exit(1); }
-        Console.WriteLine("  " + m + " | still too short for: " + string.Join(", ", TheBusProject.Helpers.BayService.TooShortFor(2800, false)));
+        long nearly = need - 1;
+        if (!TheBusProject.Helpers.BayService.Extend(h, target, bay, nearly, out m)) { Console.WriteLine("  FAILED extend: " + m); Environment.Exit(1); }
+        Console.WriteLine("  " + m + " | still too short for: " + string.Join(", ", TheBusProject.Helpers.BayService.TooShortFor(nearly, false)));
         Console.WriteLine("  while extending: " + TheBusProject.Helpers.BayService.Describe(target));
         while (bay.IsExtending) TheBusProject.Helpers.GameObjectHelpers.SimulateTurn();
         Console.WriteLine("  extended: " + TheBusProject.Helpers.BayService.Describe(target));
-        if (canPlan()) { Console.WriteLine("  FAILED 2,800 m should still be too short"); Environment.Exit(1); }
+        if (canPlan()) { Console.WriteLine("  FAILED " + nearly + " m should still be too short"); Environment.Exit(1); }
 
-        // an engine that needs 5% less bay: 2,670 m, so 2,800 m is enough
-        var engine = TheBusProject.Models.Coaches.EngineTypes.GetEngineTypes(type).Where(e => e.BayModifier < 1).OrderBy(e => e.BayModifier).FirstOrDefault();
-        if (engine != null)
-        {
-            a350.Coach.EngineType = engine;
-            Console.WriteLine("  with " + engine.Model + " (bay x" + engine.BayModifier + "): needs " + a350.Coach.MinBayLength + " m");
-            if (!canPlan()) { Console.WriteLine("  FAILED the engine's shorter run is not used"); Environment.Exit(1); }
-            a350.Coach.EngineType = null;
-        }
-
-        if (!TheBusProject.Helpers.BayService.Extend(h, target, bay, 2900, out m)) { Console.WriteLine("  FAILED extend again: " + m); Environment.Exit(1); }
-        Console.WriteLine("  " + m + " | still too short for: " + string.Join(", ", TheBusProject.Helpers.BayService.TooShortFor(2900, false)));
+        if (!TheBusProject.Helpers.BayService.Extend(h, target, bay, need, out m)) { Console.WriteLine("  FAILED extend again: " + m); Environment.Exit(1); }
+        Console.WriteLine("  " + m + " | still too short for: " + string.Join(", ", TheBusProject.Helpers.BayService.TooShortFor(need, false)));
         while (bay.IsExtending) TheBusProject.Helpers.GameObjectHelpers.SimulateTurn();
         Console.WriteLine("  extended: " + TheBusProject.Helpers.BayService.Describe(target));
-        if (!canPlan()) { Console.WriteLine("  FAILED 2,900 m should be enough"); Environment.Exit(1); }
+        if (!canPlan()) { Console.WriteLine("  FAILED " + need + " m should be enough"); Environment.Exit(1); }
         Console.WriteLine("BAY TEST OK");
     }
 

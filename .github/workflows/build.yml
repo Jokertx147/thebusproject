@@ -71,7 +71,7 @@ jobs:
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm renewalorder 2>&1 | tee renewalordertest.log
           grep -q "RENEWAL ORDER TEST OK" renewalordertest.log || { grep -m8 -iE "FAILED|timeout|exception|   at " renewalordertest.log | sed 's/^/::error::/'; exit 1; }
 
-      - name: Bay test (an A350-900 against a bay extended to 2,800 m and 2,900 m)
+      - name: Bay test (a 45 foot coach against a platform extended 1 m at a time)
         run: |
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm bay 2>&1 | tee baytest.log
           grep -q "BAY TEST OK" baytest.log || { grep -m8 -iE "FAILED|timeout|exception|   at " baytest.log | sed 's/^/::error::/'; exit 1; }
