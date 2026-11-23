@@ -1073,13 +1073,27 @@ static class VmTest
         var g = TheBusProject.Models.General.GameObject.GetInstance();
         var h = g.HumanCarrier;
         var mk = av.Market;
-        foreach (var item in mk.Coach.OrderBy(x => x.Coach.GetPrice()).Skip(40).Take(200)) { mk.Selected = item; if (mk.Homebase != null) break; }
+        // a coach that can actually be put somewhere: the longest-range one on the market
+        foreach (var item in mk.Coach.OrderByDescending(x => x.Coach.Range)) { mk.Selected = item; if (mk.Homebase != null) break; }
         mk.BuyCommand.Execute(null);
         av.Refresh();
         foreach (var f in h.Fleet) if (f.Drivers.Count < f.Coach.Type.DriverCrew) TheBusProject.Helpers.CarrierHelpers.HireCoachDrivers(f);
         var sv = av.Suggestions;
         await sv.Reload();
-        var top = sv.Coach.First(a => a.Suggestions.Count > 0).Suggestions[0];
+        var withSuggestions = sv.Coach.FirstOrDefault(a => a.Suggestions.Count > 0);
+        if (withSuggestions == null)
+        {
+            // nothing offered for the first one: buy one more and ask again
+            foreach (var item in mk.Coach.OrderByDescending(x => x.Coach.Range)) { mk.Selected = item; if (mk.Homebase != null) break; }
+            mk.BuyCommand.Execute(null);
+            av.Refresh();
+            foreach (var f in h.Fleet) if (f.Drivers.Count < f.Coach.Type.DriverCrew) TheBusProject.Helpers.CarrierHelpers.HireCoachDrivers(f);
+            await sv.Reload();
+            withSuggestions = sv.Coach.FirstOrDefault(a => a.Suggestions.Count > 0);
+        }
+
+        if (withSuggestions == null) { Console.WriteLine("  FAILED no idle coach was offered a route: " + sv.Summary); Environment.Exit(1); }
+        var top = withSuggestions.Suggestions[0];
         double add = 7 + 6 * TheBusProject.Helpers.RouteForecastService.NewRouteService(h);
         var ends = new[] { top.From, top.To };
         var before = ends.Select(ap => TheBusProject.Helpers.PassengerHelpers.ReputationShare(ap, h)).ToArray();
