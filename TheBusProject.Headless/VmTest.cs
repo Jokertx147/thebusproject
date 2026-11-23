@@ -5030,18 +5030,20 @@ static class VmTest
             var me2 = TheBusProject.Models.General.GameObject.GetInstance().HumanCarrier;
             Console.WriteLine("  " + pv.Info + " | logo " + pv.LogoPath + " | header " + av.LogoPath + " | " + pv.LogoCount);
             if (pv.LogoPath == null || !System.IO.File.Exists(pv.LogoPath)) { Console.WriteLine("  FAILED no logo"); Environment.Exit(1); }
-            pv.Name = "Lone Star Air"; pv.CEO = "Jose"; pv.Color = "1565c0"; pv.Narrative = "Texas first.";
+            pv.Name = "Lone Star Coaches"; pv.CEO = "Jose"; pv.Color = "1565c0"; pv.Narrative = "Texas first.";
             // the kind can't change once the carrier flies: the rest saves and the note says why
             pv.Focus = pv.Focuses.First(f => f.Value == TheBusProject.Models.Routes.Route.RouteType.Cargo);
             pv.SaveCommand.Execute(null);
             av.Refresh();
             Console.WriteLine("  save: " + pv.Status + " | now " + me2.Profile.Name + ", CEO " + me2.Profile.CEO + ", color " + me2.Profile.Color + ", focus " + me2.CarrierRouteFocus + " | header " + av.CarrierName);
-            if (me2.Profile.Name != "Lone Star Air" || me2.Profile.Color != "#1565C0" || av.CarrierName != "Lone Star Air") { Console.WriteLine("  FAILED save"); Environment.Exit(1); }
+            if (me2.Profile.Name != "Lone Star Coaches" || me2.Profile.Color != "#1565C0" || av.CarrierName != "Lone Star Coaches") { Console.WriteLine("  FAILED save"); Environment.Exit(1); }
             if ((me2.Routes.Count > 0 || me2.Fleet.Count > 0) && (me2.CarrierRouteFocus == TheBusProject.Models.Routes.Route.RouteType.Cargo || !pv.Status.Contains("only change"))) { Console.WriteLine("  FAILED kind change allowed"); Environment.Exit(1); }
             var other = TheBusProject.Models.Carriers.Carriers.GetAllCarriers().First(x => !x.IsHuman);
             pv.Name = other.Profile.Name; pv.SaveCommand.Execute(null); Console.WriteLine("  taken name: " + pv.Status);
-            pv.Name = "Lone Star Air"; pv.Color = "not a color!"; pv.SaveCommand.Execute(null); Console.WriteLine("  bad color: " + pv.Status);
-            pv.LogoFilter = "AA"; Console.WriteLine("  search AA: " + pv.LogoCount + " first " + pv.Logos.FirstOrDefault()?.Name);
+            pv.Name = "Lone Star Coaches"; pv.Color = "not a color!"; pv.SaveCommand.Execute(null); Console.WriteLine("  bad color: " + pv.Status);
+            pv.LogoFilter = "GH"; Console.WriteLine("  search GH: " + pv.LogoCount + " first " + pv.Logos.FirstOrDefault()?.Name);
+            if (pv.Logos.Count == 0) { pv.LogoFilter = ""; Console.WriteLine("  no logo matched GH, so all of them: " + pv.LogoCount); }
+            if (pv.Logos.Count == 0) { Console.WriteLine("  FAILED no carrier logos in the game data"); Environment.Exit(1); }
             pv.SelectedLogo = pv.Logos.First(); pv.UseLogoCommand.Execute(null);
             Console.WriteLine("  built-in: " + pv.Status + " | " + me2.Profile.Logo);
             var tmp = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "mylogo.png");
