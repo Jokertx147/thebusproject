@@ -7,7 +7,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
-using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using TheBusProject.Infrastructure;
 using TheBusProject.Presentation;
@@ -17,9 +16,6 @@ namespace TheBusProject.Desktop.Views
     /// <summary>Draws the Web Mercator world map (the level 3 tiles of the game data) with the carrier's stations, routes and coach. Drag to pan, wheel to zoom, click an coach to select it.</summary>
     public class WorldMapControl : Control
     {
-        private const int TileLevel = 3;
-        private static Bitmap[,] _tiles;
-        private static bool _tilesTried;
 
         private WorldMapViewModel _vm;
         private double _scale;       // pixels per world width
@@ -115,40 +111,6 @@ namespace TheBusProject.Desktop.Views
         private void OnChanged()
         {
             Dispatcher.UIThread.Post(InvalidateVisual);
-        }
-
-        private static void LoadTiles()
-        {
-            if (_tilesTried)
-            {
-                return;
-            }
-
-            _tilesTried = true;
-            int n = 1 << TileLevel;
-            var tiles = new Bitmap[n, n];
-            bool any = false;
-            string dir = Path.Combine(AppSettings.GetDataPath(), "graphics", "maps", TileLevel.ToString());
-            for (int x = 0; x < n; x++)
-            {
-                for (int y = 0; y < n; y++)
-                {
-                    string f = Path.Combine(dir, x.ToString(), y + ".png");
-                    try
-                    {
-                        if (File.Exists(f))
-                        {
-                            tiles[x, y] = new Bitmap(f);
-                            any = true;
-                        }
-                    }
-                    catch (Exception)
-                    {
-                    }
-                }
-            }
-
-            _tiles = any ? tiles : null;
         }
 
         private double MinScale => Math.Max(Bounds.Width, Bounds.Height);
@@ -265,6 +227,17 @@ namespace TheBusProject.Desktop.Views
                 double need = Math.Min(Bounds.Width / Math.Max(0.05, spanU * 1.5), Bounds.Height / Math.Max(0.05, spanV * 1.5));
                 _scale = Math.Max(_scale, Math.Min(need, MaxScale / 2));
             }
+            else
+            {
+                // nothing of your own on the map yet: the country the game is played in, rather than the whole globe
+                double[] nw = WorldMapViewModel.Project(49.6, -125.5);
+                double[] se = WorldMapViewModel.Project(24.0, -66.5);
+                _cx = (nw[0] + se[0]) / 2;
+                _cy = (nw[1] + se[1]) / 2;
+                double need = Math.Min(Bounds.Width / Math.Max(0.05, (se[0] - nw[0]) * 1.1),
+                                       Bounds.Height / Math.Max(0.05, (se[1] - nw[1]) * 1.1));
+                _scale = Math.Max(_scale, Math.Min(need, MaxScale / 2));
+            }
 
             Clamp();
         }
@@ -291,30 +264,19 @@ namespace TheBusProject.Desktop.Views
             _frameNow = _vm == null ? default(DateTime) : _vm.Animate ? _vm.Clock.Now(WorldMapViewModel.WallSeconds) : _vm.Clock.Latest;
             FollowSelected();
 
-            LoadTiles();
-            if (_tiles == null)
+            // the land and the roads, drawn from outlines: world units (0..1) through one transform to the screen
+            VectorMap.Load();
+            if (!VectorMap.Ready)
             {
-                var msg = new FormattedText("World map tiles not found in the game data (graphics/maps).", CultureInfo.CurrentCulture,
-                    FlowDirection.LeftToRight, Face, 13, Brushes.Black);
-                ctx.DrawText(msg, new Point(10, 10));
+                VectorMap.DrawMissing(ctx);
             }
             else
             {
-                int n = 1 << TileLevel;
-                double tile = _scale / n;
-                for (int x = 0; x < n; x++)
-                {
-                    for (int y = 0; y < n; y++)
-                    {
-                        Point p = ToScreen(x / (double) n, y / (double) n);
-                        if (p.X > Bounds.Width || p.Y > Bounds.Height || p.X + tile < 0 || p.Y + tile < 0 || _tiles[x, y] == null)
-                        {
-                            continue;
-                        }
-
-                        ctx.DrawImage(_tiles[x, y], new Rect(0, 0, 256, 256), new Rect(p.X, p.Y, tile + 0.6, tile + 0.6));
-                    }
-                }
+                var toScreen = new Matrix(
+                    _scale, 0,
+                    0, _scale,
+                    Bounds.Width / 2 - _cx * _scale, Bounds.Height / 2 - _cy * _scale);
+                VectorMap.Draw(ctx, toScreen, _scale);
             }
 
             if (_vm == null)

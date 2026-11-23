@@ -81,7 +81,8 @@ namespace TheBusProject.Helpers
             }
             if (origins.Count == 0) return;
 
-            List<Station> all = Stations.GetAllActiveStations().Where(a => a.GetMaxBayLength() >= 1500).ToList();
+            // anywhere a full-size coach fits: a 45 footer wants 14 m of platform
+            List<Station> all = Stations.GetAllActiveStations().Where(a => a.GetMaxBayLength() >= 14).ToList();
             if (all.Count < 2) return;
 
             int wanted = Rnd.Next(2, 6);

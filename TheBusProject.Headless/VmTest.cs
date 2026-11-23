@@ -5806,7 +5806,7 @@ static class VmTest
             // new coach order
             var na = av.NewCoach;
             Console.WriteLine("ORDER types=" + na.Types.Count);
-            Console.WriteLine("  manufacturers: " + string.Join("; ", na.Manufacturers.Select(m => m.Text))); na.Manufacturer = na.Manufacturers[1]; Console.WriteLine("  first maker types=" + na.Types.Count + " " + na.Types.First().Details); na.Manufacturer = na.Manufacturers[0]; na.Filter = "737"; Console.WriteLine("  filtered=" + na.Types.Count);
+            Console.WriteLine("  manufacturers: " + string.Join("; ", na.Manufacturers.Select(m => m.Text))); na.Manufacturer = na.Manufacturers[1]; Console.WriteLine("  first maker types=" + na.Types.Count + " " + na.Types.First().Details); na.Manufacturer = na.Manufacturers[0]; na.Filter = "MCI"; Console.WriteLine("  filtered=" + na.Types.Count);
             na.Selected = na.Types.FirstOrDefault() ?? (na.Filter == "" ? null : null);
             if (na.Selected == null) { na.Filter = ""; na.Selected = na.Types.First(); }
             na.Amount = 2; na.DownPayment = true;
@@ -6095,7 +6095,7 @@ static class VmTest
                 var cav = av2;
                 var cam = cav.StationManager;
                 cam.OnlyMine = false;
-                foreach (var code in new[] { "DFW", "RSW" })
+                foreach (var code in new[] { "DAL", "HOU" })
                 {
                     cam.Search = code;
                     cam.Selected = cam.Stations.First(a => a.Text.Contains(code));
@@ -6107,7 +6107,7 @@ static class VmTest
                 }
                 for (int d = 0; d < 200; d++) TheBusProject.Helpers.GameObjectHelpers.SimulateTurn();
                 Console.WriteLine("  date now " + TheBusProject.Models.General.GameObject.GetInstance().GameTime.ToShortDateString());
-                foreach (var code in new[] { "DFW", "RSW" })
+                foreach (var code in new[] { "DAL", "HOU" })
                 {
                     cam.Search = code;
                     cam.Selected = cam.Stations.First(a => a.Text.Contains(code));
@@ -6118,7 +6118,7 @@ static class VmTest
                     foreach (var f in cam.Facilities.Where(x => x.Name.Contains("argo"))) Console.WriteLine("    facility " + f.Name + ": " + f.Current + " -> " + f.Next);
                     cam.LeaseCargo = false;
                 }
-                foreach (var code in new[] { "DFW", "RSW" })
+                foreach (var code in new[] { "DAL", "HOU" })
                 {
                     cam.Search = code;
                     cam.Selected = cam.Stations.First(a => a.Text.Contains(code));
@@ -6153,21 +6153,21 @@ static class VmTest
 
                 var cap = cav.Stations;
                 cap.CargoMode = true;
-                cap.Search = "DFW";
-                cap.Selected = cap.Stations.First(a => a.Text.Contains("DFW"));
+                cap.Search = "DAL";
+                cap.Selected = cap.Stations.First(a => a.Text.Contains("DAL"));
                 await Wait(() => !cap.IsBusy, "cargo advice");
                 Console.WriteLine("  " + cap.AdviceTitle + " rows=" + cap.Advice.Count);
                 foreach (var ad in cap.Advice.Take(3)) Console.WriteLine("    " + ad.Name + " | " + ad.Numbers + " | " + ad.Notes);
-                var rsw = cap.Advice.FirstOrDefault(a => a.Name.Contains("RSW"));
-                Console.WriteLine("  RSW advice: " + (rsw == null ? "none" : rsw.Name + " | " + rsw.Numbers + " | " + rsw.Notes));
-                if (rsw != null) cap.SelectedAdvice = rsw;
-                var ccr = rsw != null ? cap.Create : new CreateRouteViewModel(cap.Selected.Station, cam.Stations.First(a => a.Text.Contains("RSW")).Station, m => Console.WriteLine("  done: " + m), true);
+                var faraway = cap.Advice.FirstOrDefault(a => a.Name.Contains("HOU"));
+                Console.WriteLine("  HOU advice: " + (faraway == null ? "none" : faraway.Name + " | " + faraway.Numbers + " | " + faraway.Notes));
+                if (faraway != null) cap.SelectedAdvice = faraway;
+                var ccr = faraway != null ? cap.Create : new CreateRouteViewModel(cap.Selected.Station, cam.Stations.First(a => a.Text.Contains("HOU")).Station, m => Console.WriteLine("  done: " + m), true);
                 Console.WriteLine("  " + ccr.Title + " cargo=" + ccr.IsCargo + " price=" + ccr.CargoPrice + " coach=" + ccr.Coaches.Count + " offers=" + ccr.Offers.Count + " trips=" + ccr.Trips.Count + " info=" + ccr.Info);
                 ccr.CargoPrice = "abc"; ccr.CreateCommand.Execute(null);
                 Console.WriteLine("  bad price: " + ccr.Info);
                 ccr.CargoPrice = "7.5";
                 ccr.CreateCommand.Execute(null);
-                if (rsw == null) Console.WriteLine("  (direct)");
+                if (faraway == null) Console.WriteLine("  (direct)");
                 Console.WriteLine("  create: " + cap.Status + " | " + ccr.Info);
                 var croute = TheBusProject.Models.General.GameObject.GetInstance().HumanCarrier.Routes.FirstOrDefault(r => r.IsCargoRoute);
                 Console.WriteLine("  cargo route exists=" + (croute != null) + (croute == null ? "" : " " + croute.Destination1.Profile.IATACode + "-" + croute.Destination2.Profile.IATACode + " price=" + ((TheBusProject.Models.Routes.CargoRoute) croute).PricePerUnit + " entries=" + croute.TimeTable.Entries.Count));
@@ -6222,9 +6222,9 @@ static class VmTest
                     Console.WriteLine("  canMove=" + pd.CanMove + " moveButton=" + pd.ShowMoveButton);
                     {
                         var nb = av2.NewCoach; nb.Reload();
-                        nb.Selected = nb.Types.First(t => t.Name.Contains("737-600"));
+                        nb.Selected = nb.Types.First(t => t.Type is TheBusProject.Models.Coaches.CoachPassengerType);
                         nb.Amount = 1; nb.DownPayment = false; nb.OrderCommand.Execute(null);
-                        Console.WriteLine("  bought 737 for the move: " + nb.Status);
+                        Console.WriteLine("  bought " + nb.Selected.Name + " for the move: " + nb.Status);
                         foreach (var fa in TheBusProject.Models.General.GameObject.GetInstance().HumanCarrier.Fleet) fa.Coach.BuiltDate = TheBusProject.Models.General.GameObject.GetInstance().GameTime.AddDays(-2);
                         av2.Refresh();
                     }
@@ -6241,8 +6241,8 @@ static class VmTest
             }
             {
                 Console.WriteLine("SCHEDULER TEST");
-                var sf = TheBusProject.Models.General.GameObject.GetInstance().HumanCarrier.Fleet.First(x => x.Name == "N005DL");
-                var fi2 = av2.Fleet.First(x => x.Name == "N005DL");
+                var sf = TheBusProject.Models.General.GameObject.GetInstance().HumanCarrier.Fleet.First(x => x.Name == "N005GH");
+                var fi2 = av2.Fleet.First(x => x.Name == "N005GH");
                 Console.WriteLine("  fleet row can schedule=" + fi2.CanSchedule);
                 fi2.ScheduleCommand.Execute(null);
                 var tv = av2.Timetable;
@@ -6262,7 +6262,7 @@ static class VmTest
                 tv.SelectedBlock = tv.Blocks.Last();
                 tv.RemoveSelectedCommand.Execute(null);
                 Console.WriteLine("  removed one: " + tv.Status + " | blocks now " + tv.Blocks.Count);
-                var ov = av2.Overview; ov.Selected = ov.Rows.First(r => r.Name == "N005DL");
+                var ov = av2.Overview; ov.Selected = ov.Rows.First(r => r.Name == "N005GH");
                 Console.WriteLine("  overview canSchedule=" + ov.CanSchedule);
                 av2.Page = 0; ov.ScheduleCommand.Execute(null);
                 Console.WriteLine("  from overview: page=" + av2.Pages[av2.Page] + " tab=" + av2.TripsTab);
@@ -6273,12 +6273,12 @@ static class VmTest
                 dap.CargoMode = false;
                 dap.Search = "ATL";
                 dap.Selected = dap.Stations.First(a => a.Text.StartsWith("ATL"));
-                dap.DestinationSearch = "HNL";
-                Console.WriteLine("  search HNL: " + dap.Destinations.Count + " first=" + dap.Destinations.FirstOrDefault()?.Name + " | " + dap.Destinations.FirstOrDefault()?.Details + " searching=" + dap.IsSearchingDestinations + " advice visible=" + dap.ShowAdvice);
+                dap.DestinationSearch = "CLT";
+                Console.WriteLine("  search CLT: " + dap.Destinations.Count + " first=" + dap.Destinations.FirstOrDefault()?.Name + " | " + dap.Destinations.FirstOrDefault()?.Details + " searching=" + dap.IsSearchingDestinations + " advice visible=" + dap.ShowAdvice);
                 dap.SelectedDestination = dap.Destinations.First();
                 Console.WriteLine("  create form: " + dap.Create?.Title + " coach=" + dap.Create?.Coaches.Count + " offers=" + dap.Create?.Offers.Count + " info=" + dap.Create?.Info);
-                dap.DestinationSearch = "japan";
-                Console.WriteLine("  search japan: " + dap.Destinations.Count + " nearest=" + dap.Destinations.FirstOrDefault()?.Name + " " + dap.Destinations.FirstOrDefault()?.Details);
+                dap.DestinationSearch = "tennessee";
+                Console.WriteLine("  search tennessee: " + dap.Destinations.Count + " nearest=" + dap.Destinations.FirstOrDefault()?.Name + " " + dap.Destinations.FirstOrDefault()?.Details);
                 dap.DestinationSearch = "";
                 Console.WriteLine("  cleared: searching=" + dap.IsSearchingDestinations + " advice visible=" + dap.ShowAdvice);
             }
@@ -6739,7 +6739,10 @@ static class VmTest
                 // type training for a driver without an coach
                 pvm.Reload();
                 Console.WriteLine("  your drivers: " + pvm.Hired.Count + ", marked without coach: " + pvm.Hired.Count(h => h.IsIdle));
-                if (!pvm.Hired.Any(h => h.IsIdle && h.Driver == graduate)) { Console.WriteLine("  FAILED idle marker"); Environment.Exit(1); }
+                var gradRow = pvm.Hired.FirstOrDefault(h => h.Driver == graduate);
+                if (gradRow == null) { Console.WriteLine("  FAILED the graduate isn't on the list"); Environment.Exit(1); }
+                // with automatic assignment on, a graduate can be put straight on a coach; idle only if he wasn't
+                if (gradRow.IsIdle != (graduate.Coach == null)) { Console.WriteLine("  FAILED idle marker"); Environment.Exit(1); }
                 pvm.TrainDriver = pvm.TrainDrivers.First(c => c.Value == graduate);
                 Console.WriteLine("  train: " + pvm.TrainDrivers.Count + " driver(s) without coach, " + pvm.TrainFamilies.Count + " families, first: " + pvm.TrainFamilies[0].Name + " | " + pvm.TrainHint);
                 string tf = pvm.TrainFamilies[0].Value;
@@ -7061,26 +7064,20 @@ static class VmTest
                 var lcg = TheBusProject.Models.General.GameObject.GetInstance();
                 var la = lcg.HumanCarrier;
                 var lall = TheBusProject.Models.Stations.Stations.GetAllStations();
-                var atl = lall.First(x => x.Profile.IATACode == "ATL"); var lhr = lall.FirstOrDefault(x => x.Profile.IATACode == "SYD");
-                if (lhr == null)
-                {
-                    // a North America game has no station on another continent: read Sydney from the data files
-                    // without adding it to the game
-                    var keepStations = lall.ToList();
-                    TheBusProject.Infrastructure.Setup.LoadStations();
-                    lhr = TheBusProject.Models.Stations.Stations.GetAllStations().First(x => x.Profile.IATACode == "SYD");
-                    TheBusProject.Models.Stations.Stations.Clear();
-                    foreach (var ka in keepStations) TheBusProject.Models.Stations.Stations.AddStation(ka);
-                    Console.WriteLine("  (Sydney read from the data files: " + TheBusProject.Models.Stations.Stations.GetAllStations().Count + " stations in the game)");
-                }
+                // a state away and then some: regional authority stops at the state line and the short hops over it
+                var atl = lall.First(x => x.Profile.IATACode == "ATL");
+                var lhr = lall.OrderByDescending(x => TheBusProject.Helpers.MathHelpers.GetDistance(atl, x)).First();
+                Console.WriteLine("  the far end: " + lhr.Profile.IATACode + ", "
+                                  + TheBusProject.Helpers.MathHelpers.GetDistance(atl, lhr).ToString("#,0") + " km away in "
+                                  + (lhr.Profile.Town?.State?.Name ?? "?"));
                 TheBusProject.Helpers.CarrierHelpers.AddCarrierInvoice(la, lcg.GameTime, TheBusProject.Models.General.Finances.Invoice.InvoiceType.Rents, 100000000);
                 var keepLicense = la.License;
                 la.License = TheBusProject.Models.Carriers.Carrier.CarrierLicense.Regional;
                 var lvm = new TheBusProject.Presentation.LicenseViewModel(() => { });
-                Console.WriteLine("  " + lvm.Current + " | " + lvm.NextText + " | ATL-SYD allowed: " + TheBusProject.Helpers.CarrierHelpers.HasCarrierLicens(la, atl, lhr));
-                if (TheBusProject.Helpers.CarrierHelpers.HasCarrierLicens(la, atl, lhr)) { Console.WriteLine("  FAILED regional should not run ATL-SYD"); Environment.Exit(1); }
+                Console.WriteLine("  " + lvm.Current + " | " + lvm.NextText + " | ATL to the far end allowed: " + TheBusProject.Helpers.CarrierHelpers.HasCarrierLicens(la, atl, lhr));
+                if (TheBusProject.Helpers.CarrierHelpers.HasCarrierLicens(la, atl, lhr)) { Console.WriteLine("  FAILED regional should not run ATL to the far end"); Environment.Exit(1); }
                 for (int step = 0; step < 2; step++) { lvm.UpgradeCommand.Execute(null); lvm.ConfirmCommand.Execute(null); Console.WriteLine("  " + lvm.Status); }
-                Console.WriteLine("  now " + lvm.Current + " | ATL-SYD allowed: " + TheBusProject.Helpers.CarrierHelpers.HasCarrierLicens(la, atl, lhr) + " | can upgrade " + lvm.CanUpgrade);
+                Console.WriteLine("  now " + lvm.Current + " | ATL to the far end allowed: " + TheBusProject.Helpers.CarrierHelpers.HasCarrierLicens(la, atl, lhr) + " | can upgrade " + lvm.CanUpgrade);
                 if (!TheBusProject.Helpers.CarrierHelpers.HasCarrierLicens(la, atl, lhr) || lvm.CanUpgrade || la.License != TheBusProject.Models.Carriers.Carrier.CarrierLicense.LongHaul) { Console.WriteLine("  FAILED long haul license"); Environment.Exit(1); }
                 la.License = keepLicense;
             }

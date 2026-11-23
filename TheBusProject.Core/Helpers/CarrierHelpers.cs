@@ -673,17 +673,21 @@ namespace TheBusProject.Helpers
             bool isInUnion =
                 Unions.GetUnions(station1.Profile.Country, GameObject.GetInstance().GameTime).Intersect(Unions.GetUnions(station2.Profile.Country, GameObject.GetInstance().GameTime)).Any();
 
-            // path: Regional -> Domestic -> Long haul; each tier covers everything the one below it does
+            // A motor carrier's authority: Regional -> Domestic -> Long haul, each tier covering the one below it.
+            // Regional is the state it is licensed in and the short hops over its line, Domestic is the whole
+            // country, and only Long haul takes a coach across the border.
             if (carrier.License == Carrier.CarrierLicense.LongHaul)
                 return true;
 
-            if (continent1 == continent2 || isInUnion)
-                return true;
+            if (station1.Profile.Country != station2.Profile.Country)
+                return isInUnion;
 
             if (carrier.License == Carrier.CarrierLicense.Domestic || carrier.License == Carrier.CarrierLicense.ShortHaul)
-                return station1.Profile.Country == station2.Profile.Country || MathHelpers.GetDistance(station1, station2) < 2000;
+                return true;
 
-            return false;
+            var state1 = station1.Profile.Town?.State;
+            var state2 = station2.Profile.Town?.State;
+            return (state1 != null && state1 == state2) || MathHelpers.GetDistance(station1, station2) < 600;
         }
 
         //the order of the license tiers: Regional, Domestic, Long haul (the old Short haul counts as Domestic)

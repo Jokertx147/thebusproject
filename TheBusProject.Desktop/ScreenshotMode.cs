@@ -198,9 +198,9 @@ namespace TheBusProject.Desktop
                 av.Page = PageOf("Stations");
                 av.StationsTab = 0;
                 av.StationManager.OnlyMine = false;
-                av.StationManager.Search = "United States";
+                av.StationManager.Search = "Texas";
                 av.StationManager.SortBy = "Distance";
-                av.StationManager.Near = "KOA";
+                av.StationManager.Near = "DAL";
                 await Settle();
                 Save(window, "06b-stations-near");
                 av.StationManager.SortBy = "Name";

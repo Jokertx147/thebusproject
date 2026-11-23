@@ -1640,25 +1640,25 @@ namespace TheBusProject.Infrastructure
         private static void CreateDriverRatings()
         {
             var ratingA = new DriverRating("A", 70, 3);
-            ratingA.AddCoach(TrainingCoachTypes.GetCoachType("Cessna 172"));
-            ratingA.AddCoach(TrainingCoachTypes.GetCoachType("Beechcraft King Air 350"));
+            ratingA.AddCoach(TrainingCoachTypes.GetCoachType("Yard trainer"));
+            ratingA.AddCoach(TrainingCoachTypes.GetCoachType("Road trainer"));
             DriverRatings.AddRating(ratingA);
 
             var ratingB = new DriverRating("B", 85, 4);
-            ratingB.AddCoach(TrainingCoachTypes.GetCoachType("Cessna 172"));
-            ratingB.AddCoach(TrainingCoachTypes.GetCoachType("Beechcraft King Air 350"));
+            ratingB.AddCoach(TrainingCoachTypes.GetCoachType("Yard trainer"));
+            ratingB.AddCoach(TrainingCoachTypes.GetCoachType("Road trainer"));
             DriverRatings.AddRating(ratingB);
 
             var ratingC = new DriverRating("C", 95, 5);
-            ratingC.AddCoach(TrainingCoachTypes.GetCoachType("Beechcraft King Air 350"));
+            ratingC.AddCoach(TrainingCoachTypes.GetCoachType("Road trainer"));
             DriverRatings.AddRating(ratingC);
 
             var ratingD = new DriverRating("D", 120, 7);
-            ratingD.AddCoach(TrainingCoachTypes.GetCoachType("Beechcraft King Air 350"));
+            ratingD.AddCoach(TrainingCoachTypes.GetCoachType("Road trainer"));
             DriverRatings.AddRating(ratingD);
 
             var ratingE = new DriverRating("E", 150, 10);
-            ratingE.AddCoach(TrainingCoachTypes.GetCoachType("Beechcraft King Air 350"));
+            ratingE.AddCoach(TrainingCoachTypes.GetCoachType("Road trainer"));
             DriverRatings.AddRating(ratingE);
         }
 
@@ -1713,8 +1713,9 @@ namespace TheBusProject.Infrastructure
 
         private static void CreateTrainingCoachTypes()
         {
-            TrainingCoachTypes.AddCoachType(new TrainingCoachType("Cessna 172", 26705, 2, 1));
-            TrainingCoachTypes.AddCoachType(new TrainingCoachType("Beechcraft King Air 350", 129520, 12, 2));
+            // what a driving school runs: a worn-out coach kept for the yard, and a full-size one for the road test
+            TrainingCoachTypes.AddCoachType(new TrainingCoachType("Yard trainer", 26705, 2, 1));
+            TrainingCoachTypes.AddCoachType(new TrainingCoachType("Road trainer", 129520, 12, 2));
         }
 
         private static Station FindComputerHomeBase(Carrier carrier)
