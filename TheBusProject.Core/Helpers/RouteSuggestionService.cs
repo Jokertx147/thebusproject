@@ -56,6 +56,9 @@ namespace TheBusProject.Helpers
         /// <summary>Destinations the advisor gives for each station, before the forecast.</summary>
         public const int PerOrigin = 12;
 
+        /// <summary>Towns the carrier does not serve yet, offered once it has worked out the ones it does.</summary>
+        public const int NewTowns = 6;
+
         /// <summary>The player's delivered passenger coach without a route (not leased out).</summary>
         public static List<FleetCoach> IdleCoach(Carrier carrier)
         {
@@ -76,16 +79,43 @@ namespace TheBusProject.Helpers
 
         private static List<Station> OriginsFor(Carrier carrier, FleetCoach f)
         {
+            return OriginsFor(carrier, f, false);
+        }
+
+        /// <summary>
+        ///     The places to suggest routes from: the coach's home base and the carrier's busiest stations. A coach
+        ///     line that has worked every pair between the towns it already serves is not finished -- it grows by
+        ///     opening somewhere new -- so when <paramref name="reachOut" /> is set this also offers the biggest
+        ///     towns within the coach's range that the carrier does not serve yet.
+        /// </summary>
+        private static List<Station> OriginsFor(Carrier carrier, FleetCoach f, bool reachOut)
+        {
             var list = new List<Station>();
             if (f.Homebase != null) list.Add(f.Homebase);
             var routes = carrier.Routes.ToList();
-            foreach (Station a in carrier.Stations.ToList()
-                                         .OrderByDescending(a => routes.Count(r => r.Destination1 == a || r.Destination2 == a))
-                                         .ThenByDescending(a => (int) a.Profile.Size))
+            var mine = carrier.Stations.ToList();
+            foreach (Station a in mine
+                                  .OrderByDescending(a => routes.Count(r => r.Destination1 == a || r.Destination2 == a))
+                                  .ThenByDescending(a => (int) a.Profile.Size))
             {
                 if (list.Count >= Origins) break;
                 if (!list.Contains(a)) list.Add(a);
             }
+
+            if (!reachOut || f.Homebase == null) return list;
+
+            // somewhere new, within reach of home and big enough to be worth a terminal
+            foreach (Station a in Stations.GetAllActiveStations()
+                                          .Where(a => !mine.Contains(a) && !list.Contains(a)
+                                                      && f.Coach.MinBayLength <= a.GetMaxBayLength()
+                                                      && MathHelpers.GetDistance(f.Homebase, a) <= f.Coach.Range)
+                                          .OrderByDescending(a => (int) a.Profile.Size)
+                                          .ThenBy(a => MathHelpers.GetDistance(f.Homebase, a)))
+            {
+                if (list.Count >= Origins + NewTowns) break;
+                list.Add(a);
+            }
+
             return list;
         }
 
@@ -112,7 +142,12 @@ namespace TheBusProject.Helpers
             int turnaround = Turnaround(f);
             double ownership = OwnershipService.MonthlyCost(f)/30.4;
             var seen = new HashSet<string>();
-            foreach (Station from in OriginsFor(carrier, f))
+            // the carrier's own towns first; if every pair between them is already worked, look further afield
+            // rather than telling the player their new coach has nowhere to go
+            foreach (bool reachOut in new[] {false, true})
+            {
+            if (reachOut && result.Count > 0) break;
+            foreach (Station from in OriginsFor(carrier, f, reachOut))
             {
                 List<RouteAdvice> dests;
                 if (!advice.TryGetValue(from, out dests))
@@ -139,6 +174,7 @@ namespace TheBusProject.Helpers
                     if (s.Forecast == null) continue;
                     result.Add(s);
                 }
+            }
             }
             return result.OrderByDescending(s => s.GainPerDay).Take(max).ToList();
         }

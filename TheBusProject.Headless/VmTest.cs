@@ -4651,6 +4651,105 @@ static class VmTest
     ///     "vm milestone": the first milestone, start to finish. What a coach costs new, used and on lease; one of
     ///     each bought; a route opened with a timetable and fares; a month run; and what the month earned.
     /// </summary>
+    /// <summary>
+    ///     "vm play": a decade of actually running a coach line, rather than a month of one route. Buys what it can
+    ///     afford, opens the best route the planner offers, hires the drivers and keeps going, reporting every year.
+    ///     Mechanics that look right over a month can be quietly broken over ten years -- fares that never keep up
+    ///     with inflation, maintenance that eats a carrier alive, a world where every rival goes bankrupt -- and
+    ///     this is the test that would show it.
+    /// </summary>
+    static void PlayTest(CarrierViewModel av)
+    {
+        Console.WriteLine("PLAY TEST");
+        Action<string> fail = m => { Console.WriteLine("  FAILED " + m); Environment.Exit(1); };
+        var g = TheBusProject.Models.General.GameObject.GetInstance();
+        var me = g.HumanCarrier;
+        Func<double, string> M = v => (v < 0 ? "-$" : "$") + Math.Abs(v).ToString("N0");
+        const int years = 8;
+
+        int rivalsAtStart = TheBusProject.Models.Carriers.Carriers.GetAllCarriers().Count(c => c != me);
+        Console.WriteLine("  " + me.Profile.Name + " from " + g.GameTime.ToString("MMMM yyyy") + ", " + rivalsAtStart + " rivals, cash " + M(me.Money));
+
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        double worstCash = me.Money;
+        int boughtAll = 0, openedAll = 0, noSuggestion = 0;
+
+        for (int y = 0; y < years; y++)
+        {
+            // spend what can be spared on another coach and another route, the way a player would
+            for (int go = 0; go < 3; go++)
+            {
+                var mk = av.Market;
+                var afford = mk.Coach.Where(c => c.Coach.GetPrice() < me.Money*0.25).OrderByDescending(c => c.Coach.GetTotalSeatCapacity()).ToList();
+                if (afford.Count == 0) break;
+                mk.Selected = afford[0];
+                if (mk.Homebase == null) break;
+                mk.BuyCommand.Execute(null);
+                av.Refresh();
+                boughtAll++;
+
+                foreach (var f in me.Fleet) if (f.Drivers.Count == 0) TheBusProject.Helpers.CarrierHelpers.HireCoachDrivers(f);
+
+                var sv = TheBusProject.Helpers.RouteSuggestionService.ForIdle(me);
+                var best = sv.SelectMany(x => x.Value).OrderByDescending(x => x.NetPerDay).FirstOrDefault();
+                if (best == null)
+                {
+                    Console.WriteLine("    " + g.GameTime.Year + ": " + sv.Count + " idle coach(es) and the planner has nothing to offer any of them");
+                    noSuggestion++;
+                    break;
+                }
+
+                var plan = new RouteSuggestionsViewModel(() => { }, (a, b, f) => { });
+                if (plan.Open(best)) openedAll++;
+                else Console.WriteLine("    " + g.GameTime.Year + ": could not open " + best.Name + ": " + plan.Status);
+            }
+
+            for (int m = 0; m < 12; m++)
+            {
+                int month = g.GameTime.Month;
+                while (g.GameTime.Month == month) TheBusProject.Helpers.GameObjectHelpers.SimulateTurn();
+                worstCash = Math.Min(worstCash, me.Money);
+            }
+
+            var routes = me.Routes.Where(r => r is TheBusProject.Models.Routes.PassengerRoute).ToList();
+            double load = routes.Count == 0 ? 0 : routes.Average(r => TheBusProject.Helpers.ConnectionService.MonthLoad(r));
+            var last = g.GameTime.AddMonths(-1);
+            double revenue = me.GetInvoicesAmountMonth(last.Year, last.Month, TheBusProject.Models.General.Finances.Invoice.InvoiceType.Tickets);
+            int alive = TheBusProject.Models.Carriers.Carriers.GetAllCarriers().Count(c => c != me);
+            double marketFare = TheBusProject.Helpers.PricingService.MarketFare(500);
+
+            Console.WriteLine(string.Format(
+                                 "  {0}: fleet {1,2} ({9} idle), routes {2,2}, {3,3:0}% full, tickets {4,11} in {5:MMM}, cash {6,13}, {7} rivals left, a 500 km fare is {8}",
+                                 g.GameTime.Year, me.Fleet.Count, routes.Count, load*100, M(revenue), last, M(me.Money), alive, M(marketFare),
+                                 me.Fleet.Count(f => f.HasRoute == false)));
+
+            if (double.IsNaN(me.Money) || double.IsInfinity(me.Money)) fail("the carrier's money is not a number");
+            if (load < 0 || load > 1.0001) fail("a load factor of " + (load*100).ToString("0") + "%");
+            foreach (var r in routes)
+            {
+                var pr = (TheBusProject.Models.Routes.PassengerRoute) r;
+                foreach (var cl in pr.Classes)
+                    if (cl.FarePrice <= 0 || double.IsNaN(cl.FarePrice)) fail("the fare on " + r.Destination1.Profile.IATACode + " - " + r.Destination2.Profile.IATACode + " is " + cl.FarePrice);
+            }
+        }
+
+        sw.Stop();
+        Console.WriteLine("  " + years + " years in " + (sw.ElapsedMilliseconds/1000) + " s; bought " + boughtAll + " coaches and opened " + openedAll + " routes; the thinnest the cash ever got was " + M(worstCash));
+
+        int rivalsLeft = TheBusProject.Models.Carriers.Carriers.GetAllCarriers().Count(c => c != me);
+        Console.WriteLine("  rivals: " + rivalsAtStart + " at the start, " + rivalsLeft + " after " + years + " years");
+        int idle = me.Fleet.Count(f => f.HasRoute == false);
+        Console.WriteLine("  the planner ran dry " + noSuggestion + " time(s); " + idle + " of " + me.Fleet.Count + " coaches are standing in the yard at the end");
+        if (openedAll == 0) fail("the planner never offered a route worth opening in " + years + " years");
+        // a coach line with the whole country in front of it should never be told there is nowhere left to go
+        if (noSuggestion > 1) fail("the planner ran dry " + noSuggestion + " times with " + TheBusProject.Models.Stations.Stations.GetAllActiveStations().Count + " stations on the map");
+        if (idle > Math.Max(1, me.Fleet.Count*0.2)) fail(idle + " of " + me.Fleet.Count + " coaches ended up standing in the yard");
+        if (me.Fleet.Count == 0) fail("the carrier ended with no coaches at all");
+        if (rivalsLeft < rivalsAtStart*0.4) fail("the world emptied out: " + rivalsLeft + " of " + rivalsAtStart + " rivals left");
+        if (me.Money < -50000000) fail("the carrier ended " + M(me.Money) + " in the hole, which no amount of bad luck explains");
+        Console.WriteLine("PLAY TEST OK");
+    }
+
     static void MilestoneTest(CarrierViewModel av)
     {
         var g = TheBusProject.Models.General.GameObject.GetInstance();
@@ -6039,6 +6138,7 @@ static class VmTest
             if (Environment.GetCommandLineArgs().Contains("stops")) { StopsTest(av); return; }
             if (Environment.GetCommandLineArgs().Contains("roads")) { RoadsTest(av); return; }
             if (Environment.GetCommandLineArgs().Contains("rivalcast")) { RivalForecastTest(av); return; }
+            if (Environment.GetCommandLineArgs().Contains("play")) { PlayTest(av); return; }
             if (Environment.GetCommandLineArgs().Contains("upgrade")) { UpgradeTest(av); return; }
             if (Environment.GetCommandLineArgs().Contains("milestone")) { MilestoneTest(av); return; }
             if (Environment.GetCommandLineArgs().Contains("quick")) { QuickTests(av); return; }
