@@ -126,7 +126,7 @@ namespace TheBusProject.Presentation
             Summary = n == 0
                 ? "Every coach of yours has a route."
                 : n == 1 ? "1 coach has no route. It still costs " + M(OwnershipService.MonthlyCost(all.Keys.First())) + " a month to own or lease."
-                : n + " coach have no route. Together they cost " + M(all.Keys.Sum(OwnershipService.MonthlyCost)) + " a month to own or lease.";
+                : n + " coaches have no route. Together they cost " + M(all.Keys.Sum(OwnershipService.MonthlyCost)) + " a month to own or lease.";
             OnPropertyChanged(nameof(HasCoach));
             _selected = Coach.FirstOrDefault(a => a.Coach == keep) ?? Coach.FirstOrDefault();
             OnPropertyChanged(nameof(Selected));

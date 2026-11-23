@@ -367,7 +367,7 @@ namespace TheBusProject.Presentation
             OnPropertyChanged(nameof(Selected));
             OnPropertyChanged(nameof(HasRows));
             int idle = rows.Count(r => r.IsIdle);
-            Title = fleet.Count + " coach, total value " + Money(rows.Sum(r => r.ValueNumber)) + (idle > 0 ? "  |  " + idle + " idle (no route)" : "") + (rows.Count(r => r.IsOnOrder) > 0 ? "  |  " + rows.Count(r => r.IsOnOrder) + " awaiting delivery" : "");
+            Title = fleet.Count + " coaches, total value " + Money(rows.Sum(r => r.ValueNumber)) + (idle > 0 ? "  |  " + idle + " idle (no route)" : "") + (rows.Count(r => r.IsOnOrder) > 0 ? "  |  " + rows.Count(r => r.IsOnOrder) + " awaiting delivery" : "");
             OnPropertyChanged(nameof(Title));
             LoadDetails();
         }

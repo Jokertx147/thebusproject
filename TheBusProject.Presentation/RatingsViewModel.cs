@@ -114,7 +114,7 @@ namespace TheBusProject.Presentation
                     ValueText = value + " / 100  " + RatingsService.Grade(value),
                     Change = change == 0 ? "no change this month" : Signed(change) + " this month",
                     Heading = heading,
-                    Reasons = reasons.Count == 0 ? "Nothing to rate yet: buy coach, open routes and hire staff." : string.Join(Environment.NewLine, reasons),
+                    Reasons = reasons.Count == 0 ? "Nothing to rate yet: buy coaches, open routes and hire staff." : string.Join(Environment.NewLine, reasons),
                     Tip = t.Tip
                 });
             }

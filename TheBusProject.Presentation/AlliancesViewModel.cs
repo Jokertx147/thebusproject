@@ -191,7 +191,7 @@ namespace TheBusProject.Presentation
                         new AllianceMemberItem
                         {
                             Text = string.Format(
-                                "{0}  |  {1}  |  {2} coach, {3} routes  |  joined {4:MMM yyyy}",
+                                "{0}  |  {1}  |  {2} coaches, {3} routes  |  joined {4:MMM yyyy}",
                                 m.Carrier.Profile.Name, m.Carrier.Profile.Country?.Name, m.Carrier.Fleet.Count, m.Carrier.Routes.Count, m.JoinedDate),
                             CanRemove = member && m.Carrier != human,
                             RemoveCommand = new RelayCommand(() => AskRemove(alliance, captured.Carrier))

@@ -40,7 +40,7 @@ namespace TheBusProject.Helpers
     }
 
     /// <summary>
-    ///     Each coach's last trips, for the world map's trip board. Saved with the game (an older save has none:
+    ///     Each coach's last trips, for the map's trip board. Saved with the game (an older save has none:
     ///     the board shows the trips from loading on).
     /// </summary>
     public static class TripRecords

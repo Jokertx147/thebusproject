@@ -277,7 +277,7 @@ namespace TheBusProject.Presentation
 
         public List<TimelineBlock> PreviewGround => _previewGround;
 
-        /// <summary>How long the chosen coach needs on the ground between trips.</summary>
+        /// <summary>How long the chosen coach needs in the yard between trips.</summary>
         public int GroundMinutes => _coach == null ? 0 : (int) FleetCoachHelpers.GetMinTimeBetweenTrips(_coach.Coach).TotalMinutes;
 
         /// <summary>
@@ -599,7 +599,7 @@ namespace TheBusProject.Presentation
                 route.TimeTable.RemoveEntry(copy);
                 string why = "No copy of " + entry.Destination.TripCode + " on " + day + " at " + time.ToString(@"hh\:mm")
                              + ": it would overlap another trip of " + f.Name + " (which needs the trip time plus its "
-                             + "time on the ground), or the station has no free gate time then.";
+                             + "time in the yard), or the station has no free gate time then.";
                 Status = why;
                 return why;
             }
@@ -653,7 +653,7 @@ namespace TheBusProject.Presentation
                 foreach (var c in copies) c.Item1.TimeTable.RemoveEntry(c.Item2);
                 string why = "No copies made: those " + going.Count + " trips would overlap each other or another "
                              + "trip of " + f.Name + " where they landed (each needs the trip time plus its time "
-                             + "on the ground), or a station has no free gate time then.";
+                             + "in the yard), or a station has no free gate time then.";
                 Status = why;
                 return why;
             }
@@ -717,7 +717,7 @@ namespace TheBusProject.Presentation
 
                 string why = "Those " + going.Count + " trips stay where they are: moved together they would overlap "
                              + "another trip of " + _coach.Coach.Name + " (which needs the trip time plus its "
-                             + "time on the ground), or a station has no free gate time then.";
+                             + "time in the yard), or a station has no free gate time then.";
                 Status = why;
                 return why;
             }
@@ -749,7 +749,7 @@ namespace TheBusProject.Presentation
                 entry.Time = wasTime;
                 string why = "That leaves " + entry.Destination.TripCode + " where it was: on " + day + " at "
                              + time.ToString(@"hh\:mm") + " it would overlap another trip of " + f.Name
-                             + " (which needs the trip time plus its time on the ground), or the station has no free gate time then.";
+                             + " (which needs the trip time plus its time in the yard), or the station has no free gate time then.";
                 Status = why;
                 return why;
             }
@@ -1045,7 +1045,7 @@ namespace TheBusProject.Presentation
             Summary = entries.Count == 0
                 ? string.Format("{0} has no trips yet. It needs {1} minutes at the gate between one trip and the next.", f.Name, GroundMinutes)
                 : string.Format(
-                    "{0}: {1} trips a week, about {2:0} hours in the air. The faint band after each trip is the {3} minutes it needs at the gate before it can leave again.",
+                    "{0}: {1} trips a week, about {2:0} hours on the road. The faint band after each trip is the {3} minutes it needs at the gate before it can leave again.",
                     f.Name, entries.Count, airMinutes/60, GroundMinutes);
         }
 
@@ -1306,7 +1306,7 @@ namespace TheBusProject.Presentation
             if (!TimeTableHelpers.IsRoutePlannerTimeTableValid(rt, f, existing))
             {
                 Status = "These trips don't fit: they overlap another trip of " + f.Name
-                         + " (it needs the trip time plus time on the ground), or one of the stations has no free gate time then. Try another time or fewer days.";
+                         + " (it needs the trip time plus time in the yard), or one of the stations has no free gate time then. Try another time or fewer days.";
                 return;
             }
 

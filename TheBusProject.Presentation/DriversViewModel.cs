@@ -127,7 +127,7 @@ namespace TheBusProject.Presentation
                 if (value)
                 {
                     int n = TripSchoolService.AssignIdleDrivers(carrier);
-                    Status = "Automatic assignment is on" + (n > 0 ? ": " + n + " driver(s) without a coach were put on coach that needed them." : ".");
+                    Status = "Automatic assignment is on" + (n > 0 ? ": " + n + " driver(s) without a coach were put on coaches that needed them." : ".");
                 }
                 else
                 {
@@ -568,7 +568,7 @@ namespace TheBusProject.Presentation
         private void AssignIdle()
         {
             int n = TripSchoolService.AssignIdleDrivers(GameObject.GetInstance().HumanCarrier);
-            Status = n > 0 ? n + " driver(s) without a coach were put on coach that needed them." : "No idle driver fits a coach that needs a driver.";
+            Status = n > 0 ? n + " driver(s) without a coach were put on coaches that needed them." : "No idle driver fits a coach that needs a driver.";
             Reload();
             _changed?.Invoke();
         }

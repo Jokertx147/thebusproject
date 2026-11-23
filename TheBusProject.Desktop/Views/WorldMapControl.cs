@@ -13,7 +13,7 @@ using TheBusProject.Presentation;
 
 namespace TheBusProject.Desktop.Views
 {
-    /// <summary>Draws the Web Mercator world map (the level 3 tiles of the game data) with the carrier's stations, routes and coach. Drag to pan, wheel to zoom, click an coach to select it.</summary>
+    /// <summary>Draws the Web Mercator map (the level 3 tiles of the game data) with the carrier's stations, routes and coach. Drag to pan, wheel to zoom, click an coach to select it.</summary>
     public class WorldMapControl : Control
     {
 
@@ -26,7 +26,10 @@ namespace TheBusProject.Desktop.Views
         private string _hoverKey;
 
         private static readonly IBrush Sea = new SolidColorBrush(Color.Parse("#b5d0d0"));
-        private static readonly Pen RoutePen = new Pen(new SolidColorBrush(Color.FromArgb(150, 20, 90, 200)), 1.4);
+        // the player's routes: a deep crimson that reads against the blue of the interstates they run on, with a
+        // pale casing under it so the line stays visible where it lies along a road
+        private static readonly Pen RouteCasing = new Pen(new SolidColorBrush(Color.FromArgb(190, 255, 250, 240)), 4.2);
+        private static readonly Pen RoutePen = new Pen(new SolidColorBrush(Color.FromArgb(235, 164, 24, 58)), 2.0);
         private static readonly Pen CargoPen = new Pen(new SolidColorBrush(Color.FromArgb(170, 220, 120, 0)), 1.4, new DashStyle(new double[] { 4, 3 }, 0));
         private static readonly IBrush StationBrush = new SolidColorBrush(Color.Parse("#1d3f8a"));
         private static readonly IBrush HubBrush = new SolidColorBrush(Color.Parse("#c01818"));
@@ -321,7 +324,9 @@ namespace TheBusProject.Desktop.Views
                         Pen pen;
                         if (!_routePen.TryGetValue(geo, out pen)) continue;
                         bool isRival = pen != RoutePen && pen != CargoPen;
-                        if (isRival == rivals) ctx.DrawGeometry(null, pen, geo);
+                        if (isRival != rivals) continue;
+                        if (pen == RoutePen) ctx.DrawGeometry(null, RouteCasing, geo);
+                        ctx.DrawGeometry(null, pen, geo);
                     }
                 }
             }
@@ -329,7 +334,7 @@ namespace TheBusProject.Desktop.Views
             bool animate = _vm.Animate;
             DateTime now = _frameNow;
 
-            // dashes flowing along each route that has an coach in the air, the way it flies
+            // dashes flowing along each route that has an coach on the road, the way it runs
             if (animate && _vm.ShowRoutes) DrawFlow(ctx, now);
 
             if (_vm.ShowStations)

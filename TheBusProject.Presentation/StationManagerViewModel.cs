@@ -270,7 +270,7 @@ namespace TheBusProject.Presentation
                 return string.Format(
                     "{0:N0} m to {1:N0} m: {2}, about {3} days. The bay stays in use meanwhile.",
                     r.Length, to, Money(BayService.ExtensionPrice(_selected.Station, r, to)), BayService.ExtensionDays(to - r.Length))
-                       + (stillShort.Count > 0 ? " Still too short for your " + string.Join(", ", stillShort) + "." : " Long enough for all your coach.");
+                       + (stillShort.Count > 0 ? " Still too short for your " + string.Join(", ", stillShort) + "." : " Long enough for all your coaches.");
             }
         }
 

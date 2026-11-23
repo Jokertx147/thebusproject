@@ -765,7 +765,7 @@ namespace TheBusProject.Presentation
                 }
 
                 Summary = string.Format(
-                    "{0} coach, {1} routes, {2} weekly trips, {3} stations",
+                    "{0} coaches, {1} routes, {2} weekly trips, {3} stations",
                     fleet.Count, routes.Count, entries.Count, carrier.Stations.Count);
                 OnPropertyChanged(nameof(Summary));
             }

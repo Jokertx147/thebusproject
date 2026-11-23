@@ -132,7 +132,7 @@ namespace TheBusProject.Presentation
             Summary = rows.Count == 0
                 ? "You have no coach yet."
                 : string.Format(
-                    "{0} coach  |  fleet profit in the last 12 months {1}  |  {2} making a loss  |  best: {3}",
+                    "{0} coaches  |  fleet profit in the last 12 months {1}  |  {2} making a loss  |  best: {3}",
                     rows.Count, Money(rows.Sum(r => r.Profit)), losing, rows.OrderByDescending(r => r.Profit).First().Name);
         }
 

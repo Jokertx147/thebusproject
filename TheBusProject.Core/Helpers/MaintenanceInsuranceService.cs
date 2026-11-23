@@ -438,7 +438,7 @@ namespace TheBusProject.Helpers
         {
             switch (t)
             {
-                case CarrierInsurance.InsuranceType.PublicLiability: return "Third-party damage on the ground. Does not cover your coach.";
+                case CarrierInsurance.InsuranceType.PublicLiability: return "Third-party damage in the yard. Does not cover your coach.";
                 case CarrierInsurance.InsuranceType.PassengerLiability: return "Injury to passengers. Does not cover your coach.";
                 case CarrierInsurance.InsuranceType.CombinedSingleLimit: return "Liability plus damage to your coach in one limit.";
                 default: return "Everything above, with the highest premiums.";

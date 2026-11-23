@@ -123,7 +123,7 @@ namespace TheBusProject.Helpers
                 parent.AddDriver(driver);
             }
             CarrierHelpers.CloseSubsidiaryCarrier(sub);
-            message = string.Format("{0} is now part of your carrier: {1} coach, {2} route(s) and {3} came over.", name, fleet, routes, Money(money));
+            message = string.Format("{0} is now part of your carrier: {1} coaches, {2} route(s) and {3} came over.", name, fleet, routes, Money(money));
             return true;
         }
 

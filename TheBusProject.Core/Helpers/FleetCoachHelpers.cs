@@ -275,7 +275,7 @@ namespace TheBusProject.Helpers
         }
 
         /// <summary>
-        ///     The least time an coach needs on the ground between two trips: unloading, cleaning, loading and
+        ///     The least time an coach needs in the yard between two trips: unloading, cleaning, loading and
         ///     boarding again. It used to be half an hour for anything up to 200 seats and an hour above that, which
         ///     left a 37 seat turboprop needing as long as a full narrowbody, far longer than the quarter of an hour
         ///     such an coach really turns round in, and so allowed it only a fraction of the short hops it flies in

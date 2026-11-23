@@ -234,7 +234,7 @@ namespace TheBusProject.Presentation
         }
     }
 
-    /// <summary>A world map with the stations, routes and coach of the carrier.</summary>
+    /// <summary>A map with the stations, routes and coach of the carrier.</summary>
     public class WorldMapViewModel : ObservableObject
     {
         private bool _showRoutes = true, _showStations = true, _showCoach = true;
@@ -410,7 +410,7 @@ namespace TheBusProject.Presentation
                     }
                     else if (now < arr)
                     {
-                        row.Status = "In the air";
+                        row.Status = "On the road";
                         row.IsAirborne = true;
                         row.Result = carried;
                     }
@@ -662,6 +662,14 @@ namespace TheBusProject.Presentation
         /// <summary>The point a share `fr` of the way along the coach's trip.</summary>
         public static double[] OnTrip(MapCoach a, double fr)
         {
+            // along the road it is actually driving, where there is one
+            List<double[]> road = RoadNetwork.Path(a.Lat1, a.Lon1, a.Lat2, a.Lon2);
+            if (road != null && road.Count > 2)
+            {
+                double[] at = RoadNetwork.PointAt(road, fr);
+                if (at != null) return Project(at[0], at[1]);
+            }
+
             double lat, lon;
             Between(a.Lat1, a.Lon1, a.Lat2, a.Lon2, fr, out lat, out lon);
             return Project(lat, lon);
@@ -678,6 +686,18 @@ namespace TheBusProject.Presentation
         public static MapLine MakeLine(double la1, double lo1, double la2, double lo2, bool cargo)
         {
             var line = new MapLine { IsCargo = cargo };
+
+            // a coach goes by road: down the interstate where there is one, and only straight across country when
+            // the highways can't join the two places
+            List<double[]> road = RoadNetwork.Path(la1, lo1, la2, lo2);
+            if (road != null && road.Count > 2)
+            {
+                var onRoad = new List<double[]>();
+                foreach (double[] p in road) onRoad.Add(Project(p[0], p[1]));
+                line.Pieces.Add(onRoad);
+                return line;
+            }
+
             var piece = new List<double[]>();
             double lastU = double.NaN;
             const int steps = 48;
@@ -734,9 +754,23 @@ namespace TheBusProject.Presentation
                     if (now >= takeoff && now < landing && landing > takeoff)
                     {
                         double fr = (now - takeoff).TotalSeconds / (landing - takeoff).TotalSeconds;
-                        Between(la1, lo1, la2, lo2, fr, out lat, out lon);
+                        // down the road it is driving, the same one the route is drawn along
+                        List<double[]> onRoad = RoadNetwork.Path(la1, lo1, la2, lo2);
                         double la3, lo3;
-                        Between(la1, lo1, la2, lo2, Math.Min(1, fr + 0.01), out la3, out lo3);
+                        if (onRoad != null && onRoad.Count > 2)
+                        {
+                            double[] hereOn = RoadNetwork.PointAt(onRoad, fr) ?? new[] { la1, lo1 };
+                            double[] aheadOn = RoadNetwork.PointAt(onRoad, Math.Min(1, fr + 0.01)) ?? hereOn;
+                            lat = hereOn[0];
+                            lon = hereOn[1];
+                            la3 = aheadOn[0];
+                            lo3 = aheadOn[1];
+                        }
+                        else
+                        {
+                            Between(la1, lo1, la2, lo2, fr, out lat, out lon);
+                            Between(la1, lo1, la2, lo2, Math.Min(1, fr + 0.01), out la3, out lo3);
+                        }
                         double[] p0 = Project(lat, lon), p1 = Project(la3, lo3);
                         double du = p1[0] - p0[0];
                         if (du > 0.5) du -= 1; else if (du < -0.5) du += 1;
@@ -972,7 +1006,7 @@ namespace TheBusProject.Presentation
                 int n;
                 counted.TryGetValue(a, out n);
                 int rc = routes.Count(r => r.Carrier == a);
-                string text = a.Profile.IATACode + " " + a.Profile.Name + ": " + rc + (rc == 1 ? " route, " : " routes, ") + n + " coach";
+                string text = a.Profile.IATACode + " " + a.Profile.Name + ": " + rc + (rc == 1 ? " route, " : " routes, ") + n + (n == 1 ? " coach" : " coaches");
                 if (i == RivalColors.Length - 1 && carriers.Count > RivalColors.Length)
                 {
                     int rest = carriers.Count - i;
@@ -1087,8 +1121,8 @@ namespace TheBusProject.Presentation
             OnPropertyChanged(nameof(HasSelection));
             OnPropertyChanged(nameof(SelectedText));
             int mine = coach.Count(a => a.IsMine);
-            Caption = string.Format("{0} coach ({1} in the air), {2} routes, {3} stations", mine, coach.Count(a => a.IsMine && a.InTrip), lines.Count(l => l.Color == null), places.Count(p => !p.IsRivalOnly))
-                      + (lines.Any(l => l.Color != null) ? string.Format("  |  rivals shown: {0} coach ({1} in the air), {2} routes", coach.Count - mine, coach.Count(a => !a.IsMine && a.InTrip), lines.Count(l => l.Color != null)) : "");
+            Caption = string.Format("{0} coaches ({1} on the road), {2} routes, {3} stations", mine, coach.Count(a => a.IsMine && a.InTrip), lines.Count(l => l.Color == null), places.Count(p => !p.IsRivalOnly))
+                      + (lines.Any(l => l.Color != null) ? string.Format("  |  rivals shown: {0} coaches ({1} on the road), {2} routes", coach.Count - mine, coach.Count(a => !a.IsMine && a.InTrip), lines.Count(l => l.Color != null)) : "");
             Changed?.Invoke();
         }
     }

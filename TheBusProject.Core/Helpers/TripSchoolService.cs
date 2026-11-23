@@ -112,7 +112,7 @@ namespace TheBusProject.Helpers
             return true;
         }
 
-        /// <summary>Closes a school: the instructors go back to the market, the training coach are sold for 75%, students are sent home.</summary>
+        /// <summary>Closes a school: the instructors go back to the market, the training coaches are sold for 75%, students are sent home.</summary>
         public static void Close(Carrier carrier, TripSchool school, out string message)
         {
             double refund = 0;
@@ -132,7 +132,7 @@ namespace TheBusProject.Helpers
             school.Students.Clear();
             school.TrainingCoaches.Clear();
             carrier.RemoveTripSchool(school);
-            message = school.Name + " is closed. " + (refund > 0 ? "The training coach were sold for " + Money(refund) + ". " : "")
+            message = school.Name + " is closed. " + (refund > 0 ? "The training coaches were sold for " + Money(refund) + ". " : "")
                       + (students > 0 ? students + " student(s) were sent home." : "");
         }
 

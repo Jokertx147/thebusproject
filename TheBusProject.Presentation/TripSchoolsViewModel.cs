@@ -386,7 +386,7 @@ namespace TheBusProject.Presentation
             var school = _selected?.School;
             if (school == null) return;
             SetPending(
-                "Close " + school.Name + "? Its " + school.NumberOfStudents + " student(s) are sent home and their fee is lost; the training coach are sold for 75% and the instructors go back to the market.",
+                "Close " + school.Name + "? Its " + school.NumberOfStudents + " student(s) are sent home and their fee is lost; the training coaches are sold for 75% and the instructors go back to the market.",
                 () =>
                 {
                     string m;

@@ -172,7 +172,7 @@ namespace TheBusProject.Helpers
             {
                 if (Warned.Add(key))
                 {
-                    Post("No ferry trip possible", f.Name + " stands at " + f.CurrentPosition.Profile.IATACode + " but is scheduled from " + dep.Profile.IATACode + ". " + message + " It stays on the ground until that is fixed.");
+                    Post("No ferry trip possible", f.Name + " stands at " + f.CurrentPosition.Profile.IATACode + " but is scheduled from " + dep.Profile.IATACode + ". " + message + " It stays in the yard until that is fixed.");
                 }
                 return false;
             }

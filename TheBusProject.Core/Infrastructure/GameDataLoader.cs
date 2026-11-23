@@ -48,7 +48,7 @@ namespace TheBusProject.Infrastructure
                         Setup.SetupError);
                 }
                 StartupLog.Write(string.Format(
-                    "Game data loaded: {0} stations, {1} carriers, {2} coach types, {3} standard coach configurations, {4} coach facilities",
+                    "Game data loaded: {0} stations, {1} carriers, {2} coaches types, {3} standard coach configurations, {4} coaches facilities",
                     Models.Stations.Stations.GetAllStations().Count,
                     Models.Carriers.Carriers.GetAllCarriers().Count,
                     Models.Coaches.CoachTypes.GetAllTypes().Count,

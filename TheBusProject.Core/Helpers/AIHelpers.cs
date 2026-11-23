@@ -1293,11 +1293,11 @@ namespace TheBusProject.Helpers
         // opponents it replaced 673 coach out of 1,077 and the fleet came out 21.3 years old against 21.1
         // without it, with 64% of types no longer built against 64-68%. It also crashed the day's flying now and
         // then, a null in FleetCoachHelpers.SetTripStats as an coach landed, which is what happens when a
-        // fleet is rearranged under coach that are in the air.
+        // fleet is rearranged under coach that are on the road.
         //
         // Worth doing properly rather than tuning: let an carrier order new coach, which needs the deliveries
         // the player's renewal processes and the computer carriers have not got, and leave an coach alone until
-        // it is on the ground. vm fleetage measures the fleet's age and FleetRenewalService already takes the
+        // it is in the yard. vm fleetage measures the fleet's age and FleetRenewalService already takes the
         // carrier it works for, so both halves of the measurement are still here.
 
         private static void CheckForInviteToAlliance(Carrier carrier)

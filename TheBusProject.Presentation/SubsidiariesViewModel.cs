@@ -151,7 +151,7 @@ namespace TheBusProject.Presentation
                     LogoPath = CarrierProfileService.GetLogo(s),
                     Name = s.Profile.Name + " (" + s.Profile.IATACode + ")",
                     Numbers = string.Format(
-                        "cash {0}  |  {1} coach, {2} routes, {3} stations  |  worth {4}  |  last month {5}",
+                        "cash {0}  |  {1} coaches, {2} routes, {3} stations  |  worth {4}  |  last month {5}",
                         Money(s.Money), s.Fleet.Count, s.Routes.Count, s.Stations.Count, Money(SharesService.Value(s)), Money(SubsidiaryService.LastMonthProfit(s)))
                 });
             }
@@ -243,7 +243,7 @@ namespace TheBusProject.Presentation
                 return;
             }
             SetPending(
-                "Fold " + s.Profile.Name + " into your carrier? Its coach, routes, gates, drivers and " + Money(s.Money) + " come over and its name disappears.",
+                "Fold " + s.Profile.Name + " into your carrier? Its coaches, routes, gates, drivers and " + Money(s.Money) + " come over and its name disappears.",
                 () => { string m; Done(SubsidiaryService.FoldIn(me, s, out m), m); });
         }
     }

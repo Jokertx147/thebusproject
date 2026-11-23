@@ -124,7 +124,7 @@ namespace TheBusProject.Helpers
             return Sell(carrier, idle.OrderBy(f => f.Coach.BuiltDate).First(), now);
         }
 
-        // an coach whose route was given up keeps its "to route start" status; once it is on the ground it is idle
+        // an coach whose route was given up keeps its "to route start" status; once it is in the yard it is idle
         private static bool IdleAfterRoute(FleetCoach f, DateTime now)
         {
             if (f.Status != FleetCoach.CoachStatus.ToRouteStart || f.Routes.Count > 0) return false;

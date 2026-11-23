@@ -132,7 +132,7 @@ namespace TheBusProject.Presentation
 
                 Facts.Add("Founded " + a.Profile.Founded + (a.Profile.Country != null ? ", " + a.Profile.Country.Name : "") + ", CEO " + a.Profile.CEO);
                 Facts.Add("Cash " + Money(a.Money) + ", started with " + Money(a.StartMoney));
-                Facts.Add("Fleet " + fleet.Count + " coach, average age " + string.Format("{0:0.0}", a.GetAverageFleetAge()) + " years");
+                Facts.Add("Fleet " + fleet.Count + " coaches, average age " + string.Format("{0:0.0}", a.GetAverageFleetAge()) + " years");
                 Facts.Add("Routes " + routes.Count + ", stations " + a.Stations.Count + ", employees " + a.GetNumberOfEmployees());
                 Facts.Add("Mentality " + a.Mentality + ", reputation " + a.GetReputation() + " (" + a.Reputation + ")");
                 var hubs = a.GetHubs();

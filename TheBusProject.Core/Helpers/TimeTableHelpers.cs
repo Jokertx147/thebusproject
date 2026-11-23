@@ -271,7 +271,7 @@ namespace TheBusProject.Helpers
                     eEndTime = new TimeSpan(0, eEndTime.Hours, eEndTime.Minutes, eEndTime.Seconds);
                 }
 
-                // Two trips clash when one is still on the ground as the other leaves. A trip that leaves at the
+                // Two trips clash when one is still in the yard as the other leaves. A trip that leaves at the
                 // moment the one before it has finished its ground time does not clash: the comparisons at the two
                 // touching ends are strict, where they used to count that as a clash and so quietly demanded a minute
                 // more than the ground time, which with departures on the quarter hour cost a whole extra quarter.

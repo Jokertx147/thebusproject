@@ -211,7 +211,7 @@ namespace TheBusProject.Desktop.Views
                         ctx.DrawRectangle(wash, pen, BlockRectAt((day + 1) % 7, 0, end - 1440), 4, 4);
                     }
 
-                    // where it would still be on the ground afterwards
+                    // where it would still be in the yard afterwards
                     double gate = _vm.GroundMinutes;
                     if (gate > 0)
                     {

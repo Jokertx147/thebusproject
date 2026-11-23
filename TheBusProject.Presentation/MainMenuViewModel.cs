@@ -13,7 +13,7 @@ namespace TheBusProject.Presentation
             ExitCommand = new RelayCommand(exit);
         }
 
-        public string Title => "The Carrier Project";
+        public string Title => "The Bus Project";
 
         public ICommand NewGameCommand { get; }
 

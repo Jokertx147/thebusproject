@@ -229,7 +229,7 @@ namespace TheBusProject.Presentation
             var me = Me;
             int buy = Math.Min(_buyCount, SharesService.Public(a));
             SelectedText = string.Format(
-                "{0}: {1} routes, {2} coach, cash {3}" + Environment.NewLine +
+                "{0}: {1} routes, {2} coaches, cash {3}" + Environment.NewLine +
                 "Its founders hold {4:0.#}%, the market {5:0.#}%, you {6:0.#}%." + Environment.NewLine +
                 "Buying {7:N0} shares costs {8}." + Environment.NewLine +
                 "Taking it over (all {9:N0} shares you don't own, with a 30% premium) costs {10}.",
@@ -302,7 +302,7 @@ namespace TheBusProject.Presentation
             }
             string what = asSubsidiary
                 ? "It keeps its name, logo and money and its management keeps running it as your subsidiary."
-                : "Its coach, routes, gates, drivers, cash and loans join your carrier and its name disappears.";
+                : "Its coaches, routes, gates, drivers, cash and loans join your carrier and its name disappears.";
             SetPending(
                 string.Format("Take over {0} for {1}? {2} This can't be undone.", a.Profile.Name, Money(SharesService.TakeoverCost(Me, a)), what),
                 () => { string m; Done(SharesService.TakeOver(Me, a, asSubsidiary, out m), m); });

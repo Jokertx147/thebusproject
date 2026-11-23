@@ -204,7 +204,7 @@ namespace TheBusProject.Presentation
             Summary = delivered.Count == 0
                 ? "You have no coach yet. Buy one under Coaches."
                 : string.Format(
-                    "{0} coach  |  average condition {1:0}%  |  {2} overdue checks  |  {3} on automatic maintenance  |  worn coach break down more often, and lose value. A and B checks are cheap; C and D checks ground the coach.",
+                    "{0} coaches  |  average condition {1:0}%  |  {2} overdue checks  |  {3} on automatic maintenance  |  worn coach break down more often, and lose value. A and B checks are cheap; C and D checks ground the coach.",
                     delivered.Count, avg, overdue, auto);
             OnPropertyChanged(nameof(Summary));
         }
@@ -235,7 +235,7 @@ namespace TheBusProject.Presentation
                 }
             }
 
-            Status = on ? "Automatic maintenance is on for " + n + " more coach." : "Automatic maintenance is off for " + n + " coach.";
+            Status = on ? "Automatic maintenance is on for " + n + " more coaches." : "Automatic maintenance is off for " + n + " coach.";
             Reload();
         }
 
