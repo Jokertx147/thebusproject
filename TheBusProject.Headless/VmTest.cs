@@ -4769,9 +4769,35 @@ static class VmTest
                     kmYear += TheBusProject.Helpers.RouteStops.TotalKm(r)*r.TimeTable.Entries.Count*52;
                 }
 
+                // what a passenger pays for a mile, which is the figure the per-bus-mile one hides: carried times
+                // the distance they were carried, against the tickets they bought
+                // the carrier's own count for the year, which is what the carriers screen shows. The routes keep a
+                // statistic of the same name that counts something else and is far too small to be journeys.
+                var paxType = TheBusProject.Models.General.Statistics.StatisticsTypes.GetStatisticsType("Passengers");
+                var capType = TheBusProject.Models.General.Statistics.StatisticsTypes.GetStatisticsType("Capacity");
+                double carriedAll = me.Statistics.GetStatisticsValue(last.Year, paxType);
+                double seatsFlown = me.Statistics.GetStatisticsValue(last.Year, capType);
+                double seatsAll = 0;
+                foreach (var fc in me.Fleet) seatsAll += fc.Coach.GetTotalSeatCapacity();
+
+                // passenger miles: every mile the fleet drove, times the people aboard for it
+                double aboard = me.Fleet.Count == 0 || seatsFlown <= 0 ? 0 : seatsAll/me.Fleet.Count*(carriedAll/seatsFlown);
+                double paxMiles = kmYear*0.621371*aboard;
+                double tickets = 0;
+                for (int mm = 1; mm <= 12; mm++) tickets += me.GetInvoicesAmountMonth(last.Year, mm, TheBusProject.Models.General.Finances.Invoice.InvoiceType.Tickets);
+
                 double milesPerCoach = me.Fleet.Count == 0 ? 0 : kmYear*0.621371/me.Fleet.Count;
                 Console.WriteLine(string.Format("      ${0:#,0} a year per coach against the $348,000 a real one took; {1:0}% of the seats filled against about 55% in the trade; {2:#,0} miles a coach against about 105,000; ${3:0.00} a bus mile against $3.32",
                                                 perCoach, load*100, milesPerCoach, milesPerCoach <= 0 ? 0 : perCoach/milesPerCoach));
+                // The one revenue figure Greyhound's accounts really give is $811.5m of passenger services over
+                // 288.4m bus miles, which is $2.81 a bus mile. Its passenger count, average fare and average
+                // journey are not in the filing, so they are not benchmarks here however tempting the arithmetic.
+                double fleetMiles = kmYear*0.621371;
+                Console.WriteLine(string.Format("      ${0:0.00} of tickets a bus mile against Greyhound's $2.81; {1:#,0} journeys at ${2:0} each, {3:0} miles the average journey",
+                                                fleetMiles <= 0 ? 0 : tickets/fleetMiles, carriedAll,
+                                                carriedAll <= 0 ? 0 : tickets/carriedAll, carriedAll <= 0 ? 0 : paxMiles/carriedAll));
+                Console.WriteLine(string.Format("      ({0:0} seats a coach, {1:0} of them taken; the fleet drove {2:#,0} miles)",
+                                                me.Fleet.Count == 0 ? 0 : seatsAll/me.Fleet.Count, aboard, fleetMiles));
             }
 
             if (double.IsNaN(me.Money) || double.IsInfinity(me.Money)) fail("the carrier's money is not a number");
