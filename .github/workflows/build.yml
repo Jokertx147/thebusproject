@@ -268,7 +268,7 @@ jobs:
 
       # also on an orphan branch, force-pushed, so the pictures can be looked at with a plain git fetch
       - name: Put the screenshots on the ci-screenshots branch
-        if: github.ref == 'refs/heads/sdk-style-conversion'
+        if: github.ref == 'refs/heads/main'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -278,7 +278,7 @@ jobs:
           rm -rf shots
           mkdir -p shots && cp /tmp/shots/* shots/
           echo "The Avalonia app's newer screens, drawn by CI under a virtual display at every push to" > README.md
-          echo "sdk-style-conversion. Replaced each time; not part of the game's history." >> README.md
+          echo "main. Replaced each time; not part of the game's history." >> README.md
           echo "From commit ${GITHUB_SHA}." >> README.md
           git add -A shots README.md
           git commit -q -m "Screenshots from ${GITHUB_SHA}"
