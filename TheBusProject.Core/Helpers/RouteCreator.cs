@@ -156,7 +156,10 @@ namespace TheBusProject.Helpers
         {
             TimeSpan minTripTime = MathHelpers.GetTripTime(origin, destination, type).Add(new TimeSpan(0, turnaroundMinutes, 0));
 
-            int maxHours = operation == OpsType.Whole_Day ? 24 : 16;
+            // a coach cannot be worked round the clock: it has to be fuelled, cleaned, swept out and walked round
+            // before it goes again, and the law wants a driver's inspection every day. Five hours of the
+            // twenty-four belong to the yard, and a route that only runs in the daytime gets a shorter day still.
+            int maxHours = operation == OpsType.Whole_Day ? 19 : 14;
 
             return Math.Max(1, (int) Math.Floor(maxHours * 60 / (2 * minTripTime.TotalMinutes)));
         }

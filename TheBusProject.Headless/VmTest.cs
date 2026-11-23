@@ -4759,8 +4759,19 @@ static class VmTest
                                                 last.Year, inAll, outAll, inAll <= 0 ? 0 : (inAll - outAll)/inAll*100, string.Join("; ", parts)));
                 // Greyhound took $348,000 a year per bus across 2,748 of them. A coach here earning many times
                 // that is the game's remaining tall tale: its coaches run fuller and oftener than real ones.
-                Console.WriteLine(string.Format("      ${0:#,0} a year per coach against the $348,000 a real one took, and {1:0}% of the seats filled against about 55% in the trade",
-                                                perCoach, load*100));
+                // how far the fleet actually drove: route distance by trips a week, both ways
+                double kmYear = 0;
+                foreach (var r in me.Routes.ToList())
+                {
+                    if (r.TimeTable == null) continue;
+                    // the whole run, not the longest leg: Route.GetDistance of a service with stops gives the
+                    // longest of its legs, which undercounts a transcontinental service several times over
+                    kmYear += TheBusProject.Helpers.RouteStops.TotalKm(r)*r.TimeTable.Entries.Count*52;
+                }
+
+                double milesPerCoach = me.Fleet.Count == 0 ? 0 : kmYear*0.621371/me.Fleet.Count;
+                Console.WriteLine(string.Format("      ${0:#,0} a year per coach against the $348,000 a real one took; {1:0}% of the seats filled against about 55% in the trade; {2:#,0} miles a coach against about 105,000; ${3:0.00} a bus mile against $3.32",
+                                                perCoach, load*100, milesPerCoach, milesPerCoach <= 0 ? 0 : perCoach/milesPerCoach));
             }
 
             if (double.IsNaN(me.Money) || double.IsInfinity(me.Money)) fail("the carrier's money is not a number");
