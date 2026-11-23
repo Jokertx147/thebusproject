@@ -262,7 +262,14 @@ namespace TheBusProject.Helpers
                     // fewer passengers above the market fare, more below it; on a shared route, the share its
                     // service and fare win
                     double price = own != null ? PricingService.DemandFactor(flown, c.Type) : PricingService.DemandFactor(fare, market, c.Type);
-                    double competition = flown != null && PricingService.Realistic ? PricingService.CompetitionFactor(flown, pairRoutes, c.Type) : 1;
+                    double competition = 1;
+                    if (PricingService.Realistic)
+                    {
+                        competition = flown != null
+                                          ? PricingService.CompetitionFactor(flown, pairRoutes, c.Type)
+                                          : PricingService.CompetitionFactor(carrier, fare, others, c.Type);
+                    }
+
                     double demand = (direct + connecting + nearby)*factors*price;
                     p.Classes.Add(new[] {demand, c.SeatingCapacity, reputation*competition*game.Difficulty.PriceLevel, fare});
                 }

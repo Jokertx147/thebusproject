@@ -161,6 +161,11 @@ jobs:
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm suggest 2>&1 | tee suggest.log
           grep -q "SUGGEST TEST OK" suggest.log || { grep -m8 -iE "FAILED|timeout|exception|   at " suggest.log | sed 's/^/::error::/'; exit 1; }
 
+      - name: Rival forecast test
+        run: |
+          timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm rivalcast 2>&1 | tee rivalcast.log
+          grep -q "RIVALCAST TEST OK" rivalcast.log || { grep -m8 -iE "FAILED|timeout|exception|   at " rivalcast.log | sed 's/^/::error::/'; exit 1; }
+
       - name: Order ahead test
         run: |
           TAP_YEAR=1994 timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm orderahead 2>&1 | tee orderahead.log

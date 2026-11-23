@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TheBusProject.Models.Carriers;
 using TheBusProject.Models.Coaches;
 using TheBusProject.Models.Stations;
 using TheBusProject.Models.General;
@@ -79,6 +80,22 @@ namespace TheBusProject.Helpers
             var all = routes.Distinct().Select(r => Attractiveness(r, type)).Where(v => v > 0).ToList();
             if (mine <= 0 || all.Count < 2) return 1;
             // a gentle effect: twice as attractive gives about 1.4 times the share
+            return Math.Max(0.65, Math.Min(1.5, Math.Sqrt(mine/all.Average())));
+        }
+
+        /// <summary>
+        ///     The share a route would win on a pair it does not run yet. A planned route has no fare and no
+        ///     facilities to read, so its attractiveness is worked out from the fare it would charge and the name of
+        ///     the carrier that would run it, at the service a route starts with, which is none. Without this a
+        ///     forecast for a new route assumes the pair to itself however many coach lines already work it.
+        /// </summary>
+        public static double CompetitionFactor(Carrier carrier, double fare, List<Route> rivals, CoachClass.ClassType type)
+        {
+            if (carrier == null || fare <= 0 || rivals == null) return 1;
+            double mine = Math.Sqrt(10)*AdvertisingService.ReputationFactor(carrier)*RatingsService.CustomerFactor(carrier)/fare;
+            var all = rivals.Distinct().Select(r => Attractiveness(r, type)).Where(v => v > 0).ToList();
+            if (all.Count == 0) return 1;
+            all.Add(mine);
             return Math.Max(0.65, Math.Min(1.5, Math.Sqrt(mine/all.Average())));
         }
 

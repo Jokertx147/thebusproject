@@ -1609,6 +1609,67 @@ static class VmTest
         Console.WriteLine("TYPECHECK DONE");
     }
 
+    /// <summary>
+    ///     "vm rivalcast": the planner knows it would be sharing. A forecast for a pair a rival already works has to
+    ///     allow for losing some of it, and allow for less of it the better the rival's offer is. The suggestion test
+    ///     rarely meets a rival at all, so this one goes and finds one.
+    /// </summary>
+    static void RivalForecastTest(CarrierViewModel av)
+    {
+        Console.WriteLine("RIVALCAST TEST");
+        Action<string> fail = m => { Console.WriteLine("  FAILED " + m); Environment.Exit(1); };
+        var g = TheBusProject.Models.General.GameObject.GetInstance();
+        var h = g.HumanCarrier;
+        var mk = av.Market;
+
+        // a coach of our own to put on it
+        foreach (var item in mk.Coach.OrderByDescending(x => x.Coach.Range)) { mk.Selected = item; if (mk.Homebase != null) break; }
+        mk.BuyCommand.Execute(null);
+        av.Refresh();
+        var f = h.Fleet.FirstOrDefault();
+        if (f == null) fail("no coach was bought");
+
+        // a pair somebody else already runs, inside our coach's reach
+        var type = TheBusProject.Models.Coaches.CoachClass.ClassType.EconomyClass;
+        TheBusProject.Models.Routes.PassengerRoute rival = null;
+        foreach (var c in TheBusProject.Models.Carriers.Carriers.GetAllCarriers())
+        {
+            if (c == h) continue;
+            foreach (var r in c.Routes.ToArray())
+            {
+                var pr = r as TheBusProject.Models.Routes.PassengerRoute;
+                if (pr == null || !pr.HasCoach) continue;
+                if (pr.GetRouteCoachClass(type) == null || pr.GetRouteCoachClass(type).FarePrice <= 0) continue;
+                if (TheBusProject.Helpers.MathHelpers.GetDistance(pr.Destination1, pr.Destination2) > f.Coach.Range) continue;
+                rival = pr;
+                break;
+            }
+
+            if (rival != null) break;
+        }
+
+        if (rival == null) { Console.WriteLine("  no rival route within range in this world; nothing to check"); Console.WriteLine("RIVALCAST TEST OK"); return; }
+        var a = rival.Destination1; var b = rival.Destination2;
+        var cheap = TheBusProject.Helpers.RouteForecastService.Best(h, a, b, f, 4, out var _);
+        if (cheap == null) fail("no forecast for " + a.Profile.IATACode + "-" + b.Profile.IATACode);
+        if (cheap.Rivals < 1) fail("the forecast counted no rival on " + a.Profile.IATACode + "-" + b.Profile.IATACode);
+
+        // the same pair against a rival who has put its fare out of reach: our share can only improve
+        double was = rival.GetRouteCoachClass(type).FarePrice;
+        rival.GetRouteCoachClass(type).FarePrice = was*20;
+        var dear = TheBusProject.Helpers.RouteForecastService.Best(h, a, b, f, 4, out var _);
+        rival.GetRouteCoachClass(type).FarePrice = was;
+
+        Console.WriteLine("  " + a.Profile.IATACode + "-" + b.Profile.IATACode + " against " + rival.Carrier.Profile.IATACode
+                          + " at $" + was.ToString("#,0") + ": " + (cheap.Load*100).ToString("0") + "% full, $" + cheap.ProfitPerDay.ToString("#,0") + " a day"
+                          + "; with their fare at $" + (was*20).ToString("#,0") + ": " + (dear.Load*100).ToString("0") + "% full, $" + dear.ProfitPerDay.ToString("#,0") + " a day");
+        if (dear.PassengersPerTrip < cheap.PassengersPerTrip - 0.01)
+            fail("the forecast expects fewer passengers against a dearer rival (" + dear.PassengersPerTrip.ToString("0.0") + " against " + cheap.PassengersPerTrip.ToString("0.0") + ")");
+        if (dear.PassengersPerTrip <= cheap.PassengersPerTrip + 0.01 && cheap.Load < 0.999)
+            fail("the rival's fare made no difference at all, so the forecast isn't weighing the competition");
+        Console.WriteLine("RIVALCAST TEST OK");
+    }
+
     static async Task SuggestTest(CarrierViewModel av)
     {
         Console.WriteLine("SUGGEST TEST");
@@ -1692,6 +1753,7 @@ static class VmTest
         if (av.Pages[av.Page] != "Routes" || av.RoutesTab != TheBusProject.Presentation.CarrierViewModel.SuggestionsTabIndex) fail("the report line didn't open the suggestions");
 
         // how the opened route did against its forecast over a month
+        int rivalsAtForecast = TheBusProject.Helpers.CompetitorService.RivalRoutes(opened).Count();
         var f0 = top.Coach;
         if (f0.Status == TheBusProject.Models.Coaches.FleetCoach.CoachStatus.Stopped) f0.Status = TheBusProject.Models.Coaches.FleetCoach.CoachStatus.OnRoute;
         var start = g.GameTime;
@@ -1700,7 +1762,8 @@ static class VmTest
         double real = opened.GetBalance(start.AddDays(5), g.GameTime) / days;
         foreach (var x in new[] { h }.Concat(TheBusProject.Helpers.CompetitorService.RivalRoutes(opened).Select(rr => rr.Carrier)).Distinct())
             Console.WriteLine("  customer rating " + x.Profile.IATACode + ": " + x.Ratings?.CustomerHappinessRating.ToString("0.0") + " (factor " + TheBusProject.Helpers.RatingsService.CustomerFactor(x).ToString("0.000") + "), on time " + TheBusProject.Helpers.TripStatistics.OnTimePercent(x).ToString("0") + "%");
-        Console.WriteLine("  " + top.Name + ": forecast " + top.Forecast.ProfitPerDay.ToString("0") + " a day, ran " + real.ToString("0") + " a day over " + days.ToString("0") + " days (" + (opened.FillingDegree * 100).ToString("0") + "% full, forecast " + (top.Forecast.Load * 100).ToString("0") + "%)");
+        int rivalsNow = TheBusProject.Helpers.CompetitorService.RivalRoutes(opened).Count();
+        Console.WriteLine("  " + top.Name + ": forecast " + top.Forecast.ProfitPerDay.ToString("0") + " a day, ran " + real.ToString("0") + " a day over " + days.ToString("0") + " days (" + (opened.FillingDegree * 100).ToString("0") + "% full, forecast " + (top.Forecast.Load * 100).ToString("0") + "%), rivals on the pair " + rivalsAtForecast + " at the forecast, " + rivalsNow + " now");
         // the load is the fair check (a few points of load move a thin margin a long way); a route may beat its forecast,
         // but not earn far less than it promised.
         // Measured in the coach world, twice: the forecast said 97% full and the route ran 77%, and it said 100% and
@@ -1708,7 +1771,13 @@ static class VmTest
         // right about the cash and wrong about the seats: it carries min(demand, seats) on every trip, where a real
         // week turns people away on the busy days and runs half empty on the quiet ones. Worth a measurement study of
         // its own rather than a guessed coefficient, so the bound is loose here and the money check stays strict.
-        if (Math.Abs(opened.FillingDegree - top.Forecast.Load) > 0.25) fail("the route's load far from its forecast");
+        //
+        // A rival opening on the pair during the month is the market changing, not the forecast being wrong: the
+        // seats on the pair go up while the passengers don't, and the route loses the share it was promised. The
+        // forecast could not have known, so the load check only holds while the field is the one it was made in.
+        if (rivalsNow > rivalsAtForecast)
+            Console.WriteLine("  (a rival opened on the pair during the month, so the load check is not the forecast's to answer for)");
+        else if (Math.Abs(opened.FillingDegree - top.Forecast.Load) > 0.25) fail("the route's load far from its forecast");
         if (real < top.Forecast.ProfitPerDay - Math.Max(1500, Math.Abs(top.Forecast.ProfitPerDay) * 0.5)) fail("the route earned far less than its forecast");
         Console.WriteLine("SUGGEST TEST OK");
     }
@@ -5825,6 +5894,7 @@ static class VmTest
             Console.WriteLine("CARRIER SCREEN: " + av.CarrierName + " " + av.Date + " " + av.Money + " fleet=" + av.Fleet.Count + " routes=" + av.Routes.Count + " running=" + av.IsRunning);
             if (Environment.GetCommandLineArgs().Contains("stops")) { StopsTest(av); return; }
             if (Environment.GetCommandLineArgs().Contains("roads")) { RoadsTest(av); return; }
+            if (Environment.GetCommandLineArgs().Contains("rivalcast")) { RivalForecastTest(av); return; }
             if (Environment.GetCommandLineArgs().Contains("upgrade")) { UpgradeTest(av); return; }
             if (Environment.GetCommandLineArgs().Contains("milestone")) { MilestoneTest(av); return; }
             if (Environment.GetCommandLineArgs().Contains("quick")) { QuickTests(av); return; }

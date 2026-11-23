@@ -96,14 +96,23 @@ namespace TheBusProject.Desktop
         private static int PageOf(string name) => Array.IndexOf(CarrierViewModel.PageNames, name);
 
         // an coach from the market the player can base somewhere (as the tests buy theirs)
-        private static void Buy(CarrierViewModel av, int skip)
+        /// <summary>
+        ///     Buys one coach from a place in the market, given as a share of what is on offer rather than as a fixed
+        ///     position: in 1960 there are a few dozen types and the fortieth does not exist, which used to leave the
+        ///     screenshots a carrier with an empty garage and a map with nothing on it.
+        /// </summary>
+        private static void Buy(CarrierViewModel av, double through)
         {
             var mk = av.Market;
-            foreach (var item in mk.Coach.OrderBy(x => x.Coach.GetPrice()).Skip(skip).Take(200))
+            var offered = mk.Coach.OrderBy(x => x.Coach.GetPrice()).ToList();
+            if (offered.Count == 0) return;
+            int skip = Math.Min(offered.Count - 1, (int) (offered.Count*through));
+            foreach (var item in offered.Skip(skip))
             {
                 mk.Selected = item;
                 if (mk.Homebase != null) break;
             }
+
             mk.BuyCommand.Execute(null);
             av.Refresh();
         }
@@ -138,7 +147,9 @@ namespace TheBusProject.Desktop
                 Log("game created: " + me.Profile.Name + ", " + GameObject.GetInstance().GameTime.ToString("yyyy-MM-dd"));
 
                 // four coach: three get a route, the fourth is delivered during the weeks played and left idle
-                foreach (int skip in new[] {40, 90, 140, 60}) Buy(av, skip);
+                foreach (double through in new[] {0.3, 0.6, 0.9, 0.45}) Buy(av, through);
+                Log("bought " + me.Fleet.Count + " coaches out of " + av.Market.Coach.Count + " on offer");
+                if (me.Fleet.Count == 0) throw new Exception("no coach could be bought, so the pictures would show an empty carrier");
                 foreach (var f in me.Fleet.ToList())
                     if (f.Drivers.Count < f.Coach.Type.DriverCrew) CarrierHelpers.HireCoachDrivers(f);
                 int give = Math.Max(1, me.Fleet.Count - 1);
@@ -171,12 +182,16 @@ namespace TheBusProject.Desktop
                 await Settle();
                 Save(window, "00b-map-network");
                 Log("map: " + av.Map.Coach.Count + " coaches, " + av.Map.Lines.Count + " lines drawn");
+                if (av.Map.Lines.Count == 0) throw new Exception("the map has no routes on it, so it cannot show how a route is drawn");
 
                 // and closer in, where the US routes come in and a route can be seen running along the interstate
                 var map = window.GetVisualDescendants().OfType<WorldMapControl>().FirstOrDefault();
                 if (map != null)
                 {
-                    map.ZoomBy(6);
+                    // on the network first, so the closer view is over the routes rather than over whatever happened
+                    // to be in the middle of the country
+                    map.FitView();
+                    map.ZoomBy(4);
                     await Settle();
                     Save(window, "00c-map-closer");
                 }
