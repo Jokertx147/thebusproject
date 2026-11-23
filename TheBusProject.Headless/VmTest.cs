@@ -3567,13 +3567,23 @@ static class VmTest
         Console.WriteLine("  before saving: " + moves + " rival moves, " + coachWithTrips + " coach with recorded trips");
         if (moves < 3 || coachWithTrips == 0) fail("nothing to save");
 
-        // a trip board to compare: an coach of the rival that flies today
-        var f0 = theirs.Carrier.Fleet.ToList().First(x => TheBusProject.Helpers.TripRecords.Of(x).Count > 0 && x.Routes.Count > 0);
-        string code = f0.Coach.Carrier.Profile.IATACode, name = f0.Name;
-        av.Map.ShowRivals(new TheBusProject.Presentation.RivalView { Carrier = f0.Coach.Carrier });
+        // a trip board to compare: a coach of the rival that has finished a trip today. A coach trip takes most of a
+        // day, so plenty of them are still on the road at any hour and their board has nothing to show yet.
+        av.Map.ShowRivals(new TheBusProject.Presentation.RivalView { Carrier = theirs.Carrier });
         av.Map.Reload();
-        av.Map.Selected = av.Map.Coach.First(a => a.Coach == f0);
         var t = g.GameTime.Date.AddHours(23);
+        TheBusProject.Models.Coaches.FleetCoach f0 = null;
+        foreach (var candidate in theirs.Carrier.Fleet.ToList().Where(x => TheBusProject.Helpers.TripRecords.Of(x).Count > 0 && x.Routes.Count > 0))
+        {
+            var row = av.Map.Coach.FirstOrDefault(a => a.Coach == candidate);
+            if (row == null) continue;
+            av.Map.Selected = row;
+            av.Map.LoadBoard(t);
+            if (av.Map.TripBoard.Any(r => r.IsDone && r.HasResult)) { f0 = candidate; break; }
+        }
+        if (f0 == null) fail("no rival coach has finished a trip today");
+        string code = f0.Coach.Carrier.Profile.IATACode, name = f0.Name;
+        av.Map.Selected = av.Map.Coach.First(a => a.Coach == f0);
         av.Map.LoadBoard(t);
         string board = string.Join(";", av.Map.TripBoard.Select(r => r.Key)) + "|" + av.Map.BoardSummary;
         string movesShown = string.Join(";", TheBusProject.Helpers.CompetitorService.Moves(me, 30).Select(m => m.Date.ToString("s") + m.Kind + m.RouteId));
