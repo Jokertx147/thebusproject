@@ -485,8 +485,16 @@ namespace TheBusProject.Helpers
 
                 double basePrice = fuelPrice*distance*((CoachPassengerType) coach.Coach.Type).MaxSeatingCapacity*coach.Coach.FuelConsumption*0.55;
                 double paxPrice = fuelPrice*distance*coach.Coach.FuelConsumption*coach.CurrentTrip.GetTotalPassengers()*0.45;
-                double seatsPrice =
-                    coach.CurrentTrip.Classes.Sum(c => (coach.Coach.GetCoachClass(c.CoachClass.Type).GetFacility(CoachFacility.FacilityType.Seat).SeatUses - 1)*c.Passengers);
+                // the weight of the seats themselves. A trip can be carrying a class the coach no longer has a
+                // cabin of -- it was refitted, or the trip was set up against another coach -- and a missing
+                // cabin is no seats to carry, not a crash
+                double seatsPrice = coach.CurrentTrip.Classes.Sum(
+                    c =>
+                    {
+                        var cabin = coach.Coach.GetCoachClass(c.CoachClass.Type);
+                        var seat = cabin?.GetFacility(CoachFacility.FacilityType.Seat);
+                        return seat == null ? 0 : (seat.SeatUses - 1)*c.Passengers;
+                    });
                 return basePrice + paxPrice + seatsPrice;
             }
             else
