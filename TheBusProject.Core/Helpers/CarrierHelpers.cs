@@ -907,82 +907,63 @@ namespace TheBusProject.Helpers
         //returns if a route can be created
         public static bool IsRouteDestinationsOk(Carrier carrier, Station destination1, Station destination2, Route.RouteType routeType, Station stopover1 = null, Station stopover2 = null)
         {
+            var calls = new List<Station> { destination1 };
+            if (stopover1 != null) calls.Add(stopover1);
+            if (stopover2 != null) calls.Add(stopover2);
+            calls.Add(destination2);
+            return IsRouteDestinationsOk(carrier, calls, routeType);
+        }
+
+        /// <summary>
+        ///     Whether a service calling at these places in order can be run: a bay free at every one of them, each
+        ///     leg a leg some coach of the day could manage, and nothing in the way of the licence. A service with
+        ///     stops is judged leg by leg, which is the point of the stops.
+        /// </summary>
+        public static bool IsRouteDestinationsOk(Carrier carrier, IList<Station> calls, Route.RouteType routeType)
+        {
             Terminal.TerminalType type = routeType == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger;
 
-            var distances = new List<double>();
+            if (calls == null || calls.Count < 2) throw new Exception("3000");
 
-            bool stopoverOk = (stopover1 == null || routeType == Route.RouteType.Cargo || StationHelpers.HasFreeGates(stopover1, carrier, type)) &&
-                                 (stopover2 == null || routeType == Route.RouteType.Cargo || StationHelpers.HasFreeGates(stopover2, carrier, type));
-
-            if ((StationHelpers.HasFreeGates(destination1, carrier, type) && StationHelpers.HasFreeGates(destination2, carrier, type) && stopoverOk) || routeType == Route.RouteType.Cargo)
+            if (routeType != Route.RouteType.Cargo)
             {
-                var routeOkStatus = RouteOkStatus.Ok;
-
-                if (stopover1 == null && stopover2 == null)
+                foreach (Station call in calls)
                 {
-                    distances.Add(MathHelpers.GetDistance(destination1, destination2));
-                    routeOkStatus = GetRouteStatus(destination1, destination2, routeType);
+                    if (!StationHelpers.HasFreeGates(call, carrier, type)) throw new Exception("3000");
                 }
-
-                if (stopover1 == null && stopover2 != null)
-                {
-                    distances.Add(MathHelpers.GetDistance(destination1, stopover2));
-                    distances.Add(MathHelpers.GetDistance(stopover2, destination2));
-                    routeOkStatus = GetRouteStatus(destination1, stopover2, routeType);
-
-                    if (routeOkStatus == RouteOkStatus.Ok)
-                        routeOkStatus = GetRouteStatus(stopover2, destination2, routeType);
-                }
-
-                if (stopover1 != null && stopover2 == null)
-                {
-                    distances.Add(MathHelpers.GetDistance(destination1, stopover1));
-                    distances.Add(MathHelpers.GetDistance(stopover1, destination2));
-                    routeOkStatus = GetRouteStatus(destination1, stopover1, routeType);
-
-                    if (routeOkStatus == RouteOkStatus.Ok)
-                        routeOkStatus = GetRouteStatus(stopover1, destination2, routeType);
-                }
-
-                if (stopover1 != null && stopover2 != null)
-                {
-                    distances.Add(MathHelpers.GetDistance(destination1, stopover1));
-                    distances.Add(MathHelpers.GetDistance(stopover1, stopover2));
-                    distances.Add(MathHelpers.GetDistance(stopover2, destination2));
-                    routeOkStatus = GetRouteStatus(destination1, stopover1, routeType);
-
-                    if (routeOkStatus == RouteOkStatus.Ok)
-                        routeOkStatus = GetRouteStatus(stopover1, stopover2, routeType);
-
-                    if (routeOkStatus == RouteOkStatus.Ok)
-                        routeOkStatus = GetRouteStatus(stopover2, destination2, routeType);
-                }
-
-                double maxDistance = distances.Max();
-                double minDistance = distances.Min();
-
-                IEnumerable<long> query = from a in CoachTypes.GetTypes(t => t.Produced.From < GameObject.GetInstance().GameTime)
-                                          select a.Range;
-
-                double maxTripDistance = query.Max();
-
-                if (minDistance <= Route.MinRouteDistance || maxDistance > maxTripDistance)
-                    routeOkStatus = RouteOkStatus.WrongDistance;
-
-                if (routeOkStatus == RouteOkStatus.Ok)
-                    return true;
-                if (routeOkStatus == RouteOkStatus.AppropriateType)
-                    throw new Exception("3002");
-                if (routeOkStatus == RouteOkStatus.WrongDistance)
-                    throw new Exception("3001");
-                if (routeOkStatus == RouteOkStatus.MissingCargo)
-                    throw new Exception("3003");
-                if (routeOkStatus == RouteOkStatus.Restrictions)
-                    throw new Exception("3005");
-                if (routeOkStatus == RouteOkStatus.MissingLicense)
-                    throw new Exception("3004");
-                throw new Exception("3000");
             }
+
+            var routeOkStatus = RouteOkStatus.Ok;
+            var distances = new List<double>();
+            for (int i = 0; i < calls.Count - 1; i++)
+            {
+                distances.Add(MathHelpers.GetDistance(calls[i], calls[i + 1]));
+                if (routeOkStatus == RouteOkStatus.Ok) routeOkStatus = GetRouteStatus(calls[i], calls[i + 1], routeType);
+            }
+
+            double maxDistance = distances.Max();
+            double minDistance = distances.Min();
+
+            IEnumerable<long> query = from a in CoachTypes.GetTypes(t => t.Produced.From < GameObject.GetInstance().GameTime)
+                                      select a.Range;
+
+            double maxTripDistance = query.Max();
+
+            if (minDistance <= Route.MinRouteDistance || maxDistance > maxTripDistance)
+                routeOkStatus = RouteOkStatus.WrongDistance;
+
+            if (routeOkStatus == RouteOkStatus.Ok)
+                return true;
+            if (routeOkStatus == RouteOkStatus.AppropriateType)
+                throw new Exception("3002");
+            if (routeOkStatus == RouteOkStatus.WrongDistance)
+                throw new Exception("3001");
+            if (routeOkStatus == RouteOkStatus.MissingCargo)
+                throw new Exception("3003");
+            if (routeOkStatus == RouteOkStatus.Restrictions)
+                throw new Exception("3005");
+            if (routeOkStatus == RouteOkStatus.MissingLicense)
+                throw new Exception("3004");
             throw new Exception("3000");
         }
 

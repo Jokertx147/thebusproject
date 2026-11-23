@@ -54,6 +54,9 @@ namespace TheBusProject.Helpers
 
         public bool StartCoach { get; set; }
 
+        /// <summary>The places the service calls at on the way, in order. Empty for a non-stop run.</summary>
+        public List<Station> Stops { get; set; } = new List<Station>();
+
         //passenger (the default) or cargo
         public Route.RouteType RouteType { get; set; }
 
@@ -74,8 +77,25 @@ namespace TheBusProject.Helpers
             Station destination,
             Route.RouteType routeType = Route.RouteType.Passenger)
         {
-            double distance = MathHelpers.GetDistance(origin, destination);
-            long bay = Math.Min(origin.GetMaxBayLength(), destination.GetMaxBayLength());
+            return GetCandidateCoaches(new List<Station> { origin, destination }, routeType);
+        }
+
+        /// <summary>
+        ///     The coaches that could work a service calling at these places in order. Only a leg has to be within
+        ///     the coach's range, so a service with stops can be run by a coach that could never do it in one go.
+        /// </summary>
+        public static List<FleetCoach> GetCandidateCoaches(
+            IList<Station> calls,
+            Route.RouteType routeType = Route.RouteType.Passenger)
+        {
+            double distance = 0;
+            long bay = long.MaxValue;
+            for (int i = 0; i < calls.Count; i++)
+            {
+                bay = Math.Min(bay, calls[i].GetMaxBayLength());
+                if (i < calls.Count - 1) distance = Math.Max(distance, MathHelpers.GetDistance(calls[i], calls[i + 1]));
+            }
+
             bool cargo = routeType == Route.RouteType.Cargo;
 
             return GameObject.GetInstance()
@@ -186,15 +206,24 @@ namespace TheBusProject.Helpers
 
             bool isCargo = request.RouteType == Route.RouteType.Cargo;
 
+            // every leg has to be one the coach can actually run, and one a driver may legally drive
+            message = RouteStops.WhyNot(
+                origin, destination, request.Stops, request.Coach?.Coach,
+                request.Coach == null ? 1 : Math.Max(1, request.Coach.NumberOfDrivers));
+            if (message != null)
+            {
+                return null;
+            }
+
             try
             {
+                var calls = new List<Station> { origin };
+                if (request.Stops != null) calls.AddRange(request.Stops);
+                calls.Add(destination);
                 CarrierHelpers.IsRouteDestinationsOk(
                     carrier,
-                    origin,
-                    destination,
-                    isCargo ? Route.RouteType.Cargo : Route.RouteType.Passenger,
-                    null,
-                    null);
+                    calls,
+                    isCargo ? Route.RouteType.Cargo : Route.RouteType.Passenger);
             }
             catch (Exception ex)
             {
@@ -217,12 +246,13 @@ namespace TheBusProject.Helpers
                 route = CreatePassengerRoute(carrier, origin, destination, request.Tier, year, baseFare);
             }
 
-            FleetCoachHelpers.CreateStopoverRoute(route, null, null);
+            // the places it calls at on the way, each leg a route of its own with its own fare
+            RouteStops.Set(route, request.Stops);
             route.Season = Weather.Season.AllYear;
             carrier.AddRoute(route);
             ContractService.LinkRoute(carrier, route);
 
-            message = string.Format("Route {0} - {1} created.", origin.Profile.IATACode, destination.Profile.IATACode);
+            message = string.Format("Route {0} created.", RouteStops.Describe(route));
 
             return AssignCoach(route, carrier, request, ref message);
         }

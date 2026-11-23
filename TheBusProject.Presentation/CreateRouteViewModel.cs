@@ -93,6 +93,8 @@ namespace TheBusProject.Presentation
         private readonly Station _origin, _destination;
         private readonly Action<string> _done;
         private readonly bool _cargo;
+        private Station _chosenStop;
+        private Station _chosenCall;
         private readonly Route _existing;
         private readonly bool _move;
         private string _cargoPrice;
@@ -156,6 +158,14 @@ namespace TheBusProject.Presentation
                 Infrastructure.StartupLog.Write("Route planner: listing the coach that can't run failed: " + ex);
             }
 
+            Stops = new ObservableCollection<Station>();
+            Stops.CollectionChanged += (s, e) => StopsChanged();
+            StopChoices = new List<Station>();
+            RefreshStopChoices();
+            AddStopCommand = new RelayCommand(AddStop);
+            RemoveStopCommand = new RelayCommand(RemoveStop);
+            FillStopsCommand = new RelayCommand(FillStops);
+
             CreateCommand = new RelayCommand(Create);
             CancelCommand = new RelayCommand(() => _done(null));
 
@@ -166,12 +176,196 @@ namespace TheBusProject.Presentation
 
         public string Title { get; }
 
+        /// <summary>The places the service calls at on the way, in the order it calls at them.</summary>
+        public ObservableCollection<Station> Stops { get; private set; }
+
+        /// <summary>The stations that could be added as a stop: the ones roughly on the way, least detour first.</summary>
+        public List<Station> StopChoices { get; private set; }
+
+        public ICommand AddStopCommand { get; private set; }
+
+        public ICommand RemoveStopCommand { get; private set; }
+
+        /// <summary>Puts in the stops the service needs to be legal and within the coach's range.</summary>
+        public ICommand FillStopsCommand { get; private set; }
+
+        /// <summary>The stop the player has picked in the list of choices.</summary>
+        public Station ChosenStop
+        {
+            get { return _chosenStop; }
+            set { SetProperty(ref _chosenStop, value); }
+        }
+
+        /// <summary>The call the player has picked out of the service, to take it off again.</summary>
+        public Station ChosenCall
+        {
+            get { return _chosenCall; }
+            set { SetProperty(ref _chosenCall, value); }
+        }
+
+        /// <summary>The service as it stands: MIA - LIT - PHX - LAX, with each leg's length.</summary>
+        public string StopsText
+        {
+            get
+            {
+                var calls = new List<Station> { _origin };
+                calls.AddRange(Stops);
+                calls.Add(_destination);
+                if (calls.Count == 2)
+                {
+                    return "Non-stop, " + MathHelpers.GetDistance(_origin, _destination).ToString("#,0") + " km.";
+                }
+
+                var parts = new List<string>();
+                double total = 0;
+                for (int i = 0; i < calls.Count - 1; i++)
+                {
+                    double km = MathHelpers.GetDistance(calls[i], calls[i + 1]);
+                    total += km;
+                    parts.Add(calls[i].Profile.IATACode + " - " + calls[i + 1].Profile.IATACode + " " + km.ToString("#,0") + " km");
+                }
+
+                return string.Join(", ", parts) + "; " + total.ToString("#,0") + " km in all.";
+            }
+        }
+
+        /// <summary>Why the service as it stands can't be run, or null.</summary>
+        public string StopsProblem
+        {
+            get
+            {
+                FleetCoach f = Coach;
+                return RouteStops.WhyNot(_origin, _destination, Stops.ToList(), f == null ? null : f.Coach,
+                                         f == null ? 1 : Math.Max(1, f.NumberOfDrivers));
+            }
+        }
+
+        public bool HasStopsProblem
+        {
+            get { return !string.IsNullOrEmpty(StopsProblem); }
+        }
+
+        /// <summary>
+        ///     The stations worth offering as a stop: the ones a coach would hardly go out of its way for, the
+        ///     smallest detour first.
+        /// </summary>
+        private void RefreshStopChoices()
+        {
+            var calls = new List<Station> { _origin };
+            calls.AddRange(Stops);
+            calls.Add(_destination);
+            double straight = MathHelpers.GetDistance(_origin, _destination);
+            double allowed = Math.Max(120, straight*0.25);
+
+            var choices = new List<KeyValuePair<Station, double>>();
+            foreach (Station a in Stations.GetAllActiveStations())
+            {
+                if (calls.Contains(a)) continue;
+                double best = double.MaxValue;
+                for (int i = 0; i < calls.Count - 1; i++)
+                {
+                    double detour = MathHelpers.GetDistance(calls[i], a)
+                                    + MathHelpers.GetDistance(a, calls[i + 1])
+                                    - MathHelpers.GetDistance(calls[i], calls[i + 1]);
+                    if (detour < best) best = detour;
+                }
+
+                if (best <= allowed) choices.Add(new KeyValuePair<Station, double>(a, best));
+            }
+
+            StopChoices = choices.OrderBy(x => x.Value).Select(x => x.Key).Take(40).ToList();
+            _chosenStop = StopChoices.FirstOrDefault();
+            OnPropertyChanged("StopChoices");
+            OnPropertyChanged("ChosenStop");
+        }
+
+        /// <summary>Puts the chosen station into the service, in the place along the road where it belongs.</summary>
+        private void AddStop()
+        {
+            if (_chosenStop == null || Stops.Count >= RouteStops.Max) return;
+
+            var calls = new List<Station> { _origin };
+            calls.AddRange(Stops);
+            calls.Add(_destination);
+            int at = 0;
+            double best = double.MaxValue;
+            for (int i = 0; i < calls.Count - 1; i++)
+            {
+                double detour = MathHelpers.GetDistance(calls[i], _chosenStop)
+                                + MathHelpers.GetDistance(_chosenStop, calls[i + 1])
+                                - MathHelpers.GetDistance(calls[i], calls[i + 1]);
+                if (detour < best)
+                {
+                    best = detour;
+                    at = i;
+                }
+            }
+
+            Stops.Insert(at, _chosenStop);
+        }
+
+        private void FillStops()
+        {
+            // without a coach picked yet, work to the best one in the yard: the player can pick afterwards
+            FleetCoach f = Coach
+                           ?? GameObject.GetInstance().HumanCarrier.DeliveredFleet
+                                        .Where(x => x.Routes.Count == 0)
+                                        .OrderByDescending(x => x.Coach.Range)
+                                        .FirstOrDefault()
+                           ?? GameObject.GetInstance().HumanCarrier.DeliveredFleet.OrderByDescending(x => x.Coach.Range).FirstOrDefault();
+            if (f == null) return;
+            var filled = RouteStops.Suggest(_origin, _destination, f.Coach, Stops.ToList(), Math.Max(1, f.NumberOfDrivers));
+            Stops.Clear();
+            foreach (Station a in filled) Stops.Add(a);
+        }
+
+        /// <summary>
+        ///     Which coaches can work the service as it now stands. A stop shortens the longest leg, so a coach
+        ///     that couldn't run the whole thing in one go may be able to work it with the stops in.
+        /// </summary>
+        private void RefreshCoachChoices()
+        {
+            if (_existing != null) return;
+
+            var calls = new List<Station> { _origin };
+            calls.AddRange(Stops);
+            calls.Add(_destination);
+
+            FleetCoach had = Coach;
+            var list = new List<CoachChoice> { new CoachChoice { Name = "(assign a coach later)" } };
+            list.AddRange(
+                RouteCreator.GetCandidateCoaches(calls, _cargo ? Route.RouteType.Cargo : Route.RouteType.Passenger)
+                            .Select(f => new CoachChoice { Name = f.Name + " - " + f.Coach.Type.Name, Coach = f }));
+            Coaches = list;
+            _coach = list.FirstOrDefault(c => c.Coach == had) ?? (list.Count > 1 ? list[1] : list[0]);
+            OnPropertyChanged("Coaches");
+            OnPropertyChanged("SelectedCoach");
+        }
+
+        private void RemoveStop()
+        {
+            if (_chosenCall != null && Stops.Contains(_chosenCall)) Stops.Remove(_chosenCall);
+            else if (Stops.Count > 0) Stops.RemoveAt(Stops.Count - 1);
+        }
+
+        private void StopsChanged()
+        {
+            RefreshCoachChoices();
+            RefreshStopChoices();
+            OnPropertyChanged("StopsText");
+            OnPropertyChanged("StopsProblem");
+            OnPropertyChanged("HasStopsProblem");
+            RefreshSchedule();
+            RefreshGates();
+        }
+
+
         /// <summary>The player's idle coach that can't fly the route, and why (bay or range), or null.</summary>
         public string CantFly { get; }
 
         public bool HasCantFly => !string.IsNullOrEmpty(CantFly);
         public List<ServiceTier> Tiers { get; }
-        public List<CoachChoice> Coaches { get; }
+        public List<CoachChoice> Coaches { get; private set; }
         public List<OpsType> Operations { get; }
         public List<int> Turnarounds { get; }
         public ObservableCollection<int> Trips { get; }
@@ -489,7 +683,11 @@ namespace TheBusProject.Presentation
         private void RefreshGates()
         {
             Offers.Clear();
-            foreach (Station a in new[] { _origin, _destination }.Distinct())
+            // a bay is needed wherever the coach calls, not just at the two ends
+            var where = new List<Station> { _origin };
+            if (Stops != null) where.AddRange(Stops);
+            where.Add(_destination);
+            foreach (Station a in where.Distinct())
             {
                 if (!StationHelpers.HasFreeGates(a, GameObject.GetInstance().HumanCarrier, TerminalKind))
                 {
@@ -522,7 +720,8 @@ namespace TheBusProject.Presentation
                 Operation = _operation,
                 TurnaroundMinutes = _turnaround,
                 RoundTripsPerDay = _trips < 1 ? 1 : _trips,
-                StartTime = _startTime == null ? new TimeSpan(6, 0, 0) : TimeSpan.Parse(_startTime)
+                StartTime = _startTime == null ? new TimeSpan(6, 0, 0) : TimeSpan.Parse(_startTime),
+                Stops = Stops.ToList()
             };
 
             string message;
@@ -575,7 +774,8 @@ namespace TheBusProject.Presentation
                 Operation = _operation,
                 TurnaroundMinutes = _turnaround,
                 RoundTripsPerDay = _trips < 1 ? 1 : _trips,
-                StartTime = _startTime == null ? new TimeSpan(6, 0, 0) : TimeSpan.Parse(_startTime)
+                StartTime = _startTime == null ? new TimeSpan(6, 0, 0) : TimeSpan.Parse(_startTime),
+                Stops = Stops.ToList()
             };
 
             string message;

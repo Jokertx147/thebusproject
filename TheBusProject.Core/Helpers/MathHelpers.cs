@@ -265,14 +265,17 @@ namespace TheBusProject.Helpers
 
             double dtime = dist/speed;
 
-            int hours = Convert.ToInt16(Math.Floor(dtime));
+            int hours = (int) Math.Floor(dtime);
 
             double dMinutes = (dtime - hours)*60;
 
-            int minutes = Convert.ToInt16(Math.Floor(dMinutes));
+            int minutes = (int) Math.Floor(dMinutes);
 
-            //2.5 minutes for takeoff and 2.5 minutes for landing
+            //a couple of minutes pulling out of the bay and back into one at the other end
             minutes += 5;
+
+            //and a break every four and a half hours at the wheel: everyone off, twenty-five minutes
+            minutes += (int) RouteStops.BreakTime(dtime).TotalMinutes;
 
             return new TimeSpan(hours, minutes, 0);
         }

@@ -28,7 +28,35 @@
       <TextBox Text="{Binding CargoPrice}" />
     </StackPanel>
     <TextBlock Text="{Binding CoachLabel}" />
-    <ComboBox ItemsSource="{Binding Coach}" SelectedItem="{Binding SelectedCoach}" HorizontalAlignment="Stretch" />
+    <ComboBox ItemsSource="{Binding Coaches}" SelectedItem="{Binding SelectedCoach}" HorizontalAlignment="Stretch" />
+
+    <StackPanel Spacing="6">
+      <TextBlock Text="Stops along the way" />
+      <TextBlock Text="{Binding StopsText}" TextWrapping="Wrap" Opacity="0.75" />
+      <TextBlock Text="{Binding StopsProblem}" TextWrapping="Wrap" Foreground="#c0392b" IsVisible="{Binding HasStopsProblem}" />
+      <Grid ColumnDefinitions="*,Auto,Auto">
+        <ComboBox Grid.Column="0" ItemsSource="{Binding StopChoices}" SelectedItem="{Binding ChosenStop}" HorizontalAlignment="Stretch">
+          <ComboBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding Profile.Name}" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+        <Button Grid.Column="1" Content="Add stop" Command="{Binding AddStopCommand}" Margin="6,0,0,0" />
+        <Button Grid.Column="2" Content="Fill in" Command="{Binding FillStopsCommand}" Margin="6,0,0,0"
+                ToolTip.Tip="Puts in the stops the service needs so no leg is beyond the coach's range or beyond a driver's day" />
+      </Grid>
+      <Grid ColumnDefinitions="*,Auto">
+        <ComboBox Grid.Column="0" ItemsSource="{Binding Stops}" SelectedItem="{Binding ChosenCall}" HorizontalAlignment="Stretch">
+          <ComboBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding Profile.Name}" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+        <Button Grid.Column="1" Content="Take off" Command="{Binding RemoveStopCommand}" Margin="6,0,0,0" />
+      </Grid>
+    </StackPanel>
 
     <StackPanel Spacing="8" IsEnabled="{Binding ScheduleEnabled}">
       <TextBlock Text="Schedule" />

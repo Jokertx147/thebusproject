@@ -221,6 +221,11 @@ jobs:
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm breakeven 2>&1 | tee breakeven.log
           grep -q "BREAK EVEN TEST OK" breakeven.log || { grep -m8 -iE "FAILED|timeout|exception|   at " breakeven.log | sed 's/^/::error::/'; exit 1; }
 
+      - name: Stops test (a service calling at stops, Greyhound style)
+        run: |
+          timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm stops 2>&1 | tee stops.log
+          grep -q "STOPS TEST OK" stops.log || { grep -m8 -iE "FAILED|timeout|exception|   at " stops.log | sed 's/^/::error::/'; exit 1; }
+
       - name: Roads test (routes that follow the interstates)
         run: |
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm roads 2>&1 | tee roads.log

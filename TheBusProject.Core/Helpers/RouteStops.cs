@@ -1,0 +1,296 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using TheBusProject.Models.Coaches;
+using TheBusProject.Models.Routes;
+using TheBusProject.Models.Stations;
+
+namespace TheBusProject.Helpers
+{
+    /// <summary>
+    ///     The stops along a route. A coach line isn't a flight: Miami to Los Angeles is one service that calls at
+    ///     Little Rock and Phoenix, and anybody can ride between any two of those four. Each leg is a route of its
+    ///     own with its own fare, so only a leg has to be within the coach's range, and the stops are where the
+    ///     passengers change, the driver changes and the coach fills up.
+    /// </summary>
+    public static class RouteStops
+    {
+        /// <summary>As many stops as a service will take before it stops being a service and becomes a tour.</summary>
+        public const int Max = 8;
+
+        /// <summary>US hours of service: ten hours at the wheel, then the driver must be relieved.</summary>
+        public const double MaxDrivingHours = 10;
+
+        /// <summary>A break every so many hours at the wheel, which is both the law and the bladder.</summary>
+        public const double HoursBetweenBreaks = 4.5;
+
+        /// <summary>How long the coach stands at a break: everyone off, twenty-five minutes.</summary>
+        public const int BreakMinutes = 25;
+
+        /// <summary>The stops of a route, in the order the coach calls at them, between the two ends.</summary>
+        public static List<Station> Of(Route route)
+        {
+            var stops = new List<Station>();
+            if (route == null || !route.HasStopovers) return stops;
+
+            foreach (Route leg in Legs(route))
+            {
+                if (leg.Destination1 != route.Destination1 && !stops.Contains(leg.Destination1)) stops.Add(leg.Destination1);
+                if (leg.Destination2 != route.Destination2 && !stops.Contains(leg.Destination2)) stops.Add(leg.Destination2);
+            }
+
+            return stops;
+        }
+
+        /// <summary>Every leg of the route in order, or the route itself when it runs non-stop.</summary>
+        public static List<Route> Legs(Route route)
+        {
+            if (route == null) return new List<Route>();
+            if (!route.HasStopovers) return new List<Route> { route };
+
+            var legs = new List<Route>();
+            foreach (StopoverRoute stop in route.Stopovers)
+            {
+                foreach (Route leg in stop.Legs)
+                {
+                    if (!legs.Contains(leg)) legs.Add(leg);
+                }
+            }
+
+            return legs;
+        }
+
+        /// <summary>Every place the service calls, the two ends included, in order.</summary>
+        public static List<Station> Calls(Route route)
+        {
+            var calls = new List<Station> { route.Destination1 };
+            calls.AddRange(Of(route));
+            calls.Add(route.Destination2);
+            return calls;
+        }
+
+        /// <summary>The longest single leg, which is the one that has to be within a coach's range.</summary>
+        public static double LongestLegKm(Route route)
+        {
+            return Legs(route).Max(l => l.GetDistance());
+        }
+
+        /// <summary>The road a coach covers over the whole service, every leg added up.</summary>
+        public static double TotalKm(Route route)
+        {
+            return Legs(route).Sum(l => l.GetDistance());
+        }
+
+        /// <summary>
+        ///     The breaks a leg needs: one every four and a half hours at the wheel, so a nine hour run stops once.
+        ///     They are the law, and they are also why a coach takes longer than the distance says.
+        /// </summary>
+        public static int BreaksOn(double drivingHours)
+        {
+            if (drivingHours <= HoursBetweenBreaks) return 0;
+            return (int) Math.Floor((drivingHours - 0.01)/HoursBetweenBreaks);
+        }
+
+        /// <summary>How long those breaks add to a leg.</summary>
+        public static TimeSpan BreakTime(double drivingHours)
+        {
+            return TimeSpan.FromMinutes(BreaksOn(drivingHours)*BreakMinutes);
+        }
+
+        /// <summary>
+        ///     Why this service can't be run as it stands, or null when it can: a leg beyond the coach's range, a
+        ///     platform too short for it somewhere along the way, a leg longer than a driver may drive, or a stop
+        ///     that isn't a stop at all.
+        /// </summary>
+        public static string WhyNot(Station from, Station to, IList<Station> stops, Coach coach)
+        {
+            return WhyNot(from, to, stops, coach, 1);
+        }
+
+        /// <summary>
+        ///     The same, knowing how many drivers are aboard. One driver may be at the wheel for ten hours; a second
+        ///     aboard means they relieve each other and the coach keeps going, which is how the long overnight runs
+        ///     are really worked.
+        /// </summary>
+        public static string WhyNot(Station from, Station to, IList<Station> stops, Coach coach, int driversAboard)
+        {
+            if (from == null || to == null) return "Pick both ends first.";
+            if (stops != null && stops.Count > Max) return "A service calls at " + Max + " stops at most.";
+
+            var calls = new List<Station> { from };
+            if (stops != null) calls.AddRange(stops);
+            calls.Add(to);
+
+            for (int i = 0; i < calls.Count; i++)
+            {
+                if (calls[i] == null) return "One of the stops is empty.";
+                for (int j = i + 1; j < calls.Count; j++)
+                {
+                    if (calls[i] == calls[j]) return calls[i].Profile.Name + " is on the route twice.";
+                }
+            }
+
+            if (coach == null) return null;
+
+            for (int i = 0; i < calls.Count - 1; i++)
+            {
+                Station a = calls[i], b = calls[i + 1];
+                double km = MathHelpers.GetDistance(a, b);
+                if (km > coach.Range)
+                {
+                    return string.Format(
+                        "{0} to {1} is {2:#,0} km and {3} can only run {4:#,0}. Put a stop in between.",
+                        a.Profile.IATACode, b.Profile.IATACode, km, coach.Type.Name, coach.Range);
+                }
+
+                double hours = km/Math.Max(1, coach.Type.CruisingSpeed);
+                double allowed = MaxDrivingHours*Math.Max(1, driversAboard);
+                if (hours > allowed)
+                {
+                    return driversAboard > 1
+                               ? string.Format(
+                                   "{0} to {1} is {2:0.0} hours at the wheel and {3} drivers may do {4:0} between them. Put a stop in between.",
+                                   a.Profile.IATACode, b.Profile.IATACode, hours, driversAboard, allowed)
+                               : string.Format(
+                                   "{0} to {1} is {2:0.0} hours at the wheel and a driver may do {3:0}. Put a stop in between, or crew the coach with a second driver so they can relieve each other.",
+                                   a.Profile.IATACode, b.Profile.IATACode, hours, MaxDrivingHours);
+                }
+
+                if (coach.MinBayLength > Math.Min(a.GetMaxBayLength(), b.GetMaxBayLength()))
+                {
+                    Station shortOne = a.GetMaxBayLength() < b.GetMaxBayLength() ? a : b;
+                    return string.Format(
+                        "{0}'s longest platform is {1} m and {2} needs {3} m.",
+                        shortOne.Profile.IATACode, shortOne.GetMaxBayLength(), coach.Type.Name, coach.MinBayLength);
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        ///     Puts the stops on the route, in order, each leg a route of its own with its own fare. Clears them
+        ///     again when the list is empty, which puts the service back to running non-stop.
+        /// </summary>
+        public static void Set(Route route, IList<Station> stops)
+        {
+            if (route == null) return;
+
+            route.Stopovers.Clear();
+            if (stops == null || stops.Count == 0) return;
+
+            for (int i = 0; i < stops.Count; i++)
+            {
+                Station before = i == 0 ? route.Destination1 : stops[i - 1];
+                Station after = i == stops.Count - 1 ? route.Destination2 : stops[i + 1];
+                route.AddStopover(FleetCoachHelpers.CreateStopoverRoute(before, stops[i], after, route, i > 0, route.Type));
+            }
+        }
+
+
+        /// <summary>
+        ///     Fills in the stops a long service needs: while a leg is beyond the coach's range or beyond what a
+        ///     driver may do in a day, it puts in the station that best splits the worst leg -- near its middle and
+        ///     barely off the road. This is how a real coach line is built, a division point at a time.
+        /// </summary>
+        public static List<Station> Suggest(Station from, Station to, Coach coach, IList<Station> start, int driversAboard = 1)
+        {
+            var stops = start == null ? new List<Station>() : new List<Station>(start);
+            if (from == null || to == null || coach == null) return stops;
+
+            double maxKm = coach.Range;
+            double maxHours = MaxDrivingHours*Math.Max(1, driversAboard);
+            double speed = Math.Max(1, coach.Type.CruisingSpeed);
+
+            for (int guard = 0; guard < Max; guard++)
+            {
+                var calls = new List<Station> { from };
+                calls.AddRange(stops);
+                calls.Add(to);
+
+                // the worst leg: the one furthest past what the coach or the driver can do
+                int worst = -1;
+                double over = 0;
+                for (int i = 0; i < calls.Count - 1; i++)
+                {
+                    double km = MathHelpers.GetDistance(calls[i], calls[i + 1]);
+                    double excess = Math.Max(km - maxKm, (km/speed - maxHours)*speed);
+                    if (excess > over)
+                    {
+                        over = excess;
+                        worst = i;
+                    }
+                }
+
+                if (worst < 0) return stops;
+                if (stops.Count >= Max) return stops;
+
+                Station a = calls[worst], b = calls[worst + 1];
+                double legKm = MathHelpers.GetDistance(a, b);
+                Station best = null;
+                double bestScore = double.MaxValue;
+                foreach (Station candidate in Stations.GetAllActiveStations())
+                {
+                    if (calls.Contains(candidate)) continue;
+                    if (coach.MinBayLength > candidate.GetMaxBayLength()) continue;
+                    double first = MathHelpers.GetDistance(a, candidate), second = MathHelpers.GetDistance(candidate, b);
+                    double detour = first + second - legKm;
+                    if (detour > Math.Max(80, legKm*0.18)) continue;
+
+                    // near the middle, and hardly off the road: a town the coach would pass anyway
+                    double score = detour + Math.Abs(first - second)*0.35;
+                    if (score < bestScore)
+                    {
+                        bestScore = score;
+                        best = candidate;
+                    }
+                }
+
+                if (best == null) return stops;
+                stops.Insert(worst, best);
+            }
+
+            return stops;
+        }
+
+
+        /// <summary>
+        ///     The passengers riding over this leg whose journey starts before it or ends after it: the Miami to Los
+        ///     Angeles riders sitting in the coach while it works Lubbock to Phoenix, and the Little Rock to Phoenix
+        ///     ones too. Every pair of places on the line sells tickets, which is what makes a service a service
+        ///     rather than a string of separate routes.
+        /// </summary>
+        public static double ThroughDemand(Route service, Station from, Station to, CoachClass.ClassType type)
+        {
+            if (service == null || !service.HasStopovers) return 0;
+
+            List<Station> calls = Calls(service);
+            int a = calls.IndexOf(from), b = calls.IndexOf(to);
+            if (a < 0 || b < 0) return 0;
+            if (a > b)
+            {
+                int swap = a;
+                a = b;
+                b = swap;
+            }
+
+            double sum = 0;
+            for (int i = 0; i <= a; i++)
+            {
+                for (int j = b; j < calls.Count; j++)
+                {
+                    if (i == a && j == b) continue;   // the leg's own passengers are counted already
+                    sum += calls[i].GetDestinationPassengersRate(calls[j], type);
+                }
+            }
+
+            return sum;
+        }
+
+        /// <summary>The service as a line of codes, for a screen or a log: MIA - LIT - PHX - LAX.</summary>
+        public static string Describe(Route route)
+        {
+            return string.Join(" - ", Calls(route).Select(a => a.Profile.IATACode));
+        }
+    }
+}

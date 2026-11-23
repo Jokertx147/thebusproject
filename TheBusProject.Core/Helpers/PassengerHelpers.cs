@@ -3095,6 +3095,9 @@ namespace TheBusProject.Helpers
 
             double demand = stationCurrent.GetDestinationPassengersRate(stationDestination, type);
 
+            // and the ones riding over this leg on a longer ticket: every pair of places the service calls at
+            demand += RouteStops.ThroughDemand(currentRoute, stationCurrent, stationDestination, type);
+
             // passengers changing to or from the carrier's (and its partners') other routes
             pf = Profiler.Start();
             double connecting = ConnectionService.TripDemand(coach.Coach.Carrier, currentRoute, stationCurrent, stationDestination, type);

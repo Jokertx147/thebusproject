@@ -4816,6 +4816,141 @@ static class VmTest
         Environment.Exit(0);
     }
 
+    /// <summary>
+    ///     "vm stops": a service with stops along it, Greyhound style. Miami to Los Angeles calling at Little Rock
+    ///     and Phoenix: no leg longer than the coach can run or a driver may drive, a break every four and a half
+    ///     hours inside each leg, and a fare between every pair of places on the line.
+    /// </summary>
+    static void StopsTest(CarrierViewModel av)
+    {
+        Console.WriteLine("STOPS TEST");
+        Action<string> fail = m => { Console.WriteLine("  FAILED " + m); Environment.Exit(1); };
+        var g = TheBusProject.Models.General.GameObject.GetInstance();
+        var me = g.HumanCarrier;
+        var all = TheBusProject.Models.Stations.Stations.GetAllStations();
+        Func<string, TheBusProject.Models.Stations.Station> at = c => all.First(x => x.Profile.IATACode == c);
+        var mia = at("MIA"); var lax = at("LAX"); var lit = at("LIT"); var phx = at("PHX");
+
+        // a coach that could never run Miami to Los Angeles in one go
+        var mk = av.Market;
+        foreach (var item in mk.Coach.OrderByDescending(x => x.Coach.Range)) { mk.Selected = item; if (mk.Homebase != null) break; }
+        mk.BuyCommand.Execute(null);
+        av.Refresh();
+        var f = me.Fleet.Last();
+        TheBusProject.Helpers.CarrierHelpers.HireCoachDrivers(f);
+        double straight = TheBusProject.Helpers.MathHelpers.GetDistance(mia, lax);
+        Console.WriteLine("  " + f.Coach.Type.Name + ", range " + f.Coach.Range + " km; MIA - LAX is " + straight.ToString("#,0") + " km");
+
+        // non-stop is refused, and says why
+        string why = TheBusProject.Helpers.RouteStops.WhyNot(mia, lax, new System.Collections.Generic.List<TheBusProject.Models.Stations.Station>(), f.Coach);
+        Console.WriteLine("  non-stop: " + (why ?? "allowed"));
+        if (straight > f.Coach.Range && why == null) fail("a route beyond the coach's range was allowed");
+
+        // with the two stops the player asked for, every leg is inside the range and the law
+        var asked = new System.Collections.Generic.List<TheBusProject.Models.Stations.Station> { lit, phx };
+        Console.WriteLine("  MIA - LIT - PHX - LAX: " + (TheBusProject.Helpers.RouteStops.WhyNot(mia, lax, asked, f.Coach) ?? "allowed"));
+        // and the stops the service needs on top of those: no leg beyond the range or beyond a driver's day
+        var stops = TheBusProject.Helpers.RouteStops.Suggest(mia, lax, f.Coach, asked);
+        Console.WriteLine("  filled in: " + string.Join(" - ", stops.Select(x => x.Profile.IATACode)));
+        if (!stops.Contains(lit) || !stops.Contains(phx)) fail("the stops the player asked for were dropped");
+        string why2 = TheBusProject.Helpers.RouteStops.WhyNot(mia, lax, stops, f.Coach);
+        Console.WriteLine("  the filled-in service: " + (why2 ?? "allowed"));
+        if (why2 != null) fail("the filled-in service was refused: " + why2);
+
+        // a service across six states needs more than a regional authority
+        while (me.License != TheBusProject.Models.Carriers.Carrier.CarrierLicense.LongHaul)
+        {
+            string up;
+            me.Money = Math.Max(me.Money, 200000000);
+            if (!TheBusProject.Helpers.LicenseService.Upgrade(me, out up)) break;
+            Console.WriteLine("  licence: " + up);
+        }
+
+        var planner = new TheBusProject.Presentation.CreateRouteViewModel(mia, lax, m => Console.WriteLine("  planner: " + m));
+        Console.WriteLine("  coaches offered for the non-stop run: " + planner.Coaches.Count(c => c.Coach != null));
+        planner.ChosenStop = lit;
+        planner.AddStopCommand.Execute(null);
+        planner.ChosenStop = phx;
+        planner.AddStopCommand.Execute(null);
+        Console.WriteLine("  the planner with the player's two: " + planner.StopsProblem);
+        planner.FillStopsCommand.Execute(null);
+        // with the stops in, the coach can work it after all
+        Console.WriteLine("  coaches offered with the stops in: " + planner.Coaches.Count(c => c.Coach != null));
+        planner.SelectedCoach = planner.Coaches.FirstOrDefault(c => c.Coach == f) ?? planner.Coaches.Last();
+        if (planner.SelectedCoach.Coach == null) fail("no coach can work the service even with the stops in");
+        Console.WriteLine("  the planner says: " + planner.StopsText);
+        if (!planner.Stops.Contains(lit) || !planner.Stops.Contains(phx)) fail("the stops the player asked for are gone");
+        if (planner.Stops.IndexOf(lit) > planner.Stops.IndexOf(phx)) fail("the stops are out of order: " + string.Join(", ", planner.Stops.Select(x => x.Profile.IATACode)));
+        if (planner.HasStopsProblem) fail("the planner refuses it: " + planner.StopsProblem);
+        foreach (var o in planner.Offers.ToList()) if (o.CanLease) o.LeaseCommand.Execute(null);
+        planner.CreateCommand.Execute(null);
+
+        var route = me.Routes.LastOrDefault();
+        if (route == null) fail("no route was created: " + planner.Info);
+        Console.WriteLine("  created: " + TheBusProject.Helpers.RouteStops.Describe(route));
+        var legs = TheBusProject.Helpers.RouteStops.Legs(route);
+        if (legs.Count != planner.Stops.Count + 1) fail("expected " + (planner.Stops.Count + 1) + " legs, got " + legs.Count);
+        foreach (var leg in legs)
+            Console.WriteLine(string.Format("    {0} - {1}  {2:#,0} km, {3:h\\:mm} at the wheel",
+                                            leg.Destination1.Profile.IATACode, leg.Destination2.Profile.IATACode,
+                                            leg.GetDistance(), leg.GetTripTime(f.Coach.Type)));
+        double longest = TheBusProject.Helpers.RouteStops.LongestLegKm(route);
+        if (longest > f.Coach.Range) fail("a leg is longer than the coach's range");
+        Console.WriteLine(string.Format("  the whole service: {0:#,0} km over {1:0.0} hours, longest leg {2:#,0} km",
+                                        TheBusProject.Helpers.RouteStops.TotalKm(route),
+                                        route.GetTripTime(f.Coach.Type).TotalHours, longest));
+
+        // the breaks are in the time: a leg of nine hours' driving stops twice
+        var legOne = legs[0];
+        double drivingHours = legOne.GetDistance()/f.Coach.Type.CruisingSpeed;
+        int breaks = TheBusProject.Helpers.RouteStops.BreaksOn(drivingHours);
+        double withBreaks = legOne.GetTripTime(f.Coach.Type).TotalHours;
+        Console.WriteLine(string.Format("  {0} - {1}: {2:0.0} hours of driving, {3} break(s), {4:0.0} hours scheduled",
+                                        legOne.Destination1.Profile.IATACode, legOne.Destination2.Profile.IATACode,
+                                        drivingHours, breaks, withBreaks));
+        if (breaks > 0 && withBreaks < drivingHours + breaks*0.4) fail("the breaks aren't in the trip time");
+
+        // and a fare between every pair of places on the line
+        var calls = TheBusProject.Helpers.RouteStops.Calls(route);
+        Console.WriteLine("  it calls at " + string.Join(", ", calls.Select(x => x.Profile.IATACode)));
+        int pairs = 0;
+        foreach (var leg in legs)
+        {
+            var pr = leg as TheBusProject.Models.Routes.PassengerRoute;
+            if (pr == null) continue;
+            double fare = pr.Classes.First().FarePrice;
+            Console.WriteLine(string.Format("    {0} - {1}: ${2:#,0} and {3:#,0} passengers a day want it",
+                                            leg.Destination1.Profile.IATACode, leg.Destination2.Profile.IATACode, fare,
+                                            leg.Destination1.GetDestinationPassengersRate(leg.Destination2, TheBusProject.Models.Coaches.CoachClass.ClassType.EconomyClass)));
+            if (fare <= 0) fail("the leg " + leg.Destination1.Profile.IATACode + " - " + leg.Destination2.Profile.IATACode + " has no fare");
+            pairs++;
+        }
+        if (pairs != legs.Count) fail("expected a fare on each leg");
+
+        // and the riders going further than one leg are counted on the legs they sit through
+        var middle = legs[legs.Count/2];
+        double local = middle.Destination1.GetDestinationPassengersRate(middle.Destination2, TheBusProject.Models.Coaches.CoachClass.ClassType.EconomyClass);
+        double through = TheBusProject.Helpers.RouteStops.ThroughDemand(route, middle.Destination1, middle.Destination2, TheBusProject.Models.Coaches.CoachClass.ClassType.EconomyClass);
+        Console.WriteLine(string.Format("  on {0} - {1}: {2:#,0} local passengers a day and {3:#,0} riding through",
+                                        middle.Destination1.Profile.IATACode, middle.Destination2.Profile.IATACode, local, through));
+        if (through <= 0) fail("nobody rides through the middle leg: the pairs along the service aren't selling");
+
+        // it runs: a month of it, and the money comes in
+        int month = g.GameTime.Month;
+        while (g.GameTime.Month == month) TheBusProject.Helpers.GameObjectHelpers.SimulateTurn();
+        var done = g.GameTime.AddMonths(-1);
+        double tickets = 0;
+        foreach (var leg in legs) tickets += TheBusProject.Helpers.RouteProfitService.Month(leg, TheBusProject.Models.General.Finances.Invoice.InvoiceType.Tickets, done.Year, done.Month);
+        tickets += TheBusProject.Helpers.RouteProfitService.Month(route, TheBusProject.Models.General.Finances.Invoice.InvoiceType.Tickets, done.Year, done.Month);
+        double carried = legs.Sum(l => l.Statistics.GetStatisticsValue(TheBusProject.Models.General.Statistics.StatisticsTypes.GetStatisticsType("Passengers")));
+        Console.WriteLine(string.Format("  {0:MMMM}: {1:#,0} passengers carried over the service, ${2:#,0} of tickets",
+                                        done, carried, tickets));
+        if (carried <= 0) fail("the service carried nobody");
+        if (tickets <= 0) fail("the service took no money");
+        Console.WriteLine("STOPS TEST OK");
+        Environment.Exit(0);
+    }
+
     static void QuickTests(CarrierViewModel av)
     {
         Console.WriteLine("STATION TYPE TEST");
@@ -5672,6 +5807,7 @@ static class VmTest
             await Wait(() => shell.Current is CarrierViewModel, "game created");
             var av = (CarrierViewModel)shell.Current;
             Console.WriteLine("CARRIER SCREEN: " + av.CarrierName + " " + av.Date + " " + av.Money + " fleet=" + av.Fleet.Count + " routes=" + av.Routes.Count + " running=" + av.IsRunning);
+            if (Environment.GetCommandLineArgs().Contains("stops")) { StopsTest(av); return; }
             if (Environment.GetCommandLineArgs().Contains("roads")) { RoadsTest(av); return; }
             if (Environment.GetCommandLineArgs().Contains("upgrade")) { UpgradeTest(av); return; }
             if (Environment.GetCommandLineArgs().Contains("milestone")) { MilestoneTest(av); return; }
