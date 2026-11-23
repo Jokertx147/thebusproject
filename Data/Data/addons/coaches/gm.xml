@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <coaches>
-  <coach manufacturer="General Motors" name="GM PD-4104" image="GM PD-4104" price="45000">
+  <coach manufacturer="General Motors" name="GM PD-4104" image="GM PD-4104" price="5322">
     <type body="NarrowBody" rangetype="ShortRange" engine="Diesel" />
     <specs wingspan="2.6" length="12.0" range="1920" speed="95" fuelcapacity="560" consumption="0.0130"
            baylengthrequired="12" />
     <capacity passengers="41" drivers="1" attendants="0" maxclasses="2" />
     <produced from="1953" to="1960" rate="60" />
   </coach>
-  <coach manufacturer="General Motors" name="GM PD-4106" image="GM PD-4106" price="54455">
+  <coach manufacturer="General Motors" name="GM PD-4106" image="GM PD-4106" price="6505">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="12.0" range="2000" speed="95" fuelcapacity="560" consumption="0.0124"
            baylengthrequired="12" />
     <capacity passengers="43" drivers="1" attendants="0" maxclasses="2" />
     <produced from="1961" to="1965" rate="60" />
   </coach>
-  <coach manufacturer="General Motors" name="GM PD-4107 Buffalo" image="GM PD-4107 Buffalo" price="56621">
+  <coach manufacturer="General Motors" name="GM PD-4107 Buffalo" image="GM PD-4107 Buffalo" price="7333">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="12.0" range="2080" speed="97" fuelcapacity="580" consumption="0.0120"
            baylengthrequired="12" />
     <capacity passengers="43" drivers="1" attendants="0" maxclasses="2" />
     <produced from="1966" to="1968" rate="60" />
   </coach>
-  <coach manufacturer="General Motors" name="GM PD-4903 Buffalo" image="GM PD-4903 Buffalo" price="59524">
+  <coach manufacturer="General Motors" name="GM PD-4903 Buffalo" image="GM PD-4903 Buffalo" price="8279">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="12.2" range="2160" speed="97" fuelcapacity="600" consumption="0.0112"
            baylengthrequired="13" />

@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <coaches>
-  <coach manufacturer="Eagle Bus Manufacturing" name="Eagle Model 05" image="Eagle Model 05" price="59524">
+  <coach manufacturer="Eagle Bus Manufacturing" name="Eagle Model 05" image="Eagle Model 05" price="8279">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="12.2" range="2080" speed="97" fuelcapacity="600" consumption="0.0118"
            baylengthrequired="13" />
     <capacity passengers="43" drivers="1" attendants="0" maxclasses="2" />
     <produced from="1968" to="1974" rate="60" />
   </coach>
-  <coach manufacturer="Eagle Bus Manufacturing" name="Eagle Model 10" image="Eagle Model 10" price="57023">
+  <coach manufacturer="Eagle Bus Manufacturing" name="Eagle Model 10" image="Eagle Model 10" price="11236">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="12.2" range="2240" speed="100" fuelcapacity="640" consumption="0.0106"
            baylengthrequired="13" />
     <capacity passengers="47" drivers="1" attendants="0" maxclasses="2" />
     <produced from="1974" to="1980" rate="60" />
   </coach>
-  <coach manufacturer="Eagle Bus Manufacturing" name="Eagle Model 15" image="Eagle Model 15" price="53879">
+  <coach manufacturer="Eagle Bus Manufacturing" name="Eagle Model 15" image="Eagle Model 15" price="17741">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="12.2" range="2320" speed="100" fuelcapacity="640" consumption="0.0100"
            baylengthrequired="13" />
     <capacity passengers="47" drivers="1" attendants="0" maxclasses="2" />
     <produced from="1980" to="1987" rate="60" />
   </coach>
-  <coach manufacturer="Eagle Bus Manufacturing" name="Eagle Model 20" image="Eagle Model 20" price="59927">
+  <coach manufacturer="Eagle Bus Manufacturing" name="Eagle Model 20" image="Eagle Model 20" price="27203">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="13.7" range="2400" speed="100" fuelcapacity="680" consumption="0.0094"
            baylengthrequired="14" />

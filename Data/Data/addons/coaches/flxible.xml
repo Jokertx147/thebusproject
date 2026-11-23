@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <coaches>
-  <coach manufacturer="Flxible" name="Flxible Clipper" image="Flxible Clipper" price="25000">
+  <coach manufacturer="Flxible" name="Flxible Clipper" image="Flxible Clipper" price="2957">
     <type body="NarrowBody" rangetype="ShortRange" engine="Diesel" />
     <specs wingspan="2.6" length="10.4" range="1600" speed="90" fuelcapacity="420" consumption="0.0150"
            baylengthrequired="11" />
     <capacity passengers="29" drivers="1" attendants="0" maxclasses="1" />
     <produced from="1950" to="1958" rate="60" />
   </coach>
-  <coach manufacturer="Flxible" name="Flxible VistaLiner" image="Flxible VistaLiner" price="38000">
+  <coach manufacturer="Flxible" name="Flxible VistaLiner" image="Flxible VistaLiner" price="4494">
     <type body="NarrowBody" rangetype="ShortRange" engine="Diesel" />
     <specs wingspan="2.6" length="11.0" range="1760" speed="92" fuelcapacity="480" consumption="0.0138"
            baylengthrequired="11" />

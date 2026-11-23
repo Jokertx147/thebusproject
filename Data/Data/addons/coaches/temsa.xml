@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <coaches>
-  <coach manufacturer="Temsa" name="Temsa TS 30" image="Temsa TS 30" price="52435">
+  <coach manufacturer="Temsa" name="Temsa TS 30" image="Temsa TS 30" price="44943">
     <type body="NarrowBody" rangetype="Regional" engine="Diesel" />
     <specs wingspan="2.6" length="9.4" range="1920" speed="100" fuelcapacity="420" consumption="0.0104"
            baylengthrequired="10" />
     <capacity passengers="31" drivers="1" attendants="0" maxclasses="1" />
     <produced from="2009" to="2199" rate="40" />
   </coach>
-  <coach manufacturer="Temsa" name="Temsa TS 35" image="Temsa TS 35" price="57740">
+  <coach manufacturer="Temsa" name="Temsa TS 35" image="Temsa TS 35" price="49675">
     <type body="NarrowBody" rangetype="ShortRange" engine="Diesel" />
     <specs wingspan="2.6" length="10.7" range="2240" speed="100" fuelcapacity="560" consumption="0.0090"
            baylengthrequired="11" />
     <capacity passengers="40" drivers="1" attendants="0" maxclasses="2" />
     <produced from="2008" to="2199" rate="40" />
   </coach>
-  <coach manufacturer="Temsa" name="Temsa TS 45" image="Temsa TS 45" price="63906">
+  <coach manufacturer="Temsa" name="Temsa TS 45" image="Temsa TS 45" price="61502">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="13.7" range="2720" speed="105" fuelcapacity="700" consumption="0.0076"
            baylengthrequired="14" />

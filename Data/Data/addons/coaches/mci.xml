@@ -1,77 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <coaches>
-  <coach manufacturer="MCI" name="MCI MC-9 Crusader II" image="MCI MC-9 Crusader II" price="81707">
+  <coach manufacturer="MCI" name="MCI MC-9 Crusader II" image="MCI MC-9 Crusader II" price="21289">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="12.2" range="2400" speed="100" fuelcapacity="663" consumption="0.0096"
            baylengthrequired="13" />
     <capacity passengers="47" drivers="1" attendants="0" maxclasses="2" />
     <produced from="1978" to="1990" rate="40" />
   </coach>
-  <coach manufacturer="MCI" name="MCI 102DL3" image="MCI 102DL3" price="65401">
+  <coach manufacturer="MCI" name="MCI 102DL3" image="MCI 102DL3" price="36665">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="13.7" range="2560" speed="100" fuelcapacity="719" consumption="0.0084"
            baylengthrequired="14" />
     <capacity passengers="55" drivers="1" attendants="0" maxclasses="2" />
     <produced from="1992" to="2000" rate="40" />
   </coach>
-  <coach manufacturer="MCI" name="MCI E4500" image="MCI E4500" price="78082">
+  <coach manufacturer="MCI" name="MCI E4500" image="MCI E4500" price="50857">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="13.7" range="2720" speed="105" fuelcapacity="719" consumption="0.0080"
            baylengthrequired="14" />
     <capacity passengers="55" drivers="1" attendants="0" maxclasses="2" />
     <produced from="1998" to="2008" rate="40" />
   </coach>
-  <coach manufacturer="MCI" name="MCI J4500" image="MCI J4500" price="108696">
+  <coach manufacturer="MCI" name="MCI J4500" image="MCI J4500" price="76878">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="13.7" range="2880" speed="105" fuelcapacity="719" consumption="0.0074"
            baylengthrequired="14" />
     <capacity passengers="56" drivers="1" attendants="0" maxclasses="2" />
     <produced from="2001" to="2199" rate="40" />
   </coach>
-  <coach manufacturer="MCI" name="MCI D4505" image="MCI D4505" price="86610">
+  <coach manufacturer="MCI" name="MCI D4505" image="MCI D4505" price="74512">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="13.7" range="2800" speed="105" fuelcapacity="719" consumption="0.0075"
            baylengthrequired="14" />
     <capacity passengers="56" drivers="1" attendants="0" maxclasses="2" />
     <produced from="2008" to="2199" rate="40" />
   </coach>
-  <coach manufacturer="MCI" name="MCI D4500 CT" image="MCI D4500 CT" price="100362">
+  <coach manufacturer="MCI" name="MCI D4500 CT" image="MCI D4500 CT" price="72147">
     <type body="NarrowBody" rangetype="ShortRange" engine="Diesel" />
     <specs wingspan="2.6" length="13.7" range="2720" speed="105" fuelcapacity="719" consumption="0.0077"
            baylengthrequired="14" />
     <capacity passengers="57" drivers="1" attendants="0" maxclasses="2" />
     <produced from="2002" to="2199" rate="40" />
   </coach>
-  <coach type="Cargo" manufacturer="MCI" name="MCI 102DL3 Courier" image="MCI 102DL3 Courier" price="63291">
+  <coach type="Cargo" manufacturer="MCI" name="MCI 102DL3 Courier" image="MCI 102DL3 Courier" price="35482">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="13.7" range="2560" speed="100" fuelcapacity="719" consumption="0.0084"
            baylengthrequired="14" />
     <capacity drivers="1" cargo="36" />
     <produced from="1992" to="2005" rate="12" />
   </coach>
-  <coach type="Cargo" manufacturer="MCI" name="MCI D4505 Express Parcel" image="MCI D4505 Express Parcel" price="82486">
+  <coach type="Cargo" manufacturer="MCI" name="MCI D4505 Express Parcel" image="MCI D4505 Express Parcel" price="70964">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="13.7" range="2800" speed="105" fuelcapacity="719" consumption="0.0075"
            baylengthrequired="14" />
     <capacity drivers="1" cargo="42" />
     <produced from="2008" to="2199" rate="12" />
   </coach>
-  <coach manufacturer="MCI" name="MCI MC-5A" image="MCI MC-5A" price="47755">
+  <coach manufacturer="MCI" name="MCI MC-5A" image="MCI MC-5A" price="5914">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="10.7" range="1920" speed="95" fuelcapacity="520" consumption="0.0124"
            baylengthrequired="11" />
     <capacity passengers="38" drivers="1" attendants="0" maxclasses="2" />
     <produced from="1964" to="1978" rate="50" />
   </coach>
-  <coach manufacturer="MCI" name="MCI MC-7 Challenger" image="MCI MC-7 Challenger" price="55272">
+  <coach manufacturer="MCI" name="MCI MC-7 Challenger" image="MCI MC-7 Challenger" price="7688">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="12.2" range="2080" speed="97" fuelcapacity="600" consumption="0.0116"
            baylengthrequired="13" />
     <capacity passengers="43" drivers="1" attendants="0" maxclasses="2" />
     <produced from="1968" to="1973" rate="50" />
   </coach>
-  <coach manufacturer="MCI" name="MCI MC-8" image="MCI MC-8" price="56667">
+  <coach manufacturer="MCI" name="MCI MC-8" image="MCI MC-8" price="10053">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="12.2" range="2160" speed="100" fuelcapacity="640" consumption="0.0106"
            baylengthrequired="13" />

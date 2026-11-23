@@ -163,6 +163,14 @@ namespace TheBusProject.Desktop
                 Log("played to " + GameObject.GetInstance().GameTime.ToString("yyyy-MM-dd") + "; routes " + me.Routes.Count
                     + ", fleet " + me.Fleet.Count + ", idle " + RouteSuggestionService.IdleCoach(me).Count);
 
+                // My Carrier > the map: the states, the interstates and the routes that run along them
+                av.Page = PageOf("My Carrier");
+                av.MyCarrierTab = 0;
+                av.Map.Reload();
+                await Settle();
+                Save(window, "00b-map-network");
+                Log("map: " + av.Map.Coach.Count + " coaches, " + av.Map.Lines.Count + " lines drawn");
+
                 // My Carrier > Statistics
                 av.Page = PageOf("My Carrier");
                 av.MyCarrierTab = CarrierViewModel.StatisticsTabIndex;

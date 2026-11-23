@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <coaches>
-  <coach manufacturer="Prevost" name="Prevost Le Mirage XL" image="Prevost Le Mirage XL" price="71527">
+  <coach manufacturer="Prevost" name="Prevost Le Mirage XL" image="Prevost Le Mirage XL" price="30751">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="12.2" range="2400" speed="100" fuelcapacity="680" consumption="0.0094"
            baylengthrequired="13" />
     <capacity passengers="47" drivers="1" attendants="0" maxclasses="2" />
     <produced from="1985" to="1995" rate="40" />
   </coach>
-  <coach manufacturer="Prevost" name="Prevost Le Mirage XLII" image="Prevost Le Mirage XLII" price="87396">
+  <coach manufacturer="Prevost" name="Prevost Le Mirage XLII" image="Prevost Le Mirage XLII" price="53223">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="13.7" range="2720" speed="105" fuelcapacity="710" consumption="0.0080"
            baylengthrequired="14" />
     <capacity passengers="55" drivers="1" attendants="0" maxclasses="2" />
     <produced from="1995" to="2008" rate="40" />
   </coach>
-  <coach manufacturer="Prevost" name="Prevost H3-45" image="Prevost H3-45" price="149790">
+  <coach manufacturer="Prevost" name="Prevost H3-45" image="Prevost H3-45" price="88705">
     <type body="NarrowBody" rangetype="LongRange" engine="Diesel" />
     <specs wingspan="2.6" length="13.7" range="3040" speed="110" fuelcapacity="710" consumption="0.0071"
            baylengthrequired="14" />
     <capacity passengers="56" drivers="1" attendants="0" maxclasses="2" />
     <produced from="1994" to="2199" rate="40" />
   </coach>
-  <coach manufacturer="Prevost" name="Prevost X3-45" image="Prevost X3-45" price="120316">
+  <coach manufacturer="Prevost" name="Prevost X3-45" image="Prevost X3-45" price="82791">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="13.7" range="2960" speed="110" fuelcapacity="710" consumption="0.0073"
            baylengthrequired="14" />
     <capacity passengers="56" drivers="1" attendants="0" maxclasses="2" />
     <produced from="2000" to="2199" rate="40" />
   </coach>
-  <coach manufacturer="Prevost" name="Prevost Le Normand" image="Prevost Le Normand" price="49505">
+  <coach manufacturer="Prevost" name="Prevost Le Normand" image="Prevost Le Normand" price="10645">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="12.2" range="2080" speed="97" fuelcapacity="620" consumption="0.0108"
            baylengthrequired="13" />
