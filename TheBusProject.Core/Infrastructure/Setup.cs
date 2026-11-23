@@ -1957,6 +1957,11 @@ namespace TheBusProject.Infrastructure
         private static void LoadCoachImages()
         {
             string file = AppSettings.GetDataPath() + "/graphics/coachimages/images.xml";
+            if (!File.Exists(file))
+            {
+                StartupLog.Write("Data note: no coach pictures; the coaches are listed by name.");
+                return;
+            }
 
             var doc = new XmlDocument();
             doc.Load(file);
