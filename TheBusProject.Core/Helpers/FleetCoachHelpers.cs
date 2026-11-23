@@ -236,6 +236,9 @@ namespace TheBusProject.Helpers
                 }
                 else
                     route.AddStopover(CreateStopoverRoute(route.Destination1, stopover1, route.Destination2, route, false, route.Type));
+
+                // the legs now exist, so work out what a seat on each of them is really earning
+                RouteStops.Reprice(route);
             }
 
             /*

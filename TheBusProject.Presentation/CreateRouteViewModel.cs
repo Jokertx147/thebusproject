@@ -225,7 +225,17 @@ namespace TheBusProject.Presentation
                     parts.Add(calls[i].Profile.IATACode + " - " + calls[i + 1].Profile.IATACode + " " + km.ToString("#,0") + " km");
                 }
 
-                return string.Join(", ", parts) + "; " + total.ToString("#,0") + " km in all.";
+                // what somebody riding the whole line pays, which is one fare for the journey and not the legs
+                // added up: the difference is the point of running a service rather than a string of routes
+                double endToEnd = PricingService.MarketFare(total);
+                double added = 0;
+                for (int i = 0; i < calls.Count - 1; i++)
+                    added += PricingService.MarketFare(MathHelpers.GetDistance(calls[i], calls[i + 1]));
+
+                return string.Join(", ", parts) + "; " + total.ToString("#,0") + " km in all. "
+                       + calls[0].Profile.IATACode + " to " + calls[calls.Count - 1].Profile.IATACode
+                       + " rides through on one ticket at about " + endToEnd.ToString("$#,0")
+                       + ", not the " + added.ToString("$#,0") + " the legs come to separately.";
             }
         }
 

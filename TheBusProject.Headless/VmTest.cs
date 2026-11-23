@@ -5058,6 +5058,8 @@ static class VmTest
                                             leg.Destination1.Profile.IATACode, leg.Destination2.Profile.IATACode, fare,
                                             leg.Destination1.GetDestinationPassengersRate(leg.Destination2, TheBusProject.Models.Coaches.CoachClass.ClassType.EconomyClass)));
             if (fare <= 0) fail("the leg " + leg.Destination1.Profile.IATACode + " - " + leg.Destination2.Profile.IATACode + " has no fare");
+            if (leg.ThroughFareFactor <= 0 || leg.ThroughFareFactor > 1)
+                fail("the leg " + leg.Destination1.Profile.IATACode + " - " + leg.Destination2.Profile.IATACode + " is worth " + leg.ThroughFareFactor.ToString("0.00") + " of its fare");
             pairs++;
         }
         if (pairs != legs.Count) fail("expected a fare on each leg");
@@ -5082,6 +5084,44 @@ static class VmTest
                                         done, carried, tickets));
         if (carried <= 0) fail("the service carried nobody");
         if (tickets <= 0) fail("the service took no money");
+
+        // one ticket for the whole journey, not one for every leg
+        double legByLeg = 0;
+        foreach (var leg in legs)
+        {
+            var pr = leg as TheBusProject.Models.Routes.PassengerRoute;
+            if (pr != null) legByLeg += pr.Classes.First().FarePrice;
+        }
+
+        double endToEnd = TheBusProject.Helpers.PricingService.MarketFare(TheBusProject.Helpers.RouteStops.TotalKm(route));
+        Console.WriteLine(string.Format("  {0} to {1} is ${2:#,0} bought as one journey against ${3:#,0} bought as {4} separate tickets",
+                                        calls[0].Profile.IATACode, calls[calls.Count - 1].Profile.IATACode, endToEnd, legByLeg, legs.Count));
+        if (endToEnd >= legByLeg) fail("a long journey costs no less than its legs added up, so the fare taper has gone");
+
+        double worst = legs.Min(l => l.ThroughFareFactor);
+        Console.WriteLine("  the thinnest leg is worth " + worst.ToString("0.00") + " of its own fare");
+        if (worst >= 1) fail("no leg is worth less than its own fare, so the through riders are still paying leg by leg");
+        if (worst < 0.3) fail("a leg is worth only " + worst.ToString("0.00") + " of its fare, which is below the floor");
+
+        // and what that is worth in money: the same service for another month, billed the old way, leg by leg.
+        // Two months are not identical, but charging every seat its leg's fare is worth far more than the month
+        // to month wobble, so the difference has to show.
+        var kept = legs.ToDictionary(l => l, l => l.ThroughFareFactor);
+        foreach (var leg in legs) leg.ThroughFareFactor = 1;
+        int month2 = g.GameTime.Month;
+        while (g.GameTime.Month == month2) TheBusProject.Helpers.GameObjectHelpers.SimulateTurn();
+        var done2 = g.GameTime.AddMonths(-1);
+        double legByLegTickets = 0;
+        foreach (var leg in legs) legByLegTickets += TheBusProject.Helpers.RouteProfitService.Month(leg, TheBusProject.Models.General.Finances.Invoice.InvoiceType.Tickets, done2.Year, done2.Month);
+        legByLegTickets += TheBusProject.Helpers.RouteProfitService.Month(route, TheBusProject.Models.General.Finances.Invoice.InvoiceType.Tickets, done2.Year, done2.Month);
+        foreach (var leg in legs) leg.ThroughFareFactor = kept[leg];
+
+        Console.WriteLine(string.Format("  {0:MMMM} on one ticket for the journey: ${1:#,0}; {2:MMMM} charging every seat its leg's fare: ${3:#,0}",
+                                        done, tickets, done2, legByLegTickets));
+        if (legByLegTickets <= tickets*1.05)
+            fail("charging leg by leg made no more money (${0:#,0} against ${1:#,0}), so the through fare isn't reaching the till"
+                     .Replace("{0:#,0}", legByLegTickets.ToString("#,0")).Replace("{1:#,0}", tickets.ToString("#,0")));
+
         Console.WriteLine("STOPS TEST OK");
         Environment.Exit(0);
     }

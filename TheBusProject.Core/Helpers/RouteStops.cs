@@ -185,6 +185,8 @@ namespace TheBusProject.Helpers
                 Station after = i == stops.Count - 1 ? route.Destination2 : stops[i + 1];
                 route.AddStopover(FleetCoachHelpers.CreateStopoverRoute(before, stops[i], after, route, i > 0, route.Type));
             }
+
+            Reprice(route);
         }
 
 
@@ -285,6 +287,73 @@ namespace TheBusProject.Helpers
             }
 
             return sum;
+        }
+
+        /// <summary>The road from one call to another, leg by leg, the way the coach actually drives it.</summary>
+        private static double JourneyKm(IList<Station> calls, int from, int to)
+        {
+            double km = 0;
+            for (int i = from; i < to; i++) km += MathHelpers.GetDistance(calls[i], calls[i + 1]);
+            return km;
+        }
+
+        /// <summary>
+        ///     What a seat on this leg is worth against the leg's own fare, between 0 and 1. Everybody aboard the
+        ///     Lubbock to Phoenix leg paid for the journey they are making, not for that leg: the Lubbock passengers
+        ///     paid the Lubbock to Phoenix fare and are worth all of it, and the ones who got on in Miami for Los
+        ///     Angeles paid one Miami to Los Angeles fare, of which this leg has earned its share of the mileage.
+        ///     Because the fare per mile falls so far with distance -- Miami to Los Angeles is $171 of 2007 money
+        ///     against $315 for the same road bought as five separate tickets -- a through rider is worth well under
+        ///     half of a local one on the same seat. Weighted by how many of each there are.
+        /// </summary>
+        public static double LegFareFactor(Route service, Route leg, CoachClass.ClassType type)
+        {
+            if (service == null || leg == null || !service.HasStopovers) return 1;
+
+            List<Station> calls = Calls(service);
+            int a = calls.IndexOf(leg.Destination1), b = calls.IndexOf(leg.Destination2);
+            if (a < 0 || b < 0) return 1;
+            if (a > b) { int swap = a; a = b; b = swap; }
+
+            double legKm = JourneyKm(calls, a, b);
+            double legFare = PricingService.MarketFare(legKm);
+            if (legKm <= 0 || legFare <= 0) return 1;
+
+            double pax = 0, worth = 0;
+            for (int i = 0; i <= a; i++)
+            {
+                for (int j = b; j < calls.Count; j++)
+                {
+                    double riders = calls[i].GetDestinationPassengersRate(calls[j], type);
+                    if (riders <= 0) continue;
+                    double journeyKm = JourneyKm(calls, i, j);
+                    if (journeyKm <= 0) continue;
+                    pax += riders;
+                    worth += riders*PricingService.MarketFare(journeyKm)*(legKm/journeyKm);
+                }
+            }
+
+            if (pax <= 0) return 1;
+            return Math.Max(0.3, Math.Min(1, worth/(pax*legFare)));
+        }
+
+        /// <summary>
+        ///     Works out what each leg of a service is really earning and remembers it on the leg, so the money at
+        ///     the end of a trip can be counted without walking the whole line again. Called whenever the stops
+        ///     change. The sums are done on the economy fares, which are the bulk of them, and the other classes
+        ///     scale with those, so the same figure holds for all of them.
+        /// </summary>
+        public static void Reprice(Route service)
+        {
+            if (service == null) return;
+            if (!service.HasStopovers)
+            {
+                service.ThroughFareFactor = 1;
+                return;
+            }
+
+            foreach (Route leg in Legs(service))
+                leg.ThroughFareFactor = LegFareFactor(service, leg, CoachClass.ClassType.EconomyClass);
         }
 
         /// <summary>The service as a line of codes, for a screen or a log: MIA - LIT - PHX - LAX.</summary>

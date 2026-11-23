@@ -286,7 +286,11 @@ namespace TheBusProject.Helpers
                 tax = groundTaxPerPassenger*coach.CurrentTrip.GetTotalPassengers();
                 fuelExpenses = FleetCoachHelpers.GetFuelExpenses(coach, fdistance);
 
-                ticketsIncome += coach.CurrentTrip.Classes.Sum(fac => fac.Passengers*((PassengerRoute) coach.CurrentTrip.Entry.TimeTable.Route).GetRouteCoachClass(fac.CoachClass.Type).FarePrice);
+                // a seat on a leg of a service is not worth the leg's fare to everybody in it: see
+                // Route.ThroughFareFactor, which is 1 on a route that runs non-stop
+                var legRoute = (PassengerRoute) coach.CurrentTrip.Entry.TimeTable.Route;
+                ticketsIncome += coach.CurrentTrip.Classes.Sum(
+                    fac => fac.Passengers*legRoute.GetRouteCoachClass(fac.CoachClass.Type).FarePrice*legRoute.ThroughFareFactor);
 
                 FeeType employeeDiscountType = FeeTypes.GetType("Employee Discount");
                 double employeesDiscount = coach.Coach.Carrier.Fees.GetValue(employeeDiscountType);

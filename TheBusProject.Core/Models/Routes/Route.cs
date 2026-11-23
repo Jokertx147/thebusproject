@@ -95,6 +95,16 @@ namespace TheBusProject.Models.Routes
 
         public bool IsCargoRoute => Type == RouteType.Cargo;
 
+        /// <summary>
+        ///     What a seat on this leg is really worth, against the leg's own fare. A leg of a service carries two
+        ///     sorts of passenger: the ones riding only this leg, who pay its fare, and the ones riding through on a
+        ///     ticket for a longer journey, whose fare is spread over every leg they sit on. A coach fare per mile
+        ///     falls a long way with distance, so a through rider is worth much less on any one leg than somebody who
+        ///     got on and off at its ends. 1 on a route that runs non-stop, and set by RouteStops.Reprice otherwise.
+        /// </summary>
+        [Versioning("throughfare")]
+        public double ThroughFareFactor { get; set; } = 1;
+
         // connecting passengers (see ConnectionService): this month's counts and last month's
         [Versioning("connmonth")]
         public int ConnectMonth { get; set; }
