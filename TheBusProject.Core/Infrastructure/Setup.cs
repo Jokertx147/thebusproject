@@ -489,10 +489,10 @@ namespace TheBusProject.Infrastructure
             }
 
 
-            IEnumerable<Station> noRunways = Stations.GetAllStations().Where(a => a.Runways.Count == 0);
+            IEnumerable<Station> noBays = Stations.GetAllStations().Where(a => a.Bays.Count == 0);
 
-            foreach (Station station in noRunways)
-                Console.WriteLine(@"{0}, {1} in {2} has no runways", station.Profile.Name, station.Profile.IATACode, station.Profile.Country.Name);
+            foreach (Station station in noBays)
+                Console.WriteLine(@"{0}, {1} in {2} has no bays", station.Profile.Name, station.Profile.IATACode, station.Profile.Country.Name);
 
             Console.WriteLine(@"Stations: " + Stations.GetAllStations().Count);
             Console.WriteLine(@"Carriers: " + Carriers.GetAllCarriers().Count);
@@ -508,7 +508,7 @@ namespace TheBusProject.Infrastructure
             /*
             System.IO.StreamWriter aFile = new System.IO.StreamWriter("c:/bbm/stations.csv");
 
-            string lines = "Name;IATA;ICAO;Type;Season;Town;Country;GMT;DST;Latitude;Longitude;Size;Pax;Cargosize;Cargo;Terminals[Name%Gates];Runways[Name%Surface%Lenght]";
+            string lines = "Name;IATA;ICAO;Type;Season;Town;Country;GMT;DST;Latitude;Longitude;Size;Pax;Cargosize;Cargo;Terminals[Name%Gates];Bays[Name%Surface%Lenght]";
             
             aFile.WriteLine(lines);
 
@@ -530,7 +530,7 @@ namespace TheBusProject.Infrastructure
                 stationLine += ";" + station.Profile.Cargo.ToString();
                 stationLine += ";" + station.Profile.CargoVolume.ToString();
 
-                string runwaysLine="";
+                string baysLine="";
                 string terminalsLine="";
 
                 foreach (Terminal terminal in station.Terminals.StationTerminals)
@@ -538,13 +538,13 @@ namespace TheBusProject.Infrastructure
                     terminalsLine += "[" + terminal.Name + "%" + terminal.Gates.NumberOfGates.ToString() + "]";
                 }
 
-                foreach (Runway runway in station.Runways)
+                foreach (Bay bay in station.Bays)
                 {
-                    runwaysLine +=  "[" + runway.Name + "%" + runway.Surface.ToString() + "%" + runway.Length + "]";
+                    baysLine +=  "[" + bay.Name + "%" + bay.Surface.ToString() + "%" + bay.Length + "]";
                 }
 
                 stationLine += ";" + terminalsLine;
-                stationLine += ";" + runwaysLine;
+                stationLine += ";" + baysLine;
 
                 aFile.WriteLine(stationLine);
             
@@ -597,10 +597,10 @@ namespace TheBusProject.Infrastructure
             foreach (Carrier noLogoCarrier in carrierLogos)
                 Console.WriteLine(noLogoCarrier.Profile.Name);
 
-            var noRunwayStations = Stations.GetStations(a => a.Runways.Count == 0);
+            var noBayStations = Stations.GetStations(a => a.Bays.Count == 0);
             var cargoCoaches = CoachTypes.GetAllTypes().FindAll(a => a.TypeCoach == CoachType.TypeOfCoach.Cargo);
 
-            foreach (Station station in noRunwayStations)
+            foreach (Station station in noBayStations)
                 Console.WriteLine(station.Profile.Name);
 
             */
@@ -2163,7 +2163,7 @@ namespace TheBusProject.Infrastructure
                         double speed = XmlConvert.ToDouble(specsElement.Attributes["speed"].Value);
                         long fuelcapacity = XmlConvert.ToInt64(specsElement.Attributes["fuelcapacity"].Value);
                         double fuel = XmlConvert.ToDouble(specsElement.Attributes["consumption"].Value);
-                        long runwaylenght = XmlConvert.ToInt64(specsElement.Attributes["runwaylengthrequired"].Value);
+                        long baylenght = XmlConvert.ToInt64(specsElement.Attributes["baylengthrequired"].Value);
 
                         double weight = specsElement.HasAttribute("weight") ? Convert.ToDouble(specsElement.Attributes["weight"].Value) : CoachHelpers.GetCalculatedWeight(wingspan, length, fuelcapacity);
 
@@ -2202,7 +2202,7 @@ namespace TheBusProject.Infrastructure
                                 fuel,
                                 price,
                                 maxClasses,
-                                runwaylenght,
+                                baylenght,
                                 fuelcapacity,
                                 body,
                                 rangeType,
@@ -2233,7 +2233,7 @@ namespace TheBusProject.Infrastructure
                                 fuel,
                                 price,
                                 maxClasses,
-                                runwaylenght,
+                                baylenght,
                                 fuelcapacity,
                                 body,
                                 rangeType,
@@ -2261,7 +2261,7 @@ namespace TheBusProject.Infrastructure
                                 weight,
                                 fuel,
                                 price,
-                                runwaylenght,
+                                baylenght,
                                 fuelcapacity,
                                 body,
                                 rangeType,
@@ -2295,7 +2295,7 @@ namespace TheBusProject.Infrastructure
                                 fuel,
                                 price,
                                 maxClasses,
-                                runwaylenght,
+                                baylenght,
                                 fuelcapacity,
                                 body,
                                 rangeType,
@@ -2720,27 +2720,27 @@ namespace TheBusProject.Infrastructure
                                 new Terminal(station, null, terminalName, terminalGates, new DateTime(1950, 1, 1), terminalType));
                         }
 
-                        XmlNodeList runwaysList = stationElement.SelectNodes("runways/runway");
+                        XmlNodeList baysList = stationElement.SelectNodes("bays/bay");
 
-                        foreach (XmlElement runwayNode in runwaysList)
+                        foreach (XmlElement bayNode in baysList)
                         {
-                            string runwayName = runwayNode.Attributes["name"].Value;
-                            long runwayLength = XmlConvert.ToInt32(runwayNode.Attributes["length"].Value);
+                            string bayName = bayNode.Attributes["name"].Value;
+                            long bayLength = XmlConvert.ToInt32(bayNode.Attributes["length"].Value);
                             var surface =
-                                (Runway.SurfaceType)
-                                    DataParsing.ParseEnum(typeof (Runway.SurfaceType), runwayNode.Attributes["surface"].Value);
+                                (Bay.SurfaceType)
+                                    DataParsing.ParseEnum(typeof (Bay.SurfaceType), bayNode.Attributes["surface"].Value);
 
-                            var runwayType = Runway.RunwayType.Regular;
+                            var bayType = Bay.BayType.Regular;
 
-                            if (runwayNode.HasAttribute("type"))
+                            if (bayNode.HasAttribute("type"))
                             {
-                                runwayType =
-                                    (Runway.RunwayType)
-                                        DataParsing.ParseEnum(typeof (Runway.RunwayType), runwayNode.Attributes["type"].Value);
+                                bayType =
+                                    (Bay.BayType)
+                                        DataParsing.ParseEnum(typeof (Bay.BayType), bayNode.Attributes["type"].Value);
                             }
 
-                            station.Runways.Add(
-                                new Runway(runwayName, runwayLength, runwayType, surface, new DateTime(1900, 1, 1), true));
+                            station.Bays.Add(
+                                new Bay(bayName, bayLength, bayType, surface, new DateTime(1900, 1, 1), true));
                         }
 
                         XmlNodeList expansionsList = stationElement.SelectNodes("expansions/expansion");
@@ -2765,7 +2765,7 @@ namespace TheBusProject.Infrastructure
 
                                 expansion.Name = expansionName;
                             }
-                            if (expansionType == StationExpansion.ExpansionType.RunwayLength)
+                            if (expansionType == StationExpansion.ExpansionType.BayLength)
                             {
                                 string expansionName = expansionNode.Attributes["name"].Value;
                                 long length = Convert.ToInt64(expansionNode.Attributes["length"].Value);
@@ -2773,14 +2773,14 @@ namespace TheBusProject.Infrastructure
                                 expansion.Name = expansionName;
                                 expansion.Length = length;
                             }
-                            if (expansionType == StationExpansion.ExpansionType.NewRunway)
+                            if (expansionType == StationExpansion.ExpansionType.NewBay)
                             {
                                 string expansionName = expansionNode.Attributes["name"].Value;
                                 long length = Convert.ToInt64(expansionNode.Attributes["length"].Value);
 
                                 var surface =
-                                    (Runway.SurfaceType)
-                                        DataParsing.ParseEnum(typeof (Runway.SurfaceType), expansionNode.Attributes["surface"].Value);
+                                    (Bay.SurfaceType)
+                                        DataParsing.ParseEnum(typeof (Bay.SurfaceType), expansionNode.Attributes["surface"].Value);
 
                                 expansion.Name = expansionName;
                                 expansion.Length = length;
@@ -3146,8 +3146,8 @@ namespace TheBusProject.Infrastructure
                         {
                             int speed = Convert.ToInt32(perfElement.Attributes["maxspeed"].Value);
                             int ceiling = Convert.ToInt32(perfElement.Attributes["ceiling"].Value);
-                            double runway = Convert.ToDouble(
-                                perfElement.Attributes["runwaylengthrequiredModifier"].Value,
+                            double bay = Convert.ToDouble(
+                                perfElement.Attributes["baylengthrequiredModifier"].Value,
                                 CultureInfo.GetCultureInfo("en-US").NumberFormat);
                             double range = Convert.ToDouble(
                                 perfElement.Attributes["rangeModifier"].Value,
@@ -3173,7 +3173,7 @@ namespace TheBusProject.Infrastructure
                                         price,
                                         speed,
                                         ceiling,
-                                        runway,
+                                        bay,
                                         range,
                                         new Period<int>(@from, to));
 
@@ -4522,11 +4522,11 @@ namespace TheBusProject.Infrastructure
                             || station.Profile.Size == GeneralHelpers.Size.VeryLarge
                             || station.Profile.Size == GeneralHelpers.Size.Large)
                         {
-                            if (!station.Runways.Exists(r => r.Type == Runway.RunwayType.Helipad))
+                            if (!station.Bays.Exists(r => r.Type == Bay.BayType.Helipad))
                             {
-                                var helipad = new Runway("H1", Rnd.Next(17, 25), Runway.RunwayType.Helipad, Runway.SurfaceType.Concrete, GameObject.GetInstance().GameTime, true);
+                                var helipad = new Bay("H1", Rnd.Next(17, 25), Bay.BayType.Helipad, Bay.SurfaceType.Concrete, GameObject.GetInstance().GameTime, true);
 
-                                station.Runways.Add(helipad);
+                                station.Bays.Add(helipad);
                             }
                         }
                         if (station.Profile.Cargo == GeneralHelpers.Size.VeryLarge

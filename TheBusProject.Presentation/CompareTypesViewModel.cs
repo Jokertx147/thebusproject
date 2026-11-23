@@ -51,7 +51,7 @@ namespace TheBusProject.Presentation
 
         public List<string> Labels { get; } = new List<string>
         {
-            "Maker", "Kind", "Price new", "Seats / cargo", "Range", "Speed", "Runway needed", "Crew",
+            "Maker", "Kind", "Price new", "Seats / cargo", "Range", "Speed", "Bay needed", "Crew",
             "Fuel per seat, 100 km", "In production", "Trip time", "Fuel per full trip", "Fuel per seat", "Other costs per trip", "Can run it?"
         };
 
@@ -74,7 +74,7 @@ namespace TheBusProject.Presentation
             set { if (SetProperty(ref _distance, value ?? "")) Build(); }
         }
 
-        /// <summary>A route such as ATL-LHR; when set, its distance and runways are used.</summary>
+        /// <summary>A route such as ATL-LHR; when set, its distance and bays are used.</summary>
         public string Route
         {
             get => _route;
@@ -180,7 +180,7 @@ namespace TheBusProject.Presentation
                         cap.ToString("N0") + (cargo ? " t" : " seats"),
                         t.Range.ToString("N0") + " km",
                         t.CruisingSpeed.ToString("N0") + " km/h",
-                        t.MinRunwaylength.ToString("N0") + " m",
+                        t.MinBayLength.ToString("N0") + " m",
                         crew + (t.DriverCrew > 0 ? " (" + t.DriverCrew + " drivers)" : ""),
                         Money(CoachHistoryService.FuelPerSeat100(t)),
                         t.Produced.From.Year + " to " + (t.Produced.To.Year > now.Year + 50 ? "now" : t.Produced.To.Year.ToString()),
@@ -205,10 +205,10 @@ namespace TheBusProject.Presentation
                 {
                     var a = FindStation(parts[0]);
                     var b = FindStation(parts[1]);
-                    if (a != null && b != null) return string.Format("{0} to {1}: {2:N0} km. Runways are checked too.", a.Profile.IATACode, b.Profile.IATACode, MathHelpers.GetDistance(a, b));
+                    if (a != null && b != null) return string.Format("{0} to {1}: {2:N0} km. Bays are checked too.", a.Profile.IATACode, b.Profile.IATACode, MathHelpers.GetDistance(a, b));
                     return "Route not found; type two station codes such as ATL-LHR.";
                 }
-                return "Using the distance above. Type a route such as ATL-LHR to use its distance and check its runways.";
+                return "Using the distance above. Type a route such as ATL-LHR to use its distance and check its bays.";
             }
         }
     }

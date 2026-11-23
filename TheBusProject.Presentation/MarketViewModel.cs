@@ -144,11 +144,11 @@ namespace TheBusProject.Presentation
             }
 
             Carrier carrier = GameObject.GetInstance().HumanCarrier;
-            long minRunway = _selected.Coach.Type.MinRunwaylength;
-            Homebases = CarrierHelpers.GetHomebases(carrier, minRunway);
+            long minBay = _selected.Coach.Type.MinBayLength;
+            Homebases = CarrierHelpers.GetHomebases(carrier, minBay);
             Homebase = Homebases.FirstOrDefault();
             Status = Homebases.Count == 0
-                ? "None of your stations can take this coach (runway, or no free service capacity). Get a contract at a bigger station first."
+                ? "None of your stations can take this coach (bay, or no free service capacity). Get a contract at a bigger station first."
                 : null;
         }
 

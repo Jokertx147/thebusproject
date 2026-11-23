@@ -941,8 +941,8 @@ namespace TheBusProject.Presentation
                 foreach (var r in Human.Routes.Where(r => r.IsCargoRoute == cargoCoach).OrderBy(r => r.Destination1.Profile.IATACode))
                 {
                     double distance = r.GetDistance();
-                    long runway = Math.Min(r.Destination1.GetMaxRunwayLength(), r.Destination2.GetMaxRunwayLength());
-                    if (_coach.Coach.Coach.Range < distance || _coach.Coach.Coach.MinRunwaylength > runway)
+                    long bay = Math.Min(r.Destination1.GetMaxBayLength(), r.Destination2.GetMaxBayLength());
+                    if (_coach.Coach.Coach.Range < distance || _coach.Coach.Coach.MinBayLength > bay)
                     {
                         continue;
                     }

@@ -182,9 +182,9 @@ namespace TheBusProject.Models.Coaches
 
         public double CruisingSpeed => EngineType == null ? Type.CruisingSpeed : Math.Min(Type.CruisingSpeed, EngineType.MaxSpeed);
 
-        public long MinRunwaylength => EngineType == null
-            ? Type.MinRunwaylength
-            : Convert.ToInt64(Type.MinRunwaylength*EngineType.RunwayModifier);
+        public long MinBayLength => EngineType == null
+            ? Type.MinBayLength
+            : Convert.ToInt64(Type.MinBayLength*EngineType.BayModifier);
 
         public long Range => EngineType == null ? Type.Range : Convert.ToInt64(Type.Range*EngineType.RangeModifier);
 

@@ -166,7 +166,7 @@ namespace TheBusProject.Presentation
 
         public string Title { get; }
 
-        /// <summary>The player's idle coach that can't fly the route, and why (runway or range), or null.</summary>
+        /// <summary>The player's idle coach that can't fly the route, and why (bay or range), or null.</summary>
         public string CantFly { get; }
 
         public bool HasCantFly => !string.IsNullOrEmpty(CantFly);
@@ -351,12 +351,12 @@ namespace TheBusProject.Presentation
                 DetailEnabled = false;
                 if (_existing != null)
                 {
-                    Info = "None of your " + (_cargo ? "cargo " : "") + "coach without a route can run this route (range or runway). Buy one under Coaches.";
+                    Info = "None of your " + (_cargo ? "cargo " : "") + "coach without a route can run this route (range or bay). Buy one under Coaches.";
                     return;
                 }
 
                 Info = Coaches.Count == 1
-                    ? "None of your " + (_cargo ? "cargo " : "") + "coach can run this route (range, runway, or already on a route). The route is created without a schedule; assign a coach later."
+                    ? "None of your " + (_cargo ? "cargo " : "") + "coach can run this route (range, bay, or already on a route). The route is created without a schedule; assign a coach later."
                     : "The route is created without a schedule; assign a coach later.";
                 return;
             }

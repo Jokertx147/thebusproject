@@ -288,10 +288,10 @@ namespace TheBusProject.Helpers
                 string cant = null;
                 foreach (Route r in old.Routes)
                 {
-                    long runway = Math.Min(r.Destination1.GetMaxRunwayLength(), r.Destination2.GetMaxRunwayLength());
+                    long bay = Math.Min(r.Destination1.GetMaxBayLength(), r.Destination2.GetMaxBayLength());
                     if (!RightKind(s.NewType, r)) cant = "the " + s.NewType.Name + " is the wrong kind for " + Code(r);
                     else if (s.NewType.Range < r.GetDistance()) cant = "the " + s.NewType.Name + "'s range is too short for " + Code(r);
-                    else if (s.NewType.MinRunwaylength > runway) cant = "the runways of " + Code(r) + " are too short for the " + s.NewType.Name;
+                    else if (s.NewType.MinBayLength > bay) cant = "the bays of " + Code(r) + " are too short for the " + s.NewType.Name;
                     if (cant != null) break;
                 }
                 if (cant != null)
@@ -422,8 +422,8 @@ namespace TheBusProject.Helpers
 
         private static Station HomebaseFor(Carrier carrier, FleetCoach old, CoachType type)
         {
-            List<Station> bases = CarrierHelpers.GetHomebases(carrier, type.MinRunwaylength);
-            if (old != null && (bases.Contains(old.Homebase) || old.Homebase?.GetMaxRunwayLength() >= type.MinRunwaylength)) return old.Homebase;
+            List<Station> bases = CarrierHelpers.GetHomebases(carrier, type.MinBayLength);
+            if (old != null && (bases.Contains(old.Homebase) || old.Homebase?.GetMaxBayLength() >= type.MinBayLength)) return old.Homebase;
             return bases.FirstOrDefault();
         }
 

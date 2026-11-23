@@ -137,8 +137,8 @@ namespace TheBusProject.Helpers
             if (km > t.Range) return "too far (range " + t.Range.ToString("N0") + " km)";
             foreach (var ap in new[] { a, b })
             {
-                if (ap != null && ap.GetMaxRunwayLength() < t.MinRunwaylength)
-                    return "runway at " + ap.Profile.IATACode + " too short (" + ap.GetMaxRunwayLength().ToString("N0") + " m, needs " + t.MinRunwaylength.ToString("N0") + " m)";
+                if (ap != null && ap.GetMaxBayLength() < t.MinBayLength)
+                    return "bay at " + ap.Profile.IATACode + " too short (" + ap.GetMaxBayLength().ToString("N0") + " m, needs " + t.MinBayLength.ToString("N0") + " m)";
             }
             return null;
         }

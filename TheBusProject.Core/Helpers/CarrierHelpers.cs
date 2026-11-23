@@ -618,12 +618,12 @@ namespace TheBusProject.Helpers
 
         public static List<Station> GetHomebases(Carrier carrier, CoachType type)
         {
-            return GetHomebases(carrier, type.MinRunwaylength);
+            return GetHomebases(carrier, type.MinBayLength);
         }
 
-        public static List<Station> GetHomebases(Carrier carrier, long minrunway)
+        public static List<Station> GetHomebases(Carrier carrier, long minbay)
         {
-            return GetHomebases(carrier).Where(h => h.GetMaxRunwayLength() >= minrunway).ToList();
+            return GetHomebases(carrier).Where(h => h.GetMaxBayLength() >= minbay).ToList();
         }
 
         //update the damage scores for an carrier

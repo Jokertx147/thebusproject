@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.IO;
 using TheBusProject.Infrastructure;
@@ -77,7 +77,7 @@ namespace TheBusProject.Presentation
                 : kmh.ToString("N0", CultureInfo.InvariantCulture) + " km/h";
         }
 
-        /// <summary>A length given in metres (runways), e.g. "2,500 m" or "8,202 ft".</summary>
+        /// <summary>A length given in metres (bays), e.g. "2,500 m" or "8,202 ft".</summary>
         public static string Metres(double m)
         {
             return UseMiles

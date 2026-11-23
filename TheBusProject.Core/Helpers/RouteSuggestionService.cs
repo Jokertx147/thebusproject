@@ -127,7 +127,10 @@ namespace TheBusProject.Helpers
                     if (to == null || to == from) continue;
                     string key = Key(from, to);
                     if (flown.Contains(key) || !seen.Add(key)) continue;
-                    if (a.Distance > f.Coach.Range || f.Coach.MinRunwaylength > Math.Min(from.GetMaxRunwayLength(), to.GetMaxRunwayLength())) continue;
+                    if (a.Distance > f.Coach.Range || f.Coach.MinBayLength > Math.Min(from.GetMaxBayLength(), to.GetMaxBayLength())) continue;
+                    // a ride of twelve hours or more is scheduled by the week, not as round trips a day: the planner
+                    // forecasts nothing for it, so suggesting it would offer a route the player cannot open from here
+                    if (RouteCreator.IsLongRoute(from, to, f.Coach.Type, turnaround)) continue;
                     var s = new RouteSuggestion {Coach = f, From = from, To = to, Km = a.Distance, DailyDemand = a.DailyDemand, Turnaround = turnaround, OwnershipPerDay = ownership};
                     if (!Gates(carrier, from, s) || !Gates(carrier, to, s)) continue;
                     int maxTrips = RouteCreator.GetMaxRoundTrips(from, to, f.Coach.Type, turnaround, OpsType.Regular);

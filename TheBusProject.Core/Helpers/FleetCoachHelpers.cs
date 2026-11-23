@@ -504,7 +504,7 @@ namespace TheBusProject.Helpers
             DateTime builtDate = GameObject.GetInstance().GameTime.AddDays(CoachHelpers.GetCargoConvertingDays(oldType));
 
             var newType = new CoachCargoType(oldType.Manufacturer, oldType.Name + "F", oldType.CoachFamily, oldType.DriverCrew, cargoSize, oldType.CruisingSpeed, oldType.Range, oldType.Wingspan,
-                                                oldType.Length, oldType.Weight, oldType.FuelConsumption, oldType.Price, oldType.MinRunwaylength, oldType.FuelCapacity, oldType.Body, oldType.RangeType,
+                                                oldType.Length, oldType.Weight, oldType.FuelConsumption, oldType.Price, oldType.MinBayLength, oldType.FuelCapacity, oldType.Body, oldType.RangeType,
                                                 oldType.Engine, oldType.Produced, oldType.ProductionRate, false, false);
 
             coach.Coach.Type = newType;

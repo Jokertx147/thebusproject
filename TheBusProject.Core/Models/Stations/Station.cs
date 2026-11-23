@@ -42,7 +42,7 @@ namespace TheBusProject.Models.Stations
             Statistics = new StationStatistics();
             Weather = new Weather[5];
             Terminals = new Terminals(this);
-            Runways = new List<Runway>();
+            Bays = new List<Bay>();
             _hubs = new List<Hub>();
             DestinationPassengerStatistics = new Dictionary<Station, long>();
             DestinationCargoStatistics = new Dictionary<Station, double>();
@@ -93,10 +93,10 @@ namespace TheBusProject.Models.Stations
         [Versioning("profile")]
         public StationProfile Profile { get; set; }
 
-        [Versioning("runways")]
-        public List<Runway> Runways { get; set; }
+        [Versioning("bays")]
+        public List<Bay> Bays { get; set; }
 
-        /// <summary>True when the player changed the station (type, runways), so the save keeps the whole station.</summary>
+        /// <summary>True when the player changed the station (type, bays), so the save keeps the whole station.</summary>
         [Versioning("playeredited")]
         public bool PlayerEdited { get; set; }
 
@@ -697,14 +697,14 @@ namespace TheBusProject.Models.Stations
             return Profile.MajorDestionations.ToDictionary(md => Stations.GetStation(md.Key), md => md.Value);
         }
 
-        public long GetMaxRunwayLength()
+        public long GetMaxBayLength()
         {
-            if (Runways.Count == 0)
+            if (Bays.Count == 0)
             {
                 return 0;
             }
 
-            IEnumerable<long> query = from r in Runways
+            IEnumerable<long> query = from r in Bays
                                       where r.BuiltDate <= GameObject.GetInstance().GameTime
                                       select r.Length;
             return query.Max();

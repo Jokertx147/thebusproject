@@ -81,7 +81,7 @@ namespace TheBusProject.Helpers
             }
             if (origins.Count == 0) return;
 
-            List<Station> all = Stations.GetAllActiveStations().Where(a => a.GetMaxRunwayLength() >= 1500).ToList();
+            List<Station> all = Stations.GetAllActiveStations().Where(a => a.GetMaxBayLength() >= 1500).ToList();
             if (all.Count < 2) return;
 
             int wanted = Rnd.Next(2, 6);
@@ -159,8 +159,8 @@ namespace TheBusProject.Helpers
             if (f.Drivers.Count < f.Coach.Type.DriverCrew) return "no full crew";
             if (f.CurrentPosition == null) return "position unknown";
             if (f.Coach.Range < MathHelpers.GetDistance(f.CurrentPosition, o.From)) return "too far from the pick-up";
-            if (f.Coach.MinRunwaylength > o.From.GetMaxRunwayLength() || f.Coach.MinRunwaylength > o.To.GetMaxRunwayLength())
-                return "runway too short";
+            if (f.Coach.MinBayLength > o.From.GetMaxBayLength() || f.Coach.MinBayLength > o.To.GetMaxBayLength())
+                return "bay too short";
             return null;
         }
 

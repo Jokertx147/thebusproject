@@ -140,11 +140,11 @@ namespace TheBusProject.Helpers
 
                 int others = competitors.ContainsKey(key) ? competitors[key].Count : 0;
 
-                long minRunway = Math.Min(origin.GetMaxRunwayLength(), destination.GetMaxRunwayLength());
+                long minBay = Math.Min(origin.GetMaxBayLength(), destination.GetMaxBayLength());
 
                 bool fleetCanFly = fleet.Any(
                     f => f.Coach.Type.TypeCoach != CoachType.TypeOfCoach.Cargo
-                         && f.Coach.Range >= distance && f.Coach.MinRunwaylength <= minRunway);
+                         && f.Coach.Range >= distance && f.Coach.MinBayLength <= minBay);
 
                 result.Add(
                     new RouteAdvice
@@ -316,7 +316,7 @@ namespace TheBusProject.Helpers
 
                 double price = PassengerHelpers.GetCargoPrice(origin, destination);
                 int others = competitors.ContainsKey(key) ? competitors[key].Count : 0;
-                long minRunway = Math.Min(origin.GetMaxRunwayLength(), destination.GetMaxRunwayLength());
+                long minBay = Math.Min(origin.GetMaxBayLength(), destination.GetMaxBayLength());
 
                 result.Add(
                     new CargoAdvice
@@ -329,7 +329,7 @@ namespace TheBusProject.Helpers
                         RevenuePerDay = Math.Min(refCapacity, demand * 1000.0 / (1 + others)) * price
                                         * Math.Max(1.0, Math.Min(8.0, 24.0 / (distance / 800.0 + 1.5))),
                         FacilitiesOk = AIHelpers.IsCargoRouteDestinationsCorrect(origin, destination, carrier),
-                        FleetCanFly = fleet.Any(f => f.Coach.Range >= distance && f.Coach.MinRunwaylength <= minRunway)
+                        FleetCanFly = fleet.Any(f => f.Coach.Range >= distance && f.Coach.MinBayLength <= minBay)
                     });
             }
 

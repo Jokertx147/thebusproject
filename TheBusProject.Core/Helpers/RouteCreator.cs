@@ -75,7 +75,7 @@ namespace TheBusProject.Helpers
             Route.RouteType routeType = Route.RouteType.Passenger)
         {
             double distance = MathHelpers.GetDistance(origin, destination);
-            long runway = Math.Min(origin.GetMaxRunwayLength(), destination.GetMaxRunwayLength());
+            long bay = Math.Min(origin.GetMaxBayLength(), destination.GetMaxBayLength());
             bool cargo = routeType == Route.RouteType.Cargo;
 
             return GameObject.GetInstance()
@@ -86,14 +86,14 @@ namespace TheBusProject.Helpers
                                      : (f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Passenger
                                         || f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Mixed))
                              .Where(f => f.Routes.Count == 0 && !CoachDealService.IsLeasedOut(f))
-                             .Where(f => f.Coach.Range >= distance && f.Coach.MinRunwaylength <= runway)
+                             .Where(f => f.Coach.Range >= distance && f.Coach.MinBayLength <= bay)
                              .OrderBy(f => f.Name)
                              .ToList();
         }
 
         /// <summary>
         ///     Why the player's idle coach of the route's kind can't fly it: "N010DL (Airbus A350-900) needs 2,810 m of
-        ///     runway: DUB has 2,800 m". One line per type and reason.
+        ///     bay: DUB has 2,800 m". One line per type and reason.
         /// </summary>
         public static List<string> WhyNot(Station origin, Station destination, Route.RouteType routeType = Route.RouteType.Passenger)
         {
@@ -107,13 +107,13 @@ namespace TheBusProject.Helpers
                                              && f.Routes.Count == 0 && !CoachDealService.IsLeasedOut(f));
             foreach (var g in idle.GroupBy(f => f.Coach.Type))
             {
-                var f = g.OrderBy(x => x.Coach.MinRunwaylength).First();
+                var f = g.OrderBy(x => x.Coach.MinBayLength).First();
                 string names = string.Join(", ", g.Select(x => x.Name).Take(3)) + (g.Count() > 3 ? " and " + (g.Count() - 3) + " more" : "");
-                var shortEnds = new[] {origin, destination}.Where(a => a.GetMaxRunwayLength() < f.Coach.MinRunwaylength).ToList();
+                var shortEnds = new[] {origin, destination}.Where(a => a.GetMaxBayLength() < f.Coach.MinBayLength).ToList();
                 if (shortEnds.Count > 0)
                 {
-                    lines.Add(names + " (" + g.Key.Name + ") need" + (g.Count() == 1 ? "s" : "") + " " + f.Coach.MinRunwaylength.ToString("N0") + " m of runway: "
-                              + string.Join(", ", shortEnds.Select(RunwayService.Describe)) + ".");
+                    lines.Add(names + " (" + g.Key.Name + ") need" + (g.Count() == 1 ? "s" : "") + " " + f.Coach.MinBayLength.ToString("N0") + " m of bay: "
+                              + string.Join(", ", shortEnds.Select(BayService.Describe)) + ".");
                 }
                 else if (g.Max(x => x.Coach.Range) < distance)
                 {
@@ -300,7 +300,7 @@ namespace TheBusProject.Helpers
 
             if (!GetCandidateCoaches(route.Destination1, route.Destination2, route.Type).Contains(coach))
             {
-                message = coach.Name + " can't run this route (range, runway, or already on a route).";
+                message = coach.Name + " can't run this route (range, bay, or already on a route).";
                 return false;
             }
 
@@ -347,7 +347,7 @@ namespace TheBusProject.Helpers
 
             if (!GetCandidateCoaches(route.Destination1, route.Destination2, route.Type).Contains(target))
             {
-                message = target.Name + " can't run this route (range, runway, or already on a route).";
+                message = target.Name + " can't run this route (range, bay, or already on a route).";
                 return false;
             }
 

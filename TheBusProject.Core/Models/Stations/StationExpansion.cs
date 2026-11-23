@@ -11,8 +11,8 @@ namespace TheBusProject.Models.Stations
         public enum ExpansionType
         {
             NewTerminal,
-            NewRunway,
-            RunwayLength,
+            NewBay,
+            BayLength,
             Name,
             ExtraGates,
             CloseTerminal
@@ -38,7 +38,7 @@ namespace TheBusProject.Models.Stations
         [Versioning("notify")]
         public bool NotifyOnChange { get; set; }
 
-        //for type==name && type==new_terminal (name) && type == new_runway (name) && extra_gates (name) && close_terminal (name)
+        //for type==name && type==new_terminal (name) && type == new_bay (name) && extra_gates (name) && close_terminal (name)
         [Versioning("name")]
         public string Name { get; set; }
 
@@ -46,12 +46,12 @@ namespace TheBusProject.Models.Stations
         [Versioning("gates")]
         public int Gates { get; set; }
 
-        //for type==new_runway
+        //for type==new_bay
         [Versioning("length")]
         public long Length { get; set; }
 
         [Versioning("surface")]
-        public Runway.SurfaceType Surface { get; set; }
+        public Bay.SurfaceType Surface { get; set; }
 
         [Versioning("terminaltype")]
         public Terminal.TerminalType TerminalType { get; set; }

@@ -28,7 +28,7 @@ namespace TheBusProject.Presentation
             int total = station.Terminals.GetNumberOfGates(Terminal.TerminalType.Passenger);
             FreeGates = station.Terminals.GetFreeGates(Terminal.TerminalType.Passenger);
             Gates = FreeGates + "/" + total;
-            Runway = station.GetMaxRunwayLength();
+            Bay = station.GetMaxBayLength();
             Carriers = station.CarrierContracts.Select(c => c.Carrier).Distinct().Count();
             Routes = StationHelpers.GetStationRoutes(station).Count;
             CanLease = !own && FreeGates > 0;
@@ -42,7 +42,7 @@ namespace TheBusProject.Presentation
         public string Size { get; }
         public int FreeGates { get; }
         public string Gates { get; }
-        public long Runway { get; }
+        public long Bay { get; }
         public int Carriers { get; }
         public int Routes { get; }
         public bool CanLease { get; }
@@ -67,10 +67,10 @@ namespace TheBusProject.Presentation
         public ICommand BuyAllCommand { get; set; }
     }
 
-    /// <summary>One runway of the station.</summary>
-    public class RunwayItem
+    /// <summary>One bay of the station.</summary>
+    public class BayItem
     {
-        public Runway Runway { get; set; }
+        public Bay Bay { get; set; }
         public string Text { get; set; }
     }
 
@@ -200,54 +200,54 @@ namespace TheBusProject.Presentation
 
         public List<int> LeaseYearChoices { get; } = GateContractService.Lengths.ToList();
 
-        // ---- runways ----
+        // ---- bays ----
 
-        public ObservableCollection<RunwayItem> Runways { get; } = new ObservableCollection<RunwayItem>();
-        public List<Runway.SurfaceType> RunwaySurfaces { get; } = RunwayService.Surfaces.ToList();
-        private RunwayItem _selectedRunway;
-        private string _extendLength = "", _newRunwayLength = "3000", _newRunwayName = "";
-        private Runway.SurfaceType _newRunwaySurface = Runway.SurfaceType.Concrete;
-        private ICommand _extendRunwayCommand, _buildRunwayCommand;
+        public ObservableCollection<BayItem> Bays { get; } = new ObservableCollection<BayItem>();
+        public List<Bay.SurfaceType> BaySurfaces { get; } = BayService.Surfaces.ToList();
+        private BayItem _selectedBay;
+        private string _extendLength = "", _newBayLength = "3000", _newBayName = "";
+        private Bay.SurfaceType _newBaySurface = Bay.SurfaceType.Concrete;
+        private ICommand _extendBayCommand, _buildBayCommand;
 
-        public RunwayItem SelectedRunway
+        public BayItem SelectedBay
         {
-            get { return _selectedRunway; }
+            get { return _selectedBay; }
             set
             {
-                if (SetProperty(ref _selectedRunway, value))
+                if (SetProperty(ref _selectedBay, value))
                 {
-                    if (value != null && !value.Runway.IsExtending) ExtendLength = (value.Runway.Length + 500).ToString();
+                    if (value != null && !value.Bay.IsExtending) ExtendLength = (value.Bay.Length + 500).ToString();
                     OnPropertyChanged(nameof(ExtendText));
-                    OnPropertyChanged(nameof(HasRunwaySelection));
+                    OnPropertyChanged(nameof(HasBaySelection));
                 }
             }
         }
 
-        public bool HasRunwaySelection => _selectedRunway != null;
+        public bool HasBaySelection => _selectedBay != null;
 
-        /// <summary>The new total length for the selected runway, in meters.</summary>
+        /// <summary>The new total length for the selected bay, in meters.</summary>
         public string ExtendLength
         {
             get { return _extendLength; }
             set { if (SetProperty(ref _extendLength, value ?? "")) OnPropertyChanged(nameof(ExtendText)); }
         }
 
-        public string NewRunwayLength
+        public string NewBayLength
         {
-            get { return _newRunwayLength; }
-            set { if (SetProperty(ref _newRunwayLength, value ?? "")) OnPropertyChanged(nameof(NewRunwayText)); }
+            get { return _newBayLength; }
+            set { if (SetProperty(ref _newBayLength, value ?? "")) OnPropertyChanged(nameof(NewBayText)); }
         }
 
-        public string NewRunwayName
+        public string NewBayName
         {
-            get { return _newRunwayName; }
-            set { SetProperty(ref _newRunwayName, value ?? ""); }
+            get { return _newBayName; }
+            set { SetProperty(ref _newBayName, value ?? ""); }
         }
 
-        public Runway.SurfaceType NewRunwaySurface
+        public Bay.SurfaceType NewBaySurface
         {
-            get { return _newRunwaySurface; }
-            set { if (SetProperty(ref _newRunwaySurface, value)) OnPropertyChanged(nameof(NewRunwayText)); }
+            get { return _newBaySurface; }
+            set { if (SetProperty(ref _newBaySurface, value)) OnPropertyChanged(nameof(NewBayText)); }
         }
 
         private static long ParseMeters(string text)
@@ -260,76 +260,76 @@ namespace TheBusProject.Presentation
         {
             get
             {
-                if (_selected == null || _selectedRunway == null) return "Pick a runway above to extend it.";
-                var r = _selectedRunway.Runway;
+                if (_selected == null || _selectedBay == null) return "Pick a bay above to extend it.";
+                var r = _selectedBay.Bay;
                 long to = ParseMeters(_extendLength);
-                string blocker = RunwayService.GetExtendBlocker(_selected.Station, r, to);
+                string blocker = BayService.GetExtendBlocker(_selected.Station, r, to);
                 if (blocker != null) return blocker;
                 // which of the player's coach the new length is still too short for
-                var stillShort = RunwayService.TooShortFor(to, false).Concat(RunwayService.TooShortFor(to, true)).ToList();
+                var stillShort = BayService.TooShortFor(to, false).Concat(BayService.TooShortFor(to, true)).ToList();
                 return string.Format(
-                    "{0:N0} m to {1:N0} m: {2}, about {3} days. The runway stays in use meanwhile.",
-                    r.Length, to, Money(RunwayService.ExtensionPrice(_selected.Station, r, to)), RunwayService.ExtensionDays(to - r.Length))
+                    "{0:N0} m to {1:N0} m: {2}, about {3} days. The bay stays in use meanwhile.",
+                    r.Length, to, Money(BayService.ExtensionPrice(_selected.Station, r, to)), BayService.ExtensionDays(to - r.Length))
                        + (stillShort.Count > 0 ? " Still too short for your " + string.Join(", ", stillShort) + "." : " Long enough for all your coach.");
             }
         }
 
-        public string NewRunwayText
+        public string NewBayText
         {
             get
             {
                 if (_selected == null) return "";
-                long length = ParseMeters(_newRunwayLength);
-                string blocker = RunwayService.GetBuildBlocker(Human, _selected.Station, length, _newRunwayName);
+                long length = ParseMeters(_newBayLength);
+                string blocker = BayService.GetBuildBlocker(Human, _selected.Station, length, _newBayName);
                 if (blocker != null) return blocker;
                 return string.Format(
                     "{0:N0} m {1}: {2}, about {3} days to build.",
-                    length, _newRunwaySurface.ToString().ToLower(), Money(RunwayService.NewPrice(_selected.Station, length, _newRunwaySurface)), RunwayService.NewDays(length));
+                    length, _newBaySurface.ToString().ToLower(), Money(BayService.NewPrice(_selected.Station, length, _newBaySurface)), BayService.NewDays(length));
             }
         }
 
-        public ICommand ExtendRunwayCommand => _extendRunwayCommand ?? (_extendRunwayCommand = new RelayCommand(AskExtendRunway));
-        public ICommand BuildRunwayCommand => _buildRunwayCommand ?? (_buildRunwayCommand = new RelayCommand(AskBuildRunway));
+        public ICommand ExtendBayCommand => _extendBayCommand ?? (_extendBayCommand = new RelayCommand(AskExtendBay));
+        public ICommand BuildBayCommand => _buildBayCommand ?? (_buildBayCommand = new RelayCommand(AskBuildBay));
 
-        private void LoadRunways(Station station)
+        private void LoadBays(Station station)
         {
-            var keep = _selectedRunway?.Runway;
-            Runways.Clear();
-            foreach (var r in station.Runways.OrderByDescending(x => x.Length))
+            var keep = _selectedBay?.Bay;
+            Bays.Clear();
+            foreach (var r in station.Bays.OrderByDescending(x => x.Length))
             {
-                Runways.Add(new RunwayItem
+                Bays.Add(new BayItem
                 {
-                    Runway = r,
+                    Bay = r,
                     Text = string.Format(
                         "{0}  |  {1:N0} m  |  {2}  |  {3}{4}",
-                        r.Name, r.Length, r.Type == Runway.RunwayType.Helipad ? "helipad" : r.Surface.ToString().ToLower(),
-                        RunwayService.Status(r), r.BuiltBy != null && r.BuiltBy.IsHuman ? "  |  paid by you" : "")
+                        r.Name, r.Length, r.Type == Bay.BayType.Helipad ? "helipad" : r.Surface.ToString().ToLower(),
+                        BayService.Status(r), r.BuiltBy != null && r.BuiltBy.IsHuman ? "  |  paid by you" : "")
                 });
             }
-            _selectedRunway = Runways.FirstOrDefault(x => x.Runway == keep);
-            OnPropertyChanged(nameof(SelectedRunway));
-            OnPropertyChanged(nameof(HasRunwaySelection));
+            _selectedBay = Bays.FirstOrDefault(x => x.Bay == keep);
+            OnPropertyChanged(nameof(SelectedBay));
+            OnPropertyChanged(nameof(HasBaySelection));
             OnPropertyChanged(nameof(ExtendText));
-            OnPropertyChanged(nameof(NewRunwayText));
+            OnPropertyChanged(nameof(NewBayText));
         }
 
-        private void AskExtendRunway()
+        private void AskExtendBay()
         {
-            if (_selected == null || _selectedRunway == null)
+            if (_selected == null || _selectedBay == null)
             {
-                Status = "Pick a runway first.";
+                Status = "Pick a bay first.";
                 return;
             }
             var station = _selected.Station;
-            var r = _selectedRunway.Runway;
+            var r = _selectedBay.Bay;
             long to = ParseMeters(_extendLength);
-            string blocker = RunwayService.GetExtendBlocker(station, r, to);
+            string blocker = BayService.GetExtendBlocker(station, r, to);
             if (blocker != null)
             {
                 Status = blocker;
                 return;
             }
-            double price = RunwayService.ExtensionPrice(station, r, to);
+            double price = BayService.ExtensionPrice(station, r, to);
             if (price > Human.Money)
             {
                 Status = "You can't afford that (" + Money(price) + ").";
@@ -338,7 +338,7 @@ namespace TheBusProject.Presentation
             _pending = () =>
                 {
                     string m;
-                    RunwayService.Extend(Human, station, r, to, out m);
+                    BayService.Extend(Human, station, r, to, out m);
                     LoadDetail();
                     Status = m;
                     _changed();
@@ -346,20 +346,20 @@ namespace TheBusProject.Presentation
             PendingText = string.Format("Extend {0} at {1} to {2:N0} m for {3}?", r.Name, station.Profile.IATACode, to, Money(price));
         }
 
-        private void AskBuildRunway()
+        private void AskBuildBay()
         {
             if (_selected == null) return;
             var station = _selected.Station;
-            long length = ParseMeters(_newRunwayLength);
-            string name = _newRunwayName;
-            var surface = _newRunwaySurface;
-            string blocker = RunwayService.GetBuildBlocker(Human, station, length, name);
+            long length = ParseMeters(_newBayLength);
+            string name = _newBayName;
+            var surface = _newBaySurface;
+            string blocker = BayService.GetBuildBlocker(Human, station, length, name);
             if (blocker != null)
             {
                 Status = blocker;
                 return;
             }
-            double price = RunwayService.NewPrice(station, length, surface);
+            double price = BayService.NewPrice(station, length, surface);
             if (price > Human.Money)
             {
                 Status = "You can't afford that (" + Money(price) + ").";
@@ -368,8 +368,8 @@ namespace TheBusProject.Presentation
             _pending = () =>
                 {
                     string m;
-                    RunwayService.Build(Human, station, length, surface, name, out m);
-                    NewRunwayName = "";
+                    BayService.Build(Human, station, length, surface, name, out m);
+                    NewBayName = "";
                     ApplySearch();
                     Selected = Stations.FirstOrDefault(a => a.Station == station);
                     LoadDetail();
@@ -377,8 +377,8 @@ namespace TheBusProject.Presentation
                     _changed();
                 };
             PendingText = string.Format(
-                "Build a {0:N0} m {1} runway at {2} for {3}? It takes about {4} days.",
-                length, surface.ToString().ToLower(), station.Profile.IATACode, Money(price), RunwayService.NewDays(length));
+                "Build a {0:N0} m {1} bay at {2} for {3}? It takes about {4} days.",
+                length, surface.ToString().ToLower(), station.Profile.IATACode, Money(price), BayService.NewDays(length));
         }
 
         /// <summary>Selects an station (used by other pages).</summary>
@@ -519,7 +519,7 @@ namespace TheBusProject.Presentation
         }
 
         public List<string> SortChoices { get; } =
-            new List<string> { "Name", "Distance", "Country", "Size", "Runway", "Free gates", "Carriers", "Routes" };
+            new List<string> { "Name", "Distance", "Country", "Size", "Bay", "Free gates", "Carriers", "Routes" };
 
         /// <summary>The Distance sort is chosen, so the box for the station to measure from is shown.</summary>
         public bool SortByDistance => _sortBy == "Distance";
@@ -771,8 +771,8 @@ namespace TheBusProject.Presentation
                 case "Size":
                     list = list.OrderByDescending(a => (int) a.Profile.Size).ThenBy(a => a.Profile.Name);
                     break;
-                case "Runway":
-                    list = list.OrderByDescending(a => a.GetMaxRunwayLength()).ThenBy(a => a.Profile.Name);
+                case "Bay":
+                    list = list.OrderByDescending(a => a.GetMaxBayLength()).ThenBy(a => a.Profile.Name);
                     break;
                 case "Free gates":
                     list = list.OrderByDescending(a => a.Terminals.GetFreeGates(Terminal.TerminalType.Passenger))
@@ -854,8 +854,8 @@ namespace TheBusProject.Presentation
 
             Title = station.Profile.IATACode + "  " + station.Profile.Name;
             Info = string.Format(
-                "{0}, {1}  |  size {2}  |  longest runway {3} m",
-                station.Profile.Town?.Name, station.Profile.Country?.Name, DemandViewModel.SizeName(station.Profile.Size), station.GetMaxRunwayLength());
+                "{0}, {1}  |  size {2}  |  longest bay {3} m",
+                station.Profile.Town?.Name, station.Profile.Country?.Name, DemandViewModel.SizeName(station.Profile.Size), station.GetMaxBayLength());
 
             int total = station.Terminals.GetNumberOfGates(Terminal.TerminalType.Passenger);
             int free = station.Terminals.GetFreeGates(Terminal.TerminalType.Passenger);
@@ -898,7 +898,7 @@ namespace TheBusProject.Presentation
             RefreshGateChoices(station);
 
             LoadTerminals(station);
-            LoadRunways(station);
+            LoadBays(station);
             OnPropertyChanged(nameof(TerminalPriceText));
 
             // facilities can only be bought where the carrier has a contract

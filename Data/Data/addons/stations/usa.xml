@@ -3,7 +3,7 @@
 <!--the United States: intercity bus stations-->
 <stations>
   <station name="New York Port Authority Bus Terminal" icao="KNYC" iata="NYC" type="Domestic" season="AllYear">
-    <town town="New York" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <town town="New York, NY" country="122" GMT="-05:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="040°45'25''N" />
       <longitude value="073°59'25''W" />
@@ -12,12 +12,13 @@
     <terminals>
       <terminal name="Main concourse" gates="60" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Concrete" />
+      <bay name="Platform B" length="15" surface="Concrete" />
+    </bays>
   </station>
   <station name="Chicago Union Station Bus Terminal" icao="KCHI" iata="CHI" type="Domestic" season="AllYear">
-    <town town="Chicago" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <town town="Chicago, IL" country="122" GMT="-06:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="041°52'44''N" />
       <longitude value="087°38'21''W" />
@@ -26,12 +27,13 @@
     <terminals>
       <terminal name="Main concourse" gates="60" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Concrete" />
+      <bay name="Platform B" length="15" surface="Concrete" />
+    </bays>
   </station>
   <station name="Los Angeles Union Station Bus Plaza" icao="KLAX" iata="LAX" type="Domestic" season="AllYear">
-    <town town="Los Angeles" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <town town="Los Angeles, CA" country="122" GMT="-08:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="034°03'22''N" />
       <longitude value="118°14'11''W" />
@@ -40,12 +42,13 @@
     <terminals>
       <terminal name="Main concourse" gates="60" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Concrete" />
+      <bay name="Platform B" length="15" surface="Concrete" />
+    </bays>
   </station>
   <station name="Philadelphia Bus Terminal" icao="KPHL" iata="PHL" type="Domestic" season="AllYear">
-    <town town="Philadelphia" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <town town="Philadelphia, PA" country="122" GMT="-05:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="039°57'18''N" />
       <longitude value="075°09'36''W" />
@@ -54,12 +57,13 @@
     <terminals>
       <terminal name="Main concourse" gates="30" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Concrete" />
+      <bay name="Platform B" length="15" surface="Concrete" />
+    </bays>
   </station>
   <station name="Washington Union Station Bus Deck" icao="KWAS" iata="WAS" type="Domestic" season="AllYear">
-    <town town="Washington" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <town town="Washington, DC" country="122" GMT="-05:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="038°53'52''N" />
       <longitude value="077°00'23''W" />
@@ -68,12 +72,13 @@
     <terminals>
       <terminal name="Main concourse" gates="30" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Concrete" />
+      <bay name="Platform B" length="15" surface="Concrete" />
+    </bays>
   </station>
   <station name="Boston South Station Bus Terminal" icao="KBOS" iata="BOS" type="Domestic" season="AllYear">
-    <town town="Boston" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <town town="Boston, MA" country="122" GMT="-05:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="042°21'07''N" />
       <longitude value="071°03'19''W" />
@@ -82,12 +87,13 @@
     <terminals>
       <terminal name="Main concourse" gates="30" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Concrete" />
+      <bay name="Platform B" length="15" surface="Concrete" />
+    </bays>
   </station>
   <station name="Atlanta Bus Terminal" icao="KATL" iata="ATL" type="Domestic" season="AllYear">
-    <town town="Atlanta" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <town town="Atlanta, GA" country="122" GMT="-05:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="033°45'18''N" />
       <longitude value="084°23'24''W" />
@@ -96,12 +102,13 @@
     <terminals>
       <terminal name="Main concourse" gates="30" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Concrete" />
+      <bay name="Platform B" length="15" surface="Concrete" />
+    </bays>
   </station>
   <station name="Miami Intermodal Bus Terminal" icao="KMIA" iata="MIA" type="Domestic" season="AllYear">
-    <town town="Miami" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <town town="Miami, FL" country="122" GMT="-05:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="025°47'42''N" />
       <longitude value="080°16'48''W" />
@@ -110,12 +117,13 @@
     <terminals>
       <terminal name="Main concourse" gates="30" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Concrete" />
+      <bay name="Platform B" length="15" surface="Concrete" />
+    </bays>
   </station>
   <station name="Dallas Bus Terminal" icao="KDAL" iata="DAL" type="Domestic" season="AllYear">
-    <town town="Dallas" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <town town="Dallas, TX" country="122" GMT="-06:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="032°46'44''N" />
       <longitude value="096°48'11''W" />
@@ -124,12 +132,13 @@
     <terminals>
       <terminal name="Main concourse" gates="30" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Concrete" />
+      <bay name="Platform B" length="15" surface="Concrete" />
+    </bays>
   </station>
   <station name="Houston Bus Terminal" icao="KHOU" iata="HOU" type="Domestic" season="AllYear">
-    <town town="Houston" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <town town="Houston, TX" country="122" GMT="-06:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="029°44'56''N" />
       <longitude value="095°22'34''W" />
@@ -138,12 +147,13 @@
     <terminals>
       <terminal name="Main concourse" gates="30" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Concrete" />
+      <bay name="Platform B" length="15" surface="Concrete" />
+    </bays>
   </station>
   <station name="Phoenix Bus Terminal" icao="KPHX" iata="PHX" type="Domestic" season="AllYear">
-    <town town="Phoenix" country="122" GMT="-07:00:00" DST="00:00:00" />
+    <town town="Phoenix, AZ" country="122" GMT="-07:00:00" DST="00:00:00" />
     <coordinates>
       <latitude value="033°26'42''N" />
       <longitude value="112°04'37''W" />
@@ -152,12 +162,13 @@
     <terminals>
       <terminal name="Main concourse" gates="30" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Concrete" />
+      <bay name="Platform B" length="15" surface="Concrete" />
+    </bays>
   </station>
   <station name="San Francisco Transbay Bus Terminal" icao="KSFO" iata="SFO" type="Domestic" season="AllYear">
-    <town town="San Francisco" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <town town="San Francisco, CA" country="122" GMT="-08:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="037°47'23''N" />
       <longitude value="122°23'46''W" />
@@ -166,12 +177,12 @@
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Detroit Bus Terminal" icao="KDET" iata="DET" type="Domestic" season="AllYear">
-    <town town="Detroit" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <town town="Detroit, MI" country="122" GMT="-05:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="042°19'59''N" />
       <longitude value="083°03'04''W" />
@@ -180,12 +191,12 @@
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Seattle King Street Bus Terminal" icao="KSEA" iata="SEA" type="Domestic" season="AllYear">
-    <town town="Seattle" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <town town="Seattle, WA" country="122" GMT="-08:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="047°35'56''N" />
       <longitude value="122°19'48''W" />
@@ -194,12 +205,12 @@
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Minneapolis Bus Terminal" icao="KMSP" iata="MSP" type="Domestic" season="AllYear">
-    <town town="Minneapolis" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <town town="Minneapolis, MN" country="122" GMT="-06:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="044°58'44''N" />
       <longitude value="093°16'12''W" />
@@ -208,12 +219,12 @@
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Asphalt" />
+    </bays>
   </station>
   <station name="San Diego Bus Terminal" icao="KSAN" iata="SAN" type="Domestic" season="AllYear">
-    <town town="San Diego" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <town town="San Diego, CA" country="122" GMT="-08:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="032°43'05''N" />
       <longitude value="117°09'54''W" />
@@ -222,12 +233,12 @@
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Tampa Marion Transit Bus Terminal" icao="KTPA" iata="TPA" type="Domestic" season="AllYear">
-    <town town="Tampa" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <town town="Tampa, FL" country="122" GMT="-05:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="027°57'07''N" />
       <longitude value="082°27'32''W" />
@@ -236,12 +247,12 @@
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Denver Union Station Bus Concourse" icao="KDEN" iata="DEN" type="Domestic" season="AllYear">
-    <town town="Denver" country="122" GMT="-07:00:00" DST="01:00:00" />
+    <town town="Denver, CO" country="122" GMT="-07:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="039°45'11''N" />
       <longitude value="105°00'00''W" />
@@ -250,12 +261,12 @@
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Asphalt" />
+    </bays>
   </station>
   <station name="St. Louis Gateway Bus Terminal" icao="KSTL" iata="STL" type="Domestic" season="AllYear">
-    <town town="St. Louis" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <town town="St. Louis, MO" country="122" GMT="-06:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="038°37'44''N" />
       <longitude value="090°12'14''W" />
@@ -264,12 +275,12 @@
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Baltimore Bus Terminal" icao="KBAL" iata="BAL" type="Domestic" season="AllYear">
-    <town town="Baltimore" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <town town="Baltimore, MD" country="122" GMT="-05:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="039°17'31''N" />
       <longitude value="076°37'05''W" />
@@ -278,12 +289,12 @@
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Charlotte Transportation Center" icao="KCLT" iata="CLT" type="Domestic" season="AllYear">
-    <town town="Charlotte" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <town town="Charlotte, NC" country="122" GMT="-05:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="035°13'23''N" />
       <longitude value="080°50'20''W" />
@@ -292,12 +303,12 @@
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Orlando Bus Terminal" icao="KORL" iata="ORL" type="Domestic" season="AllYear">
-    <town town="Orlando" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <town town="Orlando, FL" country="122" GMT="-05:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="028°32'31''N" />
       <longitude value="081°23'10''W" />
@@ -306,12 +317,12 @@
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Asphalt" />
+    </bays>
   </station>
   <station name="San Antonio Bus Terminal" icao="KSAT" iata="SAT" type="Domestic" season="AllYear">
-    <town town="San Antonio" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <town town="San Antonio, TX" country="122" GMT="-06:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="029°25'37''N" />
       <longitude value="098°29'13''W" />
@@ -320,12 +331,12 @@
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Portland Union Station Bus Terminal" icao="KPDX" iata="PDX" type="Domestic" season="AllYear">
-    <town town="Portland" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <town town="Portland, OR" country="122" GMT="-08:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="045°31'44''N" />
       <longitude value="122°40'37''W" />
@@ -334,12 +345,12 @@
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Sacramento Valley Bus Terminal" icao="KSAC" iata="SAC" type="Domestic" season="AllYear">
-    <town town="Sacramento" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <town town="Sacramento, CA" country="122" GMT="-08:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="038°35'06''N" />
       <longitude value="121°30'04''W" />
@@ -348,12 +359,12 @@
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Pittsburgh Bus Terminal" icao="KPIT" iata="PIT" type="Domestic" season="AllYear">
-    <town town="Pittsburgh" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <town town="Pittsburgh, PA" country="122" GMT="-05:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="040°26'42''N" />
       <longitude value="079°59'42''W" />
@@ -362,12 +373,12 @@
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="12" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Las Vegas Bus Terminal" icao="KLAS" iata="LAS" type="Domestic" season="AllYear">
-    <town town="Las Vegas" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <town town="Las Vegas, NV" country="122" GMT="-08:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="036°09'58''N" />
       <longitude value="115°08'42''W" />
@@ -376,12 +387,12 @@
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Cincinnati Bus Terminal" icao="KCIN" iata="CIN" type="Domestic" season="AllYear">
-    <town town="Cincinnati" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <town town="Cincinnati, OH" country="122" GMT="-05:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="039°06'25''N" />
       <longitude value="084°30'58''W" />
@@ -390,12 +401,12 @@
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="12" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Kansas City Bus Terminal" icao="KKCY" iata="KCY" type="Domestic" season="AllYear">
-    <town town="Kansas City" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <town town="Kansas City, MO" country="122" GMT="-06:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="039°05'06''N" />
       <longitude value="094°35'06''W" />
@@ -404,12 +415,12 @@
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Cleveland Bus Terminal" icao="KCLE" iata="CLE" type="Domestic" season="AllYear">
-    <town town="Cleveland" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <town town="Cleveland, OH" country="122" GMT="-05:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="041°29'56''N" />
       <longitude value="081°41'24''W" />
@@ -418,12 +429,12 @@
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="12" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Columbus Bus Terminal" icao="KCMH" iata="CMH" type="Domestic" season="AllYear">
-    <town town="Columbus" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <town town="Columbus, OH" country="122" GMT="-05:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="039°57'43''N" />
       <longitude value="083°00'14''W" />
@@ -432,12 +443,12 @@
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Indianapolis Bus Terminal" icao="KIND" iata="IND" type="Domestic" season="AllYear">
-    <town town="Indianapolis" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <town town="Indianapolis, IN" country="122" GMT="-05:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="039°46'12''N" />
       <longitude value="086°09'43''W" />
@@ -446,12 +457,12 @@
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Asphalt" />
+    </bays>
   </station>
   <station name="San Jose Diridon Bus Terminal" icao="KSJC" iata="SJC" type="Domestic" season="AllYear">
-    <town town="San Jose" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <town town="San Jose, CA" country="122" GMT="-08:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="037°19'48''N" />
       <longitude value="121°54'07''W" />
@@ -460,12 +471,12 @@
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Nashville Bus Terminal" icao="KNSH" iata="NSH" type="Domestic" season="AllYear">
-    <town town="Nashville" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <town town="Nashville, TN" country="122" GMT="-06:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="036°09'36''N" />
       <longitude value="086°47'02''W" />
@@ -474,12 +485,12 @@
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Austin Bus Terminal" icao="KAUS" iata="AUS" type="Domestic" season="AllYear">
-    <town town="Austin" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <town town="Austin, TX" country="122" GMT="-06:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="030°16'05''N" />
       <longitude value="097°44'24''W" />
@@ -488,12 +499,12 @@
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Fort Worth Intermodal Transportation Center" icao="KFTW" iata="FTW" type="Domestic" season="AllYear">
-    <town town="Fort Worth" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <town town="Fort Worth, TX" country="122" GMT="-06:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="032°45'00''N" />
       <longitude value="097°19'44''W" />
@@ -502,12 +513,12 @@
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="15" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Raleigh Union Station Bus Terminal" icao="KRDU" iata="RDU" type="Domestic" season="AllYear">
-    <town town="Raleigh" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <town town="Raleigh, NC" country="122" GMT="-05:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="035°46'37''N" />
       <longitude value="078°38'35''W" />
@@ -516,12 +527,12 @@
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Milwaukee Intermodal Bus Terminal" icao="KMKE" iata="MKE" type="Domestic" season="AllYear">
-    <town town="Milwaukee" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <town town="Milwaukee, WI" country="122" GMT="-06:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="043°02'02''N" />
       <longitude value="087°54'58''W" />
@@ -530,12 +541,12 @@
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Jacksonville Bus Terminal" icao="KJAX" iata="JAX" type="Domestic" season="AllYear">
-    <town town="Jacksonville" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <town town="Jacksonville, FL" country="122" GMT="-05:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="030°19'48''N" />
       <longitude value="081°39'36''W" />
@@ -544,12 +555,12 @@
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Memphis Bus Terminal" icao="KMEM" iata="MEM" type="Domestic" season="AllYear">
-    <town town="Memphis" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <town town="Memphis, TN" country="122" GMT="-06:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="035°08'35''N" />
       <longitude value="090°03'11''W" />
@@ -558,12 +569,12 @@
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="12" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Oklahoma City Bus Terminal" icao="KOKC" iata="OKC" type="Domestic" season="AllYear">
-    <town town="Oklahoma City" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <town town="Oklahoma City, OK" country="122" GMT="-06:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="035°28'12''N" />
       <longitude value="097°31'05''W" />
@@ -572,12 +583,12 @@
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Louisville Bus Terminal" icao="KLOU" iata="LOU" type="Domestic" season="AllYear">
-    <town town="Louisville" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <town town="Louisville, KY" country="122" GMT="-05:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="038°15'00''N" />
       <longitude value="085°45'22''W" />
@@ -586,12 +597,12 @@
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="12" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Richmond Bus Terminal" icao="KRIC" iata="RIC" type="Domestic" season="AllYear">
-    <town town="Richmond" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <town town="Richmond, VA" country="122" GMT="-05:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="037°32'24''N" />
       <longitude value="077°26'24''W" />
@@ -600,12 +611,12 @@
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="12" surface="Asphalt" />
+    </bays>
   </station>
   <station name="New Orleans Union Passenger Terminal" icao="KNOL" iata="NOL" type="Domestic" season="AllYear">
-    <town town="New Orleans" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <town town="New Orleans, LA" country="122" GMT="-06:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="029°56'02''N" />
       <longitude value="090°04'44''W" />
@@ -614,12 +625,12 @@
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Salt Lake Central Bus Station" icao="KSLC" iata="SLC" type="Domestic" season="AllYear">
-    <town town="Salt Lake City" country="122" GMT="-07:00:00" DST="01:00:00" />
+    <town town="Salt Lake City, UT" country="122" GMT="-07:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="040°45'50''N" />
       <longitude value="111°54'25''W" />
@@ -628,12 +639,12 @@
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Tulsa Bus Terminal" icao="KTUL" iata="TUL" type="Domestic" season="AllYear">
-    <town town="Tulsa" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <town town="Tulsa, OK" country="122" GMT="-06:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="036°09'14''N" />
       <longitude value="095°59'20''W" />
@@ -642,12 +653,12 @@
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Fresno Bus Terminal" icao="KFRE" iata="FRE" type="Domestic" season="AllYear">
-    <town town="Fresno" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <town town="Fresno, CA" country="122" GMT="-08:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="036°44'20''N" />
       <longitude value="119°47'17''W" />
@@ -656,12 +667,12 @@
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Tucson Bus Terminal" icao="KTUS" iata="TUS" type="Domestic" season="AllYear">
-    <town town="Tucson" country="122" GMT="-07:00:00" DST="00:00:00" />
+    <town town="Tucson, AZ" country="122" GMT="-07:00:00" DST="00:00:00" />
     <coordinates>
       <latitude value="032°13'26''N" />
       <longitude value="110°58'12''W" />
@@ -670,12 +681,12 @@
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="12" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Omaha Bus Terminal" icao="KOMA" iata="OMA" type="Domestic" season="AllYear">
-    <town town="Omaha" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <town town="Omaha, NE" country="122" GMT="-06:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="041°15'29''N" />
       <longitude value="095°56'02''W" />
@@ -684,12 +695,12 @@
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Albuquerque Alvarado Bus Terminal" icao="KABQ" iata="ABQ" type="Domestic" season="AllYear">
-    <town town="Albuquerque" country="122" GMT="-07:00:00" DST="01:00:00" />
+    <town town="Albuquerque, NM" country="122" GMT="-07:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="035°04'59''N" />
       <longitude value="106°38'53''W" />
@@ -698,12 +709,12 @@
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
   </station>
   <station name="El Paso Bus Terminal" icao="KELP" iata="ELP" type="Domestic" season="AllYear">
-    <town town="El Paso" country="122" GMT="-07:00:00" DST="01:00:00" />
+    <town town="El Paso, TX" country="122" GMT="-07:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="031°45'29''N" />
       <longitude value="106°29'13''W" />
@@ -712,12 +723,12 @@
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="12" surface="Asphalt" />
+    </bays>
   </station>
   <station name="Bakersfield Bus Terminal" icao="KBAK" iata="BAK" type="Domestic" season="AllYear">
-    <town town="Bakersfield" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <town town="Bakersfield, CA" country="122" GMT="-08:00:00" DST="01:00:00" />
     <coordinates>
       <latitude value="035°22'23''N" />
       <longitude value="119°01'08''W" />
@@ -726,8 +737,8 @@
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
-    <runways>
-      <runway name="Yard" length="100" surface="Asphalt" />
-    </runways>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
   </station>
 </stations>

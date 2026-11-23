@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <states>
 <!--Australia-->
 	<state country="116" name="Queensland" shortname="QLD"  flag="Australia - Queensland"></state>
@@ -63,6 +63,8 @@
 	<state country="122" name="Hawaii" shortname="HI"  flag="USA - Hawaii"></state>
 	<state country="122" name="Idaho" shortname="ID"  flag="USA - Idaho"></state>
 	<state country="122" name="Illinios" shortname="IL"  flag="USA - Illinois"></state>
+	<state country="122" name="Illinois" shortname="IL"  flag="USA - Illinois"></state>
+	<state country="122" name="District of Columbia" shortname="DC"  flag="USA - District of Columbia"></state>
 	<state country="122" name="Indiana" shortname="IN"  flag="USA - Indiana"></state>
 	<state country="122" name="Iowa" shortname="IA"  flag="USA - Iowa"></state>
 	<state country="122" name="Kansas" shortname="KS"  flag="USA - Kansas"></state>

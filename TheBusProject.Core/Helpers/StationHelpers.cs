@@ -195,51 +195,51 @@ namespace TheBusProject.Helpers
             }
         }
 
-        public static void CheckForExtendRunway(Station station)
+        public static void CheckForExtendBay(Station station)
         {
-            bool isOnlyHeliport = !station.Runways.Exists(r => r.Type == Runway.RunwayType.Regular);
+            bool isOnlyHeliport = !station.Bays.Exists(r => r.Type == Bay.BayType.Regular);
 
             if (!isOnlyHeliport)
             {
                 const int minYearsBetweenExpansions = 5;
 
-                long maxRunwayLenght = (from r in station.Runways select r.Length).Max();
-                long longestRequiredRunwayLenght =
+                long maxBayLenght = (from r in station.Bays select r.Length).Max();
+                long longestRequiredBayLenght =
                     CoachTypes.GetTypes(
                         a =>
                         a.Produced.From <= GameObject.GetInstance().GameTime
-                        && a.Produced.To >= GameObject.GetInstance().GameTime).Max(a => a.MinRunwaylength);
+                        && a.Produced.To >= GameObject.GetInstance().GameTime).Max(a => a.MinBayLength);
 
                 List<Route> stationRoutes = GetStationRoutes(station);
                 IEnumerable<FleetCoach> routeCoaches = stationRoutes.SelectMany(r => r.GetCoaches());
 
                 var fleetCoaches = routeCoaches as FleetCoach[] ?? routeCoaches.ToArray();
-                long longestRunwayInUse = fleetCoaches.Any()
-                                              ? fleetCoaches.Max(a => a.Coach.MinRunwaylength)
+                long longestBayInUse = fleetCoaches.Any()
+                                              ? fleetCoaches.Max(a => a.Coach.MinBayLength)
                                               : 0;
 
-                if (maxRunwayLenght < longestRequiredRunwayLenght/2 && maxRunwayLenght < longestRunwayInUse*3/4
+                if (maxBayLenght < longestRequiredBayLenght/2 && maxBayLenght < longestBayInUse*3/4
                     && GameObject.GetInstance().GameTime.AddYears(-minYearsBetweenExpansions) > station.LastExpansionDate)
                 {
-                    List<string> runwayNames =
-                        (from r in Stations.GetAllStations().SelectMany(a => a.Runways) select r.Name).Distinct().ToList();
+                    List<string> bayNames =
+                        (from r in Stations.GetAllStations().SelectMany(a => a.Bays) select r.Name).Distinct().ToList();
 
-                    foreach (Runway r in station.Runways)
+                    foreach (Bay r in station.Bays)
                     {
-                        runwayNames.Remove(r.Name);
+                        bayNames.Remove(r.Name);
                     }
 
-                    Runway.SurfaceType surface = station.Runways[0].Surface;
-                    long length = Math.Min(longestRequiredRunwayLenght*3/4, longestRunwayInUse*2);
+                    Bay.SurfaceType surface = station.Bays[0].Surface;
+                    long length = Math.Min(longestRequiredBayLenght*3/4, longestBayInUse*2);
 
-                    var runway = new Runway(
-                        runwayNames[Rnd.Next(runwayNames.Count)],
+                    var bay = new Bay(
+                        bayNames[Rnd.Next(bayNames.Count)],
                         length,
-                        Runway.RunwayType.Regular,
+                        Bay.BayType.Regular,
                         surface,
                         GameObject.GetInstance().GameTime.AddDays(90),
                         false);
-                    station.Runways.Add(runway);
+                    station.Bays.Add(bay);
 
                     station.LastExpansionDate = GameObject.GetInstance().GameTime;
                 }
@@ -464,7 +464,7 @@ namespace TheBusProject.Helpers
                     || (r.Destination1 == station2 && r.Destination2 == station1)).ToList();
         }
 
-        public static double GetStationRunwayPrice(Station station, long lenght)
+        public static double GetStationBayPrice(Station station, long lenght)
         {
             double pricePerMeter = 0;
             if (station.Profile.Size == GeneralHelpers.Size.VeryLarge
@@ -550,7 +550,7 @@ namespace TheBusProject.Helpers
                     || (r.Destination1 == station2 && r.Destination2 == station1));
         }
 
-        //checks an station for extending of runway
+        //checks an station for extending of bay
 
         //returns all occupied slot times for an carrier at an station (15 minutes slots)
         public static List<TimeSpan> GetOccupiedSlotTimes(
@@ -725,10 +725,10 @@ namespace TheBusProject.Helpers
 
                 station.Profile.Name = expansion.Name;
             }
-            if (expansion.Type == StationExpansion.ExpansionType.NewRunway)
+            if (expansion.Type == StationExpansion.ExpansionType.NewBay)
             {
-                var runway = new Runway(expansion.Name, expansion.Length, Runway.RunwayType.Regular, expansion.Surface, expansion.Date, true);
-                station.Runways.Add(runway);
+                var bay = new Bay(expansion.Name, expansion.Length, Bay.BayType.Regular, expansion.Surface, expansion.Date, true);
+                station.Bays.Add(bay);
 
                 if (expansion.NotifyOnChange && !onStartUp)
                 {
@@ -737,15 +737,15 @@ namespace TheBusProject.Helpers
                                   new News(
                                       News.NewsType.StationNews,
                                       GameObject.GetInstance().GameTime,
-                                      "New Runway",
-                                      $"[LI station={station.Profile.IATACode}]({new StationCodeFormatter().Convert(station)}) has created a new runway"));
+                                      "New Bay",
+                                      $"[LI station={station.Profile.IATACode}]({new StationCodeFormatter().Convert(station)}) has created a new bay"));
                 }
             }
-            if (expansion.Type == StationExpansion.ExpansionType.RunwayLength)
+            if (expansion.Type == StationExpansion.ExpansionType.BayLength)
             {
-                Runway runway = station.Runways.FirstOrDefault(r => r.Name == expansion.Name);
+                Bay bay = station.Bays.FirstOrDefault(r => r.Name == expansion.Name);
 
-                if (runway != null)
+                if (bay != null)
                 {
                     if (expansion.NotifyOnChange && !onStartUp)
                     {
@@ -755,7 +755,7 @@ namespace TheBusProject.Helpers
                                           News.NewsType.StationNews,
                                           GameObject.GetInstance().GameTime,
                                           "New Terminal",
-                                          $"[LI station={station.Profile.IATACode}]({new StationCodeFormatter().Convert(station)}) has changed the length of the runway {expansion.Name} to {new SmallDistanceFormatter().Convert(expansion.Length)}"));
+                                          $"[LI station={station.Profile.IATACode}]({new StationCodeFormatter().Convert(station)}) has changed the length of the bay {expansion.Name} to {new SmallDistanceFormatter().Convert(expansion.Length)}"));
                     }
                 }
             }

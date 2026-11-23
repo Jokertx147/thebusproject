@@ -22,7 +22,7 @@ namespace TheBusProject.Models.Coaches
             long price,
             int maxspeed,
             int ceiling,
-            double runway,
+            double bay,
             double range,
             Period<int> produced)
         {
@@ -33,7 +33,7 @@ namespace TheBusProject.Models.Coaches
             Price = price;
             MaxSpeed = maxspeed;
             Ceiling = ceiling;
-            RunwayModifier = runway;
+            BayModifier = bay;
             RangeModifier = range;
             Produced = produced;
             Types = new List<CoachType>();
@@ -67,8 +67,10 @@ namespace TheBusProject.Models.Coaches
 
             Turboprop,
 
-            /// <summary>The propeller coaches before the turboprops (the DC-3, the DC-6...).</summary>
-            Piston
+            Piston,
+
+            /// <summary>What a coach runs on.</summary>
+            Diesel
         }
 
         #endregion
@@ -105,8 +107,8 @@ namespace TheBusProject.Models.Coaches
         [Versioning("range")]
         public double RangeModifier { get; set; }
 
-        [Versioning("runway")]
-        public double RunwayModifier { get; set; }
+        [Versioning("bay")]
+        public double BayModifier { get; set; }
 
         [Versioning("types")]
         public List<CoachType> Types { get; set; }
@@ -201,7 +203,7 @@ namespace TheBusProject.Models.Coaches
             };
             parts.Add(part(e.ConsumptationModifier, "less fuel", "more fuel"));
             parts.Add(part(e.RangeModifier, "less range", "more range"));
-            parts.Add(part(e.RunwayModifier, "shorter runway", "longer runway"));
+            parts.Add(part(e.BayModifier, "shorter bay", "longer bay"));
             return string.Join(", ", parts.Where(p => p != null));
         }
 

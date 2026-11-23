@@ -286,7 +286,7 @@ namespace TheBusProject.Helpers
             Carrier carrier = GameObject.GetInstance().HumanCarrier;
             var moving = route.TimeTable.Entries.Where(e => e.Coach == from).ToList();
             double distance = MathHelpers.GetDistance(route.Destination1, route.Destination2);
-            long runway = Math.Min(route.Destination1.GetMaxRunwayLength(), route.Destination2.GetMaxRunwayLength());
+            long bay = Math.Min(route.Destination1.GetMaxBayLength(), route.Destination2.GetMaxBayLength());
             var onRoute = route.GetCoaches();
 
             var list = new List<ReplacementOption>();
@@ -297,7 +297,7 @@ namespace TheBusProject.Helpers
                 else if (CoachDealService.IsListed(f)) o.Note = "for sale";
                 else if (CharterService.IsOnCharter(f)) o.Note = "on a charter";
                 else if (f.Coach.Range < distance) o.Note = "range too short (" + f.Coach.Range.ToString("N0") + " km)";
-                else if (f.Coach.MinRunwaylength > runway) o.Note = "runway too short";
+                else if (f.Coach.MinBayLength > bay) o.Note = "bay too short";
                 else
                 {
                     var own = f.Routes.SelectMany(r => r.TimeTable.Entries.Where(e => e.Coach == f)).ToList();

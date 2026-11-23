@@ -297,10 +297,10 @@ namespace TheBusProject.Presentation
 
             Carrier carrier = GameObject.GetInstance().HumanCarrier;
             CoachType type = _selected.Type;
-            Homebases = CarrierHelpers.GetHomebases(carrier, type.MinRunwaylength);
+            Homebases = CarrierHelpers.GetHomebases(carrier, type.MinBayLength);
             Homebase = Homebases.FirstOrDefault();
             Status = Homebases.Count == 0
-                ? "None of your stations can take this coach (runway, or no free service capacity)."
+                ? "None of your stations can take this coach (bay, or no free service capacity)."
                 : null;
 
             int year = EngineYear(type);

@@ -4,13 +4,13 @@ using TheBusProject.Infrastructure;
 
 namespace TheBusProject.Models.Stations
 {
-    //the class for a runway at an station
+    //the class for a bay at an station
     [Serializable]
-    public class Runway : BaseModel
+    public class Bay : BaseModel
     {
         #region Constructors and Destructors
 
-        public Runway(string name, long length, RunwayType type, SurfaceType surface, DateTime builtDate, Boolean standard)
+        public Bay(string name, long length, BayType type, SurfaceType surface, DateTime builtDate, Boolean standard)
         {
             Name = name;
             Length = length;
@@ -20,17 +20,17 @@ namespace TheBusProject.Models.Stations
             Type = type;
         }
 
-        private Runway(SerializationInfo info, StreamingContext ctxt) : base(info, ctxt)
+        private Bay(SerializationInfo info, StreamingContext ctxt) : base(info, ctxt)
         {
             if (Version == 1)
-                Type = RunwayType.Regular;
+                Type = BayType.Regular;
         }
 
         #endregion
 
         #region Enums
 
-        public enum RunwayType
+        public enum BayType
         {
             Regular,
 
@@ -87,13 +87,13 @@ namespace TheBusProject.Models.Stations
         public SurfaceType Surface { get; set; }
 
         [Versioning("type", Version = 2)]
-        public RunwayType Type { get; set; }
+        public BayType Type { get; set; }
 
-        /// <summary>The carrier that paid for the runway or its last extension, or null for the station's own.</summary>
+        /// <summary>The carrier that paid for the bay or its last extension, or null for the station's own.</summary>
         [Versioning("builtby")]
         public TheBusProject.Models.Carriers.Carrier BuiltBy { get; set; }
 
-        /// <summary>The length the runway is being extended to (0 when not being extended).</summary>
+        /// <summary>The length the bay is being extended to (0 when not being extended).</summary>
         [Versioning("extendto")]
         public long ExtendTo { get; set; }
 

@@ -154,7 +154,7 @@ namespace TheBusProject.Helpers
                 Setup.SetupMainGame(startData.Opponents, startData.NumberOfOpponents);
             }
             Infrastructure.StartupLog.Write("CreateGame: opponents done");
-            List<Station> heliports = Stations.GetStations(a => a.Runways.Exists(r => r.Type == Runway.RunwayType.Helipad));
+            List<Station> heliports = Stations.GetStations(a => a.Bays.Exists(r => r.Type == Bay.BayType.Helipad));
 
             if (startData.InternationalStations)
             {
@@ -842,7 +842,7 @@ namespace TheBusProject.Helpers
 
         private static void DoDailyUpdate()
         {
-            RunwayService.ProcessDaily();
+            BayService.ProcessDaily();
 
             // coach ordered in a fleet renewal take over their routes on delivery
             try
@@ -2796,26 +2796,26 @@ namespace TheBusProject.Helpers
                 StationHelpers.CheckForExtendGates(station);
             }
 
-            long longestRequiredRunwayLenght =
+            long longestRequiredBayLenght =
                 CoachTypes.GetTypes(
                     a =>
                     a.Produced.From <= GameObject.GetInstance().GameTime
-                    && a.Produced.To >= GameObject.GetInstance().GameTime).Max(a => a.MinRunwaylength);
+                    && a.Produced.To >= GameObject.GetInstance().GameTime).Max(a => a.MinBayLength);
 
 
             foreach (
                 Station station in
                     Stations.GetAllStations(
                         a =>
-                        a.Runways.Count > 0
-                        && a.Runways.Select(r => r.Length).Max() < longestRequiredRunwayLenght/2))
+                        a.Bays.Count > 0
+                        && a.Bays.Select(r => r.Length).Max() < longestRequiredBayLenght/2))
 
                 //Parallel.ForEach(
                 //    Stations.GetAllStations(
-                //        a => a.Runways.Count > 0 && a.Runways.Select(r => r.Length).Max() < longestRequiredRunwayLenght / 2),
+                //        a => a.Bays.Count > 0 && a.Bays.Select(r => r.Length).Max() < longestRequiredBayLenght / 2),
                 //    station =>
             {
-                StationHelpers.CheckForExtendRunway(station);
+                StationHelpers.CheckForExtendBay(station);
 
                 foreach (Cooperation cooperation in station.Cooperations)
                 {

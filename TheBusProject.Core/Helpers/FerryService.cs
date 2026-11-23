@@ -45,13 +45,13 @@ namespace TheBusProject.Helpers
 
         /// <summary>
         ///     Plans a ferry as a list of landings (the last one is the destination). A single hop when the coach can fly it,
-        ///     otherwise stops at stations on the way that its range and runway allow. Returns null when there is no way.
+        ///     otherwise stops at stations on the way that its range and bay allow. Returns null when there is no way.
         /// </summary>
         public static List<Station> Plan(FleetCoach f, Station from, Station to)
         {
             double range = f.Coach.Range*0.92;
-            long runway = f.Coach.MinRunwaylength;
-            if (to.GetMaxRunwayLength() < runway || from.GetMaxRunwayLength() < runway) return null;
+            long bay = f.Coach.MinBayLength;
+            if (to.GetMaxBayLength() < bay || from.GetMaxBayLength() < bay) return null;
             var path = new List<Station>();
             Station at = from;
             List<Station> pool = null;
@@ -63,7 +63,7 @@ namespace TheBusProject.Helpers
                     path.Add(to);
                     return path;
                 }
-                if (pool == null) pool = Stations.GetAllActiveStations().Where(a => a.GetMaxRunwayLength() >= runway && a.GetMaxRunwayLength() >= 1000).ToList();
+                if (pool == null) pool = Stations.GetAllActiveStations().Where(a => a.GetMaxBayLength() >= bay && a.GetMaxBayLength() >= 1000).ToList();
                 Station best = null;
                 double bestLeft = left*0.97;
                 foreach (Station c in pool)
@@ -123,9 +123,9 @@ namespace TheBusProject.Helpers
         /// <summary>Why the coach cannot ferry between two stations, or null when it can.</summary>
         public static string GetBlocker(FleetCoach f, Station from, Station to)
         {
-            if (f.Coach.MinRunwaylength > to.GetMaxRunwayLength()) return "the runway at " + to.Profile.IATACode + " is too short for it";
-            if (f.Coach.MinRunwaylength > from.GetMaxRunwayLength()) return "the runway at " + from.Profile.IATACode + " is too short for it";
-            if (Plan(f, from, to) == null) return "no way found with its range of " + DistanceFormatter(f.Coach.Range) + " and runway needs (" + DistanceFormatter(MathHelpers.GetDistance(from, to)) + " away)";
+            if (f.Coach.MinBayLength > to.GetMaxBayLength()) return "the bay at " + to.Profile.IATACode + " is too short for it";
+            if (f.Coach.MinBayLength > from.GetMaxBayLength()) return "the bay at " + from.Profile.IATACode + " is too short for it";
+            if (Plan(f, from, to) == null) return "no way found with its range of " + DistanceFormatter(f.Coach.Range) + " and bay needs (" + DistanceFormatter(MathHelpers.GetDistance(from, to)) + " away)";
             return null;
         }
 

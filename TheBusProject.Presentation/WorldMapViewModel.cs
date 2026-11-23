@@ -550,7 +550,7 @@ namespace TheBusProject.Presentation
                 var sb = new System.Text.StringBuilder();
                 sb.AppendLine(p.IATACode + " / " + p.ICAOCode + "  " + p.Name + (place.IsHub ? "  (your hub)" : ""));
                 sb.AppendLine(p.Town?.Name + ", " + p.Country?.Name);
-                sb.AppendLine("Size " + p.Size.ToString().Replace('_', ' ') + "  |  longest runway " + DistanceFormatter.Metres(station.GetMaxRunwayLength()));
+                sb.AppendLine("Size " + p.Size.ToString().Replace('_', ' ') + "  |  longest bay " + DistanceFormatter.Metres(station.GetMaxBayLength()));
 
                 int total = station.Terminals.GetNumberOfGates(Terminal.TerminalType.Passenger);
                 int free = station.Terminals.GetFreeGates(Terminal.TerminalType.Passenger);

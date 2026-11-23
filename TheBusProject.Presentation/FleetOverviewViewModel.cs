@@ -425,7 +425,7 @@ namespace TheBusProject.Presentation
                 Details.Add("Homebase: " + f.Homebase?.Profile.Name);
                 Details.Add("Condition: " + r.Condition + ", run " + DistanceFormatter.Km(a.Flown) + ", " + DistanceFormatter.Km(a.Flown - a.LastServiceCheck) + " since the last service");
                 Details.Add("Range: " + DistanceFormatter.Km(a.Range) + ", cruising speed " + DistanceFormatter.Speed(a.CruisingSpeed)
-                            + ", runway " + DistanceFormatter.Metres(a.MinRunwaylength));
+                            + ", bay " + DistanceFormatter.Metres(a.MinBayLength));
                 if (a.EngineType != null) Details.Add("Engine: " + EngineTypes.FullName(a.EngineType) + (EngineTypes.Describe(a.EngineType) == "" ? "" : " (" + EngineTypes.Describe(a.EngineType) + ")"));
                 Details.Add("Drivers: " + r.Crew);
                 Details.Add("Value: " + r.Value);

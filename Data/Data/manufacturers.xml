@@ -9,4 +9,8 @@
   <manufacturer name="General Motors" shortname="GM" country="122" />
   <manufacturer name="Flxible" shortname="Flxible" country="122" />
   <manufacturer name="Eagle Bus Manufacturing" shortname="Eagle" country="122" />
+  <manufacturer name="Caterpillar" shortname="Caterpillar" country="122" />
+  <manufacturer name="Cummins" shortname="Cummins" country="122" />
+  <manufacturer name="Detroit Diesel" shortname="Detroit" country="122" />
+  <manufacturer name="Volvo" shortname="Volvo" country="168" />
 </manufacturers>

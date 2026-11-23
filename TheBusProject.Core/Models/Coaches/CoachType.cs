@@ -28,7 +28,7 @@ namespace TheBusProject.Models.Coaches
             double weight,
             double consumption,
             long price,
-            long minRunwaylength,
+            long minBayLength,
             long fuelcapacity,
             BodyType body,
             TypeRange rangeType,
@@ -54,7 +54,7 @@ namespace TheBusProject.Models.Coaches
             Engine = engine;
             Body = body;
             RangeType = rangeType;
-            MinRunwaylength = minRunwaylength;
+            MinBayLength = minBayLength;
             FuelCapacity = fuelcapacity;
             IsStandardType = standardType;
             ProductionRate = prodRate;
@@ -171,8 +171,8 @@ namespace TheBusProject.Models.Coaches
         [Versioning("fuel")]
         public double FuelConsumption { get; set; }
 
-        [Versioning("runway")]
-        public long MinRunwaylength { get; set; }
+        [Versioning("bay")]
+        public long MinBayLength { get; set; }
 
         [Versioning("name")]
         public string Name { get; set; }
@@ -252,7 +252,7 @@ namespace TheBusProject.Models.Coaches
             double consumption,
             long price,
             int maxCoachClasses,
-            long minRunwaylength,
+            long minBayLength,
             long fuelcapacity,
             BodyType body,
             TypeRange rangeType,
@@ -274,7 +274,7 @@ namespace TheBusProject.Models.Coaches
                 weight,
                 consumption,
                 price,
-                minRunwaylength,
+                minBayLength,
                 fuelcapacity,
                 body,
                 rangeType,
@@ -348,7 +348,7 @@ namespace TheBusProject.Models.Coaches
             double consumption,
             long price,
             int maxCoachClasses,
-            long minRunwaylength,
+            long minBayLength,
             long fuelcapacity,
             BodyType body,
             TypeRange rangeType,
@@ -373,7 +373,7 @@ namespace TheBusProject.Models.Coaches
                 consumption,
                 price,
                 maxCoachClasses,
-                minRunwaylength,
+                minBayLength,
                 fuelcapacity,
                 body,
                 rangeType,
@@ -432,7 +432,7 @@ namespace TheBusProject.Models.Coaches
             double weight,
             double consumption,
             long price,
-            long minRunwaylength,
+            long minBayLength,
             long fuelcapacity,
             BodyType body,
             TypeRange rangeType,
@@ -454,7 +454,7 @@ namespace TheBusProject.Models.Coaches
                 weight,
                 consumption,
                 price,
-                minRunwaylength,
+                minBayLength,
                 fuelcapacity,
                 body,
                 rangeType,

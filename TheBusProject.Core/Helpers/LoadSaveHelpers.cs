@@ -349,20 +349,20 @@ namespace TheBusProject.Helpers
                             station.Profile.PaxValues.Add(paxValue);
                         }
 
-                        XmlNodeList runwaysList = stationNode.SelectNodes("runways/runway");
+                        XmlNodeList baysList = stationNode.SelectNodes("bays/bay");
 
-                        foreach (XmlElement runwayElement in runwaysList)
+                        foreach (XmlElement bayElement in baysList)
                         {
-                            string runwayName = runwayElement.Attributes["name"].Value;
-                            long runwayLenght = Convert.ToInt64(runwayElement.Attributes["lenght"].Value);
-                            var runwaySurface =
-                                (Runway.SurfaceType)
-                                TheBusProject.Infrastructure.DataParsing.ParseEnum(typeof (Runway.SurfaceType), runwayElement.Attributes["surface"].Value);
-                            DateTime runwayDate = DateTime.Parse(
-                                runwayElement.Attributes["date"].Value,
+                            string bayName = bayElement.Attributes["name"].Value;
+                            long bayLenght = Convert.ToInt64(bayElement.Attributes["lenght"].Value);
+                            var baySurface =
+                                (Bay.SurfaceType)
+                                TheBusProject.Infrastructure.DataParsing.ParseEnum(typeof (Bay.SurfaceType), bayElement.Attributes["surface"].Value);
+                            DateTime bayDate = DateTime.Parse(
+                                bayElement.Attributes["date"].Value,
                                 new CultureInfo("de-DE", false));
 
-                            station.Runways.Add(new Runway(runwayName, runwayLenght, Runway.RunwayType.Regular, runwaySurface, runwayDate, false));
+                            station.Bays.Add(new Bay(bayName, bayLenght, Bay.BayType.Regular, baySurface, bayDate, false));
                         }
 
                         XmlNodeList stationHubsList = stationNode.SelectNodes("hubs/hub");
@@ -1484,20 +1484,20 @@ namespace TheBusProject.Helpers
                 }
                 stationNode.AppendChild(stationPaxsNode);
 
-                XmlElement stationRunwaysNode = xmlDoc.CreateElement("runways");
+                XmlElement stationBaysNode = xmlDoc.CreateElement("bays");
 
-                foreach (Runway runway in station.Runways.FindAll(r => !r.Standard))
+                foreach (Bay bay in station.Bays.FindAll(r => !r.Standard))
                 {
-                    XmlElement stationRunwayNode = xmlDoc.CreateElement("runway");
-                    stationRunwayNode.SetAttribute("name", runway.Name);
-                    stationRunwayNode.SetAttribute("lenght", runway.Length.ToString(CultureInfo.InvariantCulture));
-                    stationRunwayNode.SetAttribute("surface", runway.Surface.ToString());
-                    stationRunwayNode.SetAttribute("date", runway.BuiltDate.ToString(new CultureInfo("de-DE")));
+                    XmlElement stationBayNode = xmlDoc.CreateElement("bay");
+                    stationBayNode.SetAttribute("name", bay.Name);
+                    stationBayNode.SetAttribute("lenght", bay.Length.ToString(CultureInfo.InvariantCulture));
+                    stationBayNode.SetAttribute("surface", bay.Surface.ToString());
+                    stationBayNode.SetAttribute("date", bay.BuiltDate.ToString(new CultureInfo("de-DE")));
 
-                    stationRunwaysNode.AppendChild(stationRunwayNode);
+                    stationBaysNode.AppendChild(stationBayNode);
                 }
 
-                stationNode.AppendChild(stationRunwaysNode);
+                stationNode.AppendChild(stationBaysNode);
 
                 XmlElement stationHubsNode = xmlDoc.CreateElement("hubs");
                 foreach (Hub hub in station.GetHubs(HubType.TypeOfHub.Hub))
