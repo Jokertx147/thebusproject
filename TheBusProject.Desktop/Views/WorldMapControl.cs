@@ -28,8 +28,13 @@ namespace TheBusProject.Desktop.Views
         private static readonly IBrush Sea = new SolidColorBrush(Color.Parse("#b5d0d0"));
         // the player's routes: a deep crimson that reads against the blue of the interstates they run on, with a
         // pale casing under it so the line stays visible where it lies along a road
-        private static readonly Pen RouteCasing = new Pen(new SolidColorBrush(Color.FromArgb(190, 255, 250, 240)), 4.2);
-        private static readonly Pen RoutePen = new Pen(new SolidColorBrush(Color.FromArgb(235, 164, 24, 58)), 2.0);
+        // A route runs down the interstate, and the point of drawing it on a map of the interstates is to see that it
+        // does. The casing used to be a near-solid white band wider than the road itself, which rubbed the road out
+        // along the whole length of the route and left it looking like a line drawn across open country. It is now a
+        // soft halo the road reads through, and the route itself is drawn a shade narrower than an interstate so the
+        // blue shows at both its edges.
+        private static readonly Pen RouteCasing = new Pen(new SolidColorBrush(Color.FromArgb(105, 255, 252, 245)), 3.6);
+        private static readonly Pen RoutePen = new Pen(new SolidColorBrush(Color.FromArgb(255, 170, 20, 55)), 1.5);
         private static readonly Pen CargoPen = new Pen(new SolidColorBrush(Color.FromArgb(170, 220, 120, 0)), 1.4, new DashStyle(new double[] { 4, 3 }, 0));
         private static readonly IBrush StationBrush = new SolidColorBrush(Color.Parse("#1d3f8a"));
         private static readonly IBrush HubBrush = new SolidColorBrush(Color.Parse("#c01818"));

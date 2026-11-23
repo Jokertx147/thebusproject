@@ -4846,6 +4846,27 @@ static class VmTest
     }
 
     /// <summary>"vm roads": the highway graph, and what a route looks like once it follows the interstates.</summary>
+    /// <summary>Every point of every road on the map, straight out of the file the map is drawn from.</summary>
+    static System.Collections.Generic.List<double[]> RoadPoints()
+    {
+        var pts = new System.Collections.Generic.List<double[]>();
+        string file = System.IO.Path.Combine(TheBusProject.Infrastructure.AppSettings.GetDataPath(), "graphics", "maps", "usmap.json");
+        using (var doc = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllBytes(file)))
+        {
+            var roads = doc.RootElement.GetProperty("roads");
+            foreach (string kind in new[] { "interstate", "us", "state" })
+            {
+                System.Text.Json.JsonElement set;
+                if (!roads.TryGetProperty(kind, out set)) continue;
+                foreach (var road in set.EnumerateArray())
+                    foreach (var p in road.GetProperty("p").EnumerateArray())
+                        pts.Add(new[] { p[1].GetDouble(), p[0].GetDouble() });
+            }
+        }
+
+        return pts;
+    }
+
     static void RoadsTest(CarrierViewModel av)
     {
         Console.WriteLine("ROADS TEST");
@@ -4879,6 +4900,37 @@ static class VmTest
         Console.WriteLine("  " + done + " routes found in " + sw.ElapsedMilliseconds + " ms, " + straight + " fell back to a straight line");
         if (done < 6) fail("too few pairs could be routed by road");
         if (sw.ElapsedMilliseconds > 20000) fail("the routing is too slow: " + sw.ElapsedMilliseconds + " ms");
+
+        // every turn of a drawn route has to be on a road: the graph snaps points about 8 km apart into one
+        // junction, and it used to put that junction in the middle of the grid square rather than on the road, so
+        // the line staircased across country a few km clear of the interstate it was supposed to be running down
+        var tarmac = RoadPoints();
+        Console.WriteLine("  " + tarmac.Count.ToString("#,0") + " road points to check against");
+        double worst = 0;
+        string worstAt = "";
+        foreach (var pair in new[] { new[] {"DAL","HOU"}, new[] {"DEN","SLC"}, new[] {"NYC","BOS"} })
+        {
+            var a = at(pair[0]).Profile.Coordinates.ConvertToGeoCoordinate();
+            var b = at(pair[1]).Profile.Coordinates.ConvertToGeoCoordinate();
+            var road = TheBusProject.Helpers.RoadNetwork.Path(a.Latitude, a.Longitude, b.Latitude, b.Longitude);
+            if (road == null) continue;
+            // the two ends are the stations themselves, which sit in a town and not on the carriageway
+            for (int i = 1; i < road.Count - 1; i++)
+            {
+                double near = double.MaxValue;
+                foreach (var p in tarmac)
+                {
+                    if (Math.Abs(p[0] - road[i][0]) > 0.3 || Math.Abs(p[1] - road[i][1]) > 0.3) continue;
+                    double d = Km(road[i][0], road[i][1], p[0], p[1]);
+                    if (d < near) near = d;
+                }
+
+                if (near > worst) { worst = near; worstAt = pair[0] + "-" + pair[1] + " at " + road[i][0].ToString("0.00") + "," + road[i][1].ToString("0.00"); }
+            }
+        }
+
+        Console.WriteLine("  furthest a turn of a route sits from a road: " + worst.ToString("0.00") + " km (" + worstAt + ")");
+        if (worst > 1) fail("a route turns " + worst.ToString("0.0") + " km off the road at " + worstAt);
 
         // the same pair again comes from the cache, and the coach slides along the same line
         var sw2 = System.Diagnostics.Stopwatch.StartNew();
