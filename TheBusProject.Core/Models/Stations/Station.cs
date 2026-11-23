@@ -79,7 +79,16 @@ namespace TheBusProject.Models.Stations
         public List<Hub> Hubs
         {
             private get { return GetHubs(); }
-            set { _hubs = value; }
+            // the list object itself is never swapped: every reader and writer takes its lock, and a new list
+            // here would leave two threads locking two different objects and guarding nothing
+            set
+            {
+                lock (_hubs)
+                {
+                    _hubs.Clear();
+                    if (value != null) _hubs.AddRange(value);
+                }
+            }
         }
 
         [Versioning("income")]
@@ -286,7 +295,7 @@ namespace TheBusProject.Models.Stations
 
         public void AddHub(Hub hub)
         {
-            _hubs.Add(hub);
+            lock (_hubs) _hubs.Add(hub);
         }
 
         //adds a major destination to the station
@@ -834,7 +843,7 @@ namespace TheBusProject.Models.Stations
         //removes a hub
         public void RemoveHub(Hub hub)
         {
-            _hubs.Remove(hub);
+            lock (_hubs) _hubs.Remove(hub);
         }
 
         //returns if an carrier have a hub
