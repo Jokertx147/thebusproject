@@ -6936,14 +6936,22 @@ static class VmTest
                 Console.WriteLine("  drivers tab: " + ni + " drivers for hire");
                 if (ni == 0) { Console.WriteLine("  FAILED drivers for hire"); Environment.Exit(1); }
 
-                // type training for a driver without an coach
+                // type training for a driver without a coach: hire one and leave him in the yard
+                if (pvm.Available.Count > 0)
+                {
+                    pvm.Selected = pvm.Available[0];
+                    pvm.HireCommand.Execute(null);
+                }
+
                 pvm.Reload();
                 Console.WriteLine("  your drivers: " + pvm.Hired.Count + ", marked without coach: " + pvm.Hired.Count(h => h.IsIdle));
                 var gradRow = pvm.Hired.FirstOrDefault(h => h.Driver == graduate);
                 if (gradRow == null) { Console.WriteLine("  FAILED the graduate isn't on the list"); Environment.Exit(1); }
                 // with automatic assignment on, a graduate can be put straight on a coach; idle only if he wasn't
                 if (gradRow.IsIdle != (graduate.Coach == null)) { Console.WriteLine("  FAILED idle marker"); Environment.Exit(1); }
-                pvm.TrainDriver = pvm.TrainDrivers.First(c => c.Value == graduate);
+                // the graduate may already be on a coach, and only drivers without one can be sent for training
+                pvm.TrainDriver = pvm.TrainDrivers.FirstOrDefault(c => c.Value == graduate) ?? pvm.TrainDrivers.FirstOrDefault();
+                if (pvm.TrainDriver == null) { Console.WriteLine("  FAILED no driver free to train"); Environment.Exit(1); }
                 Console.WriteLine("  train: " + pvm.TrainDrivers.Count + " driver(s) without coach, " + pvm.TrainFamilies.Count + " families, first: " + pvm.TrainFamilies[0].Name + " | " + pvm.TrainHint);
                 string tf = pvm.TrainFamilies[0].Value;
                 double mTrain = gs.HumanMoney;
