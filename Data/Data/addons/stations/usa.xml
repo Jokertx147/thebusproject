@@ -741,4 +741,1936 @@
       <bay name="Platform A" length="14" surface="Asphalt" />
     </bays>
   </station>
+  <station name="Albany Bus Terminal" icao="KALB" iata="ALB" type="Domestic" season="AllYear">
+    <town town="Albany, NY" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="042°39'09''N" />
+      <longitude value="073°45'22''W" />
+    </coordinates>
+    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <terminals>
+      <terminal name="Main concourse" gates="8" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Allentown Bus Terminal" icao="KABE" iata="ABE" type="Domestic" season="AllYear">
+    <town town="Allentown, PA" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="040°36'30''N" />
+      <longitude value="075°29'25''W" />
+    </coordinates>
+    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <terminals>
+      <terminal name="Main concourse" gates="8" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Amarillo Bus Station" icao="KAMA" iata="AMA" type="Domestic" season="AllYear">
+    <town town="Amarillo, TX" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="035°13'19''N" />
+      <longitude value="101°49'53''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Asheville Bus Station" icao="KAVL" iata="AVL" type="Domestic" season="AllYear">
+    <town town="Asheville, NC" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="035°35'42''N" />
+      <longitude value="082°33'05''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Atlantic City Bus Station" icao="KACY" iata="ACY" type="Domestic" season="AllYear">
+    <town town="Atlantic City, NJ" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="039°21'51''N" />
+      <longitude value="074°25'22''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Augusta Bus Station" icao="KAGS" iata="AGS" type="Domestic" season="AllYear">
+    <town town="Augusta, GA" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="033°28'25''N" />
+      <longitude value="081°58'29''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Baton Rouge Bus Terminal" icao="KBTR" iata="BTR" type="Domestic" season="AllYear">
+    <town town="Baton Rouge, LA" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="030°27'05''N" />
+      <longitude value="091°11'14''W" />
+    </coordinates>
+    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <terminals>
+      <terminal name="Main concourse" gates="8" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Billings Bus Station" icao="KBIL" iata="BIL" type="Domestic" season="AllYear">
+    <town town="Billings, MT" country="122" GMT="-07:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="045°47'00''N" />
+      <longitude value="108°30'03''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Birmingham Bus Terminal" icao="KBHM" iata="BHM" type="Domestic" season="AllYear">
+    <town town="Birmingham, AL" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="033°31'07''N" />
+      <longitude value="086°48'37''W" />
+    </coordinates>
+    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <terminals>
+      <terminal name="Main concourse" gates="8" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Boise Bus Terminal" icao="KBOI" iata="BOI" type="Domestic" season="AllYear">
+    <town town="Boise, ID" country="122" GMT="-07:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="043°36'54''N" />
+      <longitude value="116°12'08''W" />
+    </coordinates>
+    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <terminals>
+      <terminal name="Main concourse" gates="8" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Bridgeport Bus Station" icao="KBDR" iata="BDR" type="Domestic" season="AllYear">
+    <town town="Bridgeport, CT" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="041°11'11''N" />
+      <longitude value="073°11'43''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Buffalo Bus Terminal" icao="KBUF" iata="BUF" type="Domestic" season="AllYear">
+    <town town="Buffalo, NY" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="042°53'11''N" />
+      <longitude value="078°52'42''W" />
+    </coordinates>
+    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <terminals>
+      <terminal name="Main concourse" gates="8" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Burlington Bus Station" icao="KBTV" iata="BTV" type="Domestic" season="AllYear">
+    <town town="Burlington, VT" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="044°28'33''N" />
+      <longitude value="073°12'44''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Cedar Rapids Bus Station" icao="KCID" iata="CID" type="Domestic" season="AllYear">
+    <town town="Cedar Rapids, IA" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="041°58'40''N" />
+      <longitude value="091°39'56''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Champaign Bus Station" icao="KCMI" iata="CMI" type="Domestic" season="AllYear">
+    <town town="Champaign, IL" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="040°06'59''N" />
+      <longitude value="088°14'36''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Charleston Bus Station" icao="KCHS" iata="CHS" type="Domestic" season="AllYear">
+    <town town="Charleston, SC" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="032°46'35''N" />
+      <longitude value="079°55'52''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Charleston Bus Station" icao="KCRW" iata="CRW" type="Domestic" season="AllYear">
+    <town town="Charleston, WV" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="038°20'59''N" />
+      <longitude value="081°37'57''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Chattanooga Bus Station" icao="KCHA" iata="CHA" type="Domestic" season="AllYear">
+    <town town="Chattanooga, TN" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="035°02'44''N" />
+      <longitude value="085°18'35''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Cheyenne Bus Station" icao="KCYS" iata="CYS" type="Domestic" season="AllYear">
+    <town town="Cheyenne, WY" country="122" GMT="-07:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="041°08'24''N" />
+      <longitude value="104°49'13''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Colorado Springs Bus Terminal" icao="KCOS" iata="COS" type="Domestic" season="AllYear">
+    <town town="Colorado Springs, CO" country="122" GMT="-07:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="038°50'02''N" />
+      <longitude value="104°49'17''W" />
+    </coordinates>
+    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <terminals>
+      <terminal name="Main concourse" gates="8" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Columbia Bus Station" icao="KCAE" iata="CAE" type="Domestic" season="AllYear">
+    <town town="Columbia, SC" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="034°00'03''N" />
+      <longitude value="081°02'05''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Columbus Bus Station" icao="KCSG" iata="CSG" type="Domestic" season="AllYear">
+    <town town="Columbus, GA" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="032°27'40''N" />
+      <longitude value="084°59'16''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Corpus Christi Bus Station" icao="KCRP" iata="CRP" type="Domestic" season="AllYear">
+    <town town="Corpus Christi, TX" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="027°48'02''N" />
+      <longitude value="097°23'47''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Dayton Bus Terminal" icao="KDAY" iata="DAY" type="Domestic" season="AllYear">
+    <town town="Dayton, OH" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="039°45'32''N" />
+      <longitude value="084°11'30''W" />
+    </coordinates>
+    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <terminals>
+      <terminal name="Main concourse" gates="8" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Des Moines Bus Terminal" icao="KDSM" iata="DSM" type="Domestic" season="AllYear">
+    <town town="Des Moines, IA" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="041°35'12''N" />
+      <longitude value="093°37'30''W" />
+    </coordinates>
+    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <terminals>
+      <terminal name="Main concourse" gates="8" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Duluth Bus Station" icao="KDLH" iata="DLH" type="Domestic" season="AllYear">
+    <town town="Duluth, MN" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="046°47'12''N" />
+      <longitude value="092°06'02''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Erie Bus Station" icao="KERI" iata="ERI" type="Domestic" season="AllYear">
+    <town town="Erie, PA" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="042°07'45''N" />
+      <longitude value="080°05'06''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Eugene Bus Station" icao="KEUG" iata="EUG" type="Domestic" season="AllYear">
+    <town town="Eugene, OR" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="044°03'08''N" />
+      <longitude value="123°05'12''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Evansville Bus Station" icao="KEVV" iata="EVV" type="Domestic" season="AllYear">
+    <town town="Evansville, IN" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="037°58'18''N" />
+      <longitude value="087°34'16''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Fargo Bus Station" icao="KFAR" iata="FAR" type="Domestic" season="AllYear">
+    <town town="Fargo, ND" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="046°52'38''N" />
+      <longitude value="096°47'23''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Fayetteville Bus Station" icao="KFYV" iata="FYV" type="Domestic" season="AllYear">
+    <town town="Fayetteville, AR" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="036°03'45''N" />
+      <longitude value="094°09'27''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Fayetteville Bus Station" icao="KFAY" iata="FAY" type="Domestic" season="AllYear">
+    <town town="Fayetteville, NC" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="035°03'10''N" />
+      <longitude value="078°52'42''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Flagstaff Bus Station" icao="KFLG" iata="FLG" type="Domestic" season="AllYear">
+    <town town="Flagstaff, AZ" country="122" GMT="-07:00:00" DST="00:00:00" />
+    <coordinates>
+      <latitude value="035°11'54''N" />
+      <longitude value="111°39'05''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Flint Bus Station" icao="KFNT" iata="FNT" type="Domestic" season="AllYear">
+    <town town="Flint, MI" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="043°00'45''N" />
+      <longitude value="083°41'15''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Fort Collins Bus Station" icao="KFNL" iata="FNL" type="Domestic" season="AllYear">
+    <town town="Fort Collins, CO" country="122" GMT="-07:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="040°35'07''N" />
+      <longitude value="105°05'04''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Fort Myers Bus Station" icao="KRSW" iata="RSW" type="Domestic" season="AllYear">
+    <town town="Fort Myers, FL" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="026°38'26''N" />
+      <longitude value="081°52'20''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Fort Smith Bus Station" icao="KFSM" iata="FSM" type="Domestic" season="AllYear">
+    <town town="Fort Smith, AR" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="035°23'09''N" />
+      <longitude value="094°23'55''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Gainesville Bus Station" icao="KGNV" iata="GNV" type="Domestic" season="AllYear">
+    <town town="Gainesville, FL" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="029°39'06''N" />
+      <longitude value="082°19'29''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Grand Junction Bus Station" icao="KGJT" iata="GJT" type="Domestic" season="AllYear">
+    <town town="Grand Junction, CO" country="122" GMT="-07:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="039°03'50''N" />
+      <longitude value="108°33'02''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Grand Rapids Bus Terminal" icao="KGRR" iata="GRR" type="Domestic" season="AllYear">
+    <town town="Grand Rapids, MI" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="042°57'48''N" />
+      <longitude value="085°40'05''W" />
+    </coordinates>
+    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <terminals>
+      <terminal name="Main concourse" gates="8" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Great Falls Bus Station" icao="KGTF" iata="GTF" type="Domestic" season="AllYear">
+    <town town="Great Falls, MT" country="122" GMT="-07:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="047°30'01''N" />
+      <longitude value="111°18'03''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Green Bay Bus Station" icao="KGRB" iata="GRB" type="Domestic" season="AllYear">
+    <town town="Green Bay, WI" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="044°30'48''N" />
+      <longitude value="088°00'48''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Greensboro Bus Terminal" icao="KGSO" iata="GSO" type="Domestic" season="AllYear">
+    <town town="Greensboro, NC" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="036°04'21''N" />
+      <longitude value="079°47'31''W" />
+    </coordinates>
+    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <terminals>
+      <terminal name="Main concourse" gates="8" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Greenville Bus Station" icao="KGSP" iata="GSP" type="Domestic" season="AllYear">
+    <town town="Greenville, SC" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="034°51'09''N" />
+      <longitude value="082°23'38''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Harrisburg Bus Station" icao="KHAR" iata="HAR" type="Domestic" season="AllYear">
+    <town town="Harrisburg, PA" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="040°16'24''N" />
+      <longitude value="076°53'12''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Hartford Bus Terminal" icao="KHFD" iata="HFD" type="Domestic" season="AllYear">
+    <town town="Hartford, CT" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="041°45'57''N" />
+      <longitude value="072°40'24''W" />
+    </coordinates>
+    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <terminals>
+      <terminal name="Main concourse" gates="8" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Huntsville Bus Station" icao="KHSV" iata="HSV" type="Domestic" season="AllYear">
+    <town town="Huntsville, AL" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="034°43'49''N" />
+      <longitude value="086°35'10''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Jackson Bus Station" icao="KJAN" iata="JAN" type="Domestic" season="AllYear">
+    <town town="Jackson, MS" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="032°17'56''N" />
+      <longitude value="090°11'05''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Johnson City Bus Station" icao="KTRI" iata="TRI" type="Domestic" season="AllYear">
+    <town town="Johnson City, TN" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="036°18'48''N" />
+      <longitude value="082°21'13''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Joplin Bus Station" icao="KJLN" iata="JLN" type="Domestic" season="AllYear">
+    <town town="Joplin, MO" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="037°05'03''N" />
+      <longitude value="094°30'48''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Kalamazoo Bus Station" icao="KAZO" iata="AZO" type="Domestic" season="AllYear">
+    <town town="Kalamazoo, MI" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="042°17'30''N" />
+      <longitude value="085°35'14''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Knoxville Bus Station" icao="KTYS" iata="TYS" type="Domestic" season="AllYear">
+    <town town="Knoxville, TN" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="035°57'38''N" />
+      <longitude value="083°55'15''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Lafayette Bus Station" icao="KLFT" iata="LFT" type="Domestic" season="AllYear">
+    <town town="Lafayette, LA" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="030°13'27''N" />
+      <longitude value="092°01'11''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Lancaster Bus Station" icao="KLNS" iata="LNS" type="Domestic" season="AllYear">
+    <town town="Lancaster, PA" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="040°02'16''N" />
+      <longitude value="076°18'20''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Lansing Bus Station" icao="KLAN" iata="LAN" type="Domestic" season="AllYear">
+    <town town="Lansing, MI" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="042°43'57''N" />
+      <longitude value="084°33'20''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Laredo Bus Station" icao="KLRD" iata="LRD" type="Domestic" season="AllYear">
+    <town town="Laredo, TX" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="027°31'50''N" />
+      <longitude value="099°28'49''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Las Cruces Bus Station" icao="KLRU" iata="LRU" type="Domestic" season="AllYear">
+    <town town="Las Cruces, NM" country="122" GMT="-07:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="032°19'12''N" />
+      <longitude value="106°45'49''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Lexington Bus Station" icao="KLEX" iata="LEX" type="Domestic" season="AllYear">
+    <town town="Lexington, KY" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="038°02'26''N" />
+      <longitude value="084°30'13''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Lincoln Bus Station" icao="KLNK" iata="LNK" type="Domestic" season="AllYear">
+    <town town="Lincoln, NE" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="040°48'49''N" />
+      <longitude value="096°42'09''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Little Rock Bus Terminal" icao="KLIT" iata="LIT" type="Domestic" season="AllYear">
+    <town town="Little Rock, AR" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="034°44'47''N" />
+      <longitude value="092°17'23''W" />
+    </coordinates>
+    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <terminals>
+      <terminal name="Main concourse" gates="8" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Lubbock Bus Station" icao="KLBB" iata="LBB" type="Domestic" season="AllYear">
+    <town town="Lubbock, TX" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="033°34'40''N" />
+      <longitude value="101°51'19''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Macon Bus Station" icao="KMCN" iata="MCN" type="Domestic" season="AllYear">
+    <town town="Macon, GA" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="032°50'27''N" />
+      <longitude value="083°37'57''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Madison Bus Station" icao="KMSN" iata="MSN" type="Domestic" season="AllYear">
+    <town town="Madison, WI" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="043°04'23''N" />
+      <longitude value="089°24'04''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Manchester Bus Station" icao="KMHT" iata="MHT" type="Domestic" season="AllYear">
+    <town town="Manchester, NH" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="042°59'44''N" />
+      <longitude value="071°27'17''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="McAllen Bus Station" icao="KMFE" iata="MFE" type="Domestic" season="AllYear">
+    <town town="McAllen, TX" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="026°12'12''N" />
+      <longitude value="098°13'48''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Medford Bus Station" icao="KMFR" iata="MFR" type="Domestic" season="AllYear">
+    <town town="Medford, OR" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="042°19'35''N" />
+      <longitude value="122°52'32''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Mobile Bus Station" icao="KMOB" iata="MOB" type="Domestic" season="AllYear">
+    <town town="Mobile, AL" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="030°41'43''N" />
+      <longitude value="088°02'24''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Modesto Bus Station" icao="KMOD" iata="MOD" type="Domestic" season="AllYear">
+    <town town="Modesto, CA" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="037°38'21''N" />
+      <longitude value="120°59'49''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Monterey Bus Station" icao="KMRY" iata="MRY" type="Domestic" season="AllYear">
+    <town town="Monterey, CA" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="036°36'01''N" />
+      <longitude value="121°53'41''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Montgomery Bus Station" icao="KMGM" iata="MGM" type="Domestic" season="AllYear">
+    <town town="Montgomery, AL" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="032°22'00''N" />
+      <longitude value="086°18'00''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Myrtle Beach Bus Station" icao="KMYR" iata="MYR" type="Domestic" season="AllYear">
+    <town town="Myrtle Beach, SC" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="033°41'21''N" />
+      <longitude value="078°53'12''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Naples Bus Station" icao="KAPF" iata="APF" type="Domestic" season="AllYear">
+    <town town="Naples, FL" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="026°08'31''N" />
+      <longitude value="081°47'41''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="New Haven Bus Station" icao="KHVN" iata="HVN" type="Domestic" season="AllYear">
+    <town town="New Haven, CT" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="041°18'30''N" />
+      <longitude value="072°55'40''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Norfolk Bus Terminal" icao="KORF" iata="ORF" type="Domestic" season="AllYear">
+    <town town="Norfolk, VA" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="036°51'03''N" />
+      <longitude value="076°17'09''W" />
+    </coordinates>
+    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <terminals>
+      <terminal name="Main concourse" gates="8" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Ogden Bus Station" icao="KOGD" iata="OGD" type="Domestic" season="AllYear">
+    <town town="Ogden, UT" country="122" GMT="-07:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="041°13'23''N" />
+      <longitude value="111°58'26''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Oxnard Bus Station" icao="KOXR" iata="OXR" type="Domestic" season="AllYear">
+    <town town="Oxnard, CA" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="034°11'51''N" />
+      <longitude value="119°10'38''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Palm Springs Bus Station" icao="KPSP" iata="PSP" type="Domestic" season="AllYear">
+    <town town="Palm Springs, CA" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="033°49'49''N" />
+      <longitude value="116°32'43''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Pensacola Bus Station" icao="KPNS" iata="PNS" type="Domestic" season="AllYear">
+    <town town="Pensacola, FL" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="030°25'17''N" />
+      <longitude value="087°13'01''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Peoria Bus Station" icao="KPIA" iata="PIA" type="Domestic" season="AllYear">
+    <town town="Peoria, IL" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="040°41'37''N" />
+      <longitude value="089°35'20''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Pocatello Bus Station" icao="KPIH" iata="PIH" type="Domestic" season="AllYear">
+    <town town="Pocatello, ID" country="122" GMT="-07:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="042°52'17''N" />
+      <longitude value="112°26'44''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Portland Bus Station" icao="KPWM" iata="PWM" type="Domestic" season="AllYear">
+    <town town="Portland, ME" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="043°39'33''N" />
+      <longitude value="070°15'24''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Providence Bus Terminal" icao="KPVD" iata="PVD" type="Domestic" season="AllYear">
+    <town town="Providence, RI" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="041°49'26''N" />
+      <longitude value="071°24'46''W" />
+    </coordinates>
+    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <terminals>
+      <terminal name="Main concourse" gates="8" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Pueblo Bus Station" icao="KPUB" iata="PUB" type="Domestic" season="AllYear">
+    <town town="Pueblo, CO" country="122" GMT="-07:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="038°15'16''N" />
+      <longitude value="104°36'33''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Rapid City Bus Station" icao="KRAP" iata="RAP" type="Domestic" season="AllYear">
+    <town town="Rapid City, SD" country="122" GMT="-07:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="044°04'50''N" />
+      <longitude value="103°13'52''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Reading Bus Station" icao="KRDG" iata="RDG" type="Domestic" season="AllYear">
+    <town town="Reading, PA" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="040°20'08''N" />
+      <longitude value="075°55'37''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Redding Bus Station" icao="KRDD" iata="RDD" type="Domestic" season="AllYear">
+    <town town="Redding, CA" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="040°35'11''N" />
+      <longitude value="122°23'30''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Reno Bus Station" icao="KRNO" iata="RNO" type="Domestic" season="AllYear">
+    <town town="Reno, NV" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="039°31'47''N" />
+      <longitude value="119°48'50''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Roanoke Bus Station" icao="KROA" iata="ROA" type="Domestic" season="AllYear">
+    <town town="Roanoke, VA" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="037°16'16''N" />
+      <longitude value="079°56'29''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Rochester Bus Terminal" icao="KROC" iata="ROC" type="Domestic" season="AllYear">
+    <town town="Rochester, NY" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="043°09'24''N" />
+      <longitude value="077°36'32''W" />
+    </coordinates>
+    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <terminals>
+      <terminal name="Main concourse" gates="8" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Rockford Bus Station" icao="KRFD" iata="RFD" type="Domestic" season="AllYear">
+    <town town="Rockford, IL" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="042°16'16''N" />
+      <longitude value="089°05'38''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Roswell Bus Station" icao="KROW" iata="ROW" type="Domestic" season="AllYear">
+    <town town="Roswell, NM" country="122" GMT="-07:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="033°23'39''N" />
+      <longitude value="104°31'23''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Saginaw Bus Station" icao="KMBS" iata="MBS" type="Domestic" season="AllYear">
+    <town town="Saginaw, MI" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="043°25'10''N" />
+      <longitude value="083°57'03''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Salem Bus Station" icao="KSLE" iata="SLE" type="Domestic" season="AllYear">
+    <town town="Salem, OR" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="044°56'34''N" />
+      <longitude value="123°02'06''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Salinas Bus Station" icao="KSNS" iata="SNS" type="Domestic" season="AllYear">
+    <town town="Salinas, CA" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="036°40'40''N" />
+      <longitude value="121°39'20''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="San Bernardino Bus Terminal" icao="KSBD" iata="SBD" type="Domestic" season="AllYear">
+    <town town="San Bernardino, CA" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="034°06'30''N" />
+      <longitude value="117°17'23''W" />
+    </coordinates>
+    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <terminals>
+      <terminal name="Main concourse" gates="8" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="San Luis Obispo Bus Station" icao="KSBP" iata="SBP" type="Domestic" season="AllYear">
+    <town town="San Luis Obispo, CA" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="035°16'58''N" />
+      <longitude value="120°39'35''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Santa Barbara Bus Station" icao="KSBA" iata="SBA" type="Domestic" season="AllYear">
+    <town town="Santa Barbara, CA" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="034°25'15''N" />
+      <longitude value="119°41'54''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Santa Fe Bus Station" icao="KSAF" iata="SAF" type="Domestic" season="AllYear">
+    <town town="Santa Fe, NM" country="122" GMT="-07:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="035°41'13''N" />
+      <longitude value="105°56'16''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Savannah Bus Station" icao="KSAV" iata="SAV" type="Domestic" season="AllYear">
+    <town town="Savannah, GA" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="032°04'51''N" />
+      <longitude value="081°05'28''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Scranton Bus Station" icao="KAVP" iata="AVP" type="Domestic" season="AllYear">
+    <town town="Scranton, PA" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="041°24'32''N" />
+      <longitude value="075°39'45''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Shreveport Bus Station" icao="KSHV" iata="SHV" type="Domestic" season="AllYear">
+    <town town="Shreveport, LA" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="032°31'31''N" />
+      <longitude value="093°45'01''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Sioux Falls Bus Station" icao="KFSD" iata="FSD" type="Domestic" season="AllYear">
+    <town town="Sioux Falls, SD" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="043°32'46''N" />
+      <longitude value="096°43'53''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="South Bend Bus Station" icao="KSBN" iata="SBN" type="Domestic" season="AllYear">
+    <town town="South Bend, IN" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="041°40'35''N" />
+      <longitude value="086°15'07''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Spokane Bus Station" icao="KGEG" iata="GEG" type="Domestic" season="AllYear">
+    <town town="Spokane, WA" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="047°39'32''N" />
+      <longitude value="117°25'34''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Springfield Bus Station" icao="KSPI" iata="SPI" type="Domestic" season="AllYear">
+    <town town="Springfield, IL" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="039°46'54''N" />
+      <longitude value="089°39'00''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Springfield Bus Station" icao="KSFY" iata="SFY" type="Domestic" season="AllYear">
+    <town town="Springfield, MA" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="042°06'05''N" />
+      <longitude value="072°35'23''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Springfield Bus Station" icao="KSGF" iata="SGF" type="Domestic" season="AllYear">
+    <town town="Springfield, MO" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="037°12'32''N" />
+      <longitude value="093°17'32''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Stockton Bus Station" icao="KSCK" iata="SCK" type="Domestic" season="AllYear">
+    <town town="Stockton, CA" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="037°57'28''N" />
+      <longitude value="121°17'27''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Syracuse Bus Station" icao="KSYR" iata="SYR" type="Domestic" season="AllYear">
+    <town town="Syracuse, NY" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="043°02'53''N" />
+      <longitude value="076°08'51''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Tallahassee Bus Station" icao="KTLH" iata="TLH" type="Domestic" season="AllYear">
+    <town town="Tallahassee, FL" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="030°26'18''N" />
+      <longitude value="084°16'51''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Toledo Bus Station" icao="KTOL" iata="TOL" type="Domestic" season="AllYear">
+    <town town="Toledo, OH" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="041°39'10''N" />
+      <longitude value="083°32'16''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Topeka Bus Station" icao="KFOE" iata="FOE" type="Domestic" season="AllYear">
+    <town town="Topeka, KS" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="039°02'50''N" />
+      <longitude value="095°40'31''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Trenton Bus Station" icao="KTTN" iata="TTN" type="Domestic" season="AllYear">
+    <town town="Trenton, NJ" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="040°13'02''N" />
+      <longitude value="074°44'34''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Tuscaloosa Bus Station" icao="KTCL" iata="TCL" type="Domestic" season="AllYear">
+    <town town="Tuscaloosa, AL" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="033°12'35''N" />
+      <longitude value="087°34'09''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Tyler Bus Station" icao="KTYR" iata="TYR" type="Domestic" season="AllYear">
+    <town town="Tyler, TX" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="032°21'05''N" />
+      <longitude value="095°18'04''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Utica Bus Station" icao="KUCA" iata="UCA" type="Domestic" season="AllYear">
+    <town town="Utica, NY" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="043°06'03''N" />
+      <longitude value="075°13'58''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Victoria Bus Station" icao="KVCT" iata="VCT" type="Domestic" season="AllYear">
+    <town town="Victoria, TX" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="028°48'19''N" />
+      <longitude value="097°00'13''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Waco Bus Station" icao="KACT" iata="ACT" type="Domestic" season="AllYear">
+    <town town="Waco, TX" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="031°32'57''N" />
+      <longitude value="097°08'48''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Wichita Bus Terminal" icao="KICT" iata="ICT" type="Domestic" season="AllYear">
+    <town town="Wichita, KS" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="037°41'14''N" />
+      <longitude value="097°19'48''W" />
+    </coordinates>
+    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <terminals>
+      <terminal name="Main concourse" gates="8" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Wilmington Bus Station" icao="KILG" iata="ILG" type="Domestic" season="AllYear">
+    <town town="Wilmington, DE" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="039°44'21''N" />
+      <longitude value="075°32'23''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Wilmington Bus Station" icao="KILM" iata="ILM" type="Domestic" season="AllYear">
+    <town town="Wilmington, NC" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="034°13'33''N" />
+      <longitude value="077°56'41''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Winston-Salem Bus Station" icao="KINT" iata="INT" type="Domestic" season="AllYear">
+    <town town="Winston-Salem, NC" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="036°06'00''N" />
+      <longitude value="080°14'39''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Worcester Bus Station" icao="KORH" iata="ORH" type="Domestic" season="AllYear">
+    <town town="Worcester, MA" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="042°15'45''N" />
+      <longitude value="071°48'08''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Yakima Bus Station" icao="KYKM" iata="YKM" type="Domestic" season="AllYear">
+    <town town="Yakima, WA" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="046°36'08''N" />
+      <longitude value="120°30'21''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Youngstown Bus Station" icao="KYNG" iata="YNG" type="Domestic" season="AllYear">
+    <town town="Youngstown, OH" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="041°05'59''N" />
+      <longitude value="080°38'58''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Yuma Bus Station" icao="KYUM" iata="YUM" type="Domestic" season="AllYear">
+    <town town="Yuma, AZ" country="122" GMT="-07:00:00" DST="00:00:00" />
+    <coordinates>
+      <latitude value="032°41'34''N" />
+      <longitude value="114°37'40''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Ann Arbor Bus Station" icao="KANN" iata="ANN" type="Domestic" season="AllYear">
+    <town town="Ann Arbor, MI" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="042°16'51''N" />
+      <longitude value="083°44'35''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Bangor Bus Station" icao="KBGR" iata="BGR" type="Domestic" season="AllYear">
+    <town town="Bangor, ME" country="122" GMT="-05:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="044°48'04''N" />
+      <longitude value="068°46'40''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Bismarck Bus Station" icao="KBIS" iata="BIS" type="Domestic" season="AllYear">
+    <town town="Bismarck, ND" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="046°48'30''N" />
+      <longitude value="100°47'01''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Columbia Bus Station" icao="KCLU" iata="CLU" type="Domestic" season="AllYear">
+    <town town="Columbia, MO" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="038°57'06''N" />
+      <longitude value="092°20'03''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Ephrata Bus Station" icao="KEPH" iata="EPH" type="Domestic" season="AllYear">
+    <town town="Ephrata, WA" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="047°19'03''N" />
+      <longitude value="119°33'13''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Gallup Bus Station" icao="KGUP" iata="GUP" type="Domestic" season="AllYear">
+    <town town="Gallup, NM" country="122" GMT="-07:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="035°31'41''N" />
+      <longitude value="108°44'33''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Idaho Falls Bus Station" icao="KIDA" iata="IDA" type="Domestic" season="AllYear">
+    <town town="Idaho Falls, ID" country="122" GMT="-07:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="043°29'30''N" />
+      <longitude value="112°02'02''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Missoula Bus Station" icao="KMSO" iata="MSO" type="Domestic" season="AllYear">
+    <town town="Missoula, MT" country="122" GMT="-07:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="046°52'20''N" />
+      <longitude value="113°59'38''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Ontario Bus Station" icao="KONT" iata="ONT" type="Domestic" season="AllYear">
+    <town town="Ontario, CA" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="034°03'48''N" />
+      <longitude value="117°39'03''W" />
+    </coordinates>
+    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <terminals>
+      <terminal name="Main concourse" gates="5" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="14" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="San Angelo Bus Station" icao="KSJT" iata="SJT" type="Domestic" season="AllYear">
+    <town town="San Angelo, TX" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="031°27'50''N" />
+      <longitude value="100°26'13''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Winnemucca Bus Station" icao="KVEG" iata="VEG" type="Domestic" season="AllYear">
+    <town town="Winnemucca, NV" country="122" GMT="-08:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="040°58'23''N" />
+      <longitude value="117°44'09''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
+  <station name="Wichita Falls Bus Station" icao="KWIC" iata="WIC" type="Domestic" season="AllYear">
+    <town town="Wichita Falls, TX" country="122" GMT="-06:00:00" DST="01:00:00" />
+    <coordinates>
+      <latitude value="033°54'49''N" />
+      <longitude value="098°29'36''W" />
+    </coordinates>
+    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <terminals>
+      <terminal name="Main concourse" gates="3" />
+    </terminals>
+    <bays>
+      <bay name="Platform A" length="13" surface="Asphalt" />
+    </bays>
+  </station>
 </stations>

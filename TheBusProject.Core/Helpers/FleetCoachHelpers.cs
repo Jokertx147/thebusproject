@@ -511,13 +511,28 @@ namespace TheBusProject.Helpers
             coach.Coach.BuiltDate = builtDate;
         }
 
+        /// <summary>
+        ///     What the carrier's own garage at the coach's home station takes off a service bill, and off the days it
+        ///     is out of the road: nothing without one, up to 40% with a regional workshop. A maintenance base is worth
+        ///     having where the fleet sleeps.
+        /// </summary>
+        public static double GarageDiscount(FleetCoach coach)
+        {
+            Station home = coach.Homebase;
+            Carrier carrier = coach.Coach?.Carrier;
+            if (home == null || carrier == null) return 0;
+            int level = home.GetCurrentStationFacility(carrier, StationFacility.FacilityType.Service).TypeLevel;
+            return Math.Min(0.4, 0.1*level);
+        }
+
         //does the maintenance of a given type, sends the invoice, updates the last/next maintenance, and improves the coach's damage
         //make sure you pass this function a string value of either "A" "B" "C" or "D" or it will throw an error!
         public static void DoMaintenance(FleetCoach coach)
         {
             if (coach.SchedAMaintenance == GameObject.GetInstance().GameTime.Date)
             {
-                double expense = (coach.Coach.GetValue()*0.01) + 2000;
+                // a service: oil, filters, brakes checked over
+                double expense = ((coach.Coach.GetValue()*0.004) + 300)*(1 - GarageDiscount(coach));
                 var maintCheck = new Invoice(GameObject.GetInstance().GameTime, Invoice.InvoiceType.Maintenances, -expense);
                 CarrierHelpers.AddCarrierInvoice(coach.Coach.Carrier, GameObject.GetInstance().GameTime, Invoice.InvoiceType.Maintenances, -expense);
                 coach.Coach.Condition += Rnd.Next(3, 10);
@@ -529,7 +544,8 @@ namespace TheBusProject.Helpers
 
             if (coach.SchedBMaintenance == GameObject.GetInstance().GameTime.Date)
             {
-                double expense = (coach.Coach.GetValue()*0.02) + 4500;
+                // a major service
+                double expense = ((coach.Coach.GetValue()*0.008) + 900)*(1 - GarageDiscount(coach));
                 var maintCheck = new Invoice(GameObject.GetInstance().GameTime, Invoice.InvoiceType.Maintenances, -expense);
                 CarrierHelpers.AddCarrierInvoice(coach.Coach.Carrier, GameObject.GetInstance().GameTime, Invoice.InvoiceType.Maintenances, -expense);
                 coach.Coach.Condition += Rnd.Next(12, 20);
@@ -541,8 +557,9 @@ namespace TheBusProject.Helpers
 
             if (coach.SchedCMaintenance == GameObject.GetInstance().GameTime.Date)
             {
-                double expense = (coach.Coach.GetValue()*0.025) + 156000;
-                coach.OOSDate = coach.SchedCMaintenance.AddDays(coach.Coach.Condition + 20);
+                // an overhaul: the engine or the transmission comes out, and the coach is off the road for a fortnight
+                double expense = ((coach.Coach.GetValue()*0.02) + 9000)*(1 - GarageDiscount(coach));
+                coach.OOSDate = coach.SchedCMaintenance.AddDays((int) Math.Round(14*(1 - GarageDiscount(coach))));
                 var maintCheck = new Invoice(GameObject.GetInstance().GameTime, Invoice.InvoiceType.Maintenances, -expense);
                 CarrierHelpers.AddCarrierInvoice(coach.Coach.Carrier, GameObject.GetInstance().GameTime, Invoice.InvoiceType.Maintenances, -expense);
                 coach.Coach.Condition += Rnd.Next(20, 30);
@@ -561,8 +578,9 @@ namespace TheBusProject.Helpers
 
             if (coach.SchedDMaintenance == GameObject.GetInstance().GameTime.Date)
             {
-                double expense = (coach.Coach.GetValue()*0.03) + 1200000;
-                coach.OOSDate = coach.SchedDMaintenance.AddDays(coach.Coach.Condition + 50);
+                // a rebuild: the coach is stripped back and put together again, a month in the shop
+                double expense = ((coach.Coach.GetValue()*0.035) + 25000)*(1 - GarageDiscount(coach));
+                coach.OOSDate = coach.SchedDMaintenance.AddDays((int) Math.Round(30*(1 - GarageDiscount(coach))));
                 var maintCheck = new Invoice(GameObject.GetInstance().GameTime, Invoice.InvoiceType.Maintenances, -expense);
                 CarrierHelpers.AddCarrierInvoice(coach.Coach.Carrier, GameObject.GetInstance().GameTime, Invoice.InvoiceType.Maintenances, -expense);
                 coach.Coach.Condition += Rnd.Next(35, 50);

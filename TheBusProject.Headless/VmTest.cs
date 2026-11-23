@@ -4682,6 +4682,77 @@ static class VmTest
         Environment.Exit(0);
     }
 
+    /// <summary>"vm upgrade": re-powering a coach you own, and what a garage of your own does to the bill.</summary>
+    static void UpgradeTest(CarrierViewModel av)
+    {
+        Console.WriteLine("UPGRADE TEST");
+        Action<string> fail = m => { Console.WriteLine("  FAILED " + m); Environment.Exit(1); };
+        var g = TheBusProject.Models.General.GameObject.GetInstance();
+        var me = g.HumanCarrier;
+        var mk = av.Market;
+
+        // an old coach off the market, which is what gets re-powered in real life
+        foreach (var item in mk.Coach.OrderBy(x => x.Coach.BuiltDate)) { mk.Selected = item; if (mk.Homebase != null) break; }
+        mk.BuyCommand.Execute(null);
+        av.Refresh();
+        var f = me.Fleet.Last();
+        f.Status = TheBusProject.Models.Coaches.FleetCoach.CoachStatus.Stopped;
+        Console.WriteLine("  " + f.Name + " " + f.Coach.Type.Name + ", built " + f.Coach.BuiltDate.Year
+                          + ", engine " + (f.Coach.EngineType == null ? "as built" : TheBusProject.Models.Coaches.EngineTypes.FullName(f.Coach.EngineType))
+                          + ", " + f.Coach.FuelConsumption.ToString("0.0000") + " l/seat/km, " + f.Coach.Range + " km");
+
+        var up = new TheBusProject.Presentation.CoachUpgradeViewModel(f);
+        Console.WriteLine("  " + up.Title);
+        foreach (var r in up.Rows) Console.WriteLine("    " + r.Text + (r.CanDo ? "" : "  [" + r.Reason + "]"));
+        if (!up.HasAny) fail("no engine offered for " + f.Coach.Type.Name);
+        if (up.Rows.Any(r => r.Upgrade.Engine == f.Coach.EngineType)) fail("the engine it already has was offered");
+
+        // the bill, and the same bill with a garage at its home station
+        double plain = up.Rows[0].Upgrade.Price;
+        int plainDays = up.Rows[0].Upgrade.Days;
+        var home = f.Homebase;
+        var garage = TheBusProject.Models.Stations.StationFacilities
+                         .GetFacilities(TheBusProject.Models.Stations.StationFacility.FacilityType.Service)
+                         .OrderByDescending(x => x.TypeLevel).First();
+        Console.WriteLine("  garage at " + home.Profile.IATACode + " before: level "
+                          + home.GetCurrentStationFacility(me, TheBusProject.Models.Stations.StationFacility.FacilityType.Service).TypeLevel);
+        home.AddStationFacility(me, garage, g.GameTime.AddDays(1));
+        TheBusProject.Helpers.GameObjectHelpers.SimulateTurn();   // the workshop opens tomorrow
+        f.Status = TheBusProject.Models.Coaches.FleetCoach.CoachStatus.Stopped;
+        var up2 = new TheBusProject.Presentation.CoachUpgradeViewModel(f);
+        double withGarage = up2.Rows[0].Upgrade.Price;
+        int garageDays = up2.Rows[0].Upgrade.Days;
+        Console.WriteLine("  " + garage.Name + " at " + home.Profile.IATACode + ": "
+                          + plain.ToString("N0") + " over " + plainDays + " days becomes "
+                          + withGarage.ToString("N0") + " over " + garageDays + " days");
+        if (withGarage >= plain || garageDays >= plainDays) fail("the garage made no difference");
+
+        // and it happens: the engine changes, the money goes, the coach is in the shop
+        double money0 = me.Money;
+        var want = up2.Rows[0].Upgrade;
+        double oldFuel = f.Coach.FuelConsumption;
+        up2.DoCommand.Execute(null);
+        Console.WriteLine("  " + up2.Status);
+        if (f.Coach.EngineType != want.Engine) fail("the engine didn't change");
+        if (Math.Abs((money0 - me.Money) - want.Price) > 1) fail("the money doesn't match the price: " + (money0 - me.Money).ToString("N0"));
+        if (f.OOSDate <= g.GameTime) fail("the coach isn't in the shop");
+        Console.WriteLine("  fuel " + oldFuel.ToString("0.0000") + " -> " + f.Coach.FuelConsumption.ToString("0.0000")
+                          + " l/seat/km, range now " + f.Coach.Range + " km, back on the road " + f.OOSDate.ToString("d"));
+        if (Math.Abs(f.Coach.FuelConsumption - f.Coach.Type.FuelConsumption*want.Engine.ConsumptationModifier) > 1e-9) fail("the fuel figure didn't follow the engine");
+
+        // a coach on a route cannot have its engine out
+        var running = me.Fleet.FirstOrDefault(x => x.Routes.Count > 0);
+        if (running != null)
+        {
+            running.Status = TheBusProject.Models.Coaches.FleetCoach.CoachStatus.OnRoute;
+            var up3 = new TheBusProject.Presentation.CoachUpgradeViewModel(running);
+            if (up3.Rows.Any(r => r.CanDo)) fail("a running coach was offered a re-power");
+            Console.WriteLine("  " + running.Name + " is running: " + up3.Rows.First().Reason);
+        }
+        Console.WriteLine("UPGRADE TEST OK");
+        Environment.Exit(0);
+    }
+
     static void QuickTests(CarrierViewModel av)
     {
         Console.WriteLine("STATION TYPE TEST");
@@ -5538,6 +5609,7 @@ static class VmTest
             await Wait(() => shell.Current is CarrierViewModel, "game created");
             var av = (CarrierViewModel)shell.Current;
             Console.WriteLine("CARRIER SCREEN: " + av.CarrierName + " " + av.Date + " " + av.Money + " fleet=" + av.Fleet.Count + " routes=" + av.Routes.Count + " running=" + av.IsRunning);
+            if (Environment.GetCommandLineArgs().Contains("upgrade")) { UpgradeTest(av); return; }
             if (Environment.GetCommandLineArgs().Contains("milestone")) { MilestoneTest(av); return; }
             if (Environment.GetCommandLineArgs().Contains("quick")) { QuickTests(av); return; }
             if (Environment.GetCommandLineArgs().Contains("cargo")) { CargoProbe(); return; }

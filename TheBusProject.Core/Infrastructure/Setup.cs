@@ -1630,10 +1630,11 @@ namespace TheBusProject.Infrastructure
 
         private static void CreateHubTypes()
         {
-            HubTypes.AddHubType(new HubType("Hub", 50000, HubType.TypeOfHub.Hub));
-            HubTypes.AddHubType(new HubType("Regional hub", 40000, HubType.TypeOfHub.RegionalHub));
-            HubTypes.AddHubType(new HubType("Focus city", 25000, HubType.TypeOfHub.FocusCity));
-            HubTypes.AddHubType(new HubType("Fortress hub", 75000, HubType.TypeOfHub.FortressHub));
+            // what a coach carrier calls them, and what one costs to set up at a station
+            HubTypes.AddHubType(new HubType("Hub", 40000, HubType.TypeOfHub.Hub));
+            HubTypes.AddHubType(new HubType("Regional hub", 30000, HubType.TypeOfHub.RegionalHub));
+            HubTypes.AddHubType(new HubType("Division point", 18000, HubType.TypeOfHub.FocusCity));
+            HubTypes.AddHubType(new HubType("Dominant hub", 60000, HubType.TypeOfHub.FortressHub));
         }
 
         private static void CreateDriverRatings()

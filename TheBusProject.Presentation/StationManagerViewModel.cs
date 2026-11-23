@@ -947,8 +947,8 @@ namespace TheBusProject.Presentation
             switch (type)
             {
                 case HubType.TypeOfHub.Hub: return "+20% passenger demand on trips to this station";
-                case HubType.TypeOfHub.RegionalHub: return "+20% demand on trips from the same world region";
-                case HubType.TypeOfHub.FocusCity: return "+15% demand on domestic trips";
+                case HubType.TypeOfHub.RegionalHub: return "+20% demand on trips from the same part of the country";
+                case HubType.TypeOfHub.FocusCity: return "+15% demand, and a place for the drivers to change over";
                 case HubType.TypeOfHub.FortressHub: return "+30% passenger demand on trips to this station";
                 default: return "";
             }
