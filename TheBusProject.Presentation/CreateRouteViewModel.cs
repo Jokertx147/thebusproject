@@ -239,6 +239,35 @@ namespace TheBusProject.Presentation
             }
         }
 
+        /// <summary>
+        ///     Where the coach stops to let everybody stretch their legs, leg by leg. Needs a coach chosen, since
+        ///     how often a driver has to stop depends on how fast it goes.
+        /// </summary>
+        public string BreaksText
+        {
+            get
+            {
+                if (Coach == null || Coach.Coach == null) return "";
+
+                var calls = new List<Station> { _origin };
+                calls.AddRange(Stops);
+                calls.Add(_destination);
+
+                var lines = new List<string>();
+                for (int i = 0; i < calls.Count - 1; i++)
+                {
+                    var leg = new PassengerRoute("breaks", calls[i], calls[i + 1], GameObject.GetInstance().GameTime, 0);
+                    var rests = RouteStops.BreaksAlong(leg, Coach.Coach.Type);
+                    if (rests.Count == 0) continue;
+                    lines.Add(calls[i].Profile.IATACode + " - " + calls[i + 1].Profile.IATACode + ": "
+                              + RouteStops.DescribeBreaks(leg, Coach.Coach.Type));
+                }
+
+                if (lines.Count == 0) return "No leg is long enough to need a rest break.";
+                return "Rest breaks: " + string.Join("; ", lines) + ".";
+            }
+        }
+
         /// <summary>Why the service as it stands can't be run, or null.</summary>
         public string StopsProblem
         {
@@ -363,6 +392,7 @@ namespace TheBusProject.Presentation
             RefreshCoachChoices();
             RefreshStopChoices();
             OnPropertyChanged("StopsText");
+            OnPropertyChanged("BreaksText");
             OnPropertyChanged("StopsProblem");
             OnPropertyChanged("HasStopsProblem");
             RefreshSchedule();
@@ -446,6 +476,7 @@ namespace TheBusProject.Presentation
                 {
                     SetDefaultTurnaround();
                     RefreshSchedule();
+                    OnPropertyChanged("BreaksText");
                 }
             }
         }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Device.Location;
 using System.Linq;
 using TheBusProject.Models.Coaches;
 using TheBusProject.Models.Routes;
@@ -287,6 +288,164 @@ namespace TheBusProject.Helpers
             }
 
             return sum;
+        }
+
+        /// <summary>
+        ///     A rest break on a leg: where the coach pulls in, how far into the driving it happens and for how
+        ///     long. The town is the one the road passes closest to at that point, and it is null only when the leg
+        ///     crosses country empty enough that there is nowhere to name.
+        /// </summary>
+        public class RestStop
+        {
+            public Station Town { get; set; }
+
+            /// <summary>Hours at the wheel before the coach stops.</summary>
+            public double HoursIn { get; set; }
+
+            public int Minutes { get; set; }
+
+            /// <summary>How far the town sits off the road at that point, in km.</summary>
+            public double OffRoadKm { get; set; }
+
+            /// <summary>The town, not the depot: a break is "Tuscaloosa, 25 min", not the name of a terminal.</summary>
+            public string Where
+            {
+                get
+                {
+                    if (Town == null) return "a rest stop";
+                    return Town.Profile.Town != null && !string.IsNullOrEmpty(Town.Profile.Town.Name)
+                               ? Town.Profile.Town.Name
+                               : Town.Profile.Name;
+                }
+            }
+
+            public override string ToString()
+            {
+                return Where + ", " + Minutes + " min";
+            }
+        }
+
+        /// <summary>How far a town may sit off the road and still be where the coach takes its break.</summary>
+        private const double BreakTownKm = 70;
+
+        /// <summary>
+        ///     How much of the leg the break may slide along the road to reach a town. A driver does not stop at a
+        ///     map reference, they stop where there is a counter and a lavatory, and they will press on or pull in
+        ///     early to reach one.
+        /// </summary>
+        private const double BreakSlide = 0.22;
+
+        /// <summary>
+        ///     The rest breaks on a leg, as places rather than as minutes. A driver stops every four and a half
+        ///     hours, and stops somewhere: this walks the road the coach actually drives and names the town it
+        ///     reaches when the break is due, the way a Greyhound schedule reads "Lordsburg, 25 min".
+        /// </summary>
+        public static List<RestStop> BreaksAlong(Route leg, CoachType type)
+        {
+            var stops = new List<RestStop>();
+            if (leg == null || type == null) return stops;
+
+            double hours = leg.GetDistance()/Math.Max(1, type.CruisingSpeed);
+            int count = BreaksOn(hours);
+            if (count == 0) return stops;
+
+            var a = leg.Destination1.Profile.Coordinates.ConvertToGeoCoordinate();
+            var b = leg.Destination2.Profile.Coordinates.ConvertToGeoCoordinate();
+            List<double[]> path = RoadNetwork.Path(a.Latitude, a.Longitude, b.Latitude, b.Longitude);
+
+            var taken = new List<Station> { leg.Destination1, leg.Destination2 };
+            for (int k = 1; k <= count; k++)
+            {
+                // spread the breaks evenly over the drive rather than stacking them every four and a half hours
+                // from the start, which on a nine hour leg put the second one six minutes before arrival. Two
+                // breaks on nine hours is a stop at three hours and another at six, which is how it is really done
+                double at = hours*k/(count + 1.0);
+                var stop = new RestStop { HoursIn = at, Minutes = BreakMinutes };
+                double fr = Math.Max(0.05, Math.Min(0.95, at/hours));
+
+                // the best town beside the road: close to the carriageway, and as near as may be to where the
+                // break is due. A town a little further on is a better rest stop than one nowhere near the road.
+                double best = double.MaxValue;
+                foreach (Station town in Stations.GetAllActiveStations())
+                {
+                    if (taken.Contains(town)) continue;
+                    var c = town.Profile.Coordinates.ConvertToGeoCoordinate();
+
+                    double offRoad;
+                    double along = Beside(path, a, b, c, out offRoad);
+                    if (offRoad > BreakTownKm) continue;
+                    double slide = Math.Abs(along - fr);
+                    if (slide > BreakSlide) continue;
+
+                    double score = offRoad + slide*leg.GetDistance();
+                    if (score < best)
+                    {
+                        best = score;
+                        stop.Town = town;
+                        stop.OffRoadKm = offRoad;
+                        stop.HoursIn = hours*along;
+                    }
+                }
+
+                if (stop.Town != null) taken.Add(stop.Town);
+                stops.Add(stop);
+            }
+
+            return stops;
+        }
+
+        /// <summary>
+        ///     How far along the road a town sits, as a share of the way, and how far off it is. Without a road to
+        ///     follow it falls back to the straight line between the ends.
+        /// </summary>
+        private static double Beside(List<double[]> path, GeoCoordinate a, GeoCoordinate b, GeoCoordinate town, out double offRoadKm)
+        {
+            if (path == null || path.Count < 2)
+            {
+                double whole = MathHelpers.GetDistance(a, b);
+                double toA = MathHelpers.GetDistance(a, town);
+                offRoadKm = Math.Max(0, toA + MathHelpers.GetDistance(town, b) - whole)/2;
+                return whole <= 0 ? 0 : Math.Max(0, Math.Min(1, toA/whole));
+            }
+
+            // the nearest point of the road, and how far along the road that point is
+            var steps = new double[path.Count];
+            double total = 0;
+            for (int i = 1; i < path.Count; i++)
+            {
+                total += MathHelpers.GetDistance(new GeoCoordinate(path[i - 1][0], path[i - 1][1]), new GeoCoordinate(path[i][0], path[i][1]));
+                steps[i] = total;
+            }
+
+            double near = double.MaxValue, at = 0;
+            for (int i = 0; i < path.Count; i++)
+            {
+                double km = MathHelpers.GetDistance(new GeoCoordinate(path[i][0], path[i][1]), town);
+                if (km < near)
+                {
+                    near = km;
+                    at = steps[i];
+                }
+            }
+
+            offRoadKm = near;
+            return total <= 0 ? 0 : at/total;
+        }
+
+        /// <summary>The breaks on a leg as a line for a schedule: "Lordsburg, 25 min after 4h30".</summary>
+        public static string DescribeBreaks(Route leg, CoachType type)
+        {
+            var stops = BreaksAlong(leg, type);
+            if (stops.Count == 0) return "no break";
+            return string.Join(", ", stops.Select(
+                                   s => s.Where + " after " + Clock(s.HoursIn) + " (" + s.Minutes + " min)"));
+        }
+
+        /// <summary>Hours at the wheel as a driver would say them: 2h59, never 2h60.</summary>
+        private static string Clock(double hours)
+        {
+            var t = TimeSpan.FromMinutes(Math.Round(hours*60));
+            return (int) t.TotalHours + "h" + t.Minutes.ToString("00");
         }
 
         /// <summary>The road from one call to another, leg by leg, the way the coach actually drives it.</summary>

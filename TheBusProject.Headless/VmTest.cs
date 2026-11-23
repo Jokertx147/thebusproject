@@ -4932,6 +4932,30 @@ static class VmTest
         Console.WriteLine("  furthest a turn of a route sits from a road: " + worst.ToString("0.00") + " km (" + worstAt + ")");
         if (worst > 1) fail("a route turns " + worst.ToString("0.0") + " km off the road at " + worstAt);
 
+        // a break has to happen somewhere, right across the country and not just on the one service the stops
+        // test runs. The empty west is the hard case: a leg through Nevada may have nowhere worth stopping.
+        var anyCoach = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().OrderBy(t => t.CruisingSpeed).FirstOrDefault();
+        if (anyCoach != null)
+        {
+            var longPairs = new[] { new[] {"DEN","SLC"}, new[] {"LAX","DEN"}, new[] {"CHI","DEN"}, new[] {"SEA","SLC"},
+                                    new[] {"DAL","PHX"}, new[] {"MIA","DAL"}, new[] {"NYC","CHI"}, new[] {"ATL","NYC"} };
+            int rests = 0, withTown = 0;
+            double farthest = 0;
+            foreach (var pair in longPairs)
+            {
+                var r = new TheBusProject.Models.Routes.PassengerRoute("probe", at(pair[0]), at(pair[1]), TheBusProject.Models.General.GameObject.GetInstance().GameTime, 0);
+                foreach (var rest in TheBusProject.Helpers.RouteStops.BreaksAlong(r, anyCoach))
+                {
+                    rests++;
+                    if (rest.Town != null) { withTown++; farthest = Math.Max(farthest, rest.OffRoadKm); }
+                }
+            }
+
+            Console.WriteLine("  breaks across the country: " + withTown + " of " + rests + " have a town, the furthest " + farthest.ToString("0") + " km off the road");
+            if (rests < 8) fail("eight long runs produced only " + rests + " breaks");
+            if (withTown < rests*0.75) fail("only " + withTown + " of " + rests + " breaks could be given a town");
+        }
+
         // the same pair again comes from the cache, and the coach slides along the same line
         var sw2 = System.Diagnostics.Stopwatch.StartNew();
         var dal = at("DAL").Profile.Coordinates.ConvertToGeoCoordinate();
@@ -5014,6 +5038,8 @@ static class VmTest
         planner.SelectedCoach = planner.Coaches.FirstOrDefault(c => c.Coach == f) ?? planner.Coaches.Last();
         if (planner.SelectedCoach.Coach == null) fail("no coach can work the service even with the stops in");
         Console.WriteLine("  the planner says: " + planner.StopsText);
+        Console.WriteLine("  and about breaks: " + planner.BreaksText);
+        if (string.IsNullOrEmpty(planner.BreaksText)) fail("the planner says nothing about the rest breaks");
         if (!planner.Stops.Contains(lit) || !planner.Stops.Contains(phx)) fail("the stops the player asked for are gone");
         if (planner.Stops.IndexOf(lit) > planner.Stops.IndexOf(phx)) fail("the stops are out of order: " + string.Join(", ", planner.Stops.Select(x => x.Profile.IATACode)));
         if (planner.HasStopsProblem) fail("the planner refuses it: " + planner.StopsProblem);
@@ -5044,6 +5070,32 @@ static class VmTest
                                         legOne.Destination1.Profile.IATACode, legOne.Destination2.Profile.IATACode,
                                         drivingHours, breaks, withBreaks));
         if (breaks > 0 && withBreaks < drivingHours + breaks*0.4) fail("the breaks aren't in the trip time");
+
+        // and the breaks happen somewhere: a town on the road, not just a gap in the timetable
+        int named = 0, allBreaks = 0;
+        double furthestOff = 0;
+        foreach (var leg in legs)
+        {
+            var rests = TheBusProject.Helpers.RouteStops.BreaksAlong(leg, f.Coach.Type);
+            Console.WriteLine("    " + leg.Destination1.Profile.IATACode + " - " + leg.Destination2.Profile.IATACode
+                              + ": " + TheBusProject.Helpers.RouteStops.DescribeBreaks(leg, f.Coach.Type));
+            foreach (var r in rests)
+            {
+                allBreaks++;
+                if (r.Town != null) { named++; furthestOff = Math.Max(furthestOff, r.OffRoadKm); }
+                if (r.Town == leg.Destination1 || r.Town == leg.Destination2) fail("a break is at one of the leg's own ends");
+                if (r.HoursIn <= 0 || r.HoursIn >= leg.GetDistance()/f.Coach.Type.CruisingSpeed) fail("a break falls outside the drive");
+            }
+
+            if (rests.Count != TheBusProject.Helpers.RouteStops.BreaksOn(leg.GetDistance()/f.Coach.Type.CruisingSpeed))
+                fail("the named breaks don't match the number the hours call for on " + leg.Destination1.Profile.IATACode + " - " + leg.Destination2.Profile.IATACode);
+        }
+
+        Console.WriteLine("  " + named + " of " + allBreaks + " breaks have a town, the furthest " + furthestOff.ToString("0") + " km off the road");
+        if (allBreaks == 0) fail("a 3,942 km service takes no breaks at all");
+        // one break with nowhere to name is fair on a transcontinental run -- there are stretches of the west with
+        // no town near enough to be worth stopping at -- but two means the naming has stopped working
+        if (named < allBreaks - 1) fail("the breaks are mostly nowhere: " + named + " of " + allBreaks + " named");
 
         // and a fare between every pair of places on the line
         var calls = TheBusProject.Helpers.RouteStops.Calls(route);

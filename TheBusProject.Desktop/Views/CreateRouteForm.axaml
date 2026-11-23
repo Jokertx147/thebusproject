@@ -33,6 +33,7 @@
     <StackPanel Spacing="6">
       <TextBlock Text="Stops along the way" />
       <TextBlock Text="{Binding StopsText}" TextWrapping="Wrap" Opacity="0.75" />
+      <TextBlock Text="{Binding BreaksText}" TextWrapping="Wrap" Opacity="0.75" />
       <TextBlock Text="{Binding StopsProblem}" TextWrapping="Wrap" Foreground="#c0392b" IsVisible="{Binding HasStopsProblem}" />
       <Grid ColumnDefinitions="*,Auto,Auto">
         <ComboBox Grid.Column="0" ItemsSource="{Binding StopChoices}" SelectedItem="{Binding ChosenStop}" HorizontalAlignment="Stretch">
