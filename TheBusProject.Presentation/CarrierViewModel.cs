@@ -365,6 +365,13 @@ namespace TheBusProject.Presentation
 
         public const int StatisticsTabIndex = 18;
 
+
+        /// <summary>"1 route" or "4 routes": the counted things on the screens read properly either way.</summary>
+        public static string Count(int n, string one, string many)
+        {
+            return n.ToString("#,0") + " " + (n == 1 ? one : many);
+        }
+
         /// <summary>My Carrier > Best and worst: the routes, or the coach, that earn most and least.</summary>
         public ProfitRankingViewModel Ranking { get; }
 
@@ -765,8 +772,11 @@ namespace TheBusProject.Presentation
                 }
 
                 Summary = string.Format(
-                    "{0} coaches, {1} routes, {2} weekly trips, {3} stations",
-                    fleet.Count, routes.Count, entries.Count, carrier.Stations.Count);
+                    "{0}, {1}, {2}, {3}",
+                    Count(fleet.Count, "coach", "coaches"),
+                    Count(routes.Count, "route", "routes"),
+                    Count(entries.Count, "weekly trip", "weekly trips"),
+                    Count(carrier.Stations.Count, "station", "stations"));
                 OnPropertyChanged(nameof(Summary));
             }
 

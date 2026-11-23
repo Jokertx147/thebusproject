@@ -104,12 +104,14 @@ namespace TheBusProject.Desktop.Views
                 foreach (Geometry g in _land) ctx.DrawGeometry(Land, null, g);
                 ctx.DrawGeometry(null, new Pen(LandEdgeBrush, px), _borders);
 
-                if (scale > 9000 && _stateHighways != null)
-                    ctx.DrawGeometry(null, new Pen(StateBrush, px*1.1), _stateHighways);
-                if (scale > 3200 && _usHighways != null)
-                    ctx.DrawGeometry(null, new Pen(UsBrush, px*1.2), _usHighways);
+                // the whole country at once is the interstates and nothing else: 4,000 US routes at that zoom is a
+                // web, not a map. They come in as the view narrows to a few states, the state highways to about one.
+                if (scale > 14000 && _stateHighways != null)
+                    ctx.DrawGeometry(null, new Pen(StateBrush, px*1.0), _stateHighways);
+                if (scale > 6000 && _usHighways != null)
+                    ctx.DrawGeometry(null, new Pen(UsBrush, px*1.1), _usHighways);
                 if (_interstates != null)
-                    ctx.DrawGeometry(null, new Pen(InterstateBrush, px*(scale > 3200 ? 1.8 : 1.3)), _interstates);
+                    ctx.DrawGeometry(null, new Pen(InterstateBrush, px*(scale > 6000 ? 1.8 : 1.4)), _interstates);
             }
         }
 

@@ -8,6 +8,7 @@ using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using TheBusProject.Desktop.Views;
 using TheBusProject.Helpers;
 using TheBusProject.Models.General;
 using TheBusProject.Presentation;
@@ -170,6 +171,15 @@ namespace TheBusProject.Desktop
                 await Settle();
                 Save(window, "00b-map-network");
                 Log("map: " + av.Map.Coach.Count + " coaches, " + av.Map.Lines.Count + " lines drawn");
+
+                // and closer in, where the US routes come in and a route can be seen running along the interstate
+                var map = window.GetVisualDescendants().OfType<WorldMapControl>().FirstOrDefault();
+                if (map != null)
+                {
+                    map.ZoomBy(6);
+                    await Settle();
+                    Save(window, "00c-map-closer");
+                }
 
                 // My Carrier > Statistics
                 av.Page = PageOf("My Carrier");

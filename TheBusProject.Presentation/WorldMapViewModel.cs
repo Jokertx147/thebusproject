@@ -1121,8 +1121,17 @@ namespace TheBusProject.Presentation
             OnPropertyChanged(nameof(HasSelection));
             OnPropertyChanged(nameof(SelectedText));
             int mine = coach.Count(a => a.IsMine);
-            Caption = string.Format("{0} coaches ({1} on the road), {2} routes, {3} stations", mine, coach.Count(a => a.IsMine && a.InTrip), lines.Count(l => l.Color == null), places.Count(p => !p.IsRivalOnly))
-                      + (lines.Any(l => l.Color != null) ? string.Format("  |  rivals shown: {0} coaches ({1} on the road), {2} routes", coach.Count - mine, coach.Count(a => !a.IsMine && a.InTrip), lines.Count(l => l.Color != null)) : "");
+            Caption = string.Format("{0} ({1} on the road), {2}, {3}",
+                                    CarrierViewModel.Count(mine, "coach", "coaches"),
+                                    coach.Count(a => a.IsMine && a.InTrip),
+                                    CarrierViewModel.Count(lines.Count(l => l.Color == null), "route", "routes"),
+                                    CarrierViewModel.Count(places.Count(p => !p.IsRivalOnly), "station", "stations"))
+                      + (lines.Any(l => l.Color != null)
+                             ? string.Format("  |  rivals shown: {0} ({1} on the road), {2}",
+                                             CarrierViewModel.Count(coach.Count - mine, "coach", "coaches"),
+                                             coach.Count(a => !a.IsMine && a.InTrip),
+                                             CarrierViewModel.Count(lines.Count(l => l.Color != null), "route", "routes"))
+                             : "");
             Changed?.Invoke();
         }
     }
