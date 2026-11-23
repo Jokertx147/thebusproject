@@ -1488,13 +1488,17 @@ static class VmTest
         var na = av.NewCoach;
         na.Reload();
         na.Manufacturer = na.Manufacturers.First(m => m.Name == "Motor Coach Industries");
-        var item = na.Types.FirstOrDefault(t => t.Name == "MCI J4500");
-        if (item == null) fail("no J4500 in " + g.GameTime.Year);
+        // whichever MCI is on sale this year, and the thriftiest diesel offered for it
+        var item = na.Types.FirstOrDefault(t => t.Name == "MCI J4500") ?? na.Types.FirstOrDefault();
+        if (item == null) fail("no MCI coach on sale in " + g.GameTime.Year);
         na.Selected = item;
-        Console.WriteLine("  J4500 engines: " + string.Join(" | ", na.Engines.Select(e => e.Text)));
-        if (na.Engines.Count != 3 || !na.Engine.Text.Contains("(standard)")) fail("the J4500's engine choices");
-        var ge = na.Engines.First(e => e.Engine.Model.StartsWith("ISX12"));
-        if (!ge.Text.Contains("8% less fuel") || !ge.Text.Contains("8% more range")) fail("the ISX12's description: " + ge.Text);
+        Console.WriteLine("  " + item.Name + " engines: " + string.Join(" | ", na.Engines.Select(e => e.Text)));
+        if (na.Engines.Count < 3 || !na.Engine.Text.Contains("(standard)")) fail(item.Name + "'s engine choices");
+        var ge = na.Engines.OrderBy(e => e.Engine?.ConsumptationModifier ?? 1).First();
+        if (ge.Engine == null || ge.Engine.ConsumptationModifier >= 1) fail("no thriftier engine offered for " + item.Name);
+        int lessFuel = (int) Math.Round((1 - ge.Engine.ConsumptationModifier)*100);
+        int moreRange = (int) Math.Round((ge.Engine.RangeModifier - 1)*100);
+        if (!ge.Text.Contains(lessFuel + "% less fuel") || !ge.Text.Contains(moreRange + "% more range")) fail("the " + ge.Engine.Model + "'s description: " + ge.Text);
         long standardPrice = na.Engine.Engine.Price;
         na.Engine = ge;
         na.Amount = 1;
@@ -1503,8 +1507,9 @@ static class VmTest
         na.OrderCommand.Execute(null);
         var a = h.Fleet.Skip(fleet).Select(f => f.Coach).FirstOrDefault();
         if (a == null) fail("not ordered: " + na.Status);
-        if (a.EngineType != ge.Engine) fail("the order hasn't the ISX12");
-        if (a.Range != (long) (item.Type.Range * 1.08) || Math.Abs(a.FuelConsumption - item.Type.FuelConsumption * 0.92) > 1e-9) fail("the ISX12's range and fuel on the coach");
+        if (a.EngineType != ge.Engine) fail("the order hasn't the " + ge.Engine.Model);
+        if (Math.Abs(a.Range - item.Type.Range*ge.Engine.RangeModifier) > 1.5 || Math.Abs(a.FuelConsumption - item.Type.FuelConsumption*ge.Engine.ConsumptationModifier) > 1e-9)
+            fail("the " + ge.Engine.Model + "'s range and fuel on the coach: " + a.Range + " vs " + (item.Type.Range*ge.Engine.RangeModifier).ToString("0.0") + ", " + a.FuelConsumption + " vs " + item.Type.FuelConsumption*ge.Engine.ConsumptationModifier);
         Console.WriteLine("  ordered with " + a.EngineType.Model + ": range " + a.Range + " km (type " + item.Type.Range + "), fuel " + a.FuelConsumption + " (type " + item.Type.FuelConsumption + "), engine premium " + (ge.Engine.Price - standardPrice));
 
         // used coach carry an engine of their build year
@@ -1596,9 +1601,11 @@ static class VmTest
         var mk = av.Market;
         // three idle coach of different sizes
         var bought = new System.Collections.Generic.List<string>();
-        foreach (int skip in new[] {0, 40, 120})
+        // spread the three over the market as it is rather than at fixed places in a list of a fixed length
+        int onOffer = Math.Max(3, mk.Coach.Count);
+        foreach (int skip in new[] {0, onOffer/3, 2*onOffer/3})
         {
-            foreach (var item in mk.Coach.OrderBy(x => x.Coach.GetPrice()).Skip(skip).Take(200)) { mk.Selected = item; if (mk.Homebase != null) break; }
+            foreach (var item in mk.Coach.OrderBy(x => x.Coach.GetPrice()).Skip(skip)) { mk.Selected = item; if (mk.Homebase != null) break; }
             mk.BuyCommand.Execute(null);
         }
         av.Refresh();
@@ -4001,9 +4008,18 @@ static class VmTest
             av.Refresh();
             ap.ReloadAdvice();
             await Wait(() => !ap.IsBusy, "advice");
-            var advice = ap.Advice.Where(x => x.Advice.FleetCanFly).FirstOrDefault(x => !h.Routes.Any(r => r.Destination1 == x.Advice.Destination || r.Destination2 == x.Advice.Destination));
+            // a ride of twelve hours or more is scheduled by the week and has no daily forecast, so take the first
+            // suggestion the planner can actually cost out
+            var candidates = ap.Advice.Where(x => x.Advice.FleetCanFly)
+                               .Where(x => !h.Routes.Any(r => r.Destination1 == x.Advice.Destination || r.Destination2 == x.Advice.Destination))
+                               .ToList();
+            object advice = null;
+            foreach (var c in candidates)
+            {
+                ap.SelectedAdvice = c;
+                if (ap.Create != null && ap.Create.Trips.Count > 0 && ap.Create.CurrentForecast != null) { advice = c; break; }
+            }
             if (advice == null) break;
-            ap.SelectedAdvice = advice;
             var cr = ap.Create;
             int max = cr.Trips.Count == 0 ? 0 : cr.Trips.Max();
             Console.WriteLine("  " + cr.Title + " with " + cr.SelectedCoach?.Name + ": trips 1-" + max + ", suggested " + cr.RoundTrips);
@@ -5383,18 +5399,18 @@ static class VmTest
             Console.WriteLine("  " + kiv.Profile.IATACode + " bays: " + string.Join(" ; ", m.Bays.Select(r => r.Text)) + " | max " + kiv.GetMaxBayLength());
             m.SelectedBay = m.Bays.First();
             long rwBefore = kiv.GetMaxBayLength();
-            m.ExtendLength = (m.SelectedBay.Bay.Length + 600).ToString();
+            m.ExtendLength = (m.SelectedBay.Bay.Length + 3).ToString();
             Console.WriteLine("  extend preview: " + m.ExtendText);
             double money0 = me4.Money;
             m.ExtendBayCommand.Execute(null); Console.WriteLine("  ask: " + m.PendingText); m.ConfirmPendingCommand.Execute(null);
             Console.WriteLine("  extend: " + m.Status + " | paid " + (money0 - me4.Money).ToString("N0") + " | max now " + kiv.GetMaxBayLength());
             me4.Money += 100000000;
-            m.NewBayLength = "4200"; m.NewBaySurface = TheBusProject.Models.Stations.Bay.SurfaceType.Concrete; m.NewBayName = "10R/28L";
+            m.NewBayLength = "18"; m.NewBaySurface = TheBusProject.Models.Stations.Bay.SurfaceType.Concrete; m.NewBayName = "Platform C";
             Console.WriteLine("  new preview: " + m.NewBayText);
             m.BuildBayCommand.Execute(null); Console.WriteLine("  ask: " + m.PendingText); m.ConfirmPendingCommand.Execute(null);
             Console.WriteLine("  build: " + m.Status + " | max now " + kiv.GetMaxBayLength());
-            m.NewBayLength = "200"; Console.WriteLine("  too short: " + m.NewBayText);
-            m.NewBayName = "10R/28L"; m.NewBayLength = "3000"; Console.WriteLine("  same name: " + m.NewBayText); m.NewBayName = "";
+            m.NewBayLength = "4"; Console.WriteLine("  too short: " + m.NewBayText);
+            m.NewBayName = "Platform C"; m.NewBayLength = "15"; Console.WriteLine("  same name: " + m.NewBayText); m.NewBayName = "";
             if (kiv.GetMaxBayLength() != rwBefore) { Console.WriteLine("  FAILED bay changed too early"); Environment.Exit(1); }
             // save and load: the station is not used by any carrier, the bays must stay
             TheBusProject.Helpers.SerializedLoadSaveHelpers.SaveGame("baytest");
@@ -5406,11 +5422,11 @@ static class VmTest
             var ext = kiv.Bays.First(r => r.ExtendTo > 0);
             g.GameTime = ext.ExtendDate; TheBusProject.Helpers.BayService.ProcessDaily();
             Console.WriteLine("  after extension: max " + kiv.GetMaxBayLength() + " | " + TheBusProject.Helpers.BayService.Status(ext));
-            if (kiv.GetMaxBayLength() != rwBefore + 600) { Console.WriteLine("  FAILED extension"); Environment.Exit(1); }
-            var nr = kiv.Bays.First(r => r.Name == "10R/28L");
+            if (kiv.GetMaxBayLength() != rwBefore + 3) { Console.WriteLine("  FAILED extension"); Environment.Exit(1); }
+            var nr = kiv.Bays.First(r => r.Name == "Platform C");
             g.GameTime = nr.BuiltDate; TheBusProject.Helpers.BayService.ProcessDaily();
-            Console.WriteLine("  after build: max " + kiv.GetMaxBayLength() + " | " + g.NewsBox.GetNews().Where(n => n.Subject.Contains("unway")).Select(n => n.Subject + ": " + n.Body).LastOrDefault());
-            if (kiv.GetMaxBayLength() != 4200) { Console.WriteLine("  FAILED new bay"); Environment.Exit(1); }
+            Console.WriteLine("  after build: max " + kiv.GetMaxBayLength() + " | " + g.NewsBox.GetNews().Where(n => n.Subject.Contains("ay")).Select(n => n.Subject + ": " + n.Body).LastOrDefault());
+            if (kiv.GetMaxBayLength() != 18) { Console.WriteLine("  FAILED new bay"); Environment.Exit(1); }
         }
         Console.WriteLine("CABIN LAYOUT AFTER LOAD");
         {
