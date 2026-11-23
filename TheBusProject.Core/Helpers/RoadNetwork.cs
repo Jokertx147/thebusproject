@@ -126,7 +126,10 @@ namespace TheBusProject.Helpers
                     if (index.TryGetValue(k, out at)) return at;
                     at = nodes.Count;
                     index[k] = at;
-                    nodes.Add(new[] { gy*Snap, gx*Snap });
+                    // the junction sits where the road really passes, not in the middle of the grid square that
+                    // found it: a path drawn through the squares' middles staircases across the map and lies a few
+                    // kilometres off the road it is supposed to be on
+                    nodes.Add(new[] { lat, lon });
                     edges.Add(new List<int>());
                     costs.Add(new List<double>());
                     return at;
