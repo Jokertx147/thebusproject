@@ -5,7 +5,33 @@ pick up second-hand coaches, put them on routes between cities, set the fares
 and the timetable, and try to make the thing pay against the operators already
 running those roads.
 
-It is in early development. Nothing here is playable yet.
+It is in early development, and it plays: you can buy a coach new or
+second-hand, lease one, hire drivers, open a route with a timetable and fares,
+run it and read the books.
+
+## What is in it
+
+**The coaches.** 39 passenger types and four parcel coaches, from Van Hool,
+Temsa, MCI, Prevost and Mercedes-Benz (Setra), and from the decades before
+them: GM's PD-4104 through the PD-4903 Buffalo, Flxible's Clipper and
+VistaLiner, Eagle's Models 05 to 20, the MCI MC-5A, MC-7 Challenger and MC-8.
+Each with the years it was built, so a game started in 1962 sells you what was
+on sale in 1962. Fourteen diesels to choose between, from the Detroit Diesel
+8V-71 to the Cummins ISX12, with a Volvo in the Prevosts and a Mercedes in the
+Setras.
+
+**The map.** 52 US cities, with their bays, their passengers a day and the
+demand between them. A coach market, not an airline's: demand peaks between
+about 200 and 450 km, halves by 900 and is all but gone past 2,000.
+
+**The competition.** Twelve carriers, from Greyhound and Trailways down to
+Vonlane and RedCoach, plus a parcel line, each with a home city, a fleet of its
+era and a mind of its own. Two interline alliances. Three charter contracts.
+
+**Two scenarios.** *Deregulation, 1982*: the Bus Regulatory Reform Act has just
+handed you your own routes and fares, and you have eight years to still be
+standing. *The Curbside Boom, 2008*: four-dollar diesel, dollar fares and
+double-deckers.
 
 ## Where it came from
 
