@@ -608,12 +608,31 @@ namespace TheBusProject.Presentation
         private void ApplyRouteFilter()
         {
             string what = (_routeFilter ?? "").Trim();
-            ShownRoutes.Clear();
+            var wanted = new List<RouteItem>();
             foreach (var item in Routes)
             {
-                if (what.Length == 0 || Matches(item, what)) ShownRoutes.Add(item);
+                if (what.Length == 0 || Matches(item, what)) wanted.Add(item);
             }
 
+            // Leave the list alone when it would come out the same. The screen refreshes every tick of the game,
+            // and emptying the list and filling it again hands the list box a moment with nothing in it, which
+            // makes it drop whatever the player had selected and write that back through the binding. With a
+            // filter on, a click was being thrown away as fast as it could be made.
+            bool same = wanted.Count == ShownRoutes.Count;
+            if (same)
+            {
+                for (int i = 0; i < wanted.Count; i++)
+                {
+                    if (!ReferenceEquals(wanted[i], ShownRoutes[i])) { same = false; break; }
+                }
+            }
+
+            if (same) return;
+
+            var keep = _selectedRoute;
+            ShownRoutes.Clear();
+            foreach (var item in wanted) ShownRoutes.Add(item);
+            if (keep != null && wanted.Contains(keep)) SelectedRoute = keep;
             OnPropertyChanged(nameof(RouteFilterHint));
         }
         public ObservableCollection<TripItem> Trips { get; } = new ObservableCollection<TripItem>();

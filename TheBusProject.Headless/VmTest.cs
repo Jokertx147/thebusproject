@@ -4870,6 +4870,25 @@ static class VmTest
             foreach (var r in shown)
                 if (!TheBusProject.Helpers.RouteStops.Calls(r.Route).Any(x => x == pick))
                     fail("the filter kept " + r.Name + ", which never calls at " + code);
+            // and the selection has to survive the game going on around it: the list is refreshed every tick,
+            // and if the filter rebuilds it each time the player's click is thrown away as fast as they make it
+            // The list box drops the player's selection the moment the list it is bound to is emptied, and writes
+            // that back through the binding, so a filtered list rebuilt on every tick of the game made a route
+            // impossible to keep selected. There is no list box here to lose anything, so what this watches is
+            // the cause: the list must not be rebuilt at all when it would come out the same.
+            av.RouteFilter = code;
+            av.SelectedRoute = av.ShownRoutes[0];
+            var chosen = av.SelectedRoute;
+            int rebuilds = 0;
+            System.Collections.Specialized.NotifyCollectionChangedEventHandler watch = (o, e) => rebuilds++;
+            ((System.Collections.Specialized.INotifyCollectionChanged) av.ShownRoutes).CollectionChanged += watch;
+            for (int t = 0; t < 5; t++) av.Refresh();
+            ((System.Collections.Specialized.INotifyCollectionChanged) av.ShownRoutes).CollectionChanged -= watch;
+            Console.WriteLine("  five refreshes with the filter on: the list changed " + rebuilds
+                              + " time(s), the selection is " + (av.SelectedRoute == null ? "gone" : av.SelectedRoute.Name));
+            if (rebuilds > 0) fail("the filtered list was rebuilt " + rebuilds + " times over five refreshes, which loses the player's selection");
+            if (av.SelectedRoute != chosen) fail("the route the player picked was lost when the screen refreshed");
+
             av.RouteFilter = "";
             if (av.ShownRoutes.Count != everything) fail("clearing the filter did not bring the routes back");
         }
