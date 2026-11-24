@@ -934,7 +934,13 @@ static class VmTest
             if (pax != ops.Passengers || Math.Abs(cargo - ops.Cargo) > 1) fail(a.Profile.IATACode + " passengers or cargo");
             if (ontime != ops.OnTime) fail(a.Profile.IATACode + " on time: " + ontime + " against " + ops.OnTime);
             if (cancelled != ops.Cancelled) fail(a.Profile.IATACode + " cancellations");
-            if (dep < arr || dep > arr + a.Fleet.Count) fail(a.Profile.IATACode + " departures");
+            // A trip counts its departure in the year it leaves and its arrival in the year it gets there, so a
+            // coach on the road at midnight on the 31st puts one of each into different years. The honest bound
+            // is that no more coaches can be out than the carrier owns, in either direction: this used to allow
+            // the gap one way only, and the overnight services now on the timetable made the other way happen.
+            if (Math.Abs(dep - arr) > a.Fleet.Count)
+                fail(a.Profile.IATACode + " departures: " + dep + " against " + arr + " arrivals, more than its "
+                     + a.Fleet.Count + " coaches could have been out at the turn of the year");
             if (ops.Seats > 0 && (cap != ops.Seats)) fail(a.Profile.IATACode + " seats run: " + cap + " against " + ops.Seats);
             double stationArr = stations.Sum(ap => ap.Statistics.GetStatisticsValue(year, a, T("Arrivals")));
             double stationDep = stations.Sum(ap => ap.Statistics.GetStatisticsValue(year, a, T("Departures")));
