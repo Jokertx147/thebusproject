@@ -19,10 +19,9 @@ namespace TheBusProject.Helpers
     public static class OwnershipService
     {
         /// <summary>
-        ///     What owning a coach costs each month, as a share of its value: depreciation and the money tied up in
-        ///     it. A coach written off over fifteen years loses about 6.7% of its value a year on its own, and the
-        ///     capital costs more on top, so a bit under 1% a month is the honest figure. Greyhound's depreciation
-        ///     and operating rents together came to 14.3% of its revenue.
+        ///     Kept for saves and for anything that still reads it. The month's cost is no longer a share of the
+        ///     coach's value: charging a flat percentage of a falling value overcharges a new coach and undercharges
+        ///     an old one, which is the wrong shape. See <see cref="MonthlyCost" />.
         /// </summary>
         public const double MonthlyShare = 0.009;
 
@@ -47,13 +46,18 @@ namespace TheBusProject.Helpers
             return f.Purchased == FleetCoach.PurchasedType.Bought || f.Purchased == FleetCoach.PurchasedType.BoughtDownPayment;
         }
 
-        /// <summary>The month's ownership cost of an coach (0 when leased, not delivered yet, or with the original costs).</summary>
+        /// <summary>
+        ///     The month's ownership cost of a coach (0 when leased, not delivered yet, or with the original costs):
+        ///     a twelfth of what the coach loses in value over the year. Taking it from the coach's own value curve
+        ///     means the cost of holding one and what it fetches when sold cannot disagree, and it has the right
+        ///     shape with age, where a flat share of a falling value did not.
+        /// </summary>
         public static double MonthlyCost(FleetCoach f)
         {
             if (!TripCosts.Enabled || f?.Coach == null || !IsOwned(f)) return 0;
             if (f.Coach.BuiltDate > GameObject.GetInstance().GameTime) return 0;
-            double value = Math.Max(0, f.Coach.GetPrice());
-            return value*MonthlyShare*(TripCosts.Level >= 2 ? 1.4 : 1.0);
+            double yearly = Math.Max(0, f.Coach.GetAnnualDepreciation());
+            return yearly/12.0*(TripCosts.Level >= 2 ? 1.4 : 1.0);
         }
 
         /// <summary>Monthly: charges the carrier for the coach it owns.</summary>

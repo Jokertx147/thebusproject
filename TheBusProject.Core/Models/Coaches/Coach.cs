@@ -291,7 +291,43 @@ namespace TheBusProject.Models.Coaches
             return Convert.ToInt64(leasingPrice);
         }
 
+        /// <summary>
+        ///     What the coach would cost new today: the type's list price plus what has been fitted to it, before any
+        ///     allowance for its age or the state it is in. <see cref="GetPrice" /> is this with those allowances made.
+        /// </summary>
+        public long GetListPrice()
+        {
+            return Convert.ToInt64(ListPrice());
+        }
+
+        /// <summary>
+        ///     What the coach loses in value over a year at its current age, which is what owning it costs. It is
+        ///     worked out from the game's own value curve rather than from a separate rate, so the cost of holding a
+        ///     coach and what it is worth when sold cannot drift apart. The curve is list*(1-0.02a)*(1-0.03a), so the
+        ///     loss in a year is list*(0.05 - 0.0012a): about 5% of list when the coach is new, falling as it ages and
+        ///     there is less left to lose. On a $700,000 coach that is $35,000 a year new and $23,000 at fourteen,
+        ///     against the $21,936 a bus a year that Greyhound's accounts show for a fleet of mid-life coaches.
+        /// </summary>
+        public long GetAnnualDepreciation()
+        {
+            double rate = 0.05 - 0.0012*GetAge();
+            if (rate <= 0) return 0;
+            return Convert.ToInt64(ListPrice()*(Condition/100.0)*rate);
+        }
+
         public long GetPrice()
+        {
+            var age = GetAge();
+
+            // the value curve runs out at age 50 and would go negative past it, so it is held at a twentieth of
+            // list: a coach that old is worth its parts, not nothing and not less than nothing
+            double devaluationPercent = Math.Max(0.05, 1 - 0.02*age);
+
+            return Convert.ToInt64(ListPrice()*devaluationPercent*(Condition/100));
+        }
+
+        /// <summary>List price plus fitted equipment, with no allowance for age or condition.</summary>
+        private double ListPrice()
         {
             double basePrice = Type.Price;
 
@@ -342,10 +378,7 @@ namespace TheBusProject.Models.Coaches
 
             basePrice += diffEnginePrice;
 
-            var age = GetAge();
-            var devaluationPercent = 1 - (0.02*age);
-
-            return Convert.ToInt64(basePrice*devaluationPercent*(Condition/100));
+            return basePrice;
         }
 
         public int GetTotalSeatCapacity()

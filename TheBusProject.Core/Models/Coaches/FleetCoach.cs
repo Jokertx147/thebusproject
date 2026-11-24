@@ -120,9 +120,14 @@ namespace TheBusProject.Models.Coaches
         [Versioning("covername")]
         public string CoverName { get; set; }
 
-        /// <summary>When on, the checks that fall due are done automatically.</summary>
+        /// <summary>
+        ///     When on, the checks that fall due are done automatically. On by default, because a real operator runs a
+        ///     maintenance programme and does not decide coach by coach whether to have one. It used to default to off,
+        ///     and nothing outside the maintenance screen ever turned it on, so a computer carrier never serviced a
+        ///     coach in its life: every fleet sat at the condition floor of 20% and broke down for ever.
+        /// </summary>
         [Versioning("automaintenance")]
-        public bool AutoMaintenance { get; set; }
+        public bool AutoMaintenance { get; set; } = true;
 
         /// <summary>The coach is out on a charter trip until this date.</summary>
         [Versioning("charteruntil")]

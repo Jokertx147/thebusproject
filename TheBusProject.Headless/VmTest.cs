@@ -4852,6 +4852,25 @@ static class VmTest
         int idle = me.Fleet.Count(f => f.HasRoute == false);
         Console.WriteLine("  the planner ran dry " + noSuggestion + " time(s); " + idle + " of " + me.Fleet.Count + " coaches are standing in the yard at the end");
 
+        // Is the fleet actually being serviced? The checks are done by MaintenanceService.ProcessAuto, which only
+        // touches a coach whose AutoMaintenance is on. That used to default to off and nothing outside the
+        // maintenance screen ever turned it on, so no coach a carrier bought was ever serviced: wear and
+        // breakdowns took every fleet to the condition floor of 20% and held it there, which in turn priced a
+        // mid-life coach at a third of what one is really worth. Condition is the cause, so condition is what is
+        // checked here, not the resale price it drags down.
+        var delivered = me.Fleet.Where(f => f.Coach.BuiltDate <= g.GameTime).ToList();
+        if (delivered.Count > 0)
+        {
+            double meanCondition = delivered.Average(f => f.Coach.Condition);
+            int atFloor = delivered.Count(f => f.Coach.Condition <= 21);
+            Console.WriteLine(string.Format("  the fleet is in {0:0}% condition on average; {1} of {2} coaches are at the 20% floor, {3} have automatic maintenance on",
+                                            meanCondition, atFloor, delivered.Count, delivered.Count(f => f.AutoMaintenance)));
+            if (meanCondition < 55)
+                fail(string.Format("the fleet averages {0:0}% condition, so the coaches are not being serviced", meanCondition));
+            if (atFloor > delivered.Count/4)
+                fail(string.Format("{0} of {1} coaches sit at the 20% condition floor", atFloor, delivered.Count));
+        }
+
         // what the garage asks for a scheduled check, against what the coach is worth. A line that keeps its
         // fleet in order should be out of pocket by a sensible fraction of the fleet, not several times over.
         foreach (var f in me.Fleet.Take(3))
@@ -4868,6 +4887,42 @@ static class VmTest
             Console.WriteLine(string.Format("    {0} ({1}) worth ${2:#,0}, ${8:#,0} new: A ${3:#,0}, B ${4:#,0}, C ${5:#,0}, D ${6:#,0}; keeping it up costs ${7:#,0} a year",
                                             f.Name, f.Coach.Type.Name, v, a, b, cc, dd, year,
                                             f.Coach.Type.Price));
+            // The denominator is the list price with what is fitted to the coach, not the bare type price: a
+            // fitted coach lists well above its type, so dividing by the type price flatters the resale share.
+            double list = f.Coach.GetListPrice();
+            double own = TheBusProject.Helpers.OwnershipService.MonthlyCost(f)*12;
+            Console.WriteLine(string.Format("    {0}: age {1}, condition {2:0.0}%, lists ${3:#,0} -> worth ${4:#,0} ({5:0.0}% of list, about {6:0.0}% for a real one); owning it costs ${7:#,0} a year ({8:0.0}% of list)",
+                                            f.Name, f.Coach.GetAge(), f.Coach.Condition, list, v,
+                                            list <= 0 ? 0 : v*100.0/list,
+                                            Math.Pow(0.925, f.Coach.GetAge())*100,
+                                            own, list <= 0 ? 0 : own*100.0/list));
+
+            // What a coach is worth, against the used market. Dealer asking prices for an MCI J4500 in 2026 run
+            // about 46% of a new one at twelve years, 32% at fourteen, 21% at seventeen and 17% at twenty, which
+            // is close to 0.925 a year, and a wholesale or trade-in price is nearer three quarters of that. The
+            // band is generous on both sides because condition and mileage move a real price a long way, but it
+            // is tight enough to catch a fleet sitting at the condition floor: that priced a fifteen-year-old
+            // coach at 8.6% of list, a third of what one really fetches.
+            if (list > 0 && f.Coach.GetAge() >= 8)
+            {
+                double share = v/list, real = Math.Pow(0.925, f.Coach.GetAge());
+                if (share < real*0.55 || share > real*1.75)
+                    fail(string.Format("{0} is {1} years old and worth {2:0.0}% of its list price, where a real one fetches about {3:0.0}%",
+                                       f.Name, f.Coach.GetAge(), share*100, real*100));
+            }
+
+            // Owning a coach costs what it loses in value over the year. Greyhound's accounts work out to $21,936
+            // a bus a year on coaches that cost about $350,000 new, which is 6.3% of list; the game's coaches cost
+            // more and its fleet is older, so the share is lower, but a tenth of list a year would be a lease and
+            // a hundredth would be free parking.
+            if (list > 0 && own > 0)
+            {
+                double share = own/list;
+                if (share < 0.015 || share > 0.075)
+                    fail(string.Format("owning {0} costs ${1:#,0} a year, {2:0.0}% of its ${3:#,0} list price, outside 1.5% to 7.5%",
+                                       f.Name, own, share*100, list));
+            }
+
             // the wage bill, broken into the four things that pay it
             if (f == me.Fleet.First())
             {
@@ -7389,6 +7444,9 @@ static class VmTest
                     ac.PurchasedDate = past; ac.LastAMaintenance = past; ac.LastBMaintenance = past; ac.LastCMaintenance = past; ac.LastDMaintenance = past;
                     var others = hum.Fleet.Where(f => f != ac).ToList();
                     foreach (var o in others) o.AutoMaintenance = false;
+                    // the switch is on by default now, so it has to be turned off to test that it is obeyed; this
+                    // used to lean on the default being off, which is what the rest of this change fixed
+                    ac.AutoMaintenance = false;
                     var noAuto = TheBusProject.Helpers.MaintenanceService.ProcessAuto(hum);
                     worst.Auto = true;
                     Console.WriteLine("  auto on: " + mvm.Status + " | summary: " + mvm.Summary.Substring(0, Math.Min(120, mvm.Summary.Length)));
