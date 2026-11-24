@@ -4852,6 +4852,36 @@ static class VmTest
         int idle = me.Fleet.Count(f => f.HasRoute == false);
         Console.WriteLine("  the planner ran dry " + noSuggestion + " time(s); " + idle + " of " + me.Fleet.Count + " coaches are standing in the yard at the end");
 
+        // what the garage asks for a scheduled check, against what the coach is worth. A line that keeps its
+        // fleet in order should be out of pocket by a sensible fraction of the fleet, not several times over.
+        foreach (var f in me.Fleet.Take(3))
+        {
+            double v = f.Coach.GetValue();
+            double a = TheBusProject.Helpers.MaintenanceService.GetCost(f, TheBusProject.Helpers.MaintenanceCheck.A);
+            double b = TheBusProject.Helpers.MaintenanceService.GetCost(f, TheBusProject.Helpers.MaintenanceCheck.B);
+            double cc = TheBusProject.Helpers.MaintenanceService.GetCost(f, TheBusProject.Helpers.MaintenanceCheck.C);
+            double dd = TheBusProject.Helpers.MaintenanceService.GetCost(f, TheBusProject.Helpers.MaintenanceCheck.D);
+            double year = a*365.0/TheBusProject.Helpers.MaintenanceService.GetIntervalDays(f, TheBusProject.Helpers.MaintenanceCheck.A)
+                          + b*365.0/TheBusProject.Helpers.MaintenanceService.GetIntervalDays(f, TheBusProject.Helpers.MaintenanceCheck.B)
+                          + cc*365.0/TheBusProject.Helpers.MaintenanceService.GetIntervalDays(f, TheBusProject.Helpers.MaintenanceCheck.C)
+                          + dd*365.0/TheBusProject.Helpers.MaintenanceService.GetIntervalDays(f, TheBusProject.Helpers.MaintenanceCheck.D);
+            Console.WriteLine(string.Format("    {0} ({1}) worth ${2:#,0}, ${8:#,0} new: A ${3:#,0}, B ${4:#,0}, C ${5:#,0}, D ${6:#,0}; keeping it up costs ${7:#,0} a year",
+                                            f.Name, f.Coach.Type.Name, v, a, b, cc, dd, year,
+                                            f.Coach.Type.Price));
+            // against a new coach of the same sort, not against this one's resale value. A twenty year old
+            // coach worth $20,000 can quite properly cost more than that to keep on the road in a year -- that
+            // is why lines retire them -- so what has to hold is that the upkeep is a sane share of a new one
+            // and that a rebuild is cheaper than replacing it.
+            double fresh = f.Coach.Type.Price;   // already in today's money: inflating it again was my own slip, and made this bound seven times too kind
+            if (fresh <= 0) continue;
+            if (a < 200) fail("an A check on " + f.Name + " costs only $" + a.ToString("#,0") + ", which is not a service");
+            if (!(a < b && b < cc && cc < dd)) fail("the checks on " + f.Name + " are not in order of size");
+            if (year > fresh*0.15)
+                fail("keeping " + f.Name + " up costs $" + year.ToString("#,0") + " a year against $" + fresh.ToString("#,0") + " for a new one, which is over the 15% a real fleet spends");
+            if (dd > fresh*0.5)
+                fail("a D check on " + f.Name + " costs $" + dd.ToString("#,0") + " against $" + fresh.ToString("#,0") + " for a new coach: nobody would rebuild it");
+        }
+
         // the filter over the route list, against a carrier with a couple of dozen routes rather than one
         av.Refresh();
         int everything = av.ShownRoutes.Count;

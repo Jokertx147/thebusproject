@@ -32,15 +32,28 @@ namespace TheBusProject.Helpers
     /// <summary>Maintenance checks, wear and breakdowns for an carrier's fleet.</summary>
     public static class MaintenanceService
     {
+        /// <summary>
+        ///     What the garage charges for a scheduled check. These were an airliner's prices: a C check at
+        ///     $156,000 and a D at $1,200,000, which on a used coach worth $43,643 came to three and a half times
+        ///     and twenty-seven times what the vehicle was worth. Keeping one coach up cost $366,925 a year,
+        ///     eight times its value, so the only sane play was to let it rot.
+        ///
+        ///     What the checks actually are depends on how far apart they fall, and at roughly 200,000 miles a
+        ///     year the intervals here work out at about 49,000 miles for an A, 148,000 for a B, 296,000 for a C
+        ///     and 986,000 for a D. So an A is a thorough service, a B takes in the brakes and the suspension, a
+        ///     C is the major systems, and a D at a million miles is the engine out, the transmission rebuilt and
+        ///     the interior done: most of what the coach is worth by then, which is the point at which a line has
+        ///     to decide between rebuilding it and buying another.
+        /// </summary>
         public static double GetCost(FleetCoach f, MaintenanceCheck c)
         {
             double v = f.Coach.GetValue();
             switch (c)
             {
-                case MaintenanceCheck.A: return v*0.01 + 2000;
-                case MaintenanceCheck.B: return v*0.02 + 4500;
-                case MaintenanceCheck.C: return v*0.025 + 156000;
-                default: return v*0.03 + 1200000;
+                case MaintenanceCheck.A: return 1200 + v*0.01;
+                case MaintenanceCheck.B: return 4000 + v*0.03;
+                case MaintenanceCheck.C: return 11000 + v*0.08;
+                default: return 30000 + v*0.25;
             }
         }
 
