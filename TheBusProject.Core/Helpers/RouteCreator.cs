@@ -170,7 +170,15 @@ namespace TheBusProject.Helpers
             TimeSpan minTripTime = MathHelpers.GetTripTime(origin, destination, type).Add(new TimeSpan(0, turnaroundMinutes, 0));
 
             int firstHour = operation == OpsType.Whole_Day ? 0 : 6;
-            int lastHour = Math.Max(firstHour, (int) (22 - minTripTime.TotalHours * roundTrips * 2));
+
+            // A coach line is not a day job. The old rule was that the whole working cycle had to be finished by
+            // ten at night, which on a nine hour run left exactly one departure to choose from, six in the
+            // morning, and made the overnight service -- the thing intercity coaches are for -- impossible to
+            // schedule at all. What a daily timetable actually needs is that the cycle fits inside the day, so
+            // the coach is back where it started in time to go again. Within that it may leave whenever it likes
+            // and drive through the night.
+            double cycleHours = minTripTime.TotalHours*roundTrips*2;
+            int lastHour = cycleHours >= 24 ? firstHour : Math.Max(firstHour, 23);
 
             var times = new List<TimeSpan>();
 

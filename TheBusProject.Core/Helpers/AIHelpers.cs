@@ -122,6 +122,31 @@ namespace TheBusProject.Helpers
                 tripCode2);
         }
 
+        /// <summary>
+        ///     The departures of a day's working, out and back and out again. Each one waits for the running time
+        ///     and the turnaround and then, when <paramref name="toTheQuarter" /> is set, for the next quarter hour,
+        ///     so the timetable reads 06:00, 12:45, 19:30 instead of 06:00, 12:39, 19:18. Returns null when the
+        ///     rounding would push the last departure past midnight, so the caller can lay the day out without it.
+        /// </summary>
+        private static List<TimeSpan> Timetabled(TimeSpan start, TimeSpan between, int roundTrips, bool toTheQuarter)
+        {
+            var times = new List<TimeSpan>();
+            TimeSpan at = new TimeSpan(start.Hours, start.Minutes, start.Seconds);
+            for (int i = 0; i < roundTrips*2; i++)
+            {
+                if (at.TotalHours >= 24) return toTheQuarter ? null : times;
+                times.Add(at);
+                at = at.Add(between);
+                if (toTheQuarter)
+                {
+                    double m = Math.Ceiling(at.TotalMinutes/15.0)*15;
+                    at = TimeSpan.FromMinutes(m);
+                }
+            }
+
+            return times;
+        }
+
         public static RouteTimeTable CreateCoachRouteTimeTable(
             Route route,
             FleetCoach coach,
@@ -142,18 +167,24 @@ namespace TheBusProject.Helpers
             if (minTripTime.Hours < 12 && minTripTime.Days < 1 && isDaily)
             {
                 var tripTime = new TimeSpan(startTime.Hours, startTime.Minutes, startTime.Seconds);
-                //new TimeSpan(startHour, 0, 0).Add(new TimeSpan(0, startMinutes / 2, 0));
 
-                for (int i = 0; i < numberOfTrips; i++)
+                // A timetable departs at a time a person can remember. Adding the running time and the turnaround
+                // to the last departure gives 12:39, and the one after that 19:18; a real one waits the extra few
+                // minutes and goes at 12:45. The rounding is dropped for the whole route rather than lose a round
+                // trip off the end of the day, because the planner has already costed the day at this many.
+                var departures = Timetabled(startTime, minTripTime, numberOfTrips, true)
+                                 ?? Timetabled(startTime, minTripTime, numberOfTrips, false);
+
+                for (int i = 0; i < departures.Count; i++)
                 {
-                    timeTable.AddDailyEntries(new RouteEntryDestination(route.Destination2, tripCode1), tripTime);
-
-                    tripTime = tripTime.Add(minTripTime);
-
-                    timeTable.AddDailyEntries(new RouteEntryDestination(route.Destination1, tripCode2), tripTime);
-
-                    tripTime = tripTime.Add(minTripTime);
+                    bool outbound = i%2 == 0;
+                    timeTable.AddDailyEntries(
+                        new RouteEntryDestination(outbound ? route.Destination2 : route.Destination1,
+                                                  outbound ? tripCode1 : tripCode2),
+                        departures[i]);
                 }
+
+                tripTime = departures.Count == 0 ? tripTime : departures[departures.Count - 1];
             }
             else
             {

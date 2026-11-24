@@ -5254,6 +5254,23 @@ static class VmTest
         if (planner.SelectedCoach.Coach == null) fail("no coach can work the service even with the stops in");
         Console.WriteLine("  the planner says: " + planner.StopsText);
         Console.WriteLine("  and about breaks: " + planner.BreaksText);
+        // An overnight service: a run of eight or nine hours leaving in the morning arrives mid afternoon and
+        // wastes a day at both ends, where leaving at night it arrives for breakfast. Little Rock to Lubbock is
+        // that length; Miami to Los Angeles is not, being long enough to be timetabled by the week instead.
+        var lbb = at("LBB");
+        var nightly = new TheBusProject.Presentation.CreateRouteViewModel(at("LIT"), lbb, m => { });
+        var nightCoach = nightly.Coaches.FirstOrDefault(c => c.Coach != null);
+        if (nightCoach != null)
+        {
+            nightly.SelectedCoach = nightCoach;
+            double oneWay = TheBusProject.Helpers.MathHelpers.GetTripTime(at("LIT"), lbb, nightCoach.Coach.Coach.Type).TotalHours;
+            Console.WriteLine(string.Format("  LIT - LBB is {0:0.0} hours one way and would leave at {1}, out of {2} choices from {3} to {4}",
+                                            oneWay, nightly.StartTime, nightly.StartTimes.Count,
+                                            nightly.StartTimes.FirstOrDefault(), nightly.StartTimes.LastOrDefault()));
+            if (nightly.StartTimes.Count < 2) fail("only " + nightly.StartTimes.Count + " departure time(s) offered on an eight hour run");
+            if (oneWay >= 7 && string.CompareOrdinal(nightly.StartTime ?? "", "20:00") < 0)
+                fail("a " + oneWay.ToString("0.0") + " hour run is set to leave at " + nightly.StartTime + " rather than overnight");
+        }
         if (string.IsNullOrEmpty(planner.BreaksText)) fail("the planner says nothing about the rest breaks");
         if (!planner.Stops.Contains(lit) || !planner.Stops.Contains(phx)) fail("the stops the player asked for are gone");
         if (planner.Stops.IndexOf(lit) > planner.Stops.IndexOf(phx)) fail("the stops are out of order: " + string.Join(", ", planner.Stops.Select(x => x.Profile.IATACode)));

@@ -717,7 +717,15 @@ namespace TheBusProject.Presentation
                 StartTimes.Add(t.ToString(@"hh\:mm"));
             }
 
-            StartTime = StartTimes.FirstOrDefault();
+            // A short run goes first thing; a long one goes at night. Nine hours from Dallas leaving at six in
+            // the morning arrives in the middle of the afternoon, which nobody wants and which wastes a day at
+            // both ends. Leaving at nine at night it arrives for breakfast, and the passenger saves a hotel. The
+            // player can pick any of the others; this is only which one is waiting for them.
+            double oneWay = MathHelpers.GetTripTime(_origin, _destination, Coach.Coach.Type).TotalHours;
+            StartTime = oneWay >= 7
+                            ? StartTimes.FirstOrDefault(t => string.CompareOrdinal(t, "20:00") >= 0 && string.CompareOrdinal(t, "23:00") <= 0)
+                              ?? StartTimes.FirstOrDefault()
+                            : StartTimes.FirstOrDefault();
             Info = "";
         }
 
