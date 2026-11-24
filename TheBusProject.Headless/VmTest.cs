@@ -4851,6 +4851,28 @@ static class VmTest
                           + " (each one says \"no trips finished yet\" on the screens instead)");
         int idle = me.Fleet.Count(f => f.HasRoute == false);
         Console.WriteLine("  the planner ran dry " + noSuggestion + " time(s); " + idle + " of " + me.Fleet.Count + " coaches are standing in the yard at the end");
+
+        // the filter over the route list, against a carrier with a couple of dozen routes rather than one
+        av.Refresh();
+        int everything = av.ShownRoutes.Count;
+        if (everything > 1)
+        {
+            var pick = av.ShownRoutes[0].Route.Destination1;
+            string code = pick.Profile.IATACode;
+            av.RouteFilter = code;
+            var shown = av.ShownRoutes.ToList();
+            int expected = av.Routes.Count(r => TheBusProject.Helpers.RouteStops.Calls(r.Route).Any(x => x == pick));
+            Console.WriteLine("  the route filter: " + everything + " routes, \"" + code + "\" leaves " + shown.Count
+                              + " and " + expected + " of them really call there; the hint reads \"" + av.RouteFilterHint + "\"");
+            if (shown.Count == 0) fail("filtering by " + code + " left nothing, though a route starts there");
+            if (shown.Count >= everything) fail("filtering by " + code + " left every route, so it filtered nothing");
+            if (shown.Count != expected) fail("the filter showed " + shown.Count + " routes but " + expected + " call at " + code);
+            foreach (var r in shown)
+                if (!TheBusProject.Helpers.RouteStops.Calls(r.Route).Any(x => x == pick))
+                    fail("the filter kept " + r.Name + ", which never calls at " + code);
+            av.RouteFilter = "";
+            if (av.ShownRoutes.Count != everything) fail("clearing the filter did not bring the routes back");
+        }
         if (openedAll == 0) fail("the planner never offered a route worth opening in " + years + " years");
         // a coach line with the whole country in front of it should never be told there is nowhere left to go
         // running dry is now a fair answer and not a fault: with real costs there are years when nothing left on
@@ -5505,6 +5527,27 @@ static class VmTest
         if (legByLegTickets <= tickets*1.05)
             fail("charging leg by leg made no more money (${0:#,0} against ${1:#,0}), so the through fare isn't reaching the till"
                      .Replace("{0:#,0}", legByLegTickets.ToString("#,0")).Replace("{1:#,0}", tickets.ToString("#,0")));
+
+        // the filter box over the route list: typing a place leaves the routes that call there, and the places
+        // a service only passes through count, which is the whole point of having stops
+        av.Refresh();
+        int allRoutes = av.ShownRoutes.Count;
+        av.RouteFilter = "LBB";
+        int byCode = av.ShownRoutes.Count;
+        av.RouteFilter = "Lubbock";
+        int byTown = av.ShownRoutes.Count;
+        av.RouteFilter = "Nowhere At All";
+        int byNonsense = av.ShownRoutes.Count;
+        av.RouteFilter = "";
+        int cleared = av.ShownRoutes.Count;
+        Console.WriteLine("  the route filter: " + allRoutes + " routes, \"LBB\" leaves " + byCode
+                          + ", \"Lubbock\" leaves " + byTown + ", nonsense leaves " + byNonsense
+                          + ", cleared again " + cleared + "; the hint reads \"" + av.RouteFilterHint + "\"");
+        if (allRoutes == 0) fail("the route list is empty before filtering");
+        if (byCode != 1) fail("filtering by LBB left " + byCode + " routes, and Lubbock is a stop on exactly one");
+        if (byTown != byCode) fail("the town name and the code disagree: " + byTown + " against " + byCode);
+        if (byNonsense != 0) fail("filtering by nonsense left " + byNonsense + " routes");
+        if (cleared != allRoutes) fail("clearing the filter left " + cleared + " of " + allRoutes + " routes");
 
         Console.WriteLine("STOPS TEST OK");
         Environment.Exit(0);

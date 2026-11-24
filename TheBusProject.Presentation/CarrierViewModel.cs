@@ -480,6 +480,7 @@ namespace TheBusProject.Presentation
         public WorldMapViewModel Map { get; }
 
         private RouteItem _selectedRoute;
+        private string _routeFilter = "";
         private RouteDetailViewModel _routeDetail;
 
         public RouteItem SelectedRoute
@@ -540,6 +541,81 @@ namespace TheBusProject.Presentation
         public SpeedChoice[] Speeds { get; }
         public ObservableCollection<FleetItem> Fleet { get; }
         public ObservableCollection<RouteItem> Routes { get; }
+
+        /// <summary>
+        ///     The routes actually shown in the list: all of them until something is typed in the filter box, and
+        ///     then only the ones that call at a place matching what was typed. Kept separate from Routes so the
+        ///     list is still only rebuilt when the carrier's routes really change, which is what stops the
+        ///     selection and the half-typed fares from jumping about.
+        /// </summary>
+        public ObservableCollection<RouteItem> ShownRoutes { get; } = new ObservableCollection<RouteItem>();
+
+        /// <summary>What the player has typed to narrow the route list: a code, a station or a town.</summary>
+        public string RouteFilter
+        {
+            get { return _routeFilter; }
+            set { if (SetProperty(ref _routeFilter, value)) ApplyRouteFilter(); }
+        }
+
+        /// <summary>"24 routes" or "3 of 24 routes", under the filter box.</summary>
+        public string RouteFilterHint
+        {
+            get
+            {
+                if (Routes.Count == ShownRoutes.Count) return Count(Routes.Count, "route", "routes");
+                return ShownRoutes.Count + " of " + Count(Routes.Count, "route", "routes");
+            }
+        }
+
+        /// <summary>Does this route call anywhere the player has typed? Stops count, not just the two ends.</summary>
+        private static bool Matches(RouteItem item, string what)
+        {
+            if (item?.Route == null) return false;
+            foreach (var station in TheBusProject.Helpers.RouteStops.Calls(item.Route))
+            {
+                if (station?.Profile == null) continue;
+                if (Has(station.Profile.IATACode, what)) return true;
+                if (Has(station.Profile.Name, what)) return true;
+                if (station.Profile.Town != null && Has(station.Profile.Town.Name, what)) return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     Does any word here start with what was typed? Anywhere-in-the-text matching looks reasonable until
+        ///     you type DAL for Dallas and get Fort Lauderdale, Glendale and Scottsdale as well. A word start is
+        ///     what a person means: "dal" finds Dallas, "fort" finds both the Forts, and neither finds Lauderdale.
+        /// </summary>
+        private static bool Has(string text, string what)
+        {
+            if (string.IsNullOrEmpty(text)) return false;
+            bool atWordStart = true;
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (atWordStart && i + what.Length <= text.Length
+                    && string.Compare(text, i, what, 0, what.Length, StringComparison.OrdinalIgnoreCase) == 0)
+                {
+                    return true;
+                }
+
+                atWordStart = !char.IsLetterOrDigit(text[i]);
+            }
+
+            return false;
+        }
+
+        private void ApplyRouteFilter()
+        {
+            string what = (_routeFilter ?? "").Trim();
+            ShownRoutes.Clear();
+            foreach (var item in Routes)
+            {
+                if (what.Length == 0 || Matches(item, what)) ShownRoutes.Add(item);
+            }
+
+            OnPropertyChanged(nameof(RouteFilterHint));
+        }
         public ObservableCollection<TripItem> Trips { get; } = new ObservableCollection<TripItem>();
 
         public string Summary { get; private set; }
@@ -823,6 +899,8 @@ namespace TheBusProject.Presentation
             {
                 item.Balance = "profit " + Convert.ToString(money.Convert(item.Route.Balance));
             }
+
+            ApplyRouteFilter();
         }
 
         public void Dispose()
