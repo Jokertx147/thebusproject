@@ -43,14 +43,6 @@ namespace TheBusProject.Infrastructure
 
         private static readonly string DataPath = BasePath + "/data";
 
-        /*! private static variable basePath.
-         * stores the path to the Plugin directory.
-         * Plugins are always relative to the location of the exe file, so they do not use
-         * the working directory as base path, but the location of the exe file as base
-         */
-
-        private static readonly string PluginsPath = AppDomain.CurrentDomain.BaseDirectory + "plugins";
-
         private static AppSettings _appSettingsInstance;
 
         #endregion
@@ -117,16 +109,6 @@ namespace TheBusProject.Infrastructure
         }
 
         //creates all relevant paths
-
-        /*! public static method getPluginPath.
-         * returns the path to the Plugin directory.
-         * \return Plugin directory path as string.
-         */
-
-        public static string GetPluginPath()
-        {
-            return PluginsPath;
-        }
 
         public Language GetLanguage()
         {
