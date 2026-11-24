@@ -5183,6 +5183,47 @@ static class VmTest
         Console.WriteLine("  furthest a turn of a route sits from a road: " + worst.ToString("0.00") + " km (" + worstAt + ")");
         if (worst > 1) fail("a route turns " + worst.ToString("0.0") + " km off the road at " + worstAt);
 
+        // every pair worth driving, because nine hand-picked ones say nothing about a network of twelve
+        // thousand junctions. A coach that goes a long way round is as wrong as one that cannot get there.
+        {
+            var every = TheBusProject.Models.Stations.Stations.GetAllActiveStations().OrderBy(x => x.Profile.IATACode).ToList();
+            int tried = 0, straightLine = 0;
+            var worstOnes = new System.Collections.Generic.List<string>();
+            double sumRatio = 0;
+            var swAll = System.Diagnostics.Stopwatch.StartNew();
+            for (int i = 0; i < every.Count; i += 3)
+            {
+                for (int j = i + 1; j < every.Count; j += 7)
+                {
+                    double direct = TheBusProject.Helpers.MathHelpers.GetDistance(every[i], every[j]);
+                    if (direct < 100 || direct > 2500) continue;
+                    var ca = every[i].Profile.Coordinates.ConvertToGeoCoordinate();
+                    var cb = every[j].Profile.Coordinates.ConvertToGeoCoordinate();
+                    var path = TheBusProject.Helpers.RoadNetwork.Path(ca.Latitude, ca.Longitude, cb.Latitude, cb.Longitude);
+                    tried++;
+                    if (path == null || path.Count < 3) { straightLine++; continue; }
+                    double km = 0;
+                    for (int k = 0; k < path.Count - 1; k++) km += Km(path[k][0], path[k][1], path[k + 1][0], path[k + 1][1]);
+                    double ratio = km/Math.Max(1, direct);
+                    sumRatio += ratio;
+                    if (ratio > 1.6)
+                        worstOnes.Add(string.Format("{0}-{1} {2:0.00}x ({3:#,0} km by road, {4:#,0} straight)",
+                                                    every[i].Profile.IATACode, every[j].Profile.IATACode, ratio, km, direct));
+                }
+            }
+
+            swAll.Stop();
+            double meanRatio = tried == straightLine ? 0 : sumRatio/(tried - straightLine);
+            Console.WriteLine(string.Format("  {0} pairs routed in {1} ms: {2} fell back to a straight line, average {3:0.00}x the straight distance, {4} over 1.6x",
+                                            tried, swAll.ElapsedMilliseconds, straightLine, meanRatio, worstOnes.Count));
+            foreach (var w in worstOnes.Take(8)) Console.WriteLine("      " + w);
+            if (tried < 400) fail("only " + tried + " pairs were worth routing, which is too few to say anything");
+            if (straightLine > 0) fail(straightLine + " of " + tried + " pairs have no road at all");
+            if (meanRatio > 1.30) fail("the average route is " + meanRatio.ToString("0.00") + " times the straight line");
+            if (worstOnes.Count > tried*0.03)
+                fail(worstOnes.Count + " of " + tried + " routes go more than half as far again as the crow flies");
+        }
+
         // the cities the filtered map leaves on islands of their own: their road arrives at the edge of our data
         // and stops, so nothing could reach them until the islands were bridged. Each is served by a state
         // highway or a US route rather than an interstate, which is exactly the case that used to break.

@@ -103,6 +103,59 @@ namespace TheBusProject.Helpers
             return Math.Sqrt(dx*dx + dy*dy);
         }
 
+        /// <summary>How wide a gap in one road counts as the same road carrying on.</summary>
+        private const double StitchKm = 10.0;
+
+        /// <summary>
+        ///     Closes the gaps inside the network. The map is drawn as thousands of short pieces and junctions are
+        ///     merged within about eight kilometres, so where two pieces of the same highway end eleven kilometres
+        ///     apart nothing joins them and a coach has to go the long way round. Burlington to Buffalo came out
+        ///     at 1,126 km that way, against a real drive of about 690: the road is there, in pieces. Joining
+        ///     everything within ten kilometres that is not joined already brings it to 770 and costs 2,495 extra
+        ///     links. The joins cost twice the driving, so a real road is always preferred where there is one.
+        /// </summary>
+        private static void Stitch(List<double[]> nodes, List<List<int>> edges, List<List<double>> costs)
+        {
+            double cell = StitchKm/111.0;
+            var grid = new Dictionary<long, List<int>>();
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                long gy = (long) Math.Floor(nodes[i][0]/cell), gx = (long) Math.Floor(nodes[i][1]/cell);
+                long k = gy*1000000 + gx;
+                List<int> list;
+                if (!grid.TryGetValue(k, out list)) grid[k] = list = new List<int>();
+                list.Add(i);
+            }
+
+            int joined = 0;
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                long gy = (long) Math.Floor(nodes[i][0]/cell), gx = (long) Math.Floor(nodes[i][1]/cell);
+                for (long dy = -1; dy <= 1; dy++)
+                {
+                    for (long dx = -1; dx <= 1; dx++)
+                    {
+                        List<int> list;
+                        if (!grid.TryGetValue((gy + dy)*1000000 + (gx + dx), out list)) continue;
+                        foreach (int j in list)
+                        {
+                            if (j <= i || edges[i].Contains(j)) continue;
+                            double d = Flat(nodes[i][0], nodes[i][1], nodes[j][0], nodes[j][1]);
+                            if (d > StitchKm) continue;
+                            double w = d*2.0;
+                            edges[i].Add(j);
+                            costs[i].Add(w);
+                            edges[j].Add(i);
+                            costs[j].Add(w);
+                            joined++;
+                        }
+                    }
+                }
+            }
+
+            StartupLog.Write("Roads: " + joined + " gaps inside the network closed.");
+        }
+
         /// <summary>How far a bridge may reach to pull a stranded piece of road into the network.</summary>
         private const double BridgeDegrees = 0.45;
 
@@ -256,6 +309,7 @@ namespace TheBusProject.Helpers
                     }
                 }
 
+                Stitch(nodes, edges, costs);
                 Bridge(nodes, edges, costs);
 
                 var buckets = new Dictionary<long, List<int>>();
