@@ -2090,7 +2090,16 @@ static class VmTest
         if (Math.Abs(rr.Rivals.First(x => x.Route == theirs).Fare - theirFare) > 0.01) fail("the rival's fare");
         var rival = TheBusProject.Helpers.CompetitorService.Rivals(me).FirstOrDefault(x => x.Carrier == theirs.Carrier);
         if (rival == null || rival.SharedRoutes.Count == 0 || rival.SharedStations.Count == 0) fail("the rival carrier isn't listed with the shared route and stations");
-        if (!(rival.FareAgainstMine > 0.8 && rival.FareAgainstMine < 0.86)) fail("fare against mine " + rival.FareAgainstMine);
+        // on the route this test just made, where my fare is 1.2 times theirs, so theirs is 0.833 of mine.
+        // FareAgainstMine averages over every route I share with them, and in a world where they happen to share
+        // a second one the average is not 0.833 and never was: checking it failed about one run in eight.
+        var shared = rival.SharedRoutes.FirstOrDefault(x => x.Mine == mine);
+        if (shared == null) fail("my new route isn't among the ones we share");
+        double hereRatio = shared.Rivals.First(x => x.Route == theirs).Fare/shared.MyFare;
+        Console.WriteLine("  their fare is " + hereRatio.ToString("0.000") + " of mine on this route, and "
+                          + rival.FareAgainstMine.ToString("0.000") + " averaged over the " + rival.SharedRoutes.Count + " we share");
+        if (!(hereRatio > 0.8 && hereRatio < 0.86)) fail("fare against mine on this route " + hereRatio);
+        if (!(rival.FareAgainstMine > 0.5 && rival.FareAgainstMine < 1.5)) fail("fare against mine averaged " + rival.FareAgainstMine);
         var ap = TheBusProject.Helpers.CompetitorService.ForStations(me).FirstOrDefault(x => x.Station == theirs.Destination1);
         if (ap == null || !ap.Carriers.Any(x => x.Item1 == theirs.Carrier)) fail("the rival isn't at my station");
         Console.WriteLine("  " + rival.Carrier.Profile.Name + ": " + rival.SharedRoutes.Count + " shared routes, " + rival.SharedStations.Count + " stations, fares " + rival.FareAgainstMine.ToString("0.00") + " of mine");
@@ -5115,8 +5124,12 @@ static class VmTest
 
         var sw = System.Diagnostics.Stopwatch.StartNew();
         int done = 0, straight = 0;
+        // Fresno is in here on purpose: its road is California's 99, which the map files as a state highway, and
+        // the nearest interstate is sixty-five kilometres away. A city whose only road is a state one still has
+        // to be reachable by road and not by a line drawn across the fields.
         foreach (var pair in new[] { new[] {"DAL","HOU"}, new[] {"CHI","STL"}, new[] {"NYC","BOS"}, new[] {"LAX","LAS"},
-                                     new[] {"ATL","CLT"}, new[] {"SEA","PDX"}, new[] {"DEN","SLC"}, new[] {"MIA","ORL"} })
+                                     new[] {"ATL","CLT"}, new[] {"SEA","PDX"}, new[] {"DEN","SLC"}, new[] {"MIA","ORL"},
+                                     new[] {"LAX","FRE"} })
         {
             var a = at(pair[0]); var b = at(pair[1]);
             var ca = a.Profile.Coordinates.ConvertToGeoCoordinate();
@@ -5169,6 +5182,29 @@ static class VmTest
 
         Console.WriteLine("  furthest a turn of a route sits from a road: " + worst.ToString("0.00") + " km (" + worstAt + ")");
         if (worst > 1) fail("a route turns " + worst.ToString("0.0") + " km off the road at " + worstAt);
+
+        // the cities the filtered map leaves on islands of their own: their road arrives at the edge of our data
+        // and stops, so nothing could reach them until the islands were bridged. Each is served by a state
+        // highway or a US route rather than an interstate, which is exactly the case that used to break.
+        int stranded = 0;
+        foreach (var code in new[] { "FRE", "SBA", "OXR", "MOD", "PSP", "MYR", "EPH", "SLE" })
+        {
+            var s1 = all.FirstOrDefault(x => x.Profile.IATACode == code);
+            if (s1 == null) continue;
+            var hub = at("LAX");
+            if (TheBusProject.Helpers.MathHelpers.GetDistance(s1, hub) > 3000) hub = at("CHI");
+            var c1 = s1.Profile.Coordinates.ConvertToGeoCoordinate();
+            var c2 = hub.Profile.Coordinates.ConvertToGeoCoordinate();
+            var path = TheBusProject.Helpers.RoadNetwork.Path(c1.Latitude, c1.Longitude, c2.Latitude, c2.Longitude);
+            if (path == null || path.Count < 3)
+            {
+                Console.WriteLine("    " + code + ": still no road to " + hub.Profile.IATACode);
+                stranded++;
+            }
+        }
+
+        Console.WriteLine("  cities whose only road is not an interstate: " + stranded + " of 8 still unreachable");
+        if (stranded > 0) fail(stranded + " cities cannot be reached by road at all");
 
         // a break has to happen somewhere, right across the country and not just on the one service the stops
         // test runs. The empty west is the hard case: a leg through Nevada may have nowhere worth stopping.

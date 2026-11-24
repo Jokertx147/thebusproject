@@ -103,6 +103,91 @@ namespace TheBusProject.Helpers
             return Math.Sqrt(dx*dx + dy*dy);
         }
 
+        /// <summary>How far a bridge may reach to pull a stranded piece of road into the network.</summary>
+        private const double BridgeDegrees = 0.45;
+
+        /// <summary>
+        ///     What the roads we did not draw would have joined up. The map is a filtered set of the real network,
+        ///     so a highway can arrive at the edge of our data and stop, leaving the towns on it on an island of
+        ///     their own: 153 separate pieces, and California's 99 among them, which is why nothing could find a
+        ///     road from Los Angeles to Fresno and drew a line across the fields instead. Every island is joined
+        ///     to the mainland at its closest point, at twice the cost of driving, because what is really there is
+        ///     a county road we never loaded and it is slower than the highway either side of it.
+        /// </summary>
+        private static void Bridge(List<double[]> nodes, List<List<int>> edges, List<List<double>> costs)
+        {
+            int n = nodes.Count;
+            var component = new int[n];
+            for (int i = 0; i < n; i++) component[i] = -1;
+
+            var sizes = new List<int>();
+            var queue = new Queue<int>();
+            for (int i = 0; i < n; i++)
+            {
+                if (component[i] >= 0) continue;
+                int id = sizes.Count, count = 0;
+                component[i] = id;
+                queue.Enqueue(i);
+                while (queue.Count > 0)
+                {
+                    int u = queue.Dequeue();
+                    count++;
+                    foreach (int v in edges[u])
+                    {
+                        if (component[v] >= 0) continue;
+                        component[v] = id;
+                        queue.Enqueue(v);
+                    }
+                }
+
+                sizes.Add(count);
+            }
+
+            if (sizes.Count < 2) return;
+
+            int main = 0;
+            for (int i = 1; i < sizes.Count; i++) if (sizes[i] > sizes[main]) main = i;
+
+            var mainland = new List<int>();
+            for (int i = 0; i < n; i++) if (component[i] == main) mainland.Add(i);
+
+            var islands = new Dictionary<int, List<int>>();
+            for (int i = 0; i < n; i++)
+            {
+                if (component[i] == main) continue;
+                List<int> list;
+                if (!islands.TryGetValue(component[i], out list)) islands[component[i]] = list = new List<int>();
+                list.Add(i);
+            }
+
+            int joined = 0;
+            foreach (var island in islands.Values)
+            {
+                int from = -1, to = -1;
+                double best = double.MaxValue;
+                foreach (int a in island)
+                {
+                    foreach (int b in mainland)
+                    {
+                        if (Math.Abs(nodes[a][0] - nodes[b][0]) > BridgeDegrees) continue;
+                        if (Math.Abs(nodes[a][1] - nodes[b][1]) > BridgeDegrees) continue;
+                        double d = Flat(nodes[a][0], nodes[a][1], nodes[b][0], nodes[b][1]);
+                        if (d < best) { best = d; from = a; to = b; }
+                    }
+                }
+
+                if (from < 0) continue;
+                double w = best*2.0;
+                edges[from].Add(to);
+                costs[from].Add(w);
+                edges[to].Add(from);
+                costs[to].Add(w);
+                joined++;
+            }
+
+            StartupLog.Write("Roads: " + sizes.Count + " separate pieces of network, " + joined + " joined to the main one.");
+        }
+
         private static void Load()
         {
             if (_tried) return;
@@ -170,6 +255,8 @@ namespace TheBusProject.Helpers
                         }
                     }
                 }
+
+                Bridge(nodes, edges, costs);
 
                 var buckets = new Dictionary<long, List<int>>();
                 for (int i = 0; i < nodes.Count; i++)

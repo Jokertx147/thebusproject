@@ -104,10 +104,16 @@ namespace TheBusProject.Desktop.Views
                 foreach (Geometry g in _land) ctx.DrawGeometry(Land, null, g);
                 ctx.DrawGeometry(null, new Pen(LandEdgeBrush, px), _borders);
 
-                // the whole country at once is the interstates and nothing else: 4,000 US routes at that zoom is a
-                // web, not a map. They come in as the view narrows to a few states, the state highways to about one.
-                if (scale > 14000 && _stateHighways != null)
-                    ctx.DrawGeometry(null, new Pen(StateBrush, px*1.0), _stateHighways);
+                // The US routes stay back until the view narrows to a few states, because 4,247 of them at the
+                // whole country is a web and not a map. The state highways do not: there are only 356 of them in
+                // the whole file, a thousand points against the US routes' fifteen thousand, and some of them are
+                // the only road a city has. California's 99 is a freeway the length of the San Joaquin Valley and
+                // the way into Fresno, Bakersfield and Modesto, none of which is within forty miles of an
+                // interstate; holding it back until the view was down to one state left those cities looking as
+                // though no road reached them at all. They are drawn pale and thin so they read as the lesser
+                // roads they mostly are.
+                if (_stateHighways != null)
+                    ctx.DrawGeometry(null, new Pen(StateBrush, px*(scale > 14000 ? 1.0 : 0.8)), _stateHighways);
                 if (scale > 6000 && _usHighways != null)
                     ctx.DrawGeometry(null, new Pen(UsBrush, px*1.1), _usHighways);
                 if (_interstates != null)
