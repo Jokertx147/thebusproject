@@ -65,10 +65,59 @@ The airline's own vocabulary has been renamed throughout:
 
 ## Building and running
 
-Needs the .NET 10 SDK.
+### On Linux, from a clean clone
 
 ```bash
+git clone https://github.com/Jokertx147/thebusproject.git
+cd thebusproject
 dotnet run -c Release --project TheBusProject.Desktop
+```
+
+The build copies `Data/Data` next to the binary itself, so there is nothing to
+install or point at: the game finds its own stations, coaches and map.
+
+Needs the .NET 10 SDK. On Ubuntu 24.04 and anything built on it, including
+Pop!_OS 24.04, it is in the archive:
+
+```bash
+sudo apt install dotnet10
+```
+
+On 22.04 it comes from the backports PPA:
+
+```bash
+sudo add-apt-repository ppa:dotnet/backports
+sudo apt install dotnet10
+```
+
+Anywhere else, or without root, Microsoft's script puts it under your home
+directory:
+
+```bash
+curl -sSL https://dot.net/v1/dotnet-install.sh | bash -s -- --channel 10.0
+export PATH="$HOME/.dotnet:$PATH"
+```
+
+`dotnet --version` should say 10 before you build.
+
+### Without building it at all
+
+Every green push publishes a self-contained Linux build that needs no .NET
+installed:
+
+```bash
+gh run download -n TheBusProject-Linux-x64
+tar xzf TheBusProject-Linux-x64.tar.gz
+./TheBusProject/TheBusProject
+```
+
+### If the window does not open
+
+Avalonia wants the usual X libraries. On a desktop install they are already
+there; on a bare one:
+
+```bash
+sudo apt install libx11-6 libice6 libsm6 libfontconfig1
 ```
 
 ## Tests
