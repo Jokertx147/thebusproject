@@ -288,7 +288,16 @@ namespace TheBusProject.Helpers
                 double perTrip = c[0]/Math.Max(1, tripsPerDay);
                 double capacityShare = p.Capacity > 0 ? Math.Min(1, perTrip/p.Capacity) : 1;
                 double seats = c[1];
-                double n = Math.Min(seats, seats*c[2]*capacityShare);
+
+                // over the week, not over an average day. The seats are the same on a Tuesday as on a Friday, so
+                // the busy days are capped by them and the quiet ones run short, and the average of the seven is
+                // below what the average day would suggest. Forecasting the average day promises a load the week
+                // cannot deliver.
+                double week = 0;
+                for (int d = 0; d < 7; d++)
+                    week += Math.Min(seats, seats*c[2]*capacityShare*PassengerHelpers.DayOfWeekFactor(new DateTime(2001, 1, 1).AddDays(d)));
+                double n = week/7;
+
                 pax += n/2;
                 revenue += n*c[3]/2;
             }

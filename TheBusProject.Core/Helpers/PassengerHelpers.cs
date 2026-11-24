@@ -3110,7 +3110,7 @@ namespace TheBusProject.Helpers
             double traceBase = demand + connecting + nearby;
             double passengerDemand = (demand + connecting + nearby)
                                      *GetSeasonFactor(stationDestination)*GetHolidayFactor(stationDestination)
-                                     *GetHolidayFactor(stationCurrent);
+                                     *GetHolidayFactor(stationCurrent)*DayOfWeekFactor(GameObject.GetInstance().GameTime);
 
             passengerDemand *= GameObject.GetInstance().Difficulty.PassengersLevel;
             passengerDemand *= routeScoreFactor;
@@ -3595,6 +3595,28 @@ namespace TheBusProject.Helpers
             double yearDiff = Convert.ToDouble(year - GameObject.StartYear)/10;
 
             return 0.15*(yearDiff + 1);
+        }
+
+        /// <summary>
+        ///     How busy the day of the week is, averaging one over the seven. People go away on a Friday and come
+        ///     back on a Sunday, and midweek the coach is half empty. Without this every trip of a weekly
+        ///     timetable carried the same load, so a service sized to be worth running was equally full on a
+        ///     Tuesday and a Friday, and the coaches sat at eighty per cent all year where the trade runs at about
+        ///     fifty-five. The real figure is low precisely because the timetable has to be built for the busy
+        ///     days and then run on the quiet ones.
+        /// </summary>
+        public static double DayOfWeekFactor(DateTime when)
+        {
+            switch (when.DayOfWeek)
+            {
+                case DayOfWeek.Monday: return 0.92;
+                case DayOfWeek.Tuesday: return 0.73;
+                case DayOfWeek.Wednesday: return 0.78;
+                case DayOfWeek.Thursday: return 0.97;
+                case DayOfWeek.Friday: return 1.36;
+                case DayOfWeek.Saturday: return 0.97;
+                default: return 1.27;
+            }
         }
 
         private static double GetHolidayFactor(Station station)
