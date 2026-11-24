@@ -4868,6 +4868,23 @@ static class VmTest
             Console.WriteLine(string.Format("    {0} ({1}) worth ${2:#,0}, ${8:#,0} new: A ${3:#,0}, B ${4:#,0}, C ${5:#,0}, D ${6:#,0}; keeping it up costs ${7:#,0} a year",
                                             f.Name, f.Coach.Type.Name, v, a, b, cc, dd, year,
                                             f.Coach.Type.Price));
+            // what the coach drinks, and what that costs at the pump. The game burns
+            // (seats*0.55 + riders*0.45) * consumption litres a km, so a full coach is thirstier than an empty
+            // one, and the figure that can be checked against the world is the miles it gets to the gallon.
+            {
+                double seats = f.Coach.GetTotalSeatCapacity();
+                double litresPerKm = (seats*0.55 + seats*0.78*0.45)*f.Coach.FuelConsumption;
+                double mpg = litresPerKm > 0 ? 3.785411784/(litresPerKm*1.609344) : 0;
+                double price = TheBusProject.Helpers.StationHelpers.GetFuelPrice(f.Homebase);
+                Console.WriteLine(string.Format("    {0}: {1:0} seats, {2:0.0} litres a 100 km, {3:0.0} miles to the gallon, diesel at ${4:0.00} a gallon -> ${5:0.00} a mile",
+                                                f.Coach.Type.Name, seats, litresPerKm*100, mpg, price*3.785411784, litresPerKm*price/0.621371));
+                if (mpg < 4 || mpg > 9)
+                    fail(f.Coach.Type.Name + " does " + mpg.ToString("0.0") + " miles to the gallon; a motorcoach does five to seven, eight for a small one");
+                double gallon = price*3.785411784;
+                if (gallon < 0.15 || gallon > 6)
+                    fail("diesel costs $" + gallon.ToString("0.00") + " a gallon in " + TheBusProject.Models.General.GameObject.GetInstance().GameTime.Year);
+            }
+
             // against a new coach of the same sort, not against this one's resale value. A twenty year old
             // coach worth $20,000 can quite properly cost more than that to keep on the road in a year -- that
             // is why lines retire them -- so what has to hold is that the upkeep is a sane share of a new one
