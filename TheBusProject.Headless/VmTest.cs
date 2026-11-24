@@ -4868,6 +4868,85 @@ static class VmTest
             Console.WriteLine(string.Format("    {0} ({1}) worth ${2:#,0}, ${8:#,0} new: A ${3:#,0}, B ${4:#,0}, C ${5:#,0}, D ${6:#,0}; keeping it up costs ${7:#,0} a year",
                                             f.Name, f.Coach.Type.Name, v, a, b, cc, dd, year,
                                             f.Coach.Type.Price));
+            // the wage bill, broken into the four things that pay it
+            if (f == me.Fleet.First())
+            {
+                int wy = g.GameTime.AddMonths(-1).Year;
+                double wagesYear = 0;
+                for (int mm = 1; mm <= 12; mm++) wagesYear += -me.GetInvoicesAmountMonth(wy, mm, TheBusProject.Models.General.Finances.Invoice.InvoiceType.Wages);
+
+                double retainers = me.Drivers.Sum(d => TheBusProject.Helpers.CarrierHelpers.GetDriverSalary(me, d))*12;
+                double instructors = me.TripSchools.SelectMany(s => s.Instructors)
+                    .Sum(i => TheBusProject.Helpers.CarrierHelpers.PayGrade(i.Rating.CostIndex)
+                              *me.Fees.GetValue(TheBusProject.Models.Carriers.FeeTypes.GetType("Instructor Base Salary")))*12;
+
+                double support = 0, upkeep = 0;
+                int supportHeads = 0, upkeepHeads = 0;
+                foreach (var st in TheBusProject.Models.Stations.Stations.GetAllStations())
+                    foreach (var fac in st.GetStationFacilities(me))
+                    {
+                        int heads = fac.Facility.NumberOfEmployees;
+                        if (heads <= 0) continue;
+                        bool care = fac.Facility.EmployeeType == TheBusProject.Models.Stations.StationFacility.EmployeeTypes.Maintenance;
+                        if (!care && fac.Facility.EmployeeType != TheBusProject.Models.Stations.StationFacility.EmployeeTypes.Support) continue;
+                        double rate = me.Fees.GetValue(TheBusProject.Models.Carriers.FeeTypes.GetType(care ? "Maintenance Wage" : "Support Wage"));
+                        if (care) { upkeep += heads*rate*(40*4.33)*12; upkeepHeads += heads; }
+                        else { support += heads*rate*(40*4.33)*12; supportHeads += heads; }
+                    }
+
+                double onTheRoad = wagesYear - retainers - instructors - support - upkeep;
+                Console.WriteLine(string.Format("    the wage bill was ${0:#,0}: {1} driver retainers ${2:#,0} (${3:#,0} each), the hours driven ${4:#,0}, {5} agents ${6:#,0} (${7:#,0} each), {8} mechanics ${9:#,0} (${10:#,0} each), instructors ${11:#,0}",
+                                                wagesYear, me.Drivers.Count, retainers,
+                                                me.Drivers.Count > 0 ? retainers/me.Drivers.Count : 0,
+                                                onTheRoad, supportHeads, support,
+                                                supportHeads > 0 ? support/supportHeads : 0,
+                                                upkeepHeads, upkeep,
+                                                upkeepHeads > 0 ? upkeep/upkeepHeads : 0, instructors));
+
+                // The pay is checked in 1960 dollars, because the bounds have to hold whatever year the run ends
+                // in. One year of drift between the P&L's year and the game's is well inside the bands.
+                //
+                // The figure to check is the crew cost a bus mile, not what a named driver costs. Greyhound's
+                // drivers cost about 43 cents a bus mile in wages and benefits in 2004, nearer 50 by 2014, and
+                // that is what the hourly rate and the retainer have to come to together. What a named driver
+                // costs cannot be checked the same way: the game hires one driver a coach, and a coach that runs
+                // 5,000 hours a year is three drivers' worth of work, so dividing by the headcount gives three
+                // drivers' pay and reads like one driver on $115,000.
+                double milesDriven = 0;
+                foreach (var r in me.Routes.ToList())
+                {
+                    if (r.TimeTable == null) continue;
+                    milesDriven += TheBusProject.Helpers.RouteStops.TotalKm(r)*r.TimeTable.Entries.Count*52*0.621371;
+                }
+
+                double infl = TheBusProject.Helpers.GeneralHelpers.GetInflationPrice(1.0);
+                double crewMile = milesDriven > 0 ? (retainers + onTheRoad)/milesDriven/infl : 0;
+                Console.WriteLine(string.Format("    crew cost ${0:0.00} a bus mile against about $0.50 for a real one; a driver's retainer is ${1:#,0} a year, an agent ${2:#,0}, a mechanic ${3:#,0}",
+                                                crewMile*infl, retainers/Math.Max(1, me.Drivers.Count),
+                                                support/Math.Max(1, supportHeads), upkeep/Math.Max(1, upkeepHeads)));
+
+                if (crewMile < 0.040 || crewMile > 0.095)
+                    fail(string.Format("the crew costs {0:0.000} a bus mile in 1960 dollars, outside 0.040 to 0.095 (${1:0.00} of today's money)", crewMile, crewMile*infl));
+                if (me.Drivers.Count > 0)
+                {
+                    double each = retainers/me.Drivers.Count/infl;
+                    if (each < 1400 || each > 2600)
+                        fail(string.Format("a driver's retainer is {0:#,0} a year in 1960 dollars, outside 1,400 to 2,600 (${1:#,0} of today's money)", each, each*infl));
+                }
+                if (supportHeads > 0)
+                {
+                    double each = support/supportHeads/infl;
+                    if (each < 2600 || each > 4400)
+                        fail(string.Format("an agent earns {0:#,0} a year in 1960 dollars, outside 2,600 to 4,400 (${1:#,0} of today's money)", each, each*infl));
+                }
+                if (upkeepHeads > 0)
+                {
+                    double each = upkeep/upkeepHeads/infl;
+                    if (each < 4200 || each > 6800)
+                        fail(string.Format("a mechanic earns {0:#,0} a year in 1960 dollars, outside 4,200 to 6,800 (${1:#,0} of today's money)", each, each*infl));
+                }
+            }
+
             // what the coach drinks, and what that costs at the pump. The game burns
             // (seats*0.55 + riders*0.45) * consumption litres a km, so a full coach is thirstier than an empty
             // one, and the figure that can be checked against the world is the miles it gets to the gallon.

@@ -2508,7 +2508,7 @@ namespace TheBusProject.Helpers
 
                 foreach (Instructor instructor in carrier.TripSchools.SelectMany(f => f.Instructors))
                 {
-                    double salary = instructor.Rating.CostIndex
+                    double salary = CarrierHelpers.PayGrade(instructor.Rating.CostIndex)
                                     *carrier.Fees.GetValue(FeeTypes.GetType("Instructor Base Salary"));
                     CarrierHelpers.AddCarrierInvoice(
                         carrier,

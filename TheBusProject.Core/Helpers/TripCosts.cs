@@ -85,9 +85,12 @@ namespace TheBusProject.Helpers
             p.Maintenance = hours*(GeneralHelpers.GetInflationPrice(2.4 + 0.09*cap) + 0.000008*coach.Type.Price);
             // tolls, road tax and tyres per km, more for a heavier coach (about 3 cents a km in 2007)
             p.EnRoute = km*GeneralHelpers.GetInflationPrice(0.002 + 0.00004*cap);
-            // the driver's time (the drivers you hire by name are paid separately)
-            int crew = Math.Max(1, coach.Type.DriverCrew) + (coach.Type is CoachPassengerType pt ? pt.Attendants : 0);
-            p.Crew = hours*crew*GeneralHelpers.GetInflationPrice(7.0);
+            // The driver's time, at the real wage: the BLS put intercity and transit drivers at $23.56 an hour in
+            // 2023, which deflates to about $18.26 in 2015, and 2.16 in 1960 dollars comes to that. The standing
+            // part of a named driver's pay - benefits, payroll tax, standby - is the monthly packet instead, and
+            // the attendants are not counted here because the landing charges them separately at the Cabin Wage.
+            int crew = Math.Max(1, coach.Type.DriverCrew);
+            p.Crew = hours*crew*GeneralHelpers.GetInflationPrice(2.16);
             // liability cover, which a coach carries whether anybody is aboard or not: 7.8% of Greyhound's revenue
             // and 26 cents of every bus mile. By the hour and the seat, so an empty run pays it in full
             p.Insurance = hours*GeneralHelpers.GetInflationPrice(2.4 + 0.05*cap) + 0.0000028*coach.Type.Price;

@@ -715,25 +715,12 @@ namespace TheBusProject.Helpers
             }
         }
 
-        //returns the monthly payroll for an carrier
-        public static double GetMonthlyPayroll(Carrier carrier)
-        {
-            double instructorFee = carrier.TripSchools.Sum(f => f.NumberOfInstructors)*carrier.Fees.GetValue(FeeTypes.GetType("Instructor Base Salary"));
-
-            double cabCrewFee = carrier.Drivers.Count*carrier.Fees.GetValue(FeeTypes.GetType("Cab Wage"));
-
-            double cabinCrewFee = carrier.Routes.Where(r => r.Type == Route.RouteType.Passenger).Sum(r => ((PassengerRoute) r).GetTotalAttendants())*
-                                  carrier.Fees.GetValue(FeeTypes.GetType("Cabin Wage"));
-
-            double serviceCrewFee =
-                carrier.Stations.SelectMany(a => a.GetCurrentStationFacilities(carrier)).Where(a => a.EmployeeType == StationFacility.EmployeeTypes.Support).Sum(a => a.NumberOfEmployees)*
-                carrier.Fees.GetValue(FeeTypes.GetType("Support Wage"));
-            double maintenanceCrewFee =
-                carrier.Stations.SelectMany(a => a.GetCurrentStationFacilities(carrier)).Where(a => a.EmployeeType == StationFacility.EmployeeTypes.Maintenance).Sum(a => a.NumberOfEmployees)*
-                carrier.Fees.GetValue(FeeTypes.GetType("Maintenance Wage"));
-
-            return instructorFee + cabCrewFee + cabinCrewFee + serviceCrewFee + maintenanceCrewFee;
-        }
+        // GetMonthlyPayroll used to live here. Nothing called it, and it was worth deleting rather than leaving,
+        // because it read like the payroll calculation while the real one is spread over four places: a driver's
+        // standing packet in GetDriverSalary, the hours actually driven in TripCosts, the attendants at a landing
+        // in DayTurnHelpers, and the station staff by the hour in GameObjectHelpers. It also charged the station
+        // staff a flat monthly rate where the live code treats their fee as hourly over a 173-hour month, so it
+        // disagreed with the game by a factor of 173 and would have misled anyone who trusted it.
 
         //returns the number of routes out of an station for an carrier
         public static int GetStationOutboundRoutes(Carrier carrier, Station station)
@@ -1012,13 +999,31 @@ namespace TheBusProject.Helpers
         }
 
         //returns the salary for a driver at an carrier
+        /// <summary>
+        ///     What a rating's cost index is worth as a multiple of an average employee's pay. The indexes run 3, 4, 5,
+        ///     7, 10 across the five ratings, so using one as a multiplier directly made a top-rated driver cost three
+        ///     and a third times a bottom-rated one and ten times the base fee. A real intercity driver at the top of
+        ///     the scale earns something like 1.4 times a new one, so the index is mapped onto a scale centred on 1 at
+        ///     the middle rating: 0.90, 0.95, 1.00, 1.10, 1.25.
+        /// </summary>
+        public static double PayGrade(int costIndex)
+        {
+            return 0.75 + 0.05*costIndex;
+        }
+
+        /// <summary>
+        ///     A driver's monthly packet. This is the standing part of the pay only: the hours actually driven are
+        ///     charged to the trip that drove them, at a real hourly wage, by <see cref="TripCosts" />. So what is paid
+        ///     here is the retainer behind that - benefits, payroll tax, standby and the guaranteed minimum - which for
+        ///     an intercity driver runs about 30% of a working year's wages.
+        /// </summary>
         public static double GetDriverSalary(Carrier carrier, Driver driver)
         {
-            double driverBasePrice = carrier.Fees.GetValue(FeeTypes.GetType("Driver Base Salary")); //GeneralHelpers.GetInflationPrice(133.53);<
+            double driverBasePrice = carrier.Fees.GetValue(FeeTypes.GetType("Driver Base Salary"));
 
-            double driverExperienceFee = driver.Coaches.Count*GeneralHelpers.GetInflationPrice(20.3);
+            double driverExperienceFee = driver.Coaches.Count*GeneralHelpers.GetInflationPrice(6.0);
 
-            return (driver.Rating.CostIndex*driverBasePrice + driverExperienceFee)*DriverMoraleService.PayFactor(carrier);
+            return (PayGrade(driver.Rating.CostIndex)*driverBasePrice + driverExperienceFee)*DriverMoraleService.PayFactor(carrier);
         }
 
         private enum RouteOkStatus

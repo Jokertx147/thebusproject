@@ -1423,12 +1423,21 @@ namespace TheBusProject.Infrastructure
         private static void CreateFeeTypes()
         {
             //wages
+            // Cab Wage pays nobody: a driver's hours are charged to the trip that drove them, by TripCosts, and the
+            // standing part of the packet is the Driver Base Salary below. It is kept only so that an old save
+            // that stored a value against it still loads. Do not wire it up - it would pay the drivers twice.
             FeeTypes.AddType(new FeeType(FeeType.EFeeType.Wage, "Cab Wage", 4.11, 3.75, 12.75, 100));
-            FeeTypes.AddType(new FeeType(FeeType.EFeeType.Wage, "Maintenance Wage", 3.95, 3.0, 4.25, 100));
-            FeeTypes.AddType(new FeeType(FeeType.EFeeType.Wage, "Support Wage", 2.65, 1, 3, 100));
+            // The two station wages are hourly, charged over 40 hours a week and 4.33 weeks a month. At the old
+            // values that paid a cleaner or ticket agent $46,600 a year and a mechanic $69,400 in 2015, where the
+            // real figures were nearer $28,000 and $44,000.
+            FeeTypes.AddType(new FeeType(FeeType.EFeeType.Wage, "Maintenance Wage", 2.50, 1.9, 2.70, 100));
+            FeeTypes.AddType(new FeeType(FeeType.EFeeType.Wage, "Support Wage", 1.59, 0.6, 1.8, 100));
             FeeTypes.AddType(new FeeType(FeeType.EFeeType.Wage, "Cabin Wage", 1.9, 1, 4, 100));
-            FeeTypes.AddType(new FeeType(FeeType.EFeeType.Wage, "Instructor Base Salary", 267.00, 200, 300, 100));
-            FeeTypes.AddType(new FeeType(FeeType.EFeeType.Wage, "Driver Base Salary", 80.0, 60, 95, 100));
+            // Both of these are monthly, multiplied by the pay grade of the employee's rating. The driver figure is
+            // the standing part of the packet only - benefits, payroll tax and standby, about 30% of a working
+            // year - because the hours driven are charged to the trip at an hourly wage.
+            FeeTypes.AddType(new FeeType(FeeType.EFeeType.Wage, "Instructor Base Salary", 542.00, 406, 610, 100));
+            FeeTypes.AddType(new FeeType(FeeType.EFeeType.Wage, "Driver Base Salary", 112.0, 84, 133, 100));
 
             //food and drinks
             FeeTypes.AddType(new FeeType(FeeType.EFeeType.FoodDrinks, "Alcholic Drinks", 0.75, 0.5, 1.1, 75));
