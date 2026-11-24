@@ -4792,6 +4792,23 @@ static class VmTest
                 // The one revenue figure Greyhound's accounts really give is $811.5m of passenger services over
                 // 288.4m bus miles, which is $2.81 a bus mile. Its passenger count, average fare and average
                 // journey are not in the filing, so they are not benchmarks here however tempting the arithmetic.
+                // what the bays actually cost: every station contract the carrier holds
+                double bays = 0; int bayCount = 0;
+                foreach (var st in TheBusProject.Models.Stations.Stations.GetAllStations())
+                {
+                    foreach (var ct in st.GetCarrierContracts(me))
+                    {
+                        bays += ct.YearlyPayment;
+                        bayCount += ct.NumberOfGates;
+                    }
+                }
+
+                double ownership = me.Fleet.Sum(x => TheBusProject.Helpers.OwnershipService.MonthlyCost(x))*12;
+                Console.WriteLine(string.Format("      bays: {0} at {1} stations costing ${2:#,0} a year (${3:#,0} each), {4:0.0}% of revenue; owning the coaches ${5:#,0} ({6:0.0}%)",
+                                                bayCount, TheBusProject.Models.Stations.Stations.GetAllStations().Count(x => x.GetCarrierContracts(me).Count > 0),
+                                                bays, bayCount == 0 ? 0 : bays/bayCount, inAll <= 0 ? 0 : bays/inAll*100,
+                                                ownership, inAll <= 0 ? 0 : ownership/inAll*100));
+
                 double fleetMiles = kmYear*0.621371;
                 Console.WriteLine(string.Format("      ${0:0.00} of tickets a bus mile against Greyhound's $2.81; {1:#,0} journeys at ${2:0} each, {3:0} miles the average journey",
                                                 fleetMiles <= 0 ? 0 : tickets/fleetMiles, carriedAll,

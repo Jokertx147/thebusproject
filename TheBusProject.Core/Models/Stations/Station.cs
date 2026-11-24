@@ -672,7 +672,16 @@ namespace TheBusProject.Models.Stations
         //returns the price for a gate
         public long GetGatePrice()
         {
-            long sizeValue = 100 + 102*((int) Profile.Size + 1);
+            // What a bay costs for a year, before the contract's service multiplier. This used to run from $25,000
+            // at the smallest station to $67,000 at the largest, which is wrong at both ends and wrong in shape: a
+            // bay cost the carrier more than twice what owning the coach that used it cost, and a kerbside stop in
+            // a small town was billed $2,000 a month. Greyhound's whole operating rents line was 8% of its revenue
+            // and most of that was the 1,501 coaches it leased, not its stations; out in the country it does not
+            // rent a bay at all, it pays an agent a commission on the tickets, which this game charges separately.
+            // So the small places are cheap now and the curve is steep, because the gap between a kerb in Lubbock
+            // and a stand at the Port Authority is enormous and a factor of 2.7 never said so.
+            int s = (int) Profile.Size + 1;
+            long sizeValue = 15 + 14*s*s;
             return Convert.ToInt64(GeneralHelpers.GetInflationPrice(sizeValue));
         }
 
