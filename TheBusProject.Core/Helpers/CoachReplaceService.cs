@@ -280,10 +280,14 @@ namespace TheBusProject.Helpers
             return plan;
         }
 
-        /// <summary>The player's coach that could take over the trips of `from` on the route, the ones that fit first.</summary>
+        /// <summary>
+        ///     The coaches of the route's own carrier that could take over the trips of `from`, the ones that fit
+        ///     first. It used to look at the player's fleet whoever the route belonged to, which was harmless while
+        ///     only the player's screens called it and wrong the moment a computer carrier did.
+        /// </summary>
         public static List<ReplacementOption> Options(Route route, FleetCoach from)
         {
-            Carrier carrier = GameObject.GetInstance().HumanCarrier;
+            Carrier carrier = route?.Carrier ?? GameObject.GetInstance().HumanCarrier;
             var moving = route.TimeTable.Entries.Where(e => e.Coach == from).ToList();
             double distance = MathHelpers.GetDistance(route.Destination1, route.Destination2);
             long bay = Math.Min(route.Destination1.GetMaxBayLength(), route.Destination2.GetMaxBayLength());
@@ -335,9 +339,12 @@ namespace TheBusProject.Helpers
         /// </summary>
         public static bool Replace(Route route, FleetCoach from, FleetCoach to, ReplaceMode mode, out string message)
         {
-            Carrier carrier = GameObject.GetInstance().HumanCarrier;
+            // The route's own carrier, not the player's. This read the player's fleet whoever owned the route, so
+            // a computer carrier replacing a worn-out coach was told "That isn't one of your routes." and nothing
+            // happened: 371 of the 425 lines a playthrough's renewals produced were that one message.
+            Carrier carrier = route?.Carrier;
             message = "";
-            if (route == null || !carrier.Routes.Contains(route))
+            if (route == null || carrier == null || !carrier.Routes.Contains(route))
             {
                 message = "That isn't one of your routes.";
                 return false;

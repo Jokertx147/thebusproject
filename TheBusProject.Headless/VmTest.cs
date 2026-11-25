@@ -701,6 +701,68 @@ static class VmTest
         Console.WriteLine("  three days later: seats run " + (route.ConnectSeats - seats));
         if (route.ConnectSeats - seats <= 0) { Console.WriteLine("  FAILED the new coach doesn't run"); Environment.Exit(1); }
         Console.WriteLine("  after: " + string.Join(" / ", rn.OldTypes.Select(t => t.Name)));
+
+        // And a computer carrier retiring a coach that has reached the end of its working life, which is the
+        // case that never worked. Nothing called Renew but the screen above, so a computer carrier never
+        // replaced a coach at all; and when one finally did, CoachReplaceService read the player's fleet
+        // whoever owned the route, so it was told "That isn't one of your routes." and nothing happened. 371
+        // of the 425 lines one playthrough's renewals produced were that single message.
+        //
+        // It is tested here rather than from the fleet ages in vm play, because those cannot settle it: with
+        // the monthly retirement turned off, eight years still ends with much the same ages, the drift being a
+        // matter of decades. Here the answer is exact.
+        {
+            var gg = TheBusProject.Models.General.GameObject.GetInstance();
+            var rival = TheBusProject.Models.Carriers.Carriers.GetAllCarriers()
+                            .FirstOrDefault(c => !c.IsHuman && c.DeliveredFleet.Any(f => f.Routes.Count > 0
+                                                                                         && !TheBusProject.Helpers.CoachDealService.IsLeasedOut(f)
+                                                                                         && !TheBusProject.Helpers.CharterService.IsOnCharter(f)));
+            if (rival == null) { Console.WriteLine("  FAILED no computer carrier has a coach on a route"); Environment.Exit(1); }
+
+            var worn = rival.DeliveredFleet.First(f => f.Routes.Count > 0
+                                                       && !TheBusProject.Helpers.CoachDealService.IsLeasedOut(f)
+                                                       && !TheBusProject.Helpers.CharterService.IsOnCharter(f));
+            var wornRoutes = worn.Routes.ToList();
+            string wornName = worn.Name;
+
+            // a coach of the same model young enough to take over, so this does not depend on what the market
+            // happens to be holding that month
+            var spare = new TheBusProject.Models.Coaches.Coach(
+                "renewal-spare", worn.Coach.Type,
+                TheBusProject.Models.General.Countries.Countries.GetCountries()[0].TailNumbers.GetNextTailNumber(),
+                gg.GameTime.AddYears(-3));
+            TheBusProject.Models.Coaches.Coaches.AddCoach(spare);
+
+            worn.Coach.BuiltDate = gg.GameTime.AddYears(-20);
+            int wornAge = worn.Coach.GetAge();
+            if (wornAge < TheBusProject.Helpers.FleetRenewalService.RetireAt)
+            { Console.WriteLine("  FAILED the rival's coach is " + wornAge + ", which is not worn out"); Environment.Exit(1); }
+
+            var said = TheBusProject.Helpers.FleetRenewalService.RetireWornOut(rival);
+            Console.WriteLine("  the rival at " + wornAge + " years: " + (said.Count == 0 ? "said nothing" : string.Join(" | ", said)));
+
+            if (rival.Fleet.Contains(worn))
+            { Console.WriteLine("  FAILED the rival kept " + wornName + " at " + wornAge + " years old"); Environment.Exit(1); }
+            foreach (var r in wornRoutes)
+            {
+                var on = r.GetCoaches();
+                string code = r.Destination1.Profile.IATACode + "-" + r.Destination2.Profile.IATACode;
+                if (on.Contains(worn)) { Console.WriteLine("  FAILED the rival left " + wornName + " on " + code); Environment.Exit(1); }
+                if (on.Count == 0) { Console.WriteLine("  FAILED the rival took " + wornName + " off " + code + " and put nothing on it"); Environment.Exit(1); }
+            }
+
+            // and a coach that is not worn out is left where it is
+            var young = rival.DeliveredFleet.FirstOrDefault(f => f.Routes.Count > 0
+                                                                 && f.Coach.GetAge() < TheBusProject.Helpers.FleetRenewalService.RetireAt);
+            if (young != null)
+            {
+                int before = rival.Fleet.Count;
+                TheBusProject.Helpers.FleetRenewalService.RetireWornOut(rival);
+                if (!rival.Fleet.Contains(young) || rival.Fleet.Count != before)
+                { Console.WriteLine("  FAILED a coach of " + young.Coach.GetAge() + " years was retired, which is not worn out"); Environment.Exit(1); }
+            }
+        }
+
         Console.WriteLine("RENEWAL TEST OK");
     }
 
@@ -4975,15 +5037,18 @@ static class VmTest
             if (theirs.Count > 0)
             {
                 var ages = theirs.Select(f => f.Coach.GetAge()).OrderBy(a => a).ToList();
-                // Reported, not asserted. Nothing retires a coach for age: FleetRenewalService.Renew is called
-                // only from the fleet renewal screen, so a human player can replace a worn-out coach and no
-                // computer carrier ever does. The only ways one leaves an AI fleet are going idle, a delivery
-                // payment it cannot meet, and the carrier failing outright. So a share of rival coaches past the
-                // age they could be sold at is expected for now, and this line is here to keep it in sight.
                 Console.WriteLine(string.Format("  the {0} rivals run {1} coaches: age {2} to {3}, median {4}, mean {5:0.0}; past the {6} years a coach has a market at: {7:0}%",
                                                 rivals.Count, ages.Count, ages[0], ages[ages.Count - 1], ages[ages.Count/2], ages.Average(),
                                                 TheBusProject.Models.Coaches.Coaches.OldestForSale,
                                                 ages.Count(a => a >= TheBusProject.Models.Coaches.Coaches.OldestForSale)*100.0/ages.Count));
+
+                // Reported, not asserted, and deliberately so. Turning the monthly retirement off and running
+                // this again gives a mean of 12.8 to 13.5 against 12.3 to 12.9 with it on, and 3.3% to 6.5% of
+                // the coaches past the retiring age against 0% to 5%: the two overlap, so no bound on these
+                // numbers would reliably tell one from the other in a game of eight years. The drift they
+                // describe takes decades, and most of it was already cured by capping the age a carrier can
+                // open with and the age the market will offer. Whether a carrier actually replaces a worn-out
+                // coach is settled exactly, and quickly, by vm renewal instead.
             }
             var mineAges = me.Fleet.Where(f => f.Coach.BuiltDate <= g.GameTime).Select(f => f.Coach.GetAge()).OrderBy(a => a).ToList();
             if (mineAges.Count > 0)

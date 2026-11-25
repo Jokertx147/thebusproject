@@ -1034,6 +1034,12 @@ namespace TheBusProject.Helpers
                 () => Safe(carrier, "CheckForSubsidiaryCarrier", () => CheckForSubsidiaryCarrier(carrier)),
                 () => Safe(carrier, "CheckForCarrierStationFacilities", () => CheckForCarrierStationFacilities(carrier)),
                 () => Safe(carrier, "CheckForOrderOfCoaches", () => CheckForOrderOfCoaches(carrier))); //close parallel.invoke
+
+            // Outside the parallel block on purpose: retiring a coach moves routes, timetables, drivers and money
+            // at once, and the checks above are already touching those. Once a month, not every day, because it
+            // is a year-to-year decision and the plan it draws up is not cheap to work out.
+            if (GameObject.GetInstance().GameTime.Day == 1)
+                Safe(carrier, "RetireWornOutCoaches", () => FleetRenewalService.RetireWornOut(carrier));
         }
 
         #endregion

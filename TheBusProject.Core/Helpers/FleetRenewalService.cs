@@ -54,6 +54,15 @@ namespace TheBusProject.Helpers
         public SlowerChoice Slower { get; set; } = SlowerChoice.ShiftOrKeep;
         public OldCoachChoice AfterOld { get; set; } = OldCoachChoice.Sell;
 
+        /// <summary>
+        ///     Replace only the coaches at least this old, and only with ones younger than it. Left at nothing, the
+        ///     whole type is replaced however old each coach is, which is what the renewal screen means by swapping
+        ///     one type for another. Set, it means retiring what is worn out and keeping the rest, which is what a
+        ///     carrier does year to year, and it is the only case where the new type may be the old one: a coach of
+        ///     eighteen is most often replaced by a younger coach of the same model.
+        /// </summary>
+        public int OnlyOlderThan { get; set; }
+
         public bool UsesMarket => Source == MissingSource.BuyUsed || Source == MissingSource.LeaseUsed || Source == MissingSource.UsedThenNew;
         public bool Lease => Source == MissingSource.LeaseUsed;
         public bool Orders => Source == MissingSource.OrderNew || Source == MissingSource.UsedThenNew;
@@ -122,6 +131,75 @@ namespace TheBusProject.Helpers
     /// </summary>
     public static class FleetRenewalService
     {
+        /// <summary>
+        ///     The age at which a coach still earning its living is replaced. The FTA's useful life benchmark for an
+        ///     over-the-road bus is 14 years and the average bus retires at about 15, so eighteen is already a
+        ///     patient operator; it is kept below the 22 years a coach can still be sold at
+        ///     (<see cref="Coaches.OldestForSale" />) so that the one coming off the fleet is still worth something.
+        /// </summary>
+        public const int RetireAt = 18;
+
+        /// <summary>
+        ///     Retires the carrier's worn-out coaches, one type at a time, and is what a computer carrier calls each
+        ///     month. Nothing used to do this: Renew was reached only from the fleet renewal screen, so a human
+        ///     player could replace a worn-out coach and no computer carrier ever did, and their coaches ran on to
+        ///     26 and 28 years with no way off the fleet but going idle, a delivery payment they could not meet, or
+        ///     the carrier failing outright.
+        ///     <para>
+        ///         One type a month, starting with the oldest coach still carrying passengers, so a carrier renews
+        ///         steadily instead of re-equipping overnight. The replacement is paid for out of the carrier's own
+        ///         money, so a carrier that cannot afford one keeps running what it has, which is also what happens
+        ///         in life.
+        ///     </para>
+        /// </summary>
+        public static List<string> RetireWornOut(Carrier carrier)
+        {
+            var nothing = new List<string>();
+            if (carrier == null) return nothing;
+
+            FleetCoach worst = carrier.DeliveredFleet
+                                      .Where(f => f.Routes.Count > 0 && Usable(f) && f.Coach.GetAge() >= RetireAt)
+                                      .Where(f => !CoachDealService.IsLeasedOut(f) && !CharterService.IsOnCharter(f))
+                                      .Where(f => f.ReplacesOnDelivery == null)
+                                      .OrderByDescending(f => f.Coach.GetAge())
+                                      .FirstOrDefault();
+            if (worst == null) return nothing;
+            // something is already on its way for it
+            if (carrier.Fleet.Any(f => f.ReplacesOnDelivery != null)) return nothing;
+
+            CoachType oldType = worst.Coach.Type;
+
+            // It has to be able to run the routes the worn coach runs. Without this the carrier kept settling on
+            // a type that could not: 47 of the 99 lines one playthrough's renewals produced were the same
+            // complaint that a station's bays were too short for the coach it had chosen, month after month.
+            var mustServe = worst.Routes.ToList();
+            Func<CoachType, bool> fitsTheRoutes = t => mustServe.All(
+                r => RightKind(t, r)
+                     && t.Range >= r.GetDistance()
+                     && t.MinBayLength <= Math.Min(r.Destination1.GetMaxBayLength(), r.Destination2.GetMaxBayLength()));
+
+            RenewalTypeOption pick = NewTypes(oldType, carrier, true, RetireAt)
+                                     .Where(o => o.Idle > 0 || o.ForSale > 0)
+                                     .Where(o => fitsTheRoutes(o.Type))
+                                     .Where(o => o.Idle > 0 || (o.UsedFrom > 0 && o.UsedFrom <= carrier.Money*0.3))
+                                     .OrderByDescending(o => o.Idle)
+                                     .ThenBy(o => o.Type == oldType ? 0 : 1)
+                                     .ThenBy(o => o.UsedFrom)
+                                     .FirstOrDefault();
+            if (pick == null) return nothing;
+
+            return Renew(new RenewalSettings
+                         {
+                             Carrier = carrier,
+                             OldType = oldType,
+                             NewType = pick.Type,
+                             Source = MissingSource.BuyUsed,
+                             Slower = SlowerChoice.ShiftOrKeep,
+                             AfterOld = OldCoachChoice.Sell,
+                             OnlyOlderThan = RetireAt
+                         });
+        }
+
         private static string Code(Route r)
         {
             return r.Destination1.Profile.IATACode + "-" + r.Destination2.Profile.IATACode;
@@ -201,16 +279,25 @@ namespace TheBusProject.Helpers
         ///     The types that can replace the old one: the same kind (passenger, cargo, helicopter), idle in the fleet, on the
         ///     market, or built new now. With how many are idle and for sale, and the price new.
         /// </summary>
-        public static List<RenewalTypeOption> NewTypes(CoachType oldType, Carrier of = null)
+        /// <summary>
+        ///     The types that could replace this one. <paramref name="includeSameType" /> keeps the old type among
+        ///     them, for retiring worn-out coaches rather than swapping a type: a coach at the end of its working
+        ///     life is most often replaced by a younger one of the same model. <paramref name="youngerThan" />, when
+        ///     set, counts only coaches below that age, so an old coach is never offered as the cure for an old one.
+        /// </summary>
+        public static List<RenewalTypeOption> NewTypes(CoachType oldType, Carrier of = null, bool includeSameType = false, int youngerThan = 0)
         {
             Carrier carrier = Whose(of);
             DateTime now = GameObject.GetInstance().GameTime;
-            var idle = carrier.DeliveredFleet.Where(f => f.Routes.Count == 0 && Usable(f) && f.Coach.Type != oldType && KindMatches(oldType, f.Coach.Type))
+            Func<CoachType, bool> other = t => includeSameType || t != oldType;
+            Func<int, bool> young = age => youngerThan <= 0 || age < youngerThan;
+            var idle = carrier.DeliveredFleet.Where(f => f.Routes.Count == 0 && Usable(f) && other(f.Coach.Type) && young(f.Coach.GetAge()) && KindMatches(oldType, f.Coach.Type))
                               .GroupBy(f => f.Coach.Type).ToDictionary(g => g.Key, g => g.Count());
-            var market = Coaches.GetCoachesForSale(a => a.Status == Coach.StatusTypes.Normal && a.Type != oldType && KindMatches(oldType, a.Type) && a.BuiltDate <= now)
+            var market = Coaches.GetCoachesForSale(a => a.Status == Coach.StatusTypes.Normal && other(a.Type) && KindMatches(oldType, a.Type) && a.BuiltDate <= now)
+                                  .Where(a => young(a.GetAge()))
                                   .Where(a => carrier.Contract == null || carrier.Contract.Manufacturer == a.Type.Manufacturer)
                                   .GroupBy(a => a.Type).ToDictionary(g => g.Key, g => g.ToList());
-            var built = CoachTypes.GetAllTypes().Where(t => t != oldType && KindMatches(oldType, t) && Orderable(carrier, t)).ToList();
+            var built = CoachTypes.GetAllTypes().Where(t => other(t) && KindMatches(oldType, t) && Orderable(carrier, t)).ToList();
             return idle.Keys.Union(market.Keys).Union(built).Distinct()
                        .Select(t => new RenewalTypeOption
                        {
@@ -246,21 +333,31 @@ namespace TheBusProject.Helpers
         {
             Carrier carrier = Whose(s?.Carrier);
             var plan = new RenewalPlan {Settings = s};
-            if (s.OldType == null || s.NewType == null || s.OldType == s.NewType)
+            // Replacing a type by itself only means something when it is the worn-out coaches being retired; the
+            // screen's type swap would otherwise be a no-op dressed up as a plan.
+            if (s.OldType == null || s.NewType == null || (s.OldType == s.NewType && s.OnlyOlderThan <= 0))
             {
                 plan.Summary = "Pick the type to replace and the type to replace it with.";
                 return plan;
             }
 
-            var idle = new Queue<FleetCoach>(carrier.DeliveredFleet.Where(f => f.Coach.Type == s.NewType && f.Routes.Count == 0 && Usable(f)).OrderBy(f => f.Name));
+            // A coach that is itself past the age being retired is no cure for one, so when an age is given the
+            // coach that takes over has to be younger than it.
+            Func<int, bool> fitToTakeOver = age => s.OnlyOlderThan <= 0 || age < s.OnlyOlderThan;
+
+            var idle = new Queue<FleetCoach>(carrier.DeliveredFleet.Where(f => f.Coach.Type == s.NewType && f.Routes.Count == 0 && Usable(f) && fitToTakeOver(f.Coach.GetAge())).OrderBy(f => f.Name));
             var market = new Queue<Coach>(Coaches.GetCoachesForSale(a => a.Status == Coach.StatusTypes.Normal && a.Type == s.NewType && a.BuiltDate <= GameObject.GetInstance().GameTime)
+                                                      .Where(a => fitToTakeOver(a.GetAge()))
                                                       .Where(a => carrier.Contract == null || carrier.Contract.Manufacturer == a.Type.Manufacturer)
                                                       .OrderBy(a => a.GetAge()).ThenBy(a => a.GetPrice()));
             double money = carrier.Money;
             bool canOrder = s.Orders && Orderable(carrier, s.NewType);
             var waiting = carrier.Fleet.Where(f => f.ReplacesOnDelivery != null).ToDictionary(f => f.ReplacesOnDelivery, f => f);
 
-            foreach (FleetCoach old in carrier.DeliveredFleet.Where(f => f.Coach.Type == s.OldType).OrderBy(f => f.Name))
+            foreach (FleetCoach old in carrier.DeliveredFleet
+                                              .Where(f => f.Coach.Type == s.OldType)
+                                              .Where(f => s.OnlyOlderThan <= 0 || f.Coach.GetAge() >= s.OnlyOlderThan)
+                                              .OrderBy(f => f.Name))
             {
                 var row = new RenewalRow {Old = old};
                 plan.Rows.Add(row);
