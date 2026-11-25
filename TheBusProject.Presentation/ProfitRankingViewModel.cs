@@ -57,6 +57,9 @@ namespace TheBusProject.Presentation
         public List<string> PeriodChoices { get; } = new List<string> { LastMonth, ThisMonth, Last12 };
         public List<int> HowManyChoices { get; } = new List<int> { 5, 8, 12, 20 };
 
+        /// <summary>Routes left out of the ranking because they have no figures for the period asked about.</summary>
+        private int _tooNew;
+
         public string What
         {
             get { return _what; }
@@ -111,13 +114,16 @@ namespace TheBusProject.Presentation
                 return;
             }
 
+            _tooNew = 0;
             List<RankBar> bars = _what == Coach ? CoachBars(carrier) : RouteBars(carrier);
             var ordered = bars.OrderByDescending(b => b.Value).ToList();
             if (ordered.Count == 0)
             {
                 Summary = _what == Coach
                     ? "No coach delivered yet."
-                    : "No routes yet. Open one under Routes, and this will show which earn and which lose.";
+                    : _tooNew > 0
+                        ? TooNew() + " Choose a longer period, or wait for the first trips to finish."
+                        : "No routes yet. Open one under Routes, and this will show which earn and which lose.";
                 Raise();
                 return;
             }
@@ -133,9 +139,21 @@ namespace TheBusProject.Presentation
                 : "The " + Best.Count + " best and the " + Worst.Count + " worst are shown.";
             string what = _what == Coach ? "coach" : ordered.Count == 1 ? "route" : "routes";
             Summary = string.Format(
-                "{0} {1}, {2} losing money. Together {3} {4}. {5}",
-                ordered.Count, what, losing, Money(total), AmountHeading, shown);
+                "{0} {1}, {2} losing money. Together {3} {4}. {5}{6}",
+                ordered.Count, what, losing, Money(total), AmountHeading, shown,
+                _tooNew > 0 ? " " + TooNew() : "");
             Raise();
+        }
+
+        /// <summary>Says how many routes are too new to have figures for the period, rather than showing them at zero.</summary>
+        private string TooNew()
+        {
+            string period = _period == ThisMonth ? "finished a trip yet"
+                : _period == Last12 ? "been open a full month yet"
+                : "been open since last month";
+            return _tooNew == 1
+                       ? "One more route has not " + period + "."
+                       : _tooNew + " more routes have not " + period + ".";
         }
 
         private void Raise()
@@ -150,6 +168,20 @@ namespace TheBusProject.Presentation
             var bars = new List<RankBar>();
             foreach (RouteFigures r in RouteProfitService.All(carrier))
             {
+                // A route with no figures for the period asked about is left out rather than entered at zero.
+                // Every current route comes back from RouteProfitService, and a month before the route opened
+                // adds up to nothing, so a route opened this month used to show a profit of exactly zero for
+                // last month and take its place among the worst, beside routes that really are losing money.
+                // Nothing on the screen told the two apart.
+                bool has = _period == ThisMonth ? r.HasCarried
+                    : _period == Last12 ? r.Months > 0
+                    : r.RanLastMonth;
+                if (!has)
+                {
+                    _tooNew++;
+                    continue;
+                }
+
                 double value = _period == ThisMonth ? r.ThisMonth
                     : _period == Last12 ? (r.Months > 0 ? r.Last12/r.Months : 0)
                     : r.LastMonth;

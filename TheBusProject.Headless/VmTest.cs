@@ -2465,6 +2465,51 @@ static class VmTest
         if (rank.Largest <= 0) fail("the chart has nothing to scale the bars by");
         if (rank.Best.Any(b => b.Route == null)) fail("a route bar has no route to open");
 
+        // A route opened today has no figures for last month, which is not the same as having broken even on it.
+        // It used to be entered at a profit of exactly zero and take its place among the worst, beside routes
+        // that really are losing money, with nothing on the screen to tell the two apart.
+        {
+            int barsBefore = rank.Best.Count + rank.Worst.Count;
+            var fresh = TheBusProject.Models.Stations.Stations.GetAllStations()
+                .Where(x => x != home && x.Profile.Town != null && !targets.Contains(x)
+                            && TheBusProject.Helpers.MathHelpers.GetDistance(home, x) > 250
+                            && TheBusProject.Helpers.MathHelpers.GetDistance(home, x) < 700
+                            && x.GetMaxBayLength() >= 14
+                            && x.Terminals.GetFreeGates(TheBusProject.Models.Stations.Terminal.TerminalType.Passenger) >= 3)
+                .OrderByDescending(x => x.Profile.Size).FirstOrDefault();
+            if (fresh == null) fail("no spare station to open a brand new route to");
+
+            TheBusProject.Helpers.StationHelpers.RentGates(fresh, me, TheBusProject.Models.Stations.StationContract.ContractType.Full, TheBusProject.Models.Stations.Terminal.TerminalType.Passenger, 2);
+            string whyFresh;
+            var opened = TheBusProject.Helpers.RouteCreator.Create(
+                new TheBusProject.Helpers.NewRouteRequest { Origin = home, Destination = fresh, RouteType = TheBusProject.Models.Routes.Route.RouteType.Passenger }, out whyFresh);
+            if (opened == null) fail("couldn't open a brand new route to " + fresh.Profile.IATACode + ": " + whyFresh);
+
+            rank.What = TheBusProject.Presentation.ProfitRankingViewModel.Routes;
+            rank.Period = TheBusProject.Presentation.ProfitRankingViewModel.LastMonth;
+            rank.Reload();
+            Console.WriteLine("  with a route opened today: " + rank.Summary);
+
+            var all = rank.Best.Concat(rank.Worst).ToList();
+            if (all.Any(b => b.Route == opened))
+                fail("a route opened today is ranked on last month, when it was not running");
+            if (all.Count != barsBefore)
+                fail("opening a route today changed the ranking for last month: " + barsBefore + " bars became " + all.Count);
+            if (rank.Summary.IndexOf("not been open since last month", StringComparison.OrdinalIgnoreCase) < 0)
+                fail("the ranking does not say that a route is too new to judge: " + rank.Summary);
+
+            // on this month it counts as soon as it has carried anyone, and not before
+            rank.Period = TheBusProject.Presentation.ProfitRankingViewModel.ThisMonth;
+            rank.Reload();
+            if (rank.Best.Concat(rank.Worst).Any(b => b.Route == opened)
+                && !TheBusProject.Helpers.ConnectionService.HasCarried(opened))
+                fail("a route that has not finished a trip is ranked on this month");
+
+            me.RemoveRoute(opened);
+            rank.Period = TheBusProject.Presentation.ProfitRankingViewModel.LastMonth;
+            rank.Reload();
+        }
+
         // and the coach, where the profit is the share less the ownership
         rank.What = TheBusProject.Presentation.ProfitRankingViewModel.Coach;
         rank.Reload();
@@ -4896,6 +4941,33 @@ static class VmTest
         // breakdowns took every fleet to the condition floor of 20% and held it there, which in turn priced a
         // mid-life coach at a third of what one is really worth. Condition is the cause, so condition is what is
         // checked here, not the resale price it drags down.
+        {
+            // A route that has carried anyone must show something other than nothing. The route list prints
+            // Route.Balance, which adds the route's own invoices to those of the legs under each of its
+            // stopovers, so a service whose money lands somewhere neither of those reaches would read as zero
+            // profit for ever.
+            int zero = 0, flownZero = 0, total = 0;
+            foreach (var r in me.Routes.ToList())
+            {
+                total++;
+                double bal = r.Balance;
+                double own = r.Invoices.GetAmount();
+                double legs = r.Stopovers.Sum(s => s.Legs.Sum(l => l.Invoices.GetAmount()));
+                double pax = r.Statistics.GetTotalValue(TheBusProject.Models.General.Statistics.StatisticsTypes.GetStatisticsType("Passengers"));
+                if (bal == 0) zero++;
+                if (bal == 0 && pax > 0)
+                {
+                    flownZero++;
+                    if (flownZero <= 3)
+                        Console.WriteLine(string.Format("    PROBE {0} -> {1} carried {2:#,0} but shows no profit: own invoices {3:#,0}, {4} stopovers with legs worth {5:#,0}",
+                                                        r.Destination1.Profile.IATACode, r.Destination2.Profile.IATACode,
+                                                        pax, own, r.Stopovers.Count, legs));
+                }
+            }
+            Console.WriteLine(string.Format("  PROBE {0} of {1} routes show a balance of exactly zero; {2} of those have carried passengers",
+                                            zero, total, flownZero));
+        }
+
         market("at the end");
         {
             var rivals = TheBusProject.Models.Carriers.Carriers.GetAllCarriers().Where(c => c != me).ToList();

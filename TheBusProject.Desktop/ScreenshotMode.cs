@@ -275,6 +275,35 @@ namespace TheBusProject.Desktop
                 await Shoot(window, "10b-best-and-worst-coach");
                 Log("best and worst: " + av.Ranking.Summary);
 
+                // Whether that list can scroll, which a screenshot cannot show: the carrier here has three
+                // routes, so it never overflows however many rows are asked for. What the numbers settle is the
+                // part that was in doubt. A finite extent the width of the viewport means the chart is being
+                // offered a real width and is not laying itself out endlessly wide, which would leave the
+                // scroller nothing to fit and so no bar to show. A height that tracks the chart's own desired
+                // height means the extent follows the content, so the bar appears as soon as there is more of it
+                // than fits.
+                var scroller = window.GetVisualDescendants().OfType<ScrollViewer>()
+                                     .FirstOrDefault(s => s.GetVisualDescendants().OfType<RankBarChart>().Any());
+                if (scroller == null)
+                {
+                    Log("best and worst: no scroller found around the chart");
+                }
+                else
+                {
+                    var chart = scroller.GetVisualDescendants().OfType<RankBarChart>().First();
+                    Log(string.Format(
+                            "best and worst scrolling: extent {0:0}x{1:0}, viewport {2:0}x{3:0}, the chart wants {4:0}x{5:0}; scrolls {6}",
+                            scroller.Extent.Width, scroller.Extent.Height,
+                            scroller.Viewport.Width, scroller.Viewport.Height,
+                            chart.DesiredSize.Width, chart.DesiredSize.Height,
+                            scroller.Extent.Height > scroller.Viewport.Height ? "yes" : "not needed, it fits"));
+
+                    if (double.IsInfinity(scroller.Extent.Width) || scroller.Extent.Width > scroller.Viewport.Width + 1)
+                        Log("best and worst scrolling: FAULT the chart is wider than the viewport, so it was offered an endless width");
+                    if (Math.Abs(scroller.Extent.Height - chart.DesiredSize.Height) > 1)
+                        Log("best and worst scrolling: FAULT the extent does not follow the chart's height, so the bar will not appear when the list overflows");
+                }
+
                 // Coaches > New coach: a type with a choice of engines, ordered ahead of its first deliveries
                 av.Page = PageOf("Coaches");
                 av.NewCoach.Reload();

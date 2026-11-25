@@ -20,6 +20,15 @@ namespace TheBusProject.Helpers
         /// <summary>Months with figures in the last 12 (a new route has fewer).</summary>
         public int Months { get; set; }
 
+        /// <summary>
+        ///     Whether the route was running for any part of last month. A route opened since then has no figures
+        ///     for last month at all, which is not the same as having broken even on it.
+        /// </summary>
+        public bool RanLastMonth { get; set; }
+
+        /// <summary>Whether any trip on the route has finished, so that there are figures of any kind yet.</summary>
+        public bool HasCarried { get; set; }
+
         public double Load { get; set; }
         public int CarriedLastMonth { get; set; }
         public int WeeklyTrips { get; set; }
@@ -113,6 +122,10 @@ namespace TheBusProject.Helpers
                 f.Last12 += Month(route, d.Year, d.Month);
                 f.Months++;
             }
+
+            DateTime lastEnd = new DateTime(last.Year, last.Month, DateTime.DaysInMonth(last.Year, last.Month));
+            f.RanLastMonth = started <= lastEnd;
+            f.HasCarried = ConnectionService.HasCarried(route);
 
             f.Load = ConnectionService.MonthLoad(route);
             int connecting, all;
