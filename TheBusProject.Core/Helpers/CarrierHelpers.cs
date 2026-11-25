@@ -140,6 +140,12 @@ namespace TheBusProject.Helpers
 
         public static FleetCoach BuyCoach(Carrier carrier, Coach coach, Station station, double discount)
         {
+            // Nobody sells a coach past the age it has a market at, so nobody buys one either. The listings
+            // already leave those out, but a screen that holds its list between reloads can keep offering one
+            // that has since aged past the limit, and a coach bought that way was real: a playthrough bought one
+            // at 27 years old. The transaction is the only place this cannot be got round.
+            if (coach == null || Coaches.TooOldToSell(coach)) return null;
+
             FleetCoach fCoach = AddCoach(carrier, coach, station, false);
 
             double price = coach.GetPrice()*((100 - discount)/100);

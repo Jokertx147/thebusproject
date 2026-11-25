@@ -997,9 +997,18 @@ namespace TheBusProject.Infrastructure
                                 int countryNumber = Rnd.Next(Countries.GetCountries().Count() - 1);
                                 Country country = Countries.GetCountries()[countryNumber];
 
-                                int builtYear = Rnd.Next(
-                                    type.Produced.From.Year,
-                                    Math.Min(GameObject.GetInstance().GameTime.Year - 1, type.Produced.To.Year));
+                                // A carrier's opening fleet, aged like a working fleet rather than drawn from the
+                                // whole history of the type. It used to run from the type's first year of
+                                // production with no ceiling at all, so a carrier could open with a coach of 27
+                                // years and be running it at 31 eight years later, older than anything it could
+                                // have bought: the market stops at Coaches.OldestForSale. The later of two draws
+                                // leans the fleet young, the way a going concern's does.
+                                int oldestYear = Math.Max(type.Produced.From.Year,
+                                                          GameObject.GetInstance().GameTime.Year - Coaches.OldestForSale);
+                                int newestYear = Math.Min(GameObject.GetInstance().GameTime.Year - 1, type.Produced.To.Year);
+                                int builtYear = newestYear > oldestYear
+                                                    ? Math.Max(Rnd.Next(oldestYear, newestYear), Rnd.Next(oldestYear, newestYear))
+                                                    : Math.Max(oldestYear, newestYear);
 
                                 var coach = new Coach(
                                     id.ToString(),
@@ -1009,7 +1018,9 @@ namespace TheBusProject.Infrastructure
 
                                 int age = MathHelpers.CalculateAge(coach.BuiltDate, GameObject.GetInstance().GameTime);
 
-                                long kmPerYear = Rnd.Next(100000, 1000000);
+                                // A coach in line service covers about 105,000 miles a year, which is 170,000 km;
+                                // this used to go up to a million, or 2,700 km every day of the year.
+                                long kmPerYear = Rnd.Next(100000, 220000);
                                 long km = kmPerYear*age;
 
                                 coach.Flown = km;

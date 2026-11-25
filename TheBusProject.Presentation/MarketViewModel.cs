@@ -205,6 +205,17 @@ namespace TheBusProject.Presentation
                     return;
                 }
 
+                // it may have aged past the limit while the list stood
+                if (Coaches.TooOldToSell(coach))
+                {
+                    string gone = _selected.Name;
+                    _all.Remove(_selected);
+                    Selected = null;
+                    ApplyFilter();
+                    Status = gone + " is too old to be sold now and has come off the market.";
+                    return;
+                }
+
                 CarrierHelpers.BuyCoach(carrier, coach, _homebase, discount);
                 Status = "Bought " + _selected.Name + ".";
             }

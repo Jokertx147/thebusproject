@@ -4688,7 +4688,7 @@ static class VmTest
         Action<string> market = when =>
         {
             var sale = TheBusProject.Models.Coaches.Coaches.GetCoachesForSale();
-            if (sale.Count == 0) { Console.WriteLine("  PROBE market " + when + ": nothing for sale"); return; }
+            if (sale.Count == 0) { Console.WriteLine("  the second-hand market " + when + ": nothing for sale"); return; }
             var ages = sale.Select(c => TheBusProject.Helpers.MathHelpers.CalculateAge(c.BuiltDate, g.GameTime)).OrderBy(a => a).ToList();
             int carriers = Math.Max(1, TheBusProject.Models.Carriers.Carriers.GetNumberOfCarriers());
             double each = ages.Count*1.0/carriers;
@@ -4898,6 +4898,27 @@ static class VmTest
         // checked here, not the resale price it drags down.
         market("at the end");
         {
+            var rivals = TheBusProject.Models.Carriers.Carriers.GetAllCarriers().Where(c => c != me).ToList();
+            var theirs = rivals.SelectMany(c => c.Fleet).Where(f => f.Coach.BuiltDate <= g.GameTime).ToList();
+            if (theirs.Count > 0)
+            {
+                var ages = theirs.Select(f => f.Coach.GetAge()).OrderBy(a => a).ToList();
+                // Reported, not asserted. Nothing retires a coach for age: FleetRenewalService.Renew is called
+                // only from the fleet renewal screen, so a human player can replace a worn-out coach and no
+                // computer carrier ever does. The only ways one leaves an AI fleet are going idle, a delivery
+                // payment it cannot meet, and the carrier failing outright. So a share of rival coaches past the
+                // age they could be sold at is expected for now, and this line is here to keep it in sight.
+                Console.WriteLine(string.Format("  the {0} rivals run {1} coaches: age {2} to {3}, median {4}, mean {5:0.0}; past the {6} years a coach has a market at: {7:0}%",
+                                                rivals.Count, ages.Count, ages[0], ages[ages.Count - 1], ages[ages.Count/2], ages.Average(),
+                                                TheBusProject.Models.Coaches.Coaches.OldestForSale,
+                                                ages.Count(a => a >= TheBusProject.Models.Coaches.Coaches.OldestForSale)*100.0/ages.Count));
+            }
+            var mineAges = me.Fleet.Where(f => f.Coach.BuiltDate <= g.GameTime).Select(f => f.Coach.GetAge()).OrderBy(a => a).ToList();
+            if (mineAges.Count > 0)
+                Console.WriteLine(string.Format("  my {0} coaches: age {1} to {2}, mean {3:0.0}",
+                                                mineAges.Count, mineAges[0], mineAges[mineAges.Count - 1], mineAges.Average()));
+        }
+        {
             var bought = me.Fleet.Where(f => f.Coach.BuiltDate <= g.GameTime).ToList();
             if (bought.Count > 0)
             {
@@ -4912,10 +4933,15 @@ static class VmTest
                                                     f.Name, f.Coach.BuiltDate.ToString("yyyy-MM"), f.PurchasedDate.ToString("yyyy-MM"),
                                                     f.Purchased, TheBusProject.Helpers.MathHelpers.CalculateAge(f.Coach.BuiltDate, f.PurchasedDate)));
 
-                // A carrier buying out of a market that averaged 17.9 years old founded itself on coaches of 11.3
-                // years, the oldest of them 19. Buying second-hand is what a small line does, but not that old.
-                if (atBuy.Average() > 14)
-                    fail(string.Format("the fleet was {0:0.0} years old when bought, so the carrier is founding itself on worn-out coaches", atBuy.Average()));
+                // The age at which a coach was bought. The per-coach ceiling below is the real guard, because it is
+                // exact: a coach past the age it has a market at cannot be offered, so buying one means something
+                // has gone wrong. The average is a weak check and is bounded here at the same 18 years the market
+                // itself is held to, not at anything tighter. It varies far more than it looks as though it
+                // should - 8.9, 9.4, 10.0, 10.1 and then 15.5 over six games - because what a carrier ends up with
+                // depends on how picked-over the market is when it happens to be buying. A bound of 14, fitted to
+                // the first four of those, was committed and would have failed in CI about one run in six.
+                if (atBuy.Average() > 18)
+                    fail(string.Format("the fleet was {0:0.0} years old when bought, older than the market it was bought from can average", atBuy.Average()));
                 if (atBuy[atBuy.Count - 1] > TheBusProject.Helpers.CoachHelpers.OldestForSale)
                     fail(string.Format("a coach was bought at {0} years old, past the age one has a market at", atBuy[atBuy.Count - 1]));
             }
