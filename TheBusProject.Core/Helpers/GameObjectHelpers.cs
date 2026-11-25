@@ -2080,37 +2080,39 @@ namespace TheBusProject.Helpers
                 SerializedLoadSaveHelpers.SaveGame("autosave");
             }
 
-            //deletes all used coaches older than 30 years
-            var oldCoaches =
-                new List<Coach>(
-                    Coaches.GetCoachesForSale(a => a.BuiltDate.Year <= GameObject.GetInstance().GameTime.Year - 30));
+            // The second-hand market turns over. What comes off it is everything too old to have a market at all,
+            // plus a twelfth of the rest, because a coach that does not sell does not stand on the forecourt for
+            // ever. What goes on is enough to bring the market back to the size it should be, aged against this
+            // year rather than the year the game began.
+            //
+            // The old code added three coaches a carrier every month, about ninety, and took off only what was
+            // over thirty years old, which cannot happen until two decades in: a game of eight years ended with
+            // 1,654 coaches standing unsold. Topping up to a target without any churn is the opposite mistake and
+            // was tried first: the market then sat at its target but never made anything new, so the same stock
+            // aged in place and after eight years not one coach on offer was under ten years old.
+            var leaving = new List<Coach>(Coaches.GetCoachesTooOldToSell());
+            var standing = Coaches.GetCoachesForSale();
 
-            /*
-           
-            //Set the amount if planes that should be made its decreased alot over time
-            int upper = (Carriers.GetAllCarriers().Count - (gametime * 5)) / 2;
-            int lower = (Carriers.GetAllCarriers().Count - (gametime * 5)) / 4;
-            if (upper <= 0) { upper = 3; }
-            if (lower <= 0) { lower = 1; }
-            int coaches = rnd.Next(lower, upper);
-
-            for (int i = 0; i < coaches; i++)
+            int churn = standing.Count/12;
+            for (int i = 0; i < churn && standing.Count > 0; i++)
             {
-                Coaches.AddCoach(CoachHelpers.CreateCoachFromYear(GameObject.GetInstance().GameTime.Year - rnd.Next(1, 10)));
-            }*/
-            //creates some new used coaches
+                int k = Rnd.Next(standing.Count);
+                leaving.Add(standing[k]);
+                standing.RemoveAt(k);
+            }
 
-            foreach (Coach coach in oldCoaches)
+            foreach (Coach coach in leaving)
             {
                 Coaches.RemoveCoach(coach);
             }
 
-            int numberOfCoaches = oldCoaches.Count + 3*Carriers.GetNumberOfCarriers();
+            int numberOfCoaches = Math.Max(0,
+                                           CoachHelpers.ForSalePerCarrier*Carriers.GetNumberOfCarriers()
+                                           - Coaches.GetCoachesForSale().Count);
 
             for (int i = 0; i < numberOfCoaches; i++)
             {
-                Coaches.AddCoach(
-                    CoachHelpers.CreateCoachFromYear(GameObject.GetInstance().GameTime.Year - Rnd.Next(1, 10)));
+                Coaches.AddCoach(CoachHelpers.CreateUsedCoach());
             }
             //checks for new stations which are opening
             List<Station> openedStations =

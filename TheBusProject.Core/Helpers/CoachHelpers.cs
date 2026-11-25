@@ -96,6 +96,22 @@ namespace TheBusProject.Helpers
         //how many times the original number of used coaches are for sale when a game starts
         public const int UsedCoachSupply = 3;
 
+        /// <summary>
+        ///     The oldest a coach on the second-hand market can be, which is <see cref="Coaches.OldestForSale" />:
+        ///     it belongs where coaches are listed, so that there is one definition of it rather than two that can
+        ///     drift. The stock a game opened with used to run to 35 years.
+        /// </summary>
+        public const int OldestForSale = Coaches.OldestForSale;
+
+        /// <summary>
+        ///     How many coaches the second-hand market tries to keep on offer, per carrier in the game. Twelve a
+        ///     carrier keeps the standing market about the size of the stock a game opens with, which is enough to
+        ///     choose from; four left only two dozen coaches for the whole country. The market used to be topped up
+        ///     by three a carrier every month while only coaches over thirty were taken off it, so it grew without
+        ///     limit: a game of eight years ended with 1,654 coaches standing unsold.
+        /// </summary>
+        public const int ForSalePerCarrier = 12;
+
         public static void CreateStartUpCoaches()
         {
             int number =
@@ -376,6 +392,18 @@ namespace TheBusProject.Helpers
             return coach;
         }
 
+        /// <summary>
+        ///     A coach for the second-hand market, aged against the year it is offered in. Both the stock a game
+        ///     starts with and the listings that replace it as it turns over come from here, so the market keeps one
+        ///     age distribution instead of two: the monthly top-up used to make coaches one to nine years old, which
+        ///     is younger than a used coach really is, as an operator keeps one about fourteen years before letting
+        ///     it go.
+        /// </summary>
+        public static Coach CreateUsedCoach()
+        {
+            return CreateCoach(0);
+        }
+
         private static Coach CreateCoach(double minRange)
         {
             Guid id = Guid.NewGuid();
@@ -383,7 +411,7 @@ namespace TheBusProject.Helpers
             List<CoachType> types =
                 CoachTypes.GetTypes(
                     t => t.Range >= minRange && t.Produced.From.Year < GameObject.GetInstance().GameTime.AddYears(-5).Year
-                         && t.Produced.To > GameObject.GetInstance().GameTime.AddYears(-35));
+                         && t.Produced.To > GameObject.GetInstance().GameTime.AddYears(-OldestForSale));
 
             // early in the game's span there may be nothing five years old yet: take whatever is built by now
             if (types.Count == 0)
@@ -399,9 +427,15 @@ namespace TheBusProject.Helpers
             int countryNumber = Rnd.Next(Countries.GetCountries().Count() - 1);
             Country country = Countries.GetCountries()[countryNumber];
 
-            int fromYear = Math.Max(type.Produced.From.Year, GameObject.GetInstance().GameTime.Year - 35);
+            int fromYear = Math.Max(type.Produced.From.Year, GameObject.GetInstance().GameTime.Year - OldestForSale);
             int toYear = Math.Min(GameObject.GetInstance().GameTime.Year - 5, type.Produced.To.Year);
-            int builtYear = toYear > fromYear ? Rnd.Next(fromYear, toYear) : Math.Min(fromYear, GameObject.GetInstance().GameTime.Year);
+
+            // The later of two draws, so the market leans towards the younger end of its range the way a real one
+            // does. Spread evenly it put the average coach on offer at 17.9 years old with a fifth of them over
+            // 25, which is older than a coach that is still carrying anyone.
+            int builtYear = toYear > fromYear
+                                ? Math.Max(Rnd.Next(fromYear, toYear), Rnd.Next(fromYear, toYear))
+                                : Math.Min(fromYear, GameObject.GetInstance().GameTime.Year);
 
             var coach = new Coach(
                 id.ToString(),

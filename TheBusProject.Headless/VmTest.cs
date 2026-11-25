@@ -4685,6 +4685,44 @@ static class VmTest
         int rivalsAtStart = TheBusProject.Models.Carriers.Carriers.GetAllCarriers().Count(c => c != me);
         Console.WriteLine("  " + me.Profile.Name + " from " + g.GameTime.ToString("MMMM yyyy") + ", " + rivalsAtStart + " rivals, cash " + M(me.Money));
 
+        Action<string> market = when =>
+        {
+            var sale = TheBusProject.Models.Coaches.Coaches.GetCoachesForSale();
+            if (sale.Count == 0) { Console.WriteLine("  PROBE market " + when + ": nothing for sale"); return; }
+            var ages = sale.Select(c => TheBusProject.Helpers.MathHelpers.CalculateAge(c.BuiltDate, g.GameTime)).OrderBy(a => a).ToList();
+            int carriers = Math.Max(1, TheBusProject.Models.Carriers.Carriers.GetNumberOfCarriers());
+            double each = ages.Count*1.0/carriers;
+            double young = ages.Count(a => a < 10)*100.0/ages.Count;
+            Console.WriteLine(string.Format("  the second-hand market {0}: {1} for sale for {8} carriers ({9:0.0} each), age {2} to {3}, median {4}, mean {5:0.0}; under 10 years {6:0}%, over 25 {7:0}%",
+                                            when, ages.Count, ages[0], ages[ages.Count - 1], ages[ages.Count/2], ages.Average(),
+                                            young, ages.Count(a => a > 25)*100.0/ages.Count, carriers, each));
+
+            // The two ways this has gone wrong, both caught here. It grew without limit, because the monthly
+            // top-up added three coaches a carrier while taking off only what was over thirty years old: eight
+            // years ended with 1,654 standing unsold. Then, topped up to a target with no churn, it stopped
+            // making anything new and the same stock aged in place until nothing on offer was under ten.
+            if (each > TheBusProject.Helpers.CoachHelpers.ForSalePerCarrier*2.5)
+                fail(string.Format("the market holds {0} coaches for {1} carriers, {2:0.0} each, so it is growing without limit",
+                                   ages.Count, carriers, each));
+            // The youngest coach on offer, not the share of young ones, is what says whether the market is still
+            // making listings: a new one enters at five or six years old, so the youngest stays at six while the
+            // market turns over and climbs once it stops. The stagnant market's youngest was eleven. The share
+            // under ten years is no use for this - it ran from 10% to 41% over five games, because carriers buy
+            // the young coaches first and the old ones are what is left standing.
+            if (ages.Count >= 20 && ages[0] > 9)
+                fail(string.Format("the youngest of the {0} coaches on offer is {1} years old, so the market has stopped making listings", ages.Count, ages[0]));
+
+            // Nothing older than a coach that is still carrying anyone for a living. The FTA's useful life
+            // benchmark for an over-the-road bus is 14 years and the average bus retires at 15.1, so the market
+            // used to offer a fifth of its stock above 25 and as old as 35, which is not a market.
+            if (ages[ages.Count - 1] > TheBusProject.Helpers.CoachHelpers.OldestForSale)
+                fail(string.Format("a coach of {0} years is on offer, older than the {1} years a coach has a market at",
+                                   ages[ages.Count - 1], TheBusProject.Helpers.CoachHelpers.OldestForSale));
+            if (ages.Count >= 20 && (ages.Average() < 7 || ages.Average() > 18))
+                fail(string.Format("the coaches on offer average {0:0.0} years, outside the 7 to 18 a used market runs at", ages.Average()));
+        };
+        market("at the start");
+
         var sw = System.Diagnostics.Stopwatch.StartNew();
         double worstCash = me.Money;
         int boughtAll = 0, openedAll = 0, noSuggestion = 0, emptyButWorked = 0;
@@ -4858,6 +4896,31 @@ static class VmTest
         // breakdowns took every fleet to the condition floor of 20% and held it there, which in turn priced a
         // mid-life coach at a third of what one is really worth. Condition is the cause, so condition is what is
         // checked here, not the resale price it drags down.
+        market("at the end");
+        {
+            var bought = me.Fleet.Where(f => f.Coach.BuiltDate <= g.GameTime).ToList();
+            if (bought.Count > 0)
+            {
+                var atBuy = bought.Select(f => TheBusProject.Helpers.MathHelpers.CalculateAge(f.Coach.BuiltDate, f.PurchasedDate)).OrderBy(a => a).ToList();
+                var now = bought.Select(f => f.Coach.GetAge()).OrderBy(a => a).ToList();
+                Console.WriteLine(string.Format("  the fleet was {0} years old when bought on average (median {1}, oldest {2}) and is {3:0.0} now (oldest {4})",
+                                                atBuy.Average().ToString("0.0"), atBuy[atBuy.Count/2], atBuy[atBuy.Count - 1],
+                                                now.Average(), now[now.Count - 1]));
+
+                foreach (var f in bought.OrderByDescending(f => TheBusProject.Helpers.MathHelpers.CalculateAge(f.Coach.BuiltDate, f.PurchasedDate)).Take(1))
+                    Console.WriteLine(string.Format("    the oldest it bought was {0}, built {1} and bought {2} as {3}, at {4} years old",
+                                                    f.Name, f.Coach.BuiltDate.ToString("yyyy-MM"), f.PurchasedDate.ToString("yyyy-MM"),
+                                                    f.Purchased, TheBusProject.Helpers.MathHelpers.CalculateAge(f.Coach.BuiltDate, f.PurchasedDate)));
+
+                // A carrier buying out of a market that averaged 17.9 years old founded itself on coaches of 11.3
+                // years, the oldest of them 19. Buying second-hand is what a small line does, but not that old.
+                if (atBuy.Average() > 14)
+                    fail(string.Format("the fleet was {0:0.0} years old when bought, so the carrier is founding itself on worn-out coaches", atBuy.Average()));
+                if (atBuy[atBuy.Count - 1] > TheBusProject.Helpers.CoachHelpers.OldestForSale)
+                    fail(string.Format("a coach was bought at {0} years old, past the age one has a market at", atBuy[atBuy.Count - 1]));
+            }
+        }
+
         var delivered = me.Fleet.Where(f => f.Coach.BuiltDate <= g.GameTime).ToList();
         if (delivered.Count > 0)
         {

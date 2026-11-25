@@ -420,6 +420,20 @@ namespace TheBusProject.Models.Coaches
     //the list of coaches
     public class Coaches
     {
+        /// <summary>
+        ///     The oldest a coach on the second-hand market can be. The FTA's useful life benchmark for an
+        ///     over-the-road bus is 14 years; a study of transit fleets found the average bus retires at 15.1 and
+        ///     that retirements run as late as 20. Past about twenty years a coach is not carrying passengers for a
+        ///     living, so there is no market in one.
+        ///     <para>
+        ///         It is enforced here, where coaches are listed, and not only by the monthly sweep that clears them
+        ///         out. A carrier that sells a coach only sets its Carrier to null, which puts it straight back on
+        ///         the market at whatever age it has reached, and the sweep would not catch it until the following
+        ///         month. That window was real: a playthrough bought a coach built in 1989 in 2014, at 25 years old.
+        ///     </para>
+        /// </summary>
+        public const int OldestForSale = 22;
+
         #region Static Fields
 
         private static List<Coach> _coaches = new List<Coach>();
@@ -455,7 +469,13 @@ namespace TheBusProject.Models.Coaches
         //returns the list of coaches for sale
         public static List<Coach> GetCoachesForSale()
         {
-            return _coaches.FindAll(a => a.Carrier == null && a.Status == Coach.StatusTypes.Normal);
+            return _coaches.FindAll(a => a.Carrier == null && a.Status == Coach.StatusTypes.Normal && !TooOldToSell(a));
+        }
+
+        /// <summary>Whether a coach is past the age anyone would buy it to carry passengers in.</summary>
+        public static bool TooOldToSell(Coach coach)
+        {
+            return coach.GetAge() >= OldestForSale;
         }
 
         //returns the list of coaches for leasing
@@ -467,7 +487,16 @@ namespace TheBusProject.Models.Coaches
         //returns the list of coaches for sale
         public static List<Coach> GetCoachesForSale(Predicate<Coach> match)
         {
-            return _coaches.FindAll(a => a.Carrier == null).FindAll(match);
+            return _coaches.FindAll(a => a.Carrier == null && !TooOldToSell(a)).FindAll(match);
+        }
+
+        /// <summary>
+        ///     Coaches nobody will buy any more, for the monthly sweep that takes them off the books. They are
+        ///     already hidden from the market by <see cref="GetCoachesForSale()" />; this is what clears the objects.
+        /// </summary>
+        public static List<Coach> GetCoachesTooOldToSell()
+        {
+            return _coaches.FindAll(a => a.Carrier == null && TooOldToSell(a));
         }
 
         public static List<Coach> GetAllCoaches()
