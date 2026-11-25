@@ -72,7 +72,17 @@ namespace TheBusProject.Desktop.Views
         {
             Gather();
             double rows = Math.Max(1, _rows.Count);
-            return new Size(available.Width, rows*(RowHeight + Gap) + 44);
+
+            // Asking for the width offered is right inside a scroller that only scrolls up and down, which offers
+            // a real width and an endless height. It is wrong the moment anything offers an endless width: the
+            // control would then be endlessly wide, the scroller would have nothing to fit and so no bar to show,
+            // and Render puts the money column at Bounds.Width - Pad, which would be off the screen. Falling back
+            // on the width of the widest row keeps all of that finite.
+            double width = double.IsInfinity(available.Width) || double.IsNaN(available.Width)
+                               ? NameWidth + AmountWidth + Pad*2 + 240
+                               : available.Width;
+
+            return new Size(width, rows*(RowHeight + Gap) + 44);
         }
 
         protected override void OnPointerMoved(PointerEventArgs e)

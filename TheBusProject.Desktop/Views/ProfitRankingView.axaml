@@ -16,7 +16,12 @@
 
     <TextBlock Grid.Row="1" Text="{Binding Summary}" TextWrapping="Wrap" Opacity="0.85" Margin="0,0,0,8" />
 
-    <ScrollViewer Grid.Row="2">
+    <!-- Twenty each way is forty rows, about 1,240 pixels, so this list is taller than the screen and has to
+         scroll. The bar is asked for by name rather than left to the default: up and down on demand, never
+         sideways, so the chart is always offered a real width to lay itself out in. -->
+    <ScrollViewer Grid.Row="2"
+                  VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
       <v:RankBarChart Data="{Binding}" VerticalAlignment="Top" />
     </ScrollViewer>
   </Grid>

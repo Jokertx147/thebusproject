@@ -265,6 +265,9 @@ namespace TheBusProject.Desktop
                 av.Page = PageOf("My Carrier");
                 av.MyCarrierTab = CarrierViewModel.RankingTabIndex;
                 av.Ranking.What = TheBusProject.Presentation.ProfitRankingViewModel.Routes;
+                // the most it will show either way, so the shot catches the list being taller than the screen:
+                // at the smaller settings it fits, which is why nothing ever showed whether it scrolls
+                av.Ranking.HowMany = av.Ranking.HowManyChoices.Max();
                 av.Ranking.Reload();
                 await Shoot(window, "10-best-and-worst-routes");
                 av.Ranking.What = TheBusProject.Presentation.ProfitRankingViewModel.Coach;
