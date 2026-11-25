@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -302,6 +303,20 @@ namespace TheBusProject.Desktop
                         Log("best and worst scrolling: FAULT the chart is wider than the viewport, so it was offered an endless width");
                     if (Math.Abs(scroller.Extent.Height - chart.DesiredSize.Height) > 1)
                         Log("best and worst scrolling: FAULT the extent does not follow the chart's height, so the bar will not appear when the list overflows");
+
+                    // The carrier here has three routes, so the list fits and no bar is called for. Squeezing the
+                    // panel for one shot is the only way to see what a player with a full list sees, which is the
+                    // whole question: the bar is kept from hiding itself, so it should be there to look at.
+                    scroller.MaxHeight = 90;
+                    await Shoot(window, "10c-best-and-worst-squeezed");
+                    var bar = scroller.GetVisualDescendants().OfType<ScrollBar>()
+                                      .FirstOrDefault(b => b.Orientation == Avalonia.Layout.Orientation.Vertical);
+                    Log(string.Format("best and worst squeezed to {0:0}: extent {1:0}, a vertical bar {2}",
+                                      scroller.Viewport.Height, scroller.Extent.Height,
+                                      bar == null ? "does not exist" : bar.IsEffectivelyVisible ? "is showing" : "exists but is hidden"));
+                    if (bar == null || !bar.IsEffectivelyVisible)
+                        Log("best and worst scrolling: FAULT the list overflows and there is still no bar to drag");
+                    scroller.MaxHeight = double.PositiveInfinity;
                 }
 
                 // Coaches > New coach: a type with a choice of engines, ordered ahead of its first deliveries

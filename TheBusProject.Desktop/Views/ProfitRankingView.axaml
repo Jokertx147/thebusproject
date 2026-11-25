@@ -21,7 +21,8 @@
          sideways, so the chart is always offered a real width to lay itself out in. -->
     <ScrollViewer Grid.Row="2"
                   VerticalScrollBarVisibility="Auto"
-                  HorizontalScrollBarVisibility="Disabled">
+                  HorizontalScrollBarVisibility="Disabled"
+                  AllowAutoHide="False">
       <v:RankBarChart Data="{Binding}" VerticalAlignment="Top" />
     </ScrollViewer>
   </Grid>
