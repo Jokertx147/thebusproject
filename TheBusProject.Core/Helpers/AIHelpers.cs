@@ -2022,7 +2022,6 @@ namespace TheBusProject.Helpers
                 carrier.Fleet.FindAll(
                     f =>
                     !f.HasRoute && f.Coach.BuiltDate <= GameObject.GetInstance().GameTime && f.UsableBy(carrier)
-                    && CarrierTypeRules.CanUseType(carrier, f.Coach.Type)
                     && f.Coach.Range
                     > MathHelpers.GetDistance(
                         destination1.Profile.Coordinates.ConvertToGeoCoordinate(),

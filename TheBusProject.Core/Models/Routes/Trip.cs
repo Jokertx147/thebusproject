@@ -96,15 +96,6 @@ namespace TheBusProject.Models.Routes
 
         //returns the scheduled expected landing time
 
-        //returns the cargo price
-        public double GetCargoPrice()
-        {
-            var route = Entry.TimeTable.Route as CargoRoute;
-            if (route != null)
-                return route.PricePerUnit;
-            return ((CombiRoute) Entry.TimeTable.Route).PricePerUnit;
-        }
-
         public Station GetDepartureStation()
         {
             return GetNextDestination();
@@ -160,16 +151,9 @@ namespace TheBusProject.Models.Routes
 
         //returns the departure location
 
-        //returns if it is a cargo trip
-        public bool IsCargoTrip()
-        {
-            return Entry.TimeTable.Route.Type == Route.RouteType.Mixed;
-        }
-
         public bool IsPassengerTrip()
         {
-            return Entry.TimeTable.Route.Type == Route.RouteType.Mixed
-                   || Entry.TimeTable.Route.Type == Route.RouteType.Passenger;
+            return Entry.TimeTable.Route.Type == Route.RouteType.Passenger;
         }
 
         #endregion

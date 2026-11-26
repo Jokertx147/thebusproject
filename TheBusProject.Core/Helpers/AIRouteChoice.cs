@@ -112,7 +112,7 @@ namespace TheBusProject.Helpers
                 }
                 DateTime now = GameObject.GetInstance().GameTime;
                 _bySeats = fleet.OrderBy(f => f.Coach.GetTotalSeatCapacity()).ToList();
-                _idleByRange = fleet.Where(f => !f.HasRoute && f.Coach.BuiltDate <= now && f.UsableBy(carrier) && CarrierTypeRules.CanUseType(carrier, f.Coach.Type))
+                _idleByRange = fleet.Where(f => !f.HasRoute && f.Coach.BuiltDate <= now && f.UsableBy(carrier))
                                     .OrderBy(f => f.Coach.Range).ToList();
             }
 

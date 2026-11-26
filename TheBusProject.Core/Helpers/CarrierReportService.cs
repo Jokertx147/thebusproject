@@ -36,11 +36,10 @@ namespace TheBusProject.Helpers
     public class RouteMonthOps
     {
         public string RouteId, Name;
-        public bool IsCargo;
         public int Year, Month, Trips;
         public long Passengers, Seats;
         public double Cargo, CargoCapacity;
-        public double Load => IsCargo ? (CargoCapacity > 0 ? Cargo/CargoCapacity : 0) : (Seats > 0 ? (double) Passengers/Seats : 0);
+        public double Load => Seats > 0 ? (double) Passengers/Seats : 0;
     }
 
     /// <summary>An carrier's months as a saved game keeps them.</summary>
@@ -62,7 +61,6 @@ namespace TheBusProject.Helpers
     {
         public string RouteId { get; set; }
         public string Name { get; set; }
-        public bool IsCargo { get; set; }
         public double Profit { get; set; }
 
         /// <summary>Seats (or cargo space) filled; 0 when it didn't fly.</summary>
@@ -109,7 +107,6 @@ namespace TheBusProject.Helpers
         /// <summary>The station pair (Competitors items).</summary>
         public string A { get; set; }
         public string B { get; set; }
-        public bool IsCargo { get; set; }
 
         /// <summary>The rival it is about (a Competitors item without a pair).</summary>
         public Carrier Carrier { get; set; }
@@ -218,7 +215,7 @@ namespace TheBusProject.Helpers
             string k = Key(year, month) + "|" + route.Id;
             RouteMonthOps m;
             if (!b.Routes.TryGetValue(k, out m))
-                b.Routes[k] = m = new RouteMonthOps {RouteId = route.Id, Name = RouteName(route), IsCargo = route.Type == Route.RouteType.Cargo, Year = year, Month = month};
+                b.Routes[k] = m = new RouteMonthOps {RouteId = route.Id, Name = RouteName(route), Year = year, Month = month};
             return m;
         }
 
@@ -228,7 +225,6 @@ namespace TheBusProject.Helpers
             Carrier carrier = coach?.Coach?.Carrier;
             if (carrier == null || f == null) return;
             DateTime when = f.Takeoff == default(DateTime) ? GameObject.GetInstance().GameTime : f.Takeoff;
-            double capacity = f.IsCargo ? coach.Coach.GetCargoCapacity() : 0;
             Book b = Books.GetValue(carrier, x => new Book());
             lock (b)
             {
@@ -470,8 +466,8 @@ namespace TheBusProject.Helpers
                 if (o == null && Math.Abs(profit) < 0.5) continue; // didn't fly that month
                 rows.Add(new ReportRoute
                 {
-                    RouteId = route.Id, Name = RouteName(route), IsCargo = route.Type == Route.RouteType.Cargo, Profit = profit,
-                    Load = o?.Load ?? 0, Trips = o?.Trips ?? 0, Carried = o == null ? 0 : o.IsCargo ? o.Cargo : o.Passengers
+                    RouteId = route.Id, Name = RouteName(route), Profit = profit,
+                    Load = o?.Load ?? 0, Trips = o?.Trips ?? 0, Carried = o == null ? 0 : o.Passengers
                 });
             }
             var ordered = rows.OrderByDescending(x => x.Profit).ToList();
@@ -544,7 +540,7 @@ namespace TheBusProject.Helpers
                     items.Add(new ReportItem
                     {
                         Kind = ReportItemKind.Competitors, RouteId = rr.Mine.Id, A = rr.Mine.Destination1.Profile.IATACode, B = rr.Mine.Destination2.Profile.IATACode,
-                        IsCargo = rr.Mine.Type == Route.RouteType.Cargo, Weight = 500*(1 - cheaper.Fare/rr.MyFare),
+                        Weight = 500*(1 - cheaper.Fare/rr.MyFare),
                         Text = string.Format("{0} charges {1} on {2}, {3:0}% below your {4}.", cheaper.Carrier.Profile.Name, f.Convert(cheaper.Fare), RouteName(rr.Mine),
                                              (1 - cheaper.Fare/rr.MyFare)*100, f.Convert(rr.MyFare))
                     });

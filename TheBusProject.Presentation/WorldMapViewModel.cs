@@ -28,7 +28,6 @@ namespace TheBusProject.Presentation
     public class MapLine
     {
         public List<List<double[]>> Pieces { get; set; } = new List<List<double[]>>();
-        public bool IsCargo { get; set; }
 
         /// <summary>A rival's colour ("#rrggbb"); null for the player's own routes.</summary>
         public string Color { get; set; }

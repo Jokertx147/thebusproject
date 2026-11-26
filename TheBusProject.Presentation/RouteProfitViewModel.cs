@@ -119,11 +119,11 @@ namespace TheBusProject.Presentation
             Rows.Clear();
             foreach (RouteFigures f in shown)
             {
-                string fare = f.FareRatio > 0 ? string.Format("{0} {1:0}% of the market", f.IsCargo ? "rate" : "fare", f.FareRatio*100) : "";
+                string fare = f.FareRatio > 0 ? string.Format("{0} {1:0}% of the market", "fare", f.FareRatio*100) : "";
                 Rows.Add(new RouteProfitRow
                 {
                     Figures = f,
-                    Name = Code(f.Route) + (f.IsCargo ? "  (cargo)" : ""),
+                    Name = Code(f.Route) + (""),
                     Profit = f.Months > 0 ? Money(f.Last12) + " in " + (f.Months == 12 ? "12 months" : f.Months + (f.Months == 1 ? " month" : " months")) : Money(f.ThisMonth) + " this month",
                     Numbers = string.Join("  |  ", new[]
                     {

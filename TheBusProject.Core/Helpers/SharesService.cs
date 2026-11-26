@@ -248,12 +248,6 @@ namespace TheBusProject.Helpers
         {
             message = GetTakeoverBlocker(buyer, target);
             if (message != null) return false;
-            if (!asSubsidiary)
-            {
-                message = CarrierTypeRules.MergeBlocker(buyer, target);
-                if (message != null) return false;
-            }
-
             double cost = TakeoverCost(buyer, target);
             Pay(buyer, -cost);
             var game = GameObject.GetInstance();

@@ -109,7 +109,6 @@ namespace TheBusProject.Presentation
         public RouteServiceViewModel Service { get; }
         public string Code { get; }
         public bool IsPassenger { get; }
-        public bool IsCargo { get; }
         public ICommand SaveCargoPriceCommand { get; }
 
         private string _cargoPrice;

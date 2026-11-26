@@ -448,14 +448,14 @@ namespace TheBusProject.Presentation
         private string MoveText(RivalMove m, Carrier me, bool withDate = true)
         {
             string who = m.Carrier?.Profile.IATACode ?? "?";
-            string pair = Pair(m.A, m.B) + (m.IsCargo ? " (cargo)" : "");
+            string pair = Pair(m.A, m.B) + ("");
             string what;
             switch (m.Kind)
             {
                 case RivalMoveKind.Opened: what = who + " opened " + pair; break;
                 case RivalMoveKind.Dropped: what = who + " gave up " + pair; break;
-                case RivalMoveKind.FareCut: what = who + " cut " + (m.IsCargo ? "its rate" : "its fares") + " on " + pair + " by " + Pct(1 - m.Factor); break;
-                default: what = who + " raised " + (m.IsCargo ? "its rate" : "its fares") + " on " + pair + " by " + Pct(m.Factor - 1); break;
+                case RivalMoveKind.FareCut: what = who + " cut " + ("its fares") + " on " + pair + " by " + Pct(1 - m.Factor); break;
+                default: what = who + " raised " + ("its fares") + " on " + pair + " by " + Pct(m.Factor - 1); break;
             }
             return withDate ? DateFormatter.Date(m.Date) + ": " + what : what;
         }

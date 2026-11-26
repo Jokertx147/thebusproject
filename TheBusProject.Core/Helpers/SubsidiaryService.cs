@@ -105,8 +105,7 @@ namespace TheBusProject.Helpers
         /// <summary>Folds the subsidiary into the main carrier: coach, gates, stations and money come over.</summary>
         public static bool FoldIn(Carrier parent, SubsidiaryCarrier sub, out string message)
         {
-            message = CarrierTypeRules.MergeBlocker(parent, sub);
-            if (message != null) return false;
+            message = null;
             string name = sub.Profile.Name;
             int fleet = sub.Fleet.Count, routes = sub.Routes.Count;
             double money = sub.Money;

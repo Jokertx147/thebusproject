@@ -9,11 +9,10 @@ using TheBusProject.Models.General.Finances;
 
 namespace TheBusProject.Helpers
 {
-    /// <summary>A one-off trip somebody wants to pay for: a group of passengers, or a load of cargo.</summary>
+    /// <summary>A one-off trip somebody wants to pay for: a group of passengers.</summary>
     public class CharterOffer
     {
         public int Id { get; set; }
-        public bool IsCargo { get; set; }
         public int Amount { get; set; }
         public Station From { get; set; }
         public Station To { get; set; }
@@ -22,7 +21,7 @@ namespace TheBusProject.Helpers
         public DateTime Deadline { get; set; }
         public string Customer { get; set; }
 
-        public string Title => (IsCargo ? "Cargo charter: " : "Passenger charter: ") + From.Profile.IATACode + " - " + To.Profile.IATACode;
+        public string Title => "Passenger charter: " + From.Profile.IATACode + " - " + To.Profile.IATACode;
     }
 
     /// <summary>What it would take to fly an offer with one coach.</summary>
@@ -39,7 +38,6 @@ namespace TheBusProject.Helpers
     public static class CharterService
     {
         private const double PaxRate = 0.13;
-        private const double CargoRate = 0.30;
         private static readonly List<CharterOffer> OffersList = new List<CharterOffer>();
         private static DateTime _lastRefresh = DateTime.MinValue;
         private static int _nextId = 1;
@@ -104,14 +102,13 @@ namespace TheBusProject.Helpers
                 }
                 if (to == null) continue;
 
-                bool cargo = Rnd.Next(4) == 0;
-                int amount = cargo ? Rnd.Next(5, 90) : Rnd.Next(15, 380);
-                double rate = (cargo ? CargoRate : PaxRate)*(0.9 + Rnd.NextDouble()*0.3);
+                int amount = Rnd.Next(15, 380);
+                double rate = PaxRate*(0.9 + Rnd.NextDouble()*0.3);
                 double fee = GeneralHelpers.GetInflationPrice(Math.Round(amount*km*rate/100)*100);
                 OffersList.Add(
                     new CharterOffer
                     {
-                        Id = _nextId++, IsCargo = cargo, Amount = amount, From = from, To = to, Distance = km, Fee = fee,
+                        Id = _nextId++, Amount = amount, From = from, To = to, Distance = km, Fee = fee,
                         Deadline = game.GameTime.AddDays(Rnd.Next(7, 22)).Date, Customer = Customers[Rnd.Next(Customers.Length)]
                     });
             }
@@ -138,9 +135,7 @@ namespace TheBusProject.Helpers
         public static int CapacityOf(FleetCoach f)
         {
             var pax = f.Coach.Type as CoachPassengerType;
-            if (pax != null) return pax.MaxSeatingCapacity;
-            var cargo = f.Coach.Type as CoachCargoType;
-            return cargo != null ? (int) cargo.CargoSize : 0;
+            return pax != null ? pax.MaxSeatingCapacity : 0;
         }
 
         /// <summary>Why this coach cannot take the offer, or null when it can.</summary>
@@ -154,7 +149,6 @@ namespace TheBusProject.Helpers
             if (FerryService.IsFerrying(f)) return "on a ferry trip";
             if (MaintenanceService.IsGrounded(f)) return "grounded";
             if (MaintenanceService.IsCovering(f) || MaintenanceService.IsCovered(f)) return "tied up in a maintenance cover";
-            if ((f.Coach.Type is CoachCargoType) != o.IsCargo) return o.IsCargo ? "not a cargo coach" : "not a passenger coach";
             if (CapacityOf(f) < o.Amount) return "too small (" + CapacityOf(f) + ")";
             if (f.Coach.Range < o.Distance) return "range too short";
             if (f.Drivers.Count < f.Coach.Type.DriverCrew) return "no full crew";

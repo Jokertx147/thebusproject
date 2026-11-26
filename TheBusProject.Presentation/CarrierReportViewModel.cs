@@ -254,7 +254,7 @@ namespace TheBusProject.Presentation
             ReportRoute rt = x;
             return new ReportLinkRow
             {
-                Title = x.Name + (x.IsCargo ? " (cargo)" : "") + "  " + Signed(x.Profit),
+                Title = x.Name + ("") + "  " + Signed(x.Profit),
                 Text = x.Trips == 0
                     ? "no trips recorded"
                     : string.Format("{0} trips, {1}, {2:0}% full", x.Trips, x.IsCargo ? x.Carried.ToString("#,0") + " t" : x.Carried.ToString("#,0") + " passengers", x.Load*100),

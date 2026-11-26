@@ -12,7 +12,6 @@ namespace TheBusProject.Helpers
     public class RouteFigures
     {
         public Route Route { get; set; }
-        public bool IsCargo { get; set; }
         public double LastMonth { get; set; }
         public double ThisMonth { get; set; }
         public double Last12 { get; set; }
@@ -110,7 +109,7 @@ namespace TheBusProject.Helpers
         public static RouteFigures Figures(Route route)
         {
             DateTime now = GameObject.GetInstance().GameTime;
-            var f = new RouteFigures {Route = route, IsCargo = route is CargoRoute};
+            var f = new RouteFigures {Route = route};
             f.ThisMonth = Month(route, now.Year, now.Month);
             DateTime last = now.AddMonths(-1);
             f.LastMonth = Month(route, last.Year, last.Month);
@@ -142,11 +141,6 @@ namespace TheBusProject.Helpers
                     double market = PricingService.MarketFare(route.Destination1, route.Destination2, CoachClass.ClassType.EconomyClass);
                     f.FareRatio = market > 0 ? AIPricingService.EconomyFare(pr)/market : 0;
                 }
-                else if (route is CargoRoute)
-                {
-                    double market = PricingService.CargoMarketRate(route.Destination1, route.Destination2);
-                    f.FareRatio = market > 0 ? PricingService.CargoPrice(route)/market : 0;
-                }
             }
             catch (Exception)
             {
@@ -174,14 +168,14 @@ namespace TheBusProject.Helpers
 
         private static string Advice(RouteFigures f, int coach, TimeSpan age)
         {
-            string fare = f.IsCargo ? "rate" : "fare";
+            string fare = "fare";
             if (coach == 0) return "No coach runs it: put one on it, or delete the route.";
             if (age.TotalDays < 31) return "New route: the numbers are still building up.";
             bool losing = (f.Months > 0 ? f.LastMonth : f.ThisMonth) < 0;
             if (losing)
             {
-                if (f.Load > 0 && f.Load < 0.5 && f.FareRatio > 1.1) return "Losing money with few " + (f.IsCargo ? "loads" : "passengers") + " and a " + fare + " above the market: lower the " + fare + ".";
-                if (f.Load > 0 && f.Load < 0.5) return "Losing money with few " + (f.IsCargo ? "loads" : "passengers") + ": a smaller coach or fewer trips would cost less.";
+                if (f.Load > 0 && f.Load < 0.5 && f.FareRatio > 1.1) return "Losing money with few " + ("passengers") + " and a " + fare + " above the market: lower the " + fare + ".";
+                if (f.Load > 0 && f.Load < 0.5) return "Losing money with few " + ("passengers") + ": a smaller coach or fewer trips would cost less.";
                 if (f.Load >= 0.9) return "Full but losing money: raise the " + fare + ".";
                 if (f.FareRatio > 0 && f.FareRatio < 0.9) return "Losing money with a " + fare + " below the market: raise the " + fare + ".";
                 return "Costs more than it earns: check the " + fare + ", or run it with a cheaper coach.";

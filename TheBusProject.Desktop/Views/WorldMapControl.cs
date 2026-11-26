@@ -70,7 +70,7 @@ namespace TheBusProject.Desktop.Views
 
         private static Pen PenFor(MapLine line)
         {
-            if (line.Color == null) return line.IsCargo ? CargoPen : RoutePen;
+            if (line.Color == null) return RoutePen;
             string key = line.Color + line.IsCargo;
             lock (RivalPens)
             {

@@ -191,12 +191,11 @@ namespace TheBusProject.Helpers
             Carrier carrier = f.Coach.Carrier;
             if (carrier == null) return null;
 
-            bool cargo = f.Coach.Type is CoachCargoType;
             double range = GetSpareRange(f);
             int size = SizeOf(f);
             return carrier.Fleet
                 .Where(s => s != f && s.Routes.Count == 0 && s.Coach.BuiltDate <= game.GameTime && !IsGrounded(s) && !IsOnCharter(s) && !IsCovering(s) && !IsCovered(s)
-                            && (s.Coach.Type is CoachCargoType) == cargo && s.Coach.Type.Range >= range)
+                            && s.Coach.Type.Range >= range)
                 .OrderBy(s => Math.Abs(SizeOf(s) - size))
                 .FirstOrDefault();
         }
@@ -204,9 +203,7 @@ namespace TheBusProject.Helpers
         private static int SizeOf(FleetCoach f)
         {
             var pax = f.Coach.Type as CoachPassengerType;
-            if (pax != null) return pax.MaxSeatingCapacity;
-            var cargo = f.Coach.Type as CoachCargoType;
-            return cargo != null ? (int) cargo.CargoSize : 0;
+            return pax != null ? pax.MaxSeatingCapacity : 0;
         }
 
         /// <summary>Why a check cannot be done now, or null when it can (apart from money).</summary>

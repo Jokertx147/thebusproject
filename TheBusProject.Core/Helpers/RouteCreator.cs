@@ -189,13 +189,6 @@ namespace TheBusProject.Helpers
             Station origin = request.Origin;
             Station destination = request.Destination;
 
-            // a passenger carrier flies passenger routes, a cargo carrier cargo routes
-            message = CarrierTypeRules.RouteBlocker(carrier, Route.RouteType.Passenger);
-            if (message != null)
-            {
-                return null;
-            }
-
             if (carrier.Routes.Exists(
                 r =>
                 ((r.Destination1 == origin && r.Destination2 == destination)

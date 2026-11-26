@@ -8085,7 +8085,7 @@ static class VmTest
                     var savedRoutes = cf.Routes;
                     var withRoutes = savedRoutes.Count;
                     var dest = TheBusProject.Models.Stations.Stations.GetAllActiveStations().First(x => x != cf.CurrentPosition && TheBusProject.Helpers.MathHelpers.GetDistance(cf.CurrentPosition, x) > 300 && TheBusProject.Helpers.MathHelpers.GetDistance(cf.CurrentPosition, x) < cf.Coach.Type.Range * 0.8 && x.GetMaxBayLength() >= cf.Coach.Type.MinBayLength);
-                    var offer = new TheBusProject.Helpers.CharterOffer { IsCargo = false, Amount = Math.Min(20, TheBusProject.Helpers.CharterService.CapacityOf(cf)), From = cf.CurrentPosition, To = dest, Distance = TheBusProject.Helpers.MathHelpers.GetDistance(cf.CurrentPosition, dest), Fee = 400000, Deadline = cg.GameTime.AddDays(10), Customer = "a test" };
+                    var offer = new TheBusProject.Helpers.CharterOffer { Amount = Math.Min(20, TheBusProject.Helpers.CharterService.CapacityOf(cf)), From = cf.CurrentPosition, To = dest, Distance = TheBusProject.Helpers.MathHelpers.GetDistance(cf.CurrentPosition, dest), Fee = 400000, Deadline = cg.GameTime.AddDays(10), Customer = "a test" };
                     TheBusProject.Helpers.CharterService.AddOffer(offer);
                     if (withRoutes > 0)
                     {
