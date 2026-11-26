@@ -80,9 +80,13 @@ namespace TheBusProject.Helpers
             // the stand and the people who work it. Greyhound's agents' commissions and station costs together
             // were 17.7% of revenue, so a departure is dearer than the $20 this used to charge
             p.Ground = GeneralHelpers.GetInflationPrice(2.6 + 0.055*cap);
-            // the garage: a part per hour on the road plus a part that grows with the coach's price. Greyhound
-            // spent 10.6% of its revenue here, 35 cents of every bus mile, about twice what this charged before
-            p.Maintenance = hours*(GeneralHelpers.GetInflationPrice(2.4 + 0.09*cap) + 0.000008*coach.Type.Price);
+            // The garage: a part per hour on the road plus a part that grows with the coach's price. Greyhound
+            // spent 10.6% of a revenue of $3.32 a bus mile here, so 35 cents of every bus mile in 2004 and about
+            // 44 in 2015 money, and this charged four times that: a playthrough's whole upkeep came to between
+            // $1.05 and $1.93 a bus mile, four fifths of it from this line. The share of revenue was what hid
+            // it, because the game earns $8.67 a bus mile against Greyhound's $3.32, so a cost four times too
+            // high still read as 12% of revenue against their 10.6%.
+            p.Maintenance = hours*(GeneralHelpers.GetInflationPrice(0.64 + 0.024*cap) + 0.0000021*coach.Type.Price);
             // tolls, road tax and tyres per km, more for a heavier coach (about 3 cents a km in 2007)
             p.EnRoute = km*GeneralHelpers.GetInflationPrice(0.002 + 0.00004*cap);
             // The driver's time, at the real wage: the BLS put intercity and transit drivers at $23.56 an hour in

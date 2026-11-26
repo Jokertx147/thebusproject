@@ -5097,6 +5097,49 @@ static class VmTest
                 fail(string.Format("{0} of {1} coaches sit at the 20% condition floor", atFloor, delivered.Count));
         }
 
+        // What keeping the fleet up costs a bus mile, which is the figure that can be checked against the world.
+        // Greyhound's maintenance was 10.6% of a revenue of $3.32 a bus mile, so 35 cents a bus mile in 2004 and
+        // about 44 in 2015 money. The share of revenue is no use for this: the game earns $8.67 a bus mile
+        // against Greyhound's $3.32, so the same real cost shows up as a much smaller share of it.
+        {
+            int my = g.GameTime.AddMonths(-1).Year;
+            double upkeep = 0;
+            for (int mm = 1; mm <= 12; mm++)
+                upkeep += -me.GetInvoicesAmountMonth(my, mm, TheBusProject.Models.General.Finances.Invoice.InvoiceType.Maintenances);
+
+            double busMiles = 0;
+            foreach (var r in me.Routes.ToList())
+            {
+                if (r.TimeTable == null) continue;
+                busMiles += TheBusProject.Helpers.RouteStops.TotalKm(r)*r.TimeTable.Entries.Count*52*0.621371;
+            }
+
+            double infl = TheBusProject.Helpers.GeneralHelpers.GetInflationPrice(1.0);
+            double perMile = busMiles > 0 ? upkeep/busMiles : 0;
+            Console.WriteLine(string.Format("  keeping the fleet up cost ${0:#,0} over {1:#,0} bus miles, ${2:0.000} a mile, against about $0.44 for a real one ({3:0.000} in 1960 dollars)",
+                                            upkeep, busMiles, perMile, perMile/infl));
+
+            // What the scheduled checks come to across the whole fleet, so the rest can be told apart: the bill
+            // is the checks plus a charge for every hour a coach is on the road, and only knowing the split
+            // says which of the two is out.
+            double checksYear = 0;
+            foreach (var f in me.Fleet.Where(x => x.Coach.BuiltDate <= g.GameTime))
+                foreach (var chk in new[] { TheBusProject.Helpers.MaintenanceCheck.A, TheBusProject.Helpers.MaintenanceCheck.B,
+                                            TheBusProject.Helpers.MaintenanceCheck.C, TheBusProject.Helpers.MaintenanceCheck.D })
+                    checksYear += TheBusProject.Helpers.MaintenanceService.GetCost(f, chk)*365.0
+                                  /TheBusProject.Helpers.MaintenanceService.GetIntervalDays(f, chk);
+            Console.WriteLine(string.Format("    of which the scheduled checks are about ${0:#,0} a year ({1:0}%), the hours on the road the rest",
+                                            checksYear, upkeep > 0 ? checksYear*100/upkeep : 0));
+
+            // In 1960 dollars, so the bound holds whatever year the run ends in, and wide because how far the
+            // fleet is driven and how much of the bill is scheduled move it a long way: three games gave 0.044,
+            // 0.048 and 0.060. The old charge gave 0.124 to 0.228, so it fails this comfortably.
+            double perMile60 = perMile/infl;
+            if (busMiles > 100000 && (perMile60 < 0.025 || perMile60 > 0.085))
+                fail(string.Format("keeping the fleet up costs {0:0.000} a bus mile in 1960 dollars, outside 0.025 to 0.085 (${1:0.00} of today's money against about $0.44 for a real one)",
+                                   perMile60, perMile));
+        }
+
         // what the garage asks for a scheduled check, against what the coach is worth. A line that keeps its
         // fleet in order should be out of pocket by a sensible fraction of the fleet, not several times over.
         foreach (var f in me.Fleet.Take(3))

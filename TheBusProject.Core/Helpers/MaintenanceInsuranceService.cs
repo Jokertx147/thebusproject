@@ -42,18 +42,23 @@ namespace TheBusProject.Helpers
         ///     year the intervals here work out at about 49,000 miles for an A, 148,000 for a B, 296,000 for a C
         ///     and 986,000 for a D. So an A is a thorough service, a B takes in the brakes and the suspension, a
         ///     C is the major systems, and a D at a million miles is the engine out, the transmission rebuilt and
-        ///     the interior done: most of what the coach is worth by then, which is the point at which a line has
-        ///     to decide between rebuilding it and buying another.
+        ///     the interior done.
+        ///
+        ///     These were cut to a quarter once the coaches were worth what they should be. They were set while a
+        ///     fault in the condition of a coach held every value at about a twelfth of list, and they are a share
+        ///     of that value, so correcting it put them up fivefold without anyone touching them: an A came to
+        ///     $4,200 on a coach worth $300,000, for what is an inspection and an oil change, and a D to $105,000.
+        ///     They now come to about $1,390, $4,330, $11,750 and $34,900 on such a coach.
         /// </summary>
         public static double GetCost(FleetCoach f, MaintenanceCheck c)
         {
             double v = f.Coach.GetValue();
             switch (c)
             {
-                case MaintenanceCheck.A: return 1200 + v*0.01;
-                case MaintenanceCheck.B: return 4000 + v*0.03;
-                case MaintenanceCheck.C: return 11000 + v*0.08;
-                default: return 30000 + v*0.25;
+                case MaintenanceCheck.A: return 400 + v*0.0033;
+                case MaintenanceCheck.B: return 1330 + v*0.010;
+                case MaintenanceCheck.C: return 3650 + v*0.027;
+                default: return 10000 + v*0.083;
             }
         }
 
