@@ -55,10 +55,6 @@ namespace TheBusProject.Helpers
             {
                 foreach (Route route in new List<Route>(other.Routes))
                 {
-                    if (route.Type == Route.RouteType.Cargo)
-                    {
-                        continue;
-                    }
 
                     string key = PairKey(route.Destination1, route.Destination2);
 
@@ -240,10 +236,6 @@ namespace TheBusProject.Helpers
             {
                 foreach (Route route in new List<Route>(other.Routes))
                 {
-                    if (route.Type != Route.RouteType.Cargo)
-                    {
-                        continue;
-                    }
 
                     string key = PairKey(route.Destination1, route.Destination2);
 

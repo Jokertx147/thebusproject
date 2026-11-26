@@ -171,34 +171,6 @@ namespace TheBusProject.Helpers
                                 false,
                                 false);
                         }
-                        if (coachType == CoachType.TypeOfCoach.Cargo)
-                        {
-                            double cargo = Convert.ToDouble(
-                                coachTypeNode.Attributes["cargo"].Value,
-                                new CultureInfo("de-DE", false));
-                            type = new CoachCargoType(
-                                baseType.Manufacturer,
-                                coachTypeName,
-                                "",
-                                baseType.DriverCrew,
-                                cargo,
-                                0,
-                                0,
-                                baseType.Wingspan,
-                                baseType.Length,
-                                baseType.Weight,
-                                0,
-                                baseType.Price,
-                                0,
-                                baseType.FuelCapacity,
-                                baseType.Body,
-                                baseType.RangeType,
-                                baseType.Engine,
-                                baseType.Produced,
-                                baseType.ProductionRate,
-                                false,
-                                false);
-                        }
                         if (type != null)
                         {
                             type.BaseType = baseType;
@@ -1034,12 +1006,6 @@ namespace TheBusProject.Helpers
                     coachTypeNode.SetAttribute(
                         "maxclasses",
                         ((CoachPassengerType) coachType).MaxCoachClasses.ToString(CultureInfo.InvariantCulture));
-                }
-                if (coachType.TypeCoach == CoachType.TypeOfCoach.Cargo)
-                {
-                    coachTypeNode.SetAttribute(
-                        "cargo",
-                        ((CoachCargoType) coachType).CargoSize.ToString(new CultureInfo("de-DE", false)));
                 }
 
                 coachTypesNode.AppendChild(coachTypeNode);
@@ -2488,7 +2454,7 @@ namespace TheBusProject.Helpers
 
             Route route;
 
-            if (routetype == Route.RouteType.Passenger || routetype == Route.RouteType.Mixed)
+            if (routetype == Route.RouteType.Passenger)
             {
                 route = new PassengerRoute(id, dest1, dest2, DateTime.Now, 0);
             }
@@ -2536,7 +2502,7 @@ namespace TheBusProject.Helpers
                     route.AddStopover(stopoverRoute);
                 }
 
-            if (routetype == Route.RouteType.Passenger || routetype == Route.RouteType.Mixed)
+            if (routetype == Route.RouteType.Passenger)
             {
                 ((PassengerRoute) route).Classes.Clear();
 
@@ -2574,18 +2540,6 @@ namespace TheBusProject.Helpers
 
                         ((PassengerRoute) route).AddRouteCoachClass(rClass);
                     }
-            }
-            if (routetype == Route.RouteType.Mixed || routetype == Route.RouteType.Cargo)
-            {
-                var routeCargoNode = (XmlElement) routeNode.SelectSingleNode("cargo");
-                if (routeCargoNode != null)
-                {
-                    double unitPrice = Convert.ToDouble(
-                        routeCargoNode.Attributes["priceperunit"].Value,
-                        new CultureInfo("de-DE", false));
-
-                    ((CargoRoute) route).PricePerUnit = unitPrice;
-                }
             }
 
             var timeTable = new RouteTimeTable(route);
@@ -2686,7 +2640,7 @@ namespace TheBusProject.Helpers
 
             routeNode.AppendChild(routeStopoversNode);
 
-            if (route.Type == Route.RouteType.Passenger || route.Type == Route.RouteType.Mixed)
+            if (route.Type == Route.RouteType.Passenger)
             {
                 XmlElement routeClassesNode = xmlDoc.CreateElement("routeclasses");
 
@@ -2708,15 +2662,6 @@ namespace TheBusProject.Helpers
                 routeNode.AppendChild(routeClassesNode);
             }
 
-            if (route.Type == Route.RouteType.Mixed || route.Type == Route.RouteType.Cargo)
-            {
-                XmlElement routeCargoNode = xmlDoc.CreateElement("cargo");
-                routeCargoNode.SetAttribute(
-                    "priceperunit",
-                    ((CargoRoute) route).PricePerUnit.ToString(new CultureInfo("de-DE", false)));
-
-                routeNode.AppendChild(routeCargoNode);
-            }
 
             XmlElement timetableNode = xmlDoc.CreateElement("timetable");
 

@@ -126,11 +126,6 @@ namespace TheBusProject.Models.Routes
                 Classes = AllClasses[entry];
             }
 
-            if (entry != null && (entry.TimeTable.Route.Type == Route.RouteType.Mixed
-                                  || entry.TimeTable.Route.Type == Route.RouteType.Cargo))
-            {
-                Cargo = AllCargo[entry];
-            }
 
             if (Entry != null)
             {
@@ -201,7 +196,7 @@ namespace TheBusProject.Models.Routes
                             .Add(FleetCoachHelpers.GetMinTimeBetweenTrips(mainEntry.Coach));
                 }
 
-                if (route.Type == Route.RouteType.Passenger || route.Type == Route.RouteType.Mixed)
+                if (route.Type == Route.RouteType.Passenger)
                 {
                     var classes = new List<TripCoachClass>();
                     foreach (CoachClass aClass in Coach.Coach.Classes)
@@ -236,31 +231,6 @@ namespace TheBusProject.Models.Routes
                     }
 
                     AllClasses.Add(entry, classes);
-                }
-                if (route.Type == Route.RouteType.Cargo || route.Type == Route.RouteType.Mixed)
-                {
-                    if (isInbound)
-                    {
-                        AllCargo.Add(
-                            entry,
-                            PassengerHelpers.GetStopoverTripCargo(
-                                Coach,
-                                route.Destination2,
-                                route.Destination1,
-                                routes,
-                                true));
-                    }
-                    else
-                    {
-                        AllCargo.Add(
-                            entry,
-                            PassengerHelpers.GetStopoverTripCargo(
-                                Coach,
-                                route.Destination1,
-                                route.Destination2,
-                                routes,
-                                false));
-                    }
                 }
             }
         }

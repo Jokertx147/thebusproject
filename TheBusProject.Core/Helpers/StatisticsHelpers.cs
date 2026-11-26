@@ -45,13 +45,13 @@ namespace TheBusProject.Helpers
             var priceDiff = new List<double>();
             var aiPrices = (from carrier in Carriers.GetCarriers(a => !a.IsHuman)
                             let aiEconPrices = (from r in carrier.Routes
-                                                where r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed
+                                                where r.Type == Route.RouteType.Passenger
                                                 select ((PassengerRoute) r).GetFarePrice(CoachClass.ClassType.EconomyClass)).ToList()
                             let aiBusPrices = (from r in carrier.Routes
-                                               where r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed
+                                               where r.Type == Route.RouteType.Passenger
                                                select ((PassengerRoute) r).GetFarePrice(CoachClass.ClassType.BusinessClass)).ToList()
                             let aiFirstPrices = (from r in carrier.Routes
-                                                 where r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed
+                                                 where r.Type == Route.RouteType.Passenger
                                                  select ((PassengerRoute) r).GetFarePrice(CoachClass.ClassType.FirstClass)).ToList()
                             let distance = (from r in carrier.Routes select MathHelpers.GetDistance(r.Destination1, r.Destination2)).DefaultIfEmpty(0).Average()
                             let avgEP = aiEconPrices.DefaultIfEmpty(0).Average()
@@ -166,7 +166,7 @@ namespace TheBusProject.Helpers
                 double iWage = carrier.Fees.GetValue(FeeTypes.GetType("Instructor Base Salary"));
                 // *DriverModel.TripSchool.MaxNumberOfInstructors;
                 int cabinCrew =
-                    carrier.Routes.Where(r => r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed)
+                    carrier.Routes.Where(r => r.Type == Route.RouteType.Passenger)
                            .Sum(r => ((PassengerRoute) r).GetTotalAttendants());
                 int serviceCrew =
                     carrier.Stations.SelectMany(a => a.GetCurrentStationFacilities(carrier))
@@ -207,13 +207,13 @@ namespace TheBusProject.Helpers
         public static double GetHumanAvgTicketPPD()
         {
             List<double> ePrices = (from r in GameObject.GetInstance().HumanCarrier.Routes
-                                    where r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed
+                                    where r.Type == Route.RouteType.Passenger
                                     select ((PassengerRoute) r).GetFarePrice(CoachClass.ClassType.EconomyClass)).ToList();
             List<double> bPrices = (from r in GameObject.GetInstance().HumanCarrier.Routes
-                                    where r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed
+                                    where r.Type == Route.RouteType.Passenger
                                     select ((PassengerRoute) r).GetFarePrice(CoachClass.ClassType.BusinessClass)).ToList();
             List<double> fPrices = (from r in GameObject.GetInstance().HumanCarrier.Routes
-                                    where r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed
+                                    where r.Type == Route.RouteType.Passenger
                                     select ((PassengerRoute) r).GetFarePrice(CoachClass.ClassType.FirstClass)).ToList();
             double distance =
                 (from r in GameObject.GetInstance().HumanCarrier.Routes
@@ -256,13 +256,13 @@ namespace TheBusProject.Helpers
             {
                 const double avgPPD = 0; // GetTotalTicketPPD();
                 List<double> aiEconPrices = (from r in carrier.Routes
-                                             where r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed
+                                             where r.Type == Route.RouteType.Passenger
                                              select ((PassengerRoute) r).GetFarePrice(CoachClass.ClassType.EconomyClass)).ToList();
                 List<double> aiBusPrices = (from r in carrier.Routes
-                                            where r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed
+                                            where r.Type == Route.RouteType.Passenger
                                             select ((PassengerRoute) r).GetFarePrice(CoachClass.ClassType.BusinessClass)).ToList();
                 List<double> aiFirstPrices = (from r in carrier.Routes
-                                              where r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed
+                                              where r.Type == Route.RouteType.Passenger
                                               select ((PassengerRoute) r).GetFarePrice(CoachClass.ClassType.FirstClass)).ToList();
                 double distance =
                     (from r in carrier.Routes select MathHelpers.GetDistance(r.Destination1, r.Destination2))
@@ -344,13 +344,13 @@ namespace TheBusProject.Helpers
             foreach (Carrier carrier in Carriers.GetAllCarriers())
             {
                 List<double> econPrices = (from r in carrier.Routes
-                                           where r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed
+                                           where r.Type == Route.RouteType.Passenger
                                            select ((PassengerRoute) r).GetFarePrice(CoachClass.ClassType.EconomyClass)).ToList();
                 List<double> busPrices = (from r in carrier.Routes
-                                          where r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed
+                                          where r.Type == Route.RouteType.Passenger
                                           select ((PassengerRoute) r).GetFarePrice(CoachClass.ClassType.BusinessClass)).ToList();
                 List<double> firstPrices = (from r in carrier.Routes
-                                            where r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed
+                                            where r.Type == Route.RouteType.Passenger
                                             select ((PassengerRoute) r).GetFarePrice(CoachClass.ClassType.FirstClass)).ToList();
                 List<double> distance =
                     (from r in carrier.Routes select MathHelpers.GetDistance(r.Destination1, r.Destination2)).ToList();

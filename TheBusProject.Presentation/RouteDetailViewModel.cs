@@ -442,12 +442,6 @@ namespace TheBusProject.Presentation
         private void UpdatePricing()
         {
             var pr = _route as PassengerRoute;
-            if (_route is CargoRoute cargoRoute)
-            {
-                PricingText = CargoPricing(cargoRoute);
-                OnPropertyChanged(nameof(PricingText));
-                return;
-            }
             if (pr == null)
             {
                 PricingText = "";

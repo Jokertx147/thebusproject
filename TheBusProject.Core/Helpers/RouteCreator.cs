@@ -103,8 +103,7 @@ namespace TheBusProject.Helpers
                                  f =>
                                  cargo
                                      ? f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Cargo
-                                     : (f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Passenger
-                                        || f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Mixed))
+                                     : (f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Passenger))
                              .Where(f => f.Routes.Count == 0 && !CoachDealService.IsLeasedOut(f))
                              .Where(f => f.Coach.Range >= distance && f.Coach.MinBayLength <= bay)
                              .OrderBy(f => f.Name)
@@ -123,7 +122,7 @@ namespace TheBusProject.Helpers
             var idle = GameObject.GetInstance().HumanCarrier.DeliveredFleet
                                  .Where(f => (cargo
                                                   ? f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Cargo
-                                                  : f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Passenger || f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Mixed)
+                                                  : f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Passenger)
                                              && f.Routes.Count == 0 && !CoachDealService.IsLeasedOut(f));
             foreach (var g in idle.GroupBy(f => f.Coach.Type))
             {
@@ -199,7 +198,7 @@ namespace TheBusProject.Helpers
             Station destination = request.Destination;
 
             // a passenger carrier flies passenger routes, a cargo carrier cargo routes
-            message = CarrierTypeRules.RouteBlocker(carrier, request.RouteType == Route.RouteType.Cargo ? Route.RouteType.Cargo : Route.RouteType.Passenger);
+            message = CarrierTypeRules.RouteBlocker(carrier, Route.RouteType.Passenger);
             if (message != null)
             {
                 return null;

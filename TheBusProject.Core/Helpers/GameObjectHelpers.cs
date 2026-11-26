@@ -93,7 +93,7 @@ namespace TheBusProject.Helpers
             Station station = startData.Station;
 
             StationHelpers.RentGates(station, carrier, StationContract.ContractType.Full,
-                                     carrier.CarrierRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger, 2);
+                                     Terminal.TerminalType.Passenger, 2);
 
             StationFacility checkinFacility =
                 StationFacilities.GetFacilities(StationFacility.FacilityType.CheckIn).Find(f => f.TypeLevel == 1);
@@ -763,35 +763,18 @@ namespace TheBusProject.Helpers
 
             Station largestDestination;
 
-            if (carrier.CarrierRouteFocus == Route.RouteType.Cargo)
-            {
-                largestDestination =
-                    homeStation.GetDestinationDemands()
-                               .Where(
-                                   a =>
-                                   a != null && GeneralHelpers.IsStationActive(a)
-                                   && !carrier.Routes.Exists(
-                                       r =>
-                                       (r.Destination1 == homeStation && r.Destination2 == a)
-                                       || (r.Destination2 == homeStation && r.Destination1 == a)))
-                               .OrderByDescending(homeStation.GetDestinationCargoRate)
-                               .FirstOrDefault();
-            }
-            else
-            {
-                largestDestination =
-                    homeStation.GetDestinationDemands()
-                               .Where(
-                                   a =>
-                                   a != null && GeneralHelpers.IsStationActive(a)
-                                   && !carrier.Routes.Exists(
-                                       r =>
-                                       (r.Destination1 == homeStation && r.Destination2 == a)
-                                       || (r.Destination2 == homeStation && r.Destination1 == a)))
-                               .OrderByDescending(
-                                   a => homeStation.GetDestinationPassengersRate(a, CoachClass.ClassType.EconomyClass))
-                               .FirstOrDefault();
-            }
+            largestDestination =
+                homeStation.GetDestinationDemands()
+                           .Where(
+                               a =>
+                               a != null && GeneralHelpers.IsStationActive(a)
+                               && !carrier.Routes.Exists(
+                                   r =>
+                                   (r.Destination1 == homeStation && r.Destination2 == a)
+                                   || (r.Destination2 == homeStation && r.Destination1 == a)))
+                           .OrderByDescending(
+                               a => homeStation.GetDestinationPassengersRate(a, CoachClass.ClassType.EconomyClass))
+                           .FirstOrDefault();
 
             if (largestDestination != null)
             {

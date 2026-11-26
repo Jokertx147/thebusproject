@@ -130,14 +130,6 @@ namespace TheBusProject.Helpers
             return all.OfType<PassengerRoute>().Where(r => r.Carrier != null && !SameCompany(r.Carrier, route.Carrier) && r.HasCoach && r.Carrier.Routes.Contains(r)).ToList();
         }
 
-        /// <summary>The other carriers' flying cargo routes on the same station pair.</summary>
-        public static List<CargoRoute> CargoRivals(Route route)
-        {
-            List<Route> all;
-            if (route.Carrier == null || !Index().TryGetValue(Key(route), out all)) return new List<CargoRoute>();
-            return all.OfType<CargoRoute>().Where(r => r.Carrier != null && !SameCompany(r.Carrier, route.Carrier) && r.HasCoach && r.Carrier.Routes.Contains(r)).ToList();
-        }
-
         /// <summary>
         ///     How attractive a new route between two stations is for an carrier compared with an empty market (realistic
         ///     costs): 1 when nobody flies it; with rivals, more when they are full and charge a lot, less when they have
@@ -151,13 +143,12 @@ namespace TheBusProject.Helpers
                 ? a.Profile.IATACode + a.Profile.ICAOCode + "|" + b.Profile.IATACode + b.Profile.ICAOCode
                 : b.Profile.IATACode + b.Profile.ICAOCode + "|" + a.Profile.IATACode + a.Profile.ICAOCode;
             if (!Index().TryGetValue(k, out all)) return 1;
-            bool cargo = carrier.CarrierRouteFocus == Route.RouteType.Cargo;
-            var rivals = all.Where(r => r.Carrier != null && !SameCompany(r.Carrier, carrier) && r.HasCoach && (cargo ? r is CargoRoute : r is PassengerRoute)).ToList();
+            var rivals = all.Where(r => r.Carrier != null && !SameCompany(r.Carrier, carrier) && r.HasCoach && r is PassengerRoute).ToList();
             if (rivals.Count == 0) return 1;
-            double market = cargo ? PricingService.CargoMarketRate(a, b) : PricingService.MarketFare(a, b, CoachClass.ClassType.EconomyClass);
+            double market = PricingService.MarketFare(a, b, CoachClass.ClassType.EconomyClass);
             if (market <= 0) return 0.5;
             double load = rivals.Average(r => ConnectionService.MonthLoad(r));
-            double fare = rivals.Average(r => cargo ? PricingService.CargoPrice(r) : EconomyFare((PassengerRoute) r))/market;
+            double fare = rivals.Average(r => EconomyFare((PassengerRoute) r))/market;
             if (load <= 0) load = 0.8;
             return Math.Max(0.05, Math.Min(1.2, Math.Pow(load/0.8, 2)*fare/(1 + rivals.Count)));
         }
@@ -170,46 +161,6 @@ namespace TheBusProject.Helpers
         public static void ForgetReviews()
         {
             lock (LastReview) LastReview.Clear();
-        }
-
-        /// <summary>Reviews a computer carrier's cargo route and changes its rate, the same way as fares. Returns what changed, or null.</summary>
-        public static string ReviewCargo(Carrier carrier, CargoRoute route)
-        {
-            if (!PricingService.Realistic || carrier == null || carrier.IsHuman || route == null || !route.HasCoach || route.PricePerUnit <= 0) return null;
-            var now = GameObject.GetInstance().GameTime;
-            lock (LastReview)
-            {
-                DateTime last;
-                if (LastReview.TryGetValue(route, out last) && (now - last).TotalDays < ReviewDays) return null;
-                LastReview[route] = now;
-            }
-            double market = PricingService.CargoMarketRate(route.Destination1, route.Destination2);
-            if (market <= 0) return null;
-            double load = ConnectionService.MonthLoad(route);
-            if (load <= 0) return null;
-
-            List<CargoRoute> rivals;
-            try { rivals = CargoRivals(route); }
-            catch (InvalidOperationException) { return null; }
-            var cheapest = rivals.Where(r => r.PricePerUnit > 0).OrderBy(r => r.PricePerUnit).FirstOrDefault();
-            double? rival = cheapest != null ? cheapest.PricePerUnit/market : (double?) null;
-
-            double floor;
-            try { floor = PricingService.CargoBreakEvenRate(route, Math.Max(0.5, Math.Min(0.9, load)))/market; }
-            catch (Exception) { floor = 0; }
-
-            double ratio = route.PricePerUnit/market;
-            double next = Decide(ratio, load, rival, carrier.Mentality, floor);
-            if (Math.Abs(next - ratio)/ratio < 0.01) return null;
-            double before = route.PricePerUnit;
-            route.PricePerUnit = Math.Round(market*next, 2);
-            double factor = route.PricePerUnit/before;
-            string pair = route.Destination1.Profile.IATACode + "-" + route.Destination2.Profile.IATACode;
-            CompetitorService.RecordFare(carrier, route, factor, load);
-
-            // (a cut that undercuts the player is told by CompetitorService's rival alerts)
-            return string.Format("{0} {1} cargo: {2:0.00} -> {3:0.00} ({4:+0;-0}%), {5:0}% full{6}", carrier.Profile.IATACode, pair, before, route.PricePerUnit,
-                                 (factor - 1)*100, load*100, rival.HasValue ? string.Format(", cheapest rival {0:0.00}", cheapest.PricePerUnit) : "");
         }
 
         public static double EconomyFare(PassengerRoute r)

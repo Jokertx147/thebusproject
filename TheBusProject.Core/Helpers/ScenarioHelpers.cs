@@ -135,7 +135,7 @@ namespace TheBusProject.Helpers
         private static void SetupOpponentCarrier(ScenarioCarrier carrier)
         {
             StationHelpers.RentGates(carrier.Homebase, carrier.Carrier, StationContract.ContractType.Full,
-                                     carrier.Carrier.CarrierRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger);
+                                     Terminal.TerminalType.Passenger);
 
             StationFacility checkinFacility =
                 StationFacilities.GetFacilities(StationFacility.FacilityType.CheckIn).Find(f => f.TypeLevel == 1);

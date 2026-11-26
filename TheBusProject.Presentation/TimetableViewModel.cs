@@ -904,9 +904,7 @@ namespace TheBusProject.Presentation
             var keep = _coach?.Coach;
             var list = Human.DeliveredFleet
                             .Where(
-                                f => f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Passenger
-                                     || f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Mixed
-                                     || f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Cargo)
+                                f => f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Passenger)
                             .OrderBy(f => f.Name)
                             .ToList();
 

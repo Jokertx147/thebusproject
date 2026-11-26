@@ -972,7 +972,7 @@ namespace TheBusProject.Presentation
                 return "You need more than " + Money(price) + ".";
             }
 
-            var terminalType = carrier.CarrierRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger;
+            var terminalType = Terminal.TerminalType.Passenger;
             double allGates = station.Terminals.GetNumberOfGates(terminalType);
             double percent = allGates > 0 ? 100.0 * station.Terminals.GetNumberOfGates(carrier) / allGates : 0;
             int limit = (int) carrier.GetCarrierValue() + 1;

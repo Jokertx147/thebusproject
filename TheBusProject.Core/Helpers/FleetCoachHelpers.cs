@@ -167,7 +167,7 @@ namespace TheBusProject.Helpers
 
             if (!oneLegged)
             {
-                if (mainroute.Type == Route.RouteType.Passenger || mainroute.Type == Route.RouteType.Mixed)
+                if (mainroute.Type == Route.RouteType.Passenger)
                 {
                     var routeLegTwo = new PassengerRoute(id.ToString(), dest1, stopover, GameObject.GetInstance().GameTime, 0);
 
@@ -185,41 +185,8 @@ namespace TheBusProject.Helpers
 
                     stopoverRoute.AddLeg(routeLegTwo);
                 }
-                if (mainroute.Type == Route.RouteType.Cargo || mainroute.Type == Route.RouteType.Mixed)
-                {
-                    var routeLegTwo = new CargoRoute(id.ToString(), dest1, stopover, GameObject.GetInstance().GameTime, ((CargoRoute) mainroute).PricePerUnit);
-
-                    stopoverRoute.AddLeg(routeLegTwo);
-                }
             }
 
-            if (mainroute.Type == Route.RouteType.Mixed || mainroute.Type == Route.RouteType.Passenger)
-            {
-                id = Guid.NewGuid();
-
-                var routeLegOne = new PassengerRoute(id.ToString(), stopover, dest2, GameObject.GetInstance().GameTime, 0);
-
-                foreach (RouteCoachClass aClass in ((PassengerRoute) mainroute).Classes)
-                {
-                    //routeLegOne.getRouteCoachClass(aClass.Type).FarePrice = aClass.FarePrice;
-
-                    routeLegOne.GetRouteCoachClass(aClass.Type).FarePrice = PassengerHelpers.GetPassengerPrice(stopover, dest2)*GeneralHelpers.ClassToPriceFactor(aClass.Type);
-
-
-                    foreach (RouteFacility facility in aClass.GetFacilities())
-                        routeLegOne.GetRouteCoachClass(aClass.Type).AddFacility(facility);
-
-                    routeLegOne.GetRouteCoachClass(aClass.Type).Seating = aClass.Seating;
-                }
-
-                stopoverRoute.AddLeg(routeLegOne);
-            }
-            if (mainroute.Type == Route.RouteType.Cargo || mainroute.Type == Route.RouteType.Mixed)
-            {
-                var routeLegOne = new CargoRoute(id.ToString(), stopover, dest2, GameObject.GetInstance().GameTime, ((CargoRoute) mainroute).PricePerUnit);
-
-                stopoverRoute.AddLeg(routeLegOne);
-            }
 
 
             return stopoverRoute;

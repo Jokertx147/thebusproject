@@ -799,7 +799,7 @@ namespace TheBusProject.Infrastructure
                     r.Opened <= GameObject.GetInstance().GameTime.Year
                     && r.Closed >= GameObject.GetInstance().GameTime.Year);
 
-            Terminal.TerminalType terminaltype = carrier.CarrierRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger;
+            Terminal.TerminalType terminaltype = Terminal.TerminalType.Passenger;
             //creates the routes
             List<StartDataRoute> sRoutes = startroutes.GetRange(0, startroutes.Count/startDataFactor);
             Parallel.ForEach(
@@ -853,15 +853,6 @@ namespace TheBusProject.Infrastructure
                                     price);
                             }
 
-                            if (startRoute.RouteType == Route.RouteType.Cargo)
-                            {
-                                route = new CargoRoute(
-                                    id.ToString(),
-                                    dest1,
-                                    dest2,
-                                    GameObject.GetInstance().GameTime,
-                                    PassengerHelpers.GetCargoPrice(dest1, dest2));
-                            }
 
                             KeyValuePair<Coach, bool>? coach = null;
                             if (startRoute.Type != null)
@@ -957,10 +948,6 @@ namespace TheBusProject.Infrastructure
 
                                         AIHelpers.CreateRouteTimeTable(route, fCoach);
                                     }
-                                    if (startRoute.RouteType == Route.RouteType.Cargo)
-                                    {
-                                        AIHelpers.CreateCargoRouteTimeTable(route, fCoach);
-                                    }
                                 }
                             }
                             carrier.AddRoute(route);
@@ -1055,7 +1042,7 @@ namespace TheBusProject.Infrastructure
 
                         if (origin != null)
                         {
-                            Terminal.TerminalType terminalType = carrier.CarrierRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger;
+                            Terminal.TerminalType terminalType = Terminal.TerminalType.Passenger;
 
                             for (int i = 0;
                                  i < Math.Min(routes.Destinations/startDataFactor, origin.Terminals.GetFreeGates(terminalType));
@@ -1096,15 +1083,6 @@ namespace TheBusProject.Infrastructure
                                         price);
                                 }
 
-                                if (routes.RouteType == Route.RouteType.Cargo)
-                                {
-                                    route = new CargoRoute(
-                                        id.ToString(),
-                                        origin,
-                                        destination,
-                                        GameObject.GetInstance().GameTime,
-                                        PassengerHelpers.GetCargoPrice(origin, destination));
-                                }
 
                                 bool leaseCoach = carrier.Profile.PrimaryPurchasing
                                                         == CarrierProfile.PreferedPurchasing.Leasing;
@@ -1146,8 +1124,7 @@ namespace TheBusProject.Infrastructure
                                     {
                                         route.LastUpdated = GameObject.GetInstance().GameTime;
 
-                                        if (routes.RouteType == Route.RouteType.Passenger
-                                            || routes.RouteType == Route.RouteType.Mixed)
+                                        if (routes.RouteType == Route.RouteType.Passenger)
                                         {
                                             CoachHelpers.CreateCoachClasses(fCoach.Coach);
 
@@ -1167,10 +1144,6 @@ namespace TheBusProject.Infrastructure
                                             }
 
                                             AIHelpers.CreateRouteTimeTable(route, fCoach);
-                                        }
-                                        if (routes.RouteType == Route.RouteType.Cargo)
-                                        {
-                                            AIHelpers.CreateCargoRouteTimeTable(route, fCoach);
                                         }
 
                                         carrier.AddRoute(route);
@@ -1197,10 +1170,6 @@ namespace TheBusProject.Infrastructure
             stationHomeBase.AddStationFacility(carrier, serviceFacility, GameObject.GetInstance().GameTime);
             stationHomeBase.AddStationFacility(carrier, checkinFacility, GameObject.GetInstance().GameTime);
 
-            if (carrier.CarrierRouteFocus == Route.RouteType.Cargo)
-            {
-                stationHomeBase.AddStationFacility(carrier, cargoTerminal, GameObject.GetInstance().GameTime);
-            }
 
             CarrierStartData startData = CarrierStartDatas.GetCarrierStartData(carrier);
 
@@ -1256,7 +1225,7 @@ namespace TheBusProject.Infrastructure
                             carrier,
                             stationHomeBase,
                             StationContract.ContractType.Full,
-                            carrier.CarrierRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger,
+                            Terminal.TerminalType.Passenger,
                             GameObject.GetInstance().GameTime,
                             2,
                             25,
@@ -1298,44 +1267,6 @@ namespace TheBusProject.Infrastructure
                             }
                         }
                     }
-                    if (carrier.CarrierRouteFocus == Route.RouteType.Helicopter)
-                    {
-                        route = new HelicopterRoute(
-                            id.ToString(),
-                            stationDestination,
-                            carrier.Stations[0],
-                            GameObject.GetInstance().GameTime,
-                            price);
-
-                        RouteClassesConfiguration configuration = AIHelpers.GetRouteConfiguration((HelicopterRoute) route);
-
-                        foreach (RouteClassConfiguration classConfiguration in configuration.GetClasses())
-                        {
-                            ((HelicopterRoute) route).GetRouteCoachClass(classConfiguration.Type).FarePrice = price
-                                                                                                                 *GeneralHelpers
-                                                                                                                      .ClassToPriceFactor
-                                                                                                                      (
-                                                                                                                          classConfiguration
-                                                                                                                              .Type);
-
-                            foreach (RouteFacility rFacility in classConfiguration.GetFacilities())
-                            {
-                                ((HelicopterRoute) route).GetRouteCoachClass(classConfiguration.Type)
-                                                         .AddFacility(rFacility);
-                            }
-                        }
-                    }
-                    if (carrier.CarrierRouteFocus == Route.RouteType.Cargo)
-                    {
-                        route = new CargoRoute(
-                            id.ToString(),
-                            stationDestination,
-                            carrier.Stations[0],
-                            GameObject.GetInstance().GameTime,
-                            PassengerHelpers.GetCargoPrice(stationDestination, carrier.Stations[0]));
-
-                        stationDestination.AddStationFacility(carrier, cargoTerminal, GameObject.GetInstance().GameTime);
-                    }
                     if (leaseCoach)
                     {
                         CarrierHelpers.AddCarrierInvoice(
@@ -1371,13 +1302,9 @@ namespace TheBusProject.Infrastructure
                     {
                         route.LastUpdated = GameObject.GetInstance().GameTime;
 
-                        if (route.Type == Route.RouteType.Passenger || route.Type == Route.RouteType.Mixed)
+                        if (route.Type == Route.RouteType.Passenger)
                         {
                             AIHelpers.CreateRouteTimeTable(route, fCoach);
-                        }
-                        if (route.Type == Route.RouteType.Cargo)
-                        {
-                            AIHelpers.CreateCargoRouteTimeTable(route, fCoach);
                         }
                     }
                 }
@@ -1740,7 +1667,7 @@ namespace TheBusProject.Infrastructure
 
         private static Station FindComputerHomeBase(Carrier carrier)
         {
-            Terminal.TerminalType terminaltype = carrier.CarrierRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger;
+            Terminal.TerminalType terminaltype = Terminal.TerminalType.Passenger;
             if (carrier.Profile.PreferedStation != null
                 && GeneralHelpers.IsStationActive(carrier.Profile.PreferedStation)
                 && carrier.Profile.PreferedStation.Terminals.GetFreeGates(terminaltype) > 1)
@@ -1773,18 +1700,8 @@ namespace TheBusProject.Infrastructure
 
             var stations = new List<Station>();
 
-            if (routes.RouteType == Route.RouteType.Cargo)
-            {
-                stations =
-                    Stations.GetStations(
-                        a =>
-                        routes.Countries.Contains(a.Profile.Country)
-                        && MathHelpers.GetDistance(Stations.GetStation(routes.Origin), a) < maxRange
-                        && a != Stations.GetStation(routes.Origin)
-                        && ((int) a.Profile.Cargo) >= ((int) routes.MinimumSize) && a.Terminals.GetFreeGates(Terminal.TerminalType.Cargo) > 0);
-            }
 
-            if (routes.RouteType == Route.RouteType.Passenger || routes.RouteType == Route.RouteType.Mixed)
+            if (routes.RouteType == Route.RouteType.Passenger)
             {
                 stations =
                     Stations.GetStations(
@@ -2208,36 +2125,6 @@ namespace TheBusProject.Infrastructure
 
                         CoachType type = null;
 
-                        if (coachType == CoachType.TypeOfCoach.Helicopter)
-                        {
-                            int passengers = Convert.ToInt16(capacityElement.Attributes["passengers"].Value);
-                            int drivers = Convert.ToInt16(capacityElement.Attributes["drivers"].Value);
-                            int attendants = Convert.ToInt16(capacityElement.Attributes["attendants"].Value);
-                            int maxClasses = Convert.ToInt16(capacityElement.Attributes["maxclasses"].Value);
-                            type = new CoachPassengerType(
-                                manufacturer,
-                                name,
-                                family,
-                                passengers,
-                                drivers,
-                                attendants,
-                                speed,
-                                range,
-                                wingspan,
-                                length,
-                                weight,
-                                fuel,
-                                price,
-                                maxClasses,
-                                baylenght,
-                                fuelcapacity,
-                                body,
-                                rangeType,
-                                engine,
-                                new Period<DateTime>(@from, to),
-                                prodRate,
-                                isConvertable) {TypeCoach = CoachType.TypeOfCoach.Helicopter};
-                        }
 
                         if (coachType == CoachType.TypeOfCoach.Passenger)
                         {
@@ -2267,69 +2154,6 @@ namespace TheBusProject.Infrastructure
                                 engine,
                                 new Period<DateTime>(@from, to),
                                 prodRate,
-                                isConvertable);
-                        }
-                        if (coachType == CoachType.TypeOfCoach.Cargo)
-                        {
-                            int drivers = Convert.ToInt16(capacityElement.Attributes["drivers"].Value);
-                            double cargo = Convert.ToDouble(
-                                capacityElement.Attributes["cargo"].Value,
-                                CultureInfo.GetCultureInfo("en-US").NumberFormat);
-                            type = new CoachCargoType(
-                                manufacturer,
-                                name,
-                                family,
-                                drivers,
-                                cargo,
-                                speed,
-                                range,
-                                wingspan,
-                                length,
-                                weight,
-                                fuel,
-                                price,
-                                baylenght,
-                                fuelcapacity,
-                                body,
-                                rangeType,
-                                engine,
-                                new Period<DateTime>(@from, to),
-                                prodRate,
-                                isConvertable);
-                        }
-                        if (coachType == CoachType.TypeOfCoach.Mixed)
-                        {
-                            int passengers = Convert.ToInt16(capacityElement.Attributes["passengers"].Value);
-                            int drivers = Convert.ToInt16(capacityElement.Attributes["drivers"].Value);
-                            double cargo = Convert.ToDouble(
-                                capacityElement.Attributes["cargo"].Value,
-                                CultureInfo.GetCultureInfo("en-US").NumberFormat);
-                            int attendants = Convert.ToInt16(capacityElement.Attributes["attendants"].Value);
-                            int maxClasses = Convert.ToInt16(capacityElement.Attributes["maxclasses"].Value);
-
-                            type = new CoachCombiType(
-                                manufacturer,
-                                name,
-                                family,
-                                passengers,
-                                drivers,
-                                attendants,
-                                speed,
-                                range,
-                                wingspan,
-                                length,
-                                weight,
-                                fuel,
-                                price,
-                                maxClasses,
-                                baylenght,
-                                fuelcapacity,
-                                body,
-                                rangeType,
-                                engine,
-                                new Period<DateTime>(@from, to),
-                                prodRate,
-                                cargo,
                                 isConvertable);
                         }
 

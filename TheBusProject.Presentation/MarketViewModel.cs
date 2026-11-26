@@ -111,9 +111,7 @@ namespace TheBusProject.Presentation
         {
             _all = Coaches.GetCoachesForSale()
                             .Where(
-                                a => (a.Type.TypeCoach == CoachType.TypeOfCoach.Passenger
-                                      || a.Type.TypeCoach == CoachType.TypeOfCoach.Mixed
-                                      || a.Type.TypeCoach == CoachType.TypeOfCoach.Cargo)
+                                a => (a.Type.TypeCoach == CoachType.TypeOfCoach.Passenger)
                                      && CarrierTypeRules.CanUseType(GameObject.GetInstance().HumanCarrier, a.Type))
                             .OrderByDescending(a => a.BuiltDate.Year)
                             .ThenBy(a => a.Type.Name)

@@ -23,23 +23,10 @@ namespace TheBusProject.Models.Routes
         {
             Entry = entry;
 
-            if (Entry.TimeTable.Route.Type == Route.RouteType.Passenger
-                || Entry.TimeTable.Route.Type == Route.RouteType.Mixed || Entry.TimeTable.Route.Type == Route.RouteType.Helicopter)
+            if (Entry.TimeTable.Route.Type == Route.RouteType.Passenger)
             {
                 Classes = new List<TripCoachClass>();
 
-                if (Entry != null)
-                {
-                    Coach = Entry.Coach;
-                    TripTime = MathHelpers.ConvertEntryToDate(Entry);
-                    ScheduledTripTime = TripTime;
-                }
-
-                IsOnTime = true;
-            }
-            if (Entry.TimeTable.Route.Type == Route.RouteType.Cargo
-                || Entry.TimeTable.Route.Type == Route.RouteType.Mixed)
-            {
                 if (Entry != null)
                 {
                     Coach = Entry.Coach;
@@ -176,15 +163,13 @@ namespace TheBusProject.Models.Routes
         //returns if it is a cargo trip
         public bool IsCargoTrip()
         {
-            return Entry.TimeTable.Route.Type == Route.RouteType.Mixed
-                   || Entry.TimeTable.Route.Type == Route.RouteType.Cargo;
+            return Entry.TimeTable.Route.Type == Route.RouteType.Mixed;
         }
 
         public bool IsPassengerTrip()
         {
             return Entry.TimeTable.Route.Type == Route.RouteType.Mixed
-                   || Entry.TimeTable.Route.Type == Route.RouteType.Passenger
-                   || Entry.TimeTable.Route.Type == Route.RouteType.Helicopter;
+                   || Entry.TimeTable.Route.Type == Route.RouteType.Passenger;
         }
 
         #endregion

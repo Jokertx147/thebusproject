@@ -49,9 +49,7 @@ namespace TheBusProject.Models.Coaches
             // cargo as well. All three are an CoachPassengerType. Helicopters and combis used to be left with no
             // cabin at all, and an coach with no cabin cannot be asked which cabin a passenger sits in, so flying
             // one threw as soon as its passengers were counted.
-            if (Type.TypeCoach == CoachType.TypeOfCoach.Passenger
-                || Type.TypeCoach == CoachType.TypeOfCoach.Helicopter
-                || Type.TypeCoach == CoachType.TypeOfCoach.Mixed)
+            if (Type.TypeCoach == CoachType.TypeOfCoach.Passenger)
             {
                 var aClass = new CoachClass(
                     CoachClass.ClassType.EconomyClass,
@@ -60,12 +58,6 @@ namespace TheBusProject.Models.Coaches
                 Classes.Add(aClass);
             }
 
-            if (Type.TypeCoach == CoachType.TypeOfCoach.Cargo)
-            {
-                var aClass = new CoachClass(CoachClass.ClassType.EconomyClass, 0);
-                aClass.CreateBasicFacilities(Carrier);
-                Classes.Add(aClass);
-            }
         }
 
         private Coach(SerializationInfo info, StreamingContext ctxt) : base(info, ctxt)
@@ -132,10 +124,6 @@ namespace TheBusProject.Models.Coaches
                         $"{GetSeatingCapacity(CoachClass.ClassType.FirstClass)}F | {GetSeatingCapacity(CoachClass.ClassType.BusinessClass)}C | {GetSeatingCapacity(CoachClass.ClassType.EconomyClass)}Y";
                 }
 
-                if (Type.TypeCoach == CoachType.TypeOfCoach.Cargo)
-                {
-                    return $"{GetCargoCapacity()} t";
-                }
 
                 return
                     $"{GetSeatingCapacity(CoachClass.ClassType.FirstClass)}F | {GetSeatingCapacity(CoachClass.ClassType.BusinessClass)}C | {GetSeatingCapacity(CoachClass.ClassType.EconomyClass)}Y | {GetCargoCapacity()} t";
@@ -269,15 +257,7 @@ namespace TheBusProject.Models.Coaches
 
         public double GetCargoCapacity()
         {
-            if (Type is CoachCargoType)
-            {
-                return ((CoachCargoType) Type).CargoSize;
-            }
 
-            if (Type is CoachCombiType)
-            {
-                return ((CoachCombiType) Type).CargoSize;
-            }
 
             return 0;
         }

@@ -3002,11 +3002,11 @@ namespace TheBusProject.Helpers
             var routes = new List<Route>();
             foreach (Route r in RouteIndex.Direct(stationCurrent, stationDestination))
             {
-                if ((r.Type == Route.RouteType.Cargo || r.Type == Route.RouteType.Mixed) && r.HasCoach) routes.Add(r);
+                if ((r.Type == Route.RouteType.Cargo) && r.HasCoach) routes.Add(r);
             }
             foreach (Route r in RouteIndex.WithLeg(stationCurrent, stationDestination))
             {
-                if ((r.Type == Route.RouteType.Cargo || r.Type == Route.RouteType.Mixed) && r.HasCoach) routes.Add(r);
+                if ((r.Type == Route.RouteType.Cargo) && r.HasCoach) routes.Add(r);
             }
 
             double tripsPerDay = Convert.ToDouble(routes.Sum(r => r.TimeTable.Entries.Count))/7;
@@ -3178,11 +3178,11 @@ namespace TheBusProject.Helpers
             var routes = new List<Route>();
             foreach (Route r in RouteIndex.Direct(stationCurrent, stationDestination))
             {
-                if ((r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed) && r.HasCoach) routes.Add(r);
+                if ((r.Type == Route.RouteType.Passenger) && r.HasCoach) routes.Add(r);
             }
             foreach (Route r in RouteIndex.WithLeg(stationCurrent, stationDestination))
             {
-                if ((r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed) && r.HasCoach) routes.Add(r);
+                if ((r.Type == Route.RouteType.Passenger) && r.HasCoach) routes.Add(r);
             }
 
             double tripsPerDay = Convert.ToDouble(routes.Sum(r => r.TimeTable.Entries.Count))/7;

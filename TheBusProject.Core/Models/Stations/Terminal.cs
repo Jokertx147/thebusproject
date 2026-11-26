@@ -353,7 +353,7 @@ namespace TheBusProject.Models.Stations
         //returns the number of gates for an carrier
         public int GetNumberOfGates(Carrier carrier)
         {
-            Terminal.TerminalType type = carrier.CarrierRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger;
+            Terminal.TerminalType type = Terminal.TerminalType.Passenger;
             return
                 Station.CarrierContracts.Where(
                     c => c.Carrier == carrier && c.TerminalType == type && c.ContractDate <= GameObject.GetInstance().GameTime)

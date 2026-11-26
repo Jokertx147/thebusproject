@@ -166,7 +166,7 @@ namespace TheBusProject.Helpers
         private static List<Route> Others(Station a, Station b)
         {
             return RouteIndex.Direct(a, b).Concat(RouteIndex.WithLeg(a, b))
-                             .Where(r => (r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Mixed) && r.HasCoach).Distinct().ToList();
+                             .Where(r => (r.Type == Route.RouteType.Passenger) && r.HasCoach).Distinct().ToList();
         }
 
         /// <summary>The trip costs of one trip with `pax` passengers paying `revenue`.</summary>

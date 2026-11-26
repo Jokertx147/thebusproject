@@ -133,38 +133,4 @@ namespace TheBusProject.Models.Routes
 
         //returns the service level for a specific class
     }
-
-    [Serializable]
-    //the class for a helicopter route
-    // TODO - Move into its own file - Shouldn't be declared in the same file as another class
-    // TODO - Subtype directly from Route. Possibly create enum for route type.
-    public class HelicopterRoute : PassengerRoute
-    {
-        public HelicopterRoute(
-            string id,
-            Station destination1,
-            Station destination2,
-            DateTime startDate,
-            double farePrice)
-            : base(id, destination1, destination2, startDate, farePrice)
-        {
-            Type = RouteType.Helicopter;
-        }
-
-        protected HelicopterRoute(SerializationInfo info, StreamingContext ctxt)
-            : base(info, ctxt)
-        {
-        }
-
-        #region Public Methods and Operators
-
-        public override void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            AddVersion(info, 1);
-
-            base.GetObjectData(info, context);
-        }
-
-        #endregion
-    }
 }

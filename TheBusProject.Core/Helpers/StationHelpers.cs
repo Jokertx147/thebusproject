@@ -863,7 +863,7 @@ namespace TheBusProject.Helpers
 
         public static bool HasFreeGates(Station station, Carrier carrier)
         {
-            Terminal.TerminalType type = carrier.CarrierRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger;
+            Terminal.TerminalType type = Terminal.TerminalType.Passenger;
 
             return HasFreeGates(station, carrier, type);
         }
@@ -898,7 +898,7 @@ namespace TheBusProject.Helpers
 
         public static bool RentGates(Station station, Carrier carrier, StationContract.ContractType type)
         {
-            Terminal.TerminalType terminaltype = carrier.CarrierRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger;
+            Terminal.TerminalType terminaltype = Terminal.TerminalType.Passenger;
 
             return RentGates(station, carrier, type, terminaltype);
         }

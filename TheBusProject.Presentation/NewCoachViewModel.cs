@@ -239,9 +239,7 @@ namespace TheBusProject.Presentation
             DateTime now = GameObject.GetInstance().GameTime;
             _all = CoachTypes.GetTypes(
                                     t => CoachOrderRules.CanOrderNew(t)
-                                         && (t.TypeCoach == CoachType.TypeOfCoach.Passenger
-                                             || t.TypeCoach == CoachType.TypeOfCoach.Mixed
-                                             || t.TypeCoach == CoachType.TypeOfCoach.Cargo)
+                                         && (t.TypeCoach == CoachType.TypeOfCoach.Passenger)
                                          // passenger carriers don't buy freighters, cargo carriers buy nothing else
                                          && CarrierTypeRules.CanUseType(GameObject.GetInstance().HumanCarrier, t))
                                 .OrderBy(t => t.Manufacturer?.Name)

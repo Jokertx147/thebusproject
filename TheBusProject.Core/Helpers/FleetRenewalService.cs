@@ -215,7 +215,7 @@ namespace TheBusProject.Helpers
             CoachType.TypeOfCoach kind = type.TypeCoach;
             if (route.Type == Route.RouteType.Cargo) return kind == CoachType.TypeOfCoach.Cargo;
             if (route.Type == Route.RouteType.Helicopter) return kind == CoachType.TypeOfCoach.Helicopter;
-            return kind == CoachType.TypeOfCoach.Passenger || kind == CoachType.TypeOfCoach.Mixed;
+            return kind == CoachType.TypeOfCoach.Passenger;
         }
 
         /// <summary>The coach types in the player's fleet, with how many of each.</summary>
@@ -236,7 +236,7 @@ namespace TheBusProject.Helpers
         {
             if (oldType.TypeCoach == CoachType.TypeOfCoach.Cargo) return t.TypeCoach == CoachType.TypeOfCoach.Cargo;
             if (oldType.TypeCoach == CoachType.TypeOfCoach.Helicopter) return t.TypeCoach == CoachType.TypeOfCoach.Helicopter;
-            return t.TypeCoach == CoachType.TypeOfCoach.Passenger || t.TypeCoach == CoachType.TypeOfCoach.Mixed;
+            return t.TypeCoach == CoachType.TypeOfCoach.Passenger;
         }
 
         /// <summary>Whether the type is built now (can be ordered new), within a manufacturer contract.</summary>

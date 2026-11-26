@@ -1020,11 +1020,6 @@ static class VmTest
                         long avg = r.Statistics.GetStatisticsValue(rc, T("Passengers%"));
                         if (n > 0 && (avg < 0 || avg > 1000)) fail("route " + r.Destination1.Profile.IATACode + "-" + r.Destination2.Profile.IATACode + " " + rc.Type + " passengers per trip " + avg);
                     }
-                if (r.Type == TheBusProject.Models.Routes.Route.RouteType.Cargo)
-                {
-                    long n = r.Statistics.GetStatisticsValue(T("Arrivals"));
-                    if (n > 0 && (r.Statistics.GetStatisticsValue(T("Cargo%")) < 0 || r.Statistics.GetStatisticsValue(T("Cargo")) > n * 1000)) fail("cargo route figures");
-                }
                 if (r.HasCoach && r.Statistics.GetTotalValue(T("Capacity")) > 0 && (r.FillingDegree < 0 || r.FillingDegree > 1.0001)) fail("route filling degree " + r.FillingDegree);
             }
             checkedCarriers++;

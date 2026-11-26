@@ -387,13 +387,6 @@ namespace TheBusProject.Presentation
         {
             // the carrier's kind decides the kind of route (it can change on the profile page while there are no routes)
             var me = GameObject.GetInstance()?.HumanCarrier;
-            if (me != null && !CarrierTypeRules.CanFlyRoute(me, _cargo ? Route.RouteType.Cargo : Route.RouteType.Passenger))
-            {
-                _cargo = !_cargo;
-                OnPropertyChanged(nameof(CargoMode));
-                OnPropertyChanged(nameof(PassengerMode));
-                OnPropertyChanged(nameof(AdviceTitle));
-            }
             OnPropertyChanged(nameof(CanChooseKind));
             OnPropertyChanged(nameof(KindText));
             LoadAdvice(false);
