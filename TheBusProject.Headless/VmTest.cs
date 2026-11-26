@@ -229,41 +229,6 @@ static class VmTest
         while (!done()) { if (sw.Elapsed.TotalSeconds > 120) throw new Exception("timeout: " + what); await Task.Delay(100); }
     }
 
-    // per-trip economics of common types at 80% load: "vm unit"
-    /// <summary>"vm cargounit": what each freighter type earns and costs per trip at 75% full and the going cargo rate.</summary>
-    static void CargoUnitTable()
-    {
-        var g = TheBusProject.Models.General.GameObject.GetInstance();
-        var me = g.HumanCarrier;
-        var atl = TheBusProject.Models.Stations.Stations.GetAllStations().First(x => x.Profile.IATACode == "ATL");
-        var types = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().OfType<TheBusProject.Models.Coaches.CoachCargoType>()
-            .Where(t => t.Produced.From.Year <= g.GameTime.Year).GroupBy(t => t.Name).Select(x => x.First()).OrderBy(t => t.CargoSize).ToList();
-        Console.WriteLine(types.Count + " freighter types; inflation x" + TheBusProject.Helpers.GeneralHelpers.GetInflationPrice(1).ToString("0.00") + ", fuel " + g.FuelPrice.ToString("0.000"));
-        foreach (var t in types.Where((t, i) => i % Math.Max(1, types.Count / 14) == 0))
-        {
-            var a = new TheBusProject.Models.Coaches.Coach("CT", t, "N-CT", g.GameTime.AddYears(-10)) { Carrier = me };
-            var f = new TheBusProject.Models.Coaches.FleetCoach(TheBusProject.Models.Coaches.FleetCoach.PurchasedType.Bought, g.GameTime, me, a, atl);
-            foreach (double km in new[] { 500.0, 1500, 3000, 6000 })
-            {
-                if (km > t.Range) continue;
-                double hours = km / Math.Max(100, t.CruisingSpeed) + 0.5;
-                double load = t.CargoSize * 0.75;
-                double rate = km * TheBusProject.Helpers.GeneralHelpers.GetInflationPrice(0.0081);
-                double income = load * rate;
-                double fuel = g.FuelPrice * km * t.CargoSize * a.FuelConsumption * 0.55 + g.FuelPrice * a.FuelConsumption * load * km * 0.45;
-                double landing = TheBusProject.Helpers.StationHelpers.GetLandingFee(atl, a);
-                double tax = 5 * load;
-                double added = TheBusProject.Helpers.TripCosts.Calculate(a, km, hours, income).Total;
-                double tripsMonth = 300.0 / hours; // about 10 hours a day on the road
-                double own = TheBusProject.Helpers.OwnershipService.MonthlyShare * a.GetPrice() / tripsMonth;
-                double lease = a.LeasingPrice / tripsMonth;
-                double cost = fuel + landing + tax + added;
-                Console.WriteLine(string.Format("  {0,-26} {1,5:N0} units {2,5:N0} km | income {3,8:N0} | fuel {4,7:N0} landing {5,5:N0} tax {6,5:N0} added {7,6:N0} own {8,6:N0} lease {9,6:N0} | margin owned {10,4:0}% leased {11,4:0}% | rate for 10% owned {12:0.00}x",
-                    t.Name, t.CargoSize, km, income, fuel, landing, tax, added, own, lease, 100 * (income - cost - own) / income, 100 * (income - cost - lease) / income, (cost + own) / 0.9 / income));
-            }
-        }
-        Environment.Exit(0);
-    }
 
     static void UnitTable()
     {
@@ -1628,7 +1593,7 @@ static class VmTest
         na.Manufacturer = na.Manufacturers.First(m => m.Name == "Motor Coach Industries");
         Console.WriteLine("  " + now.ToString("yyyy-MM-dd") + ", MCI: " + string.Join(", ", na.Types.Select(t => t.Name)));
         // every type listed is in production now or within the order-ahead window, and every such type is listed
-        foreach (var t in TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().Where(t => t.Manufacturer?.Name == "Motor Coach Industries" && TheBusProject.Helpers.CarrierTypeRules.CanUseType(h, t)))
+        foreach (var t in TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().Where(t => t.Manufacturer?.Name == "Motor Coach Industries"))
         {
             bool should = t.Produced.From <= now.AddMonths(TheBusProject.Presentation.NewCoachViewModel.OrderAheadMonths) && t.Produced.To > now;
             if (should != na.Types.Any(x => x.Type == t)) fail(t.Name + (should ? " is missing" : " shouldn't be listed"));
@@ -1666,7 +1631,7 @@ static class VmTest
         string q = Environment.GetEnvironmentVariable("TAP_TYPE") ?? "777";
         var h = TheBusProject.Models.General.GameObject.GetInstance().HumanCarrier;
         foreach (var t in TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().Where(t => t.Name.Contains(q)))
-            Console.WriteLine("  " + t.Name + " | maker " + t.Manufacturer?.Name + " | " + t.Produced.From.ToString("yyyy-MM-dd") + " to " + t.Produced.To.ToString("yyyy-MM-dd") + " | " + t.TypeCoach + " | can use " + TheBusProject.Helpers.CarrierTypeRules.CanUseType(h, t));
+            Console.WriteLine("  " + t.Name + " | maker " + t.Manufacturer?.Name + " | " + t.Produced.From.ToString("yyyy-MM-dd") + " to " + t.Produced.To.ToString("yyyy-MM-dd") + " | " + t.TypeCoach);
         av.NewCoach.Reload();
         Console.WriteLine("  game date " + TheBusProject.Models.General.GameObject.GetInstance().GameTime.ToString("yyyy-MM-dd") + "; makers: " + string.Join(", ", av.NewCoach.Manufacturers.Select(m => m.Text)));
         Console.WriteLine("TYPECHECK DONE");
@@ -2105,7 +2070,7 @@ static class VmTest
         g = TheBusProject.Models.General.GameObject.GetInstance();
         var loaded = rivalNews().LastOrDefault(n => n.Subject.Contains(pair));
         var link = loaded?.ActionObject as TheBusProject.Helpers.RivalLink;
-        if (link == null || !((link.A + "-" + link.B) == pair) || link.IsCargo) fail("the alert's link after loading");
+        if (link == null || !((link.A + "-" + link.B) == pair)) fail("the alert's link after loading");
         Console.WriteLine("  after loading: " + rivalNews().Count + " alerts, link " + link.A + "-" + link.B + " (" + link.Carrier + ")");
 
         // a link to a route I no longer fly says so
@@ -2315,7 +2280,7 @@ static class VmTest
         Func<System.Collections.Generic.List<TheBusProject.Models.Routes.PassengerRoute>> pick = () =>
             TheBusProject.Models.Carriers.Carriers.GetAllCarriers().Where(a => !a.IsHuman).SelectMany(a => a.Routes.ToList())
                 .OfType<TheBusProject.Models.Routes.PassengerRoute>()
-                .Where(r => !(r is TheBusProject.Models.Routes.HelicopterRoute) && r.GetCoaches().Count == 1 && r.StartDate < start.AddDays(-30) && !r.HasStopovers)
+                .Where(r => r.GetCoaches().Count == 1 && r.StartDate < start.AddDays(-30) && !r.HasStopovers)
                 .Where(r => { var f = r.GetCoaches()[0]; int n = TheBusProject.Helpers.AIRouteChoice.CurrentTrips(r);
                               return n >= 1 && r.TimeTable.Entries.Count == 14 * n && !TheBusProject.Helpers.AIRouteChoice.IsBusiness(r, f); })
                 .OrderBy(r => r.Id).ToList();
@@ -2707,7 +2672,7 @@ static class VmTest
                 if (cabin == null) fail(t.Name + " has " + al.Classes.Count + " cabins but answers nothing for " + c);
             }
 
-            if (t.TypeCoach != TheBusProject.Models.Coaches.CoachType.TypeOfCoach.Cargo && al.GetTotalSeatCapacity() <= 0)
+            if (al.GetTotalSeatCapacity() <= 0)
                 noSeats.Add(t.Name + " (" + t.TypeCoach + ")");
         }
 
@@ -2715,18 +2680,6 @@ static class VmTest
             fail(noCabin.Count + " types have no cabin, so running one throws: " + string.Join(", ", noCabin.Take(8)));
         if (noSeats.Count > 0)
             fail(noSeats.Count + " types that carry passengers have no seats: " + string.Join(", ", noSeats.Take(8)));
-
-        // both kinds really are in the data, so this test is not passing by having nothing to check
-        foreach (var kind in new[] { TheBusProject.Models.Coaches.CoachType.TypeOfCoach.Passenger,
-                                     TheBusProject.Models.Coaches.CoachType.TypeOfCoach.Cargo })
-        {
-            if (!types.Any(t => t.TypeCoach == kind)) fail("no " + kind + " coach in the data to check");
-        }
-
-        // a parcel coach has the seats out: it must still answer about its cabin rather than throwing
-        var parcel = types.First(t => t.TypeCoach == TheBusProject.Models.Coaches.CoachType.TypeOfCoach.Cargo);
-        var h = new TheBusProject.Models.Coaches.Coach("cab", parcel, "N-CAB", g.GameTime.AddYears(-1));
-        Console.WriteLine("  " + parcel.Name + ": " + h.Classes.Count + " cabin(s), " + h.GetTotalSeatCapacity() + " seats");
 
         Console.WriteLine("CABINS TEST OK");
     }
@@ -4464,14 +4417,14 @@ static class VmTest
         h.Money = Math.Max(h.Money, 500000000);
         long nearly = need - 1;
         if (!TheBusProject.Helpers.BayService.Extend(h, target, bay, nearly, out m)) { Console.WriteLine("  FAILED extend: " + m); Environment.Exit(1); }
-        Console.WriteLine("  " + m + " | still too short for: " + string.Join(", ", TheBusProject.Helpers.BayService.TooShortFor(nearly, false)));
+        Console.WriteLine("  " + m + " | still too short for: " + string.Join(", ", TheBusProject.Helpers.BayService.TooShortFor(nearly)));
         Console.WriteLine("  while extending: " + TheBusProject.Helpers.BayService.Describe(target));
         while (bay.IsExtending) TheBusProject.Helpers.GameObjectHelpers.SimulateTurn();
         Console.WriteLine("  extended: " + TheBusProject.Helpers.BayService.Describe(target));
         if (canPlan()) { Console.WriteLine("  FAILED " + nearly + " m should still be too short"); Environment.Exit(1); }
 
         if (!TheBusProject.Helpers.BayService.Extend(h, target, bay, need, out m)) { Console.WriteLine("  FAILED extend again: " + m); Environment.Exit(1); }
-        Console.WriteLine("  " + m + " | still too short for: " + string.Join(", ", TheBusProject.Helpers.BayService.TooShortFor(need, false)));
+        Console.WriteLine("  " + m + " | still too short for: " + string.Join(", ", TheBusProject.Helpers.BayService.TooShortFor(need)));
         while (bay.IsExtending) TheBusProject.Helpers.GameObjectHelpers.SimulateTurn();
         Console.WriteLine("  extended: " + TheBusProject.Helpers.BayService.Describe(target));
         if (!canPlan()) { Console.WriteLine("  FAILED " + need + " m should be enough"); Environment.Exit(1); }
@@ -4581,41 +4534,6 @@ static class VmTest
         show();
     }
 
-    /// <summary>"vm cargo": what fills cargo trips and what they earn and cost.</summary>
-    static void CargoProbe()
-    {
-        var g = TheBusProject.Models.General.GameObject.GetInstance();
-        for (int d = 0; d < 45; d++) TheBusProject.Helpers.GameObjectHelpers.SimulateTurn();
-        var tr = new System.Collections.Concurrent.ConcurrentBag<TheBusProject.Helpers.PassengerHelpers.CargoTripTrace>();
-        TheBusProject.Helpers.PassengerHelpers.CargoTrace = t => tr.Add(t);
-        TheBusProject.Helpers.TripLog.Clear(); TheBusProject.Helpers.TripLog.Enabled = true;
-        for (int d = 0; d < 10; d++) TheBusProject.Helpers.GameObjectHelpers.SimulateTurn();
-        TheBusProject.Helpers.PassengerHelpers.CargoTrace = null; TheBusProject.Helpers.TripLog.Enabled = false;
-        var cargoCarriers = tr.Select(t => t.Carrier).Distinct().ToList();
-        foreach (var a in cargoCarriers)
-        {
-            var x = tr.Where(t => t.Carrier == a).ToList();
-            Console.WriteLine(string.Format("== {0}: {1} cargo trips | load {2:0}% | demand per trip / capacity: median {3:0.00} | saturated {4:0}% | price/market {5:0.00} | capacity median {6:0} | km median {7:0} | destination cargo facility {8:0}",
-                a.Profile.Name, x.Count, 100 * x.Sum(t => t.Cargo) / Math.Max(1, x.Sum(t => t.Capacity)), x.Select(t => t.DemandPerTrip / Math.Max(1, t.Capacity)).OrderBy(v => v).ElementAt(x.Count / 2),
-                100.0 * x.Count(t => t.DemandPerTrip >= t.TotalCapacity) / x.Count, x.Average(t => t.Price / Math.Max(0.01, t.MarketPrice)), x.Select(t => t.Capacity).OrderBy(v => v).ElementAt(x.Count / 2), x.Select(t => t.Km).OrderBy(v => v).ElementAt(x.Count / 2), x.Average(t => t.Facility)));
-            var recs = TheBusProject.Helpers.TripLog.Records().Where(r => r.Carrier == a && r.Seats == 0).ToList();
-            if (recs.Count == 0) continue;
-            double n = recs.Count;
-            // the added realistic costs for the same trips
-            var fleetTypes = a.Fleet.Where(f => f.Coach.Type is TheBusProject.Models.Coaches.CoachCargoType).ToList();
-            double added = 0, own = 0;
-            foreach (var r in recs)
-            {
-                var f = fleetTypes.FirstOrDefault(ff => ff.Coach.Type.Name == r.Type);
-                if (f == null) continue;
-                added += TheBusProject.Helpers.TripCosts.Calculate(f.Coach, r.Km, r.Hours, r.Tickets).Total;
-                own += TheBusProject.Helpers.PricingService.OwnershipPerTrip(f);
-            }
-            double inc = recs.Sum(r => r.Tickets), cost = recs.Sum(r => r.Fuel + r.Landing + r.Tax) + added + own;
-            Console.WriteLine(string.Format("   per trip: income {0:N0} | fuel {1:N0} | landing {2:N0} | tax {3:N0} | added trip costs {4:N0} | ownership {5:N0} | margin {6:0}%",
-                inc / n, recs.Sum(r => r.Fuel) / n, recs.Sum(r => r.Landing) / n, recs.Sum(r => r.Tax) / n, added / n, own / n, inc > 0 ? 100 * (inc - cost) / inc : 0));
-        }
-    }
 
     static string Med(System.Collections.Generic.IEnumerable<double> v) { var l = v.OrderBy(x => x).ToList(); return l.Count == 0 ? "-" : l[l.Count / 2].ToString("N1"); }
 
@@ -5769,7 +5687,7 @@ static class VmTest
         if (half == null) fail("no halfway point");
 
         // and the map draws the line along it
-        var line = TheBusProject.Presentation.WorldMapViewModel.MakeLine(dal.Latitude, dal.Longitude, hou.Latitude, hou.Longitude, false);
+        var line = TheBusProject.Presentation.WorldMapViewModel.MakeLine(dal.Latitude, dal.Longitude, hou.Latitude, hou.Longitude);
         Console.WriteLine("  the drawn line: " + line.Pieces.Count + " piece(s), " + line.Pieces[0].Count + " points");
         if (line.Pieces[0].Count != again.Count) fail("the drawn line doesn't follow the road");
         Console.WriteLine("ROADS TEST OK");
@@ -6097,13 +6015,10 @@ static class VmTest
             Console.WriteLine("  " + pv.Info + " | logo " + pv.LogoPath + " | header " + av.LogoPath + " | " + pv.LogoCount);
             if (pv.LogoPath == null || !System.IO.File.Exists(pv.LogoPath)) { Console.WriteLine("  FAILED no logo"); Environment.Exit(1); }
             pv.Name = "Lone Star Coaches"; pv.CEO = "Jose"; pv.Color = "1565c0"; pv.Narrative = "Texas first.";
-            // the kind can't change once the carrier flies: the rest saves and the note says why
-            pv.Focus = pv.Focuses.First(f => f.Value == TheBusProject.Models.Routes.Route.RouteType.Cargo);
             pv.SaveCommand.Execute(null);
             av.Refresh();
             Console.WriteLine("  save: " + pv.Status + " | now " + me2.Profile.Name + ", CEO " + me2.Profile.CEO + ", color " + me2.Profile.Color + ", focus " + me2.CarrierRouteFocus + " | header " + av.CarrierName);
             if (me2.Profile.Name != "Lone Star Coaches" || me2.Profile.Color != "#1565C0" || av.CarrierName != "Lone Star Coaches") { Console.WriteLine("  FAILED save"); Environment.Exit(1); }
-            if ((me2.Routes.Count > 0 || me2.Fleet.Count > 0) && (me2.CarrierRouteFocus == TheBusProject.Models.Routes.Route.RouteType.Cargo || !pv.Status.Contains("only change"))) { Console.WriteLine("  FAILED kind change allowed"); Environment.Exit(1); }
             var other = TheBusProject.Models.Carriers.Carriers.GetAllCarriers().First(x => !x.IsHuman);
             pv.Name = other.Profile.Name; pv.SaveCommand.Execute(null); Console.WriteLine("  taken name: " + pv.Status);
             pv.Name = "Lone Star Coaches"; pv.Color = "not a color!"; pv.SaveCommand.Execute(null); Console.WriteLine("  bad color: " + pv.Status);
@@ -6418,38 +6333,6 @@ static class VmTest
                 if (!okFlood) { Console.WriteLine("  FAILED news flood"); Environment.Exit(1); }
             }
         }
-        Console.WriteLine("CARGO PRICING TEST");
-        {
-            var gK = TheBusProject.Models.General.GameObject.GetInstance();
-            foreach (double km in new[] { 500.0, 1500, 3000, 6000 })
-            {
-                gK.CostLevel = 0; double origRate = TheBusProject.Helpers.PricingService.CargoMarketRate(km); gK.CostLevel = 1;
-                Console.WriteLine("  market cargo rate " + km + " km: " + TheBusProject.Helpers.PricingService.CargoMarketRate(km).ToString("N2") + " (original " + origRate.ToString("N2") + ")");
-            }
-            foreach (double r in new[] { 0.7, 1.0, 1.3, 2.0 }) Console.Write("  rate x" + r + ": demand " + TheBusProject.Helpers.PricingService.CargoDemandFactor(r * 100, 100).ToString("0.00"));
-            Console.WriteLine();
-            if (TheBusProject.Helpers.PricingService.CargoDemandFactor(70, 100) <= 1 || TheBusProject.Helpers.PricingService.CargoDemandFactor(130, 100) >= 1) { Console.WriteLine("  FAILED cargo demand"); Environment.Exit(1); }
-            var cr = TheBusProject.Models.Carriers.Carriers.GetAllCarriers().Where(a => !a.IsHuman).SelectMany(a => a.Routes).OfType<TheBusProject.Models.Routes.CargoRoute>().FirstOrDefault(r => r.HasCoach);
-            if (cr == null) Console.WriteLine("  no running computer cargo route to test");
-            else
-            {
-                double mk = TheBusProject.Helpers.PricingService.CargoMarketRate(cr.Destination1, cr.Destination2);
-                Console.WriteLine("  " + cr.Carrier.Profile.Name + " " + cr.Destination1.Profile.IATACode + "-" + cr.Destination2.Profile.IATACode + ": rate " + cr.PricePerUnit.ToString("N2") + ", market " + mk.ToString("N2") + ", recent load " + (TheBusProject.Helpers.ConnectionService.MonthLoad(cr) * 100).ToString("0") + "%, break-even at 75% " + TheBusProject.Helpers.PricingService.CargoBreakEvenRate(cr, 0.75).ToString("N2"));
-                if (TheBusProject.Helpers.ConnectionService.MonthLoad(cr) <= 0) { Console.WriteLine("  FAILED cargo load counting"); Environment.Exit(1); }
-                // half empty at twice the market rate: the carrier cuts
-                cr.PricePerUnit = mk * 2;
-                int key = gK.GameTime.Year * 12 + gK.GameTime.Month - 1;
-                cr.ConnectMonth = key; cr.ConnectLastAllPassengers = 400; cr.ConnectLastSeats = 1000;
-                TheBusProject.Helpers.AIPricingService.ForgetReviews();
-                Console.WriteLine("  40% full at 2x market: " + TheBusProject.Helpers.AIPricingService.ReviewCargo(cr.Carrier, cr));
-                if (cr.PricePerUnit >= mk * 2) { Console.WriteLine("  FAILED cargo review"); Environment.Exit(1); }
-                var rdK = new TheBusProject.Presentation.RouteDetailViewModel(cr, () => { });
-                Console.WriteLine("  route page: " + rdK.CargoMarketText + " | " + rdK.CargoEffectText);
-                rdK.CargoMarketCommand.Execute(null); Console.WriteLine("  market button: " + rdK.CargoPrice + " | " + rdK.CargoEffectText);
-                Console.WriteLine("  " + rdK.PricingText.Replace(Environment.NewLine, " / "));
-                if (string.IsNullOrEmpty(rdK.PricingText) || !rdK.PricingText.Contains("Break-even")) { Console.WriteLine("  FAILED cargo route page"); Environment.Exit(1); }
-            }
-        }
         Console.WriteLine("PRICING TEST");
         {
             var g10 = TheBusProject.Models.General.GameObject.GetInstance();
@@ -6497,7 +6380,7 @@ static class VmTest
             // takeover as subsidiary, and a merge of another carrier
             int fleetBefore = me7.Fleet.Count, routesBefore = me7.Routes.Count;
             // an carrier of the same kind (a cargo carrier can't merge into a passenger carrier)
-            var t2 = cheap.Skip(1).Select(r => r.Carrier).First(x => (x.CarrierRouteFocus == TheBusProject.Models.Routes.Route.RouteType.Cargo) == (me7.CarrierRouteFocus == TheBusProject.Models.Routes.Route.RouteType.Cargo));
+            var t2 = cheap.Skip(1).Select(r => r.Carrier).First();
             sh.Selected = sh.Market.First(r => r.Carrier == t2);
             sh.MergeCommand.Execute(null); Console.WriteLine("  ask: " + sh.PendingText); sh.ConfirmCommand.Execute(null);
             Console.WriteLine("  merge: " + sh.Status + " | fleet " + fleetBefore + " -> " + me7.Fleet.Count + ", routes " + routesBefore + " -> " + me7.Routes.Count + " | still listed " + TheBusProject.Models.Carriers.Carriers.GetAllCarriers().Contains(t2));
@@ -6713,27 +6596,6 @@ static class VmTest
                 Environment.Exit(1);
             }
         }
-        Console.WriteLine("CARRIER KIND TEST");
-        {
-            var meT = TheBusProject.Models.General.GameObject.GetInstance().HumanCarrier;
-            var cargoAl = TheBusProject.Models.Carriers.Carriers.GetAllCarriers().First(a => a.CarrierRouteFocus == TheBusProject.Models.Routes.Route.RouteType.Cargo);
-            var freighter = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().First(t => t is TheBusProject.Models.Coaches.CoachCargoType);
-            var a320T = TheBusProject.Models.Coaches.CoachTypes.GetAllTypes().First(t => t.Name == "MCI J4500");
-            Console.WriteLine("  " + meT.Profile.Name + ": " + TheBusProject.Helpers.CarrierTypeRules.Kind(meT) + " | " + cargoAl.Profile.Name + ": " + TheBusProject.Helpers.CarrierTypeRules.Kind(cargoAl));
-            Console.WriteLine("  cargo route: " + TheBusProject.Helpers.CarrierTypeRules.RouteBlocker(meT, TheBusProject.Models.Routes.Route.RouteType.Cargo));
-            Console.WriteLine("  freighter: " + TheBusProject.Helpers.CarrierTypeRules.TypeBlocker(meT, freighter));
-            Console.WriteLine("  merge: " + TheBusProject.Helpers.CarrierTypeRules.MergeBlocker(meT, cargoAl));
-            string m;
-            var req = new TheBusProject.Helpers.NewRouteRequest { Origin = meT.Stations.First(), Destination = TheBusProject.Models.Stations.Stations.GetAllStations().First(x => x.Profile.IATACode == "MEM"), RouteType = TheBusProject.Models.Routes.Route.RouteType.Cargo };
-            var made = TheBusProject.Helpers.RouteCreator.Create(req, out m);
-            Console.WriteLine("  create cargo route: " + (made == null ? "refused: " + m : "CREATED"));
-            av.NewCoach.Reload(); av.Market.Reload();
-            int fNew = av.NewCoach.Types.Count(t => t.Type is TheBusProject.Models.Coaches.CoachCargoType), fUsed = av.Market.Coach.Count(x => x.Coach.Type is TheBusProject.Models.Coaches.CoachCargoType);
-            Console.WriteLine("  freighters offered: new " + fNew + ", used " + fUsed + " | create route page kind: " + av.Stations.KindText + ", can choose " + av.Stations.CanChooseKind);
-            if (made != null || fNew != 0 || fUsed != 0 || TheBusProject.Helpers.CarrierTypeRules.CanUseType(meT, freighter) || !TheBusProject.Helpers.CarrierTypeRules.CanUseType(cargoAl, freighter)
-                || TheBusProject.Helpers.CarrierTypeRules.CanUseType(cargoAl, a320T) || TheBusProject.Helpers.CarrierTypeRules.MergeBlocker(meT, cargoAl) == null || av.Stations.CanChooseKind)
-            { Console.WriteLine("  FAILED carrier kinds"); Environment.Exit(1); }
-        }
         Console.WriteLine("BAY TEST");
         {
             var g = TheBusProject.Models.General.GameObject.GetInstance();
@@ -6882,7 +6744,6 @@ static class VmTest
             if (Environment.GetCommandLineArgs().Contains("upgrade")) { UpgradeTest(av); return; }
             if (Environment.GetCommandLineArgs().Contains("milestone")) { MilestoneTest(av); return; }
             if (Environment.GetCommandLineArgs().Contains("quick")) { QuickTests(av); return; }
-            if (Environment.GetCommandLineArgs().Contains("cargo")) { CargoProbe(); return; }
             if (Environment.GetCommandLineArgs().Contains("carriers")) { CarriersProbe(); return; }
             if (Environment.GetCommandLineArgs().Contains("year")) { YearProbe(); return; }
             if (Environment.GetCommandLineArgs().Contains("perf")) { PerfProbe(); return; }
@@ -6937,7 +6798,6 @@ static class VmTest
             if (Environment.GetCommandLineArgs().Contains("bay")) { BayTest(av); return; }
             if (Environment.GetCommandLineArgs().Contains("pax")) { PaxProbe(av); return; }
             if (Environment.GetCommandLineArgs().Contains("costs")) { CostProbe(av); return; }
-            if (Environment.GetCommandLineArgs().Contains("cargounit")) { CargoUnitTable(); return; }
             if (Environment.GetCommandLineArgs().Contains("unit")) { UnitTable(); return; }
             // coach market: pick the cheapest-looking coach we can afford and buy it
             var mk = av.Market;
@@ -7359,110 +7219,10 @@ static class VmTest
                 Console.WriteLine("SPARE EQUIVALENCE: checked " + (cnt - 0) + " mismatches=" + mismatches);
                 Console.WriteLine("SPARE TIMING: contracts=" + cnt + " worst ms=" + worst.ToString("0") + " at " + worstWhere);
             }
-            // ---- cargo routes ----
-            {
-                Console.WriteLine("CARGO TEST");
-                var cav = av2;
-                var cam = cav.StationManager;
-                cam.OnlyMine = false;
-                foreach (var code in new[] { "DAL", "HOU" })
-                {
-                    cam.Search = code;
-                    cam.Selected = cam.Stations.First(a => a.Text.Contains(code));
-                    Console.WriteLine("  " + code + " before: " + cam.GateSummary);
-                    cam.TerminalCargo = true; cam.TerminalName = "Cargo " + code; cam.TerminalGates = 3;
-                    cam.BuildTerminalCommand.Execute(null); cam.ConfirmPendingCommand.Execute(null);
-                    Console.WriteLine("  build cargo terminal: " + cam.Status);
-                    cam.TerminalCargo = false;
-                }
-                for (int d = 0; d < 200; d++) TheBusProject.Helpers.GameObjectHelpers.SimulateTurn();
-                Console.WriteLine("  date now " + TheBusProject.Models.General.GameObject.GetInstance().GameTime.ToShortDateString());
-                foreach (var code in new[] { "DAL", "HOU" })
-                {
-                    cam.Search = code;
-                    cam.Selected = cam.Stations.First(a => a.Text.Contains(code));
-                    cam.LeaseCargo = true;
-                    Console.WriteLine("  header: " + cam.LeaseHeader + " gates choices=" + cam.GateChoices.Count);
-                    cam.Gates = 1; cam.LeaseCommand.Execute(null);
-                    Console.WriteLine("  lease cargo " + code + ": " + cam.Status + " | " + cam.GateSummary);
-                    foreach (var f in cam.Facilities.Where(x => x.Name.Contains("argo"))) Console.WriteLine("    facility " + f.Name + ": " + f.Current + " -> " + f.Next);
-                    cam.LeaseCargo = false;
-                }
-                foreach (var code in new[] { "DAL", "HOU" })
-                {
-                    cam.Search = code;
-                    cam.Selected = cam.Stations.First(a => a.Text.Contains(code));
-                    var cf = cam.Facilities.First(x => x.Name.Contains("argo"));
-                    Console.WriteLine("  " + code + " cargo facility canBuy=" + cf.CanBuy + " building=" + cf.Building);
-                    cf.BuyCommand.Execute(null);
-                    Console.WriteLine("  buy facility: " + cam.Status);
-                }
-                for (int d = 0; d < 60; d++) TheBusProject.Helpers.GameObjectHelpers.SimulateTurn();
-                // a passenger carrier can't buy freighters or plan cargo routes
-                var meKind = TheBusProject.Models.General.GameObject.GetInstance().HumanCarrier;
-                var cna = cav.NewCoach;
-                cna.Reload();
-                int paxFreighters = cna.Types.Count(t => t.Type is TheBusProject.Models.Coaches.CoachCargoType);
-                cav.Stations.CargoMode = true;
-                Console.WriteLine("  passenger carrier: freighters for sale " + paxFreighters + ", cargo mode " + cav.Stations.CargoMode + " (" + cav.Stations.Status + ")");
-                if (paxFreighters != 0 || cav.Stations.CargoMode) { Console.WriteLine("  FAILED passenger carrier went cargo"); Environment.Exit(1); }
-                // for the cargo checks the test carrier becomes a cargo carrier (in a game only possible before it flies)
-                meKind.CarrierRouteFocus = TheBusProject.Models.Routes.Route.RouteType.Cargo;
-                cav.Stations.ReloadAdvice();
-                // buy a cargo coach
-                cna.Reload();
-                var cargoType = cna.Types.FirstOrDefault(t => t.Type is TheBusProject.Models.Coaches.CoachCargoType && t.Type.Range >= 1700);
-                Console.WriteLine("  cargo types in new-coach list: " + cna.Types.Count(t => t.Type is TheBusProject.Models.Coaches.CoachCargoType) + " pick=" + cargoType?.Name + " | " + cargoType?.Details);
-                cna.Selected = cargoType;
-                cna.Amount = 1; cna.DownPayment = false;
-                cna.OrderCommand.Execute(null);
-                Console.WriteLine("  order: " + cna.Status);
-                foreach (var fa in TheBusProject.Models.General.GameObject.GetInstance().HumanCarrier.Fleet.Where(x => x.Coach.Type is TheBusProject.Models.Coaches.CoachCargoType))
-                    fa.Coach.BuiltDate = TheBusProject.Models.General.GameObject.GetInstance().GameTime.AddDays(-2);
-                cav.Refresh();
-
-                var cap = cav.Stations;
-                cap.CargoMode = true;
-                cap.Search = "DAL";
-                cap.Selected = cap.Stations.First(a => a.Text.Contains("DAL"));
-                await Wait(() => !cap.IsBusy, "cargo advice");
-                Console.WriteLine("  " + cap.AdviceTitle + " rows=" + cap.Advice.Count);
-                foreach (var ad in cap.Advice.Take(3)) Console.WriteLine("    " + ad.Name + " | " + ad.Numbers + " | " + ad.Notes);
-                var faraway = cap.Advice.FirstOrDefault(a => a.Name.Contains("HOU"));
-                Console.WriteLine("  HOU advice: " + (faraway == null ? "none" : faraway.Name + " | " + faraway.Numbers + " | " + faraway.Notes));
-                if (faraway != null) cap.SelectedAdvice = faraway;
-                var ccr = faraway != null ? cap.Create : new CreateRouteViewModel(cap.Selected.Station, cam.Stations.First(a => a.Text.Contains("HOU")).Station, m => Console.WriteLine("  done: " + m), true);
-                Console.WriteLine("  " + ccr.Title + " cargo=" + ccr.IsCargo + " price=" + ccr.CargoPrice + " coach=" + ccr.Coaches.Count + " offers=" + ccr.Offers.Count + " trips=" + ccr.Trips.Count + " info=" + ccr.Info);
-                ccr.CargoPrice = "abc"; ccr.CreateCommand.Execute(null);
-                Console.WriteLine("  bad price: " + ccr.Info);
-                ccr.CargoPrice = "7.5";
-                ccr.CreateCommand.Execute(null);
-                if (faraway == null) Console.WriteLine("  (direct)");
-                Console.WriteLine("  create: " + cap.Status + " | " + ccr.Info);
-                var croute = TheBusProject.Models.General.GameObject.GetInstance().HumanCarrier.Routes.FirstOrDefault(r => r.IsCargoRoute);
-                Console.WriteLine("  cargo route exists=" + (croute != null) + (croute == null ? "" : " " + croute.Destination1.Profile.IATACode + "-" + croute.Destination2.Profile.IATACode + " price=" + ((TheBusProject.Models.Routes.CargoRoute) croute).PricePerUnit + " entries=" + croute.TimeTable.Entries.Count));
-                cav.Refresh();
-                Console.WriteLine("  routes list: " + string.Join(" ; ", cav.Routes.Select(r => r.Name)));
-                var crow = cav.Routes.FirstOrDefault(r => r.Name.Contains("cargo"));
-                if (crow != null)
-                {
-                    cav.SelectedRoute = crow;
-                    var det = cav.RouteDetail;
-                    Console.WriteLine("  detail IsCargo=" + det.IsCargo + " price=" + det.CargoPrice);
-                    det.CargoPrice = "9.25"; det.SaveCargoPriceCommand.Execute(null);
-                    Console.WriteLine("  saved price: " + ((TheBusProject.Models.Routes.CargoRoute) croute).PricePerUnit);
-                }
-                var ctt = cav.Timetable;
-                Console.WriteLine("  timetable coach: " + string.Join(", ", ctt.Coach.Select(x => x.ToString())));
-                if (croute == null) { Console.WriteLine("  FAILED no cargo route for the cargo carrier"); Environment.Exit(1); }
-                meKind.CarrierRouteFocus = TheBusProject.Models.Routes.Route.RouteType.Passenger;
-                cav.Stations.ReloadAdvice();
-            }
             {
                 Console.WriteLine("ASSIGN TEST");
                 var pap = av2.Stations;
-                pap.CargoMode = false;
-                pap.Search = "ATL";
+                                pap.Search = "ATL";
                 pap.Selected = pap.Stations.First(a => a.Text.Contains("ATL"));
                 await Wait(() => !pap.IsBusy, "passenger advice");
                 var free = TheBusProject.Models.General.GameObject.GetInstance().HumanCarrier.Fleet.Where(f => !f.HasRoute).Select(f => f.Name).ToList();
@@ -7476,7 +7236,7 @@ static class VmTest
                 for (int k = 0; k < 3 && pcr.Offers.Count > 0; k++) { Console.WriteLine("  leasing: " + pcr.Offers[0].Text); pcr.Offers[0].LeaseCommand.Execute(null); pcr.CreateCommand.Execute(null); }
                 Console.WriteLine("  created without coach: " + pap.Status + " | " + pcr.Info);
                 av2.Refresh();
-                var prow = av2.Routes.FirstOrDefault(r => !r.Route.HasCoach && !r.Route.IsCargoRoute);
+                var prow = av2.Routes.FirstOrDefault(r => !r.Route.HasCoach);
                 Console.WriteLine("  route without coach: " + prow?.Name);
                 if (prow != null)
                 {
@@ -7540,8 +7300,7 @@ static class VmTest
             {
                 Console.WriteLine("ANY DESTINATION TEST");
                 var dap = av2.Stations;
-                dap.CargoMode = false;
-                dap.Search = "ATL";
+                                dap.Search = "ATL";
                 dap.Selected = dap.Stations.First(a => a.Text.StartsWith("ATL"));
                 dap.DestinationSearch = "CLT";
                 Console.WriteLine("  search CLT: " + dap.Destinations.Count + " first=" + dap.Destinations.FirstOrDefault()?.Name + " | " + dap.Destinations.FirstOrDefault()?.Details + " searching=" + dap.IsSearchingDestinations + " advice visible=" + dap.ShowAdvice);
@@ -7587,7 +7346,7 @@ static class VmTest
                 Console.WriteLine("MAP TEST");
                 var map = av2.Map;
                 map.Reload();
-                Console.WriteLine("  " + map.Caption + " | places " + map.Places.Count + " lines " + map.Lines.Count + " (cargo " + map.Lines.Count(l => l.IsCargo) + ")");
+                Console.WriteLine("  " + map.Caption + " | places " + map.Places.Count + " lines " + map.Lines.Count);
                 foreach (var a in map.Coach) Console.WriteLine("  coach " + a.Name + " u=" + a.U.ToString("0.000") + " v=" + a.V.ToString("0.000") + " running=" + a.InTrip + " hdg=" + a.Heading.ToString("0") + " | " + a.Info);
                 foreach (var pl in map.Places.Take(5)) Console.WriteLine("  place " + pl.Label + " u=" + pl.U.ToString("0.000") + " v=" + pl.V.ToString("0.000") + " hub=" + pl.IsHub);
                 Console.WriteLine("  bad pieces: " + map.Lines.Sum(l => l.Pieces.Count(p => p.Any(q => q[0] < 0 || q[0] > 1 || q[1] < 0 || q[1] > 1))));
