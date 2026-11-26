@@ -254,10 +254,10 @@ namespace TheBusProject.Presentation
             ReportRoute rt = x;
             return new ReportLinkRow
             {
-                Title = x.Name + ("") + "  " + Signed(x.Profit),
+                Title = x.Name + "  " + Signed(x.Profit),
                 Text = x.Trips == 0
                     ? "no trips recorded"
-                    : string.Format("{0} trips, {1}, {2:0}% full", x.Trips, x.IsCargo ? x.Carried.ToString("#,0") + " t" : x.Carried.ToString("#,0") + " passengers", x.Load*100),
+                    : string.Format("{0} trips, {1} passengers, {2:0}% full", x.Trips, x.Carried.ToString("#,0"), x.Load*100),
                 IsWarning = x.Profit < 0,
                 LinkText = "Open",
                 Command = new RelayCommand(() => _open?.Invoke(new ReportItem {Kind = ReportItemKind.Route, RouteId = rt.RouteId}))

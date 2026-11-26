@@ -103,7 +103,7 @@ namespace TheBusProject.Presentation
             var keep = _selected?.Route;
             Rows.Clear();
             int allConn = 0, allPax = 0;
-            foreach (var r in me.Routes.ToList().Where(r => !r.IsCargoRoute)
+            foreach (var r in me.Routes.ToList()
                                 .OrderBy(r => Code(r.Destination1)).ThenBy(r => Code(r.Destination2)))
             {
                 int conn, pax, conn2, pax2;

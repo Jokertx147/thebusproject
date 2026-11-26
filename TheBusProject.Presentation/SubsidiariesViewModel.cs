@@ -53,8 +53,7 @@ namespace TheBusProject.Presentation
             };
             Focuses = new List<NamedChoice<Route.RouteType>>
             {
-                new NamedChoice<Route.RouteType> { Name = "Passengers", Value = Route.RouteType.Passenger },
-                new NamedChoice<Route.RouteType> { Name = "Cargo", Value = Route.RouteType.Cargo }
+                new NamedChoice<Route.RouteType> { Name = "Passengers", Value = Route.RouteType.Passenger }
             };
             _mentality = Mentalities[1];
             _market = Markets[1];
@@ -236,7 +235,7 @@ namespace TheBusProject.Presentation
             var s = _selected?.Carrier;
             if (s == null) return;
             var me = GameObject.GetInstance().HumanCarrier;
-            string blocker = CarrierTypeRules.MergeBlocker(me, s);
+            string blocker = null;
             if (blocker != null)
             {
                 Status = blocker;

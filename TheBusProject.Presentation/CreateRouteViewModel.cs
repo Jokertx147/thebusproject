@@ -111,7 +111,7 @@ namespace TheBusProject.Presentation
 
         /// <summary>Assign an coach (and a schedule) to a route that was created without one.</summary>
         public CreateRouteViewModel(Route existing, Action<string> done, bool move = false)
-            : this(existing.Destination1, existing.Destination2, done, existing.IsCargoRoute, existing, move)
+            : this(existing.Destination1, existing.Destination2, done, false, existing, move)
         {
         }
 
@@ -123,11 +123,10 @@ namespace TheBusProject.Presentation
             _destination = destination;
             _done = done;
             _cargo = cargo;
-            _cargoPrice = PassengerHelpers.GetCargoPrice(origin, destination).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
 
             Title = existing != null
                 ? string.Format(move ? "Move {0} - {1} to another coach" : "Assign a coach to {0} - {1}", origin.Profile.IATACode, destination.Profile.IATACode)
-                : string.Format("New {0}route {1} - {2}", cargo ? "cargo " : "", origin.Profile.IATACode, destination.Profile.IATACode);
+                : string.Format("New route {0} - {1}", origin.Profile.IATACode, destination.Profile.IATACode);
             Tiers = Enum.GetValues(typeof(ServiceTier)).Cast<ServiceTier>().ToList();
             Operations = new List<OpsType> { OpsType.Regular, OpsType.Whole_Day };
             Turnarounds = RouteCreator.TurnaroundOptions;
@@ -142,7 +141,7 @@ namespace TheBusProject.Presentation
             }
 
             Coaches.AddRange(
-                RouteCreator.GetCandidateCoaches(origin, destination, cargo ? Route.RouteType.Cargo : Route.RouteType.Passenger)
+                RouteCreator.GetCandidateCoaches(origin, destination, Route.RouteType.Passenger)
                             .Select(f => new CoachChoice { Name = f.Name + " - " + f.Coach.Type.Name, Coach = f }));
             _coach = existing == null
                 ? (Coaches.Count > 1 ? Coaches[1] : Coaches[0])
@@ -150,7 +149,7 @@ namespace TheBusProject.Presentation
 
             try
             {
-                var why = RouteCreator.WhyNot(origin, destination, cargo ? Route.RouteType.Cargo : Route.RouteType.Passenger);
+                var why = RouteCreator.WhyNot(origin, destination, Route.RouteType.Passenger);
                 CantFly = why.Count == 0 ? null : "Can't run it: " + string.Join(" ", why);
             }
             catch (Exception ex)
@@ -373,7 +372,7 @@ namespace TheBusProject.Presentation
             FleetCoach had = Coach;
             var list = new List<CoachChoice> { new CoachChoice { Name = "(assign a coach later)" } };
             list.AddRange(
-                RouteCreator.GetCandidateCoaches(calls, _cargo ? Route.RouteType.Cargo : Route.RouteType.Passenger)
+                RouteCreator.GetCandidateCoaches(calls, Route.RouteType.Passenger)
                             .Select(f => new CoachChoice { Name = f.Name + " - " + f.Coach.Type.Name, Coach = f }));
             Coaches = list;
             _coach = list.FirstOrDefault(c => c.Coach == had) ?? (list.Count > 1 ? list[1] : list[0]);
@@ -813,7 +812,7 @@ namespace TheBusProject.Presentation
 
             var request = new NewRouteRequest
             {
-                RouteType = _cargo ? Route.RouteType.Cargo : Route.RouteType.Passenger,
+                RouteType = Route.RouteType.Passenger,
                 CargoPrice = cargoPrice,
                 Origin = _origin,
                 Destination = _destination,

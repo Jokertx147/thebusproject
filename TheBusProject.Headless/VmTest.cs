@@ -2278,7 +2278,7 @@ static class VmTest
         int n = 0, nonzero = 0;
         double worst = 0;
         foreach (var a in TheBusProject.Models.Carriers.Carriers.GetAllCarriers())
-        foreach (var r in a.Routes.ToList().Where(r => !r.IsCargoRoute).Take(60))
+        foreach (var r in a.Routes.ToList().Take(60))
         foreach (var t in new[] { TheBusProject.Models.Coaches.CoachClass.ClassType.EconomyClass, TheBusProject.Models.Coaches.CoachClass.ClassType.BusinessClass })
         foreach (var dir in new[] { Tuple.Create(r.Destination1, r.Destination2), Tuple.Create(r.Destination2, r.Destination1) })
         {
@@ -2294,10 +2294,10 @@ static class VmTest
         var sw = System.Diagnostics.Stopwatch.StartNew();
         int k = 0;
         foreach (var a in TheBusProject.Models.Carriers.Carriers.GetAllCarriers())
-        foreach (var r in a.Routes.ToList().Where(r => !r.IsCargoRoute).Take(60)) { TheBusProject.Helpers.ConnectionService.TripDemandByMarkets(a, r, r.Destination1, r.Destination2, TheBusProject.Models.Coaches.CoachClass.ClassType.EconomyClass); k++; }
+        foreach (var r in a.Routes.ToList().Take(60)) { TheBusProject.Helpers.ConnectionService.TripDemandByMarkets(a, r, r.Destination1, r.Destination2, TheBusProject.Models.Coaches.CoachClass.ClassType.EconomyClass); k++; }
         double slowMs = sw.Elapsed.TotalMilliseconds; sw.Restart();
         foreach (var a in TheBusProject.Models.Carriers.Carriers.GetAllCarriers())
-        foreach (var r in a.Routes.ToList().Where(r => !r.IsCargoRoute).Take(60)) TheBusProject.Helpers.ConnectionService.TripDemandFresh(a, r, r.Destination1, r.Destination2, TheBusProject.Models.Coaches.CoachClass.ClassType.EconomyClass);
+        foreach (var r in a.Routes.ToList().Take(60)) TheBusProject.Helpers.ConnectionService.TripDemandFresh(a, r, r.Destination1, r.Destination2, TheBusProject.Models.Coaches.CoachClass.ClassType.EconomyClass);
         Console.WriteLine(string.Format("  {0} trips: markets {1:0} ms, quick {2:0} ms", k, slowMs, sw.Elapsed.TotalMilliseconds));
         Console.WriteLine("FAST DEMAND TEST OK");
     }
@@ -3694,7 +3694,7 @@ static class VmTest
             Console.WriteLine("  " + c + " major destinations: " + md.Count + " | " + string.Join(", ", md.Take(8).Select(k => k.Key + "=" + k.Value)) + (md.ContainsKey("ATL") ? " | ATL=" + md["ATL"] : " | no ATL"));
         }
         // over all pairs with routes: how many have demand one way only
-        var pairs = TheBusProject.Models.Carriers.Carriers.GetAllCarriers().SelectMany(l => l.Routes.ToList()).Where(r => !r.IsCargoRoute).Select(r => Tuple.Create(r.Destination1, r.Destination2)).Distinct().ToList();
+        var pairs = TheBusProject.Models.Carriers.Carriers.GetAllCarriers().SelectMany(l => l.Routes.ToList()).Select(r => Tuple.Create(r.Destination1, r.Destination2)).Distinct().ToList();
         int oneWay = 0, both = 0, none = 0;
         var examples = new System.Collections.Generic.List<string>();
         foreach (var p in pairs)

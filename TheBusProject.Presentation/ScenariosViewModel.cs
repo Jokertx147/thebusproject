@@ -123,7 +123,7 @@ namespace TheBusProject.Presentation
                 var lines = new List<string>
                 {
                     string.Format("{0} to {1} ({2} years), difficulty {3}.", s.StartYear, s.EndYear, s.EndYear - s.StartYear, s.Difficulty?.Name),
-                    string.Format("You run {0} ({1}) from {2}, {3}.", s.Carrier?.Profile.Name, CarrierTypeRules.Kind(s.Carrier), s.Homebase?.Profile.Name, s.Homebase?.Profile.Country?.Name),
+                    string.Format("You run {0} from {1}, {2}.", s.Carrier?.Profile.Name, s.Homebase?.Profile.Name, s.Homebase?.Profile.Country?.Name),
                     "Starting cash " + Money(s.StartCash) + (s.StartDebt > 0 ? ", and a debt of " + Money(s.StartDebt) + " to pay off." : ".")
                 };
                 if (s.Fleet.Count > 0) lines.Add("Fleet: " + string.Join(", ", s.Fleet.Select(f => f.Value + " x " + f.Key.Name)) + ".");

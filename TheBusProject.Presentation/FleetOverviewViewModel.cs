@@ -432,7 +432,7 @@ namespace TheBusProject.Presentation
 
                 foreach (var c in a.Classes.OrderBy(c => (int) c.Type).ToList())
                 {
-                    if (c.SeatingCapacity <= 0 && !(a.Type is CoachCargoType)) continue;
+                    if (c.SeatingCapacity <= 0 && true) continue;
                     string facilities = string.Join(", ", c.GetFacilities().Select(x => x.Name));
                     Details.Add(c.Type + ": " + c.SeatingCapacity + " seats" + (facilities.Length > 0 ? " (" + facilities + ")" : ""));
                 }

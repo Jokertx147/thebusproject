@@ -134,9 +134,7 @@ namespace TheBusProject.Presentation
             {
                 var a = _selectedCarrier;
                 if (a == null) return null;
-                bool cargo = Helpers.CarrierTypeRules.IsCargoCarrier(a);
-                return a.Profile.Name + " is a " + Helpers.CarrierTypeRules.Kind(a) + ": it runs " + (cargo ? "cargo" : "passenger") +
-                       " routes only. You can start a " + (cargo ? "passenger" : "cargo") + " subsidiary later to run the other kind.";
+                return null;
             }
         }
 

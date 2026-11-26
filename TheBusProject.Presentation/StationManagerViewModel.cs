@@ -266,7 +266,7 @@ namespace TheBusProject.Presentation
                 string blocker = BayService.GetExtendBlocker(_selected.Station, r, to);
                 if (blocker != null) return blocker;
                 // which of the player's coach the new length is still too short for
-                var stillShort = BayService.TooShortFor(to, false).Concat(BayService.TooShortFor(to, true)).ToList();
+                var stillShort = BayService.TooShortFor(to).ToList();
                 return string.Format(
                     "{0:N0} m to {1:N0} m: {2}, about {3} days. The bay stays in use meanwhile.",
                     r.Length, to, Money(BayService.ExtensionPrice(_selected.Station, r, to)), BayService.ExtensionDays(to - r.Length))

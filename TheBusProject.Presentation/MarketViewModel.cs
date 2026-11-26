@@ -24,7 +24,7 @@ namespace TheBusProject.Presentation
             Seats = (coach.Type as CoachPassengerType)?.MaxSeatingCapacity ?? 0;
             PriceText = Convert.ToString(f.Convert(coach.GetPrice()));
             LeaseText = Convert.ToString(f.Convert(coach.GetLeasingPrice())) + " / month";
-            Details = string.Format("built {0}  |  {1}  |  range {2}  |  {3}", Year, coach.Type is CoachCargoType ? "cargo " + ((CoachCargoType) coach.Type).CargoSize + " units" : Seats + " seats", DistanceFormatter.Km(Range), PriceText);
+            Details = string.Format("built {0}  |  {1}  |  range {2}  |  {3}", Year, Seats + " seats", DistanceFormatter.Km(Range), PriceText);
         }
 
         public Coach Coach { get; }
@@ -111,8 +111,7 @@ namespace TheBusProject.Presentation
         {
             _all = Coaches.GetCoachesForSale()
                             .Where(
-                                a => (a.Type.TypeCoach == CoachType.TypeOfCoach.Passenger)
-                                     && CarrierTypeRules.CanUseType(GameObject.GetInstance().HumanCarrier, a.Type))
+                                a => a.Type.TypeCoach == CoachType.TypeOfCoach.Passenger)
                             .OrderByDescending(a => a.BuiltDate.Year)
                             .ThenBy(a => a.Type.Name)
                             .Select(a => new CoachItem(a))

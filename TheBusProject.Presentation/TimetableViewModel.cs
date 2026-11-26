@@ -935,8 +935,7 @@ namespace TheBusProject.Presentation
             if (_coach != null)
             {
                 var type = _coach.Coach.Coach.Type;
-                bool cargoCoach = type.TypeCoach == CoachType.TypeOfCoach.Cargo;
-                foreach (var r in Human.Routes.Where(r => r.IsCargoRoute == cargoCoach).OrderBy(r => r.Destination1.Profile.IATACode))
+                    foreach (var r in Human.Routes.OrderBy(r => r.Destination1.Profile.IATACode))
                 {
                     double distance = r.GetDistance();
                     long bay = Math.Min(r.Destination1.GetMaxBayLength(), r.Destination2.GetMaxBayLength());

@@ -99,8 +99,7 @@ namespace TheBusProject.Presentation
             switch (_show)
             {
                 case "Losing money": shown = all.Where(f => f.Losing); break;
-                case "Passenger routes": shown = all.Where(f => !f.IsCargo); break;
-                case "Cargo routes": shown = all.Where(f => f.IsCargo); break;
+                case "Passenger routes": shown = all; break;
                 case "No coach": shown = all.Where(f => f.Route.GetCoaches().Count == 0); break;
             }
 
