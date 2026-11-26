@@ -213,8 +213,6 @@ namespace TheBusProject.Helpers
         private static bool RightKind(CoachType type, Route route)
         {
             CoachType.TypeOfCoach kind = type.TypeCoach;
-            if (route.Type == Route.RouteType.Cargo) return kind == CoachType.TypeOfCoach.Cargo;
-            if (route.Type == Route.RouteType.Helicopter) return kind == CoachType.TypeOfCoach.Helicopter;
             return kind == CoachType.TypeOfCoach.Passenger;
         }
 
@@ -234,8 +232,6 @@ namespace TheBusProject.Helpers
 
         private static bool KindMatches(CoachType oldType, CoachType t)
         {
-            if (oldType.TypeCoach == CoachType.TypeOfCoach.Cargo) return t.TypeCoach == CoachType.TypeOfCoach.Cargo;
-            if (oldType.TypeCoach == CoachType.TypeOfCoach.Helicopter) return t.TypeCoach == CoachType.TypeOfCoach.Helicopter;
             return t.TypeCoach == CoachType.TypeOfCoach.Passenger;
         }
 

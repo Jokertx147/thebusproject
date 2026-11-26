@@ -96,14 +96,9 @@ namespace TheBusProject.Helpers
                 if (i < calls.Count - 1) distance = Math.Max(distance, MathHelpers.GetDistance(calls[i], calls[i + 1]));
             }
 
-            bool cargo = routeType == Route.RouteType.Cargo;
-
             return GameObject.GetInstance()
                              .HumanCarrier.DeliveredFleet.Where(
-                                 f =>
-                                 cargo
-                                     ? f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Cargo
-                                     : (f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Passenger))
+                                 f => f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Passenger)
                              .Where(f => f.Routes.Count == 0 && !CoachDealService.IsLeasedOut(f))
                              .Where(f => f.Coach.Range >= distance && f.Coach.MinBayLength <= bay)
                              .OrderBy(f => f.Name)
@@ -117,12 +112,9 @@ namespace TheBusProject.Helpers
         public static List<string> WhyNot(Station origin, Station destination, Route.RouteType routeType = Route.RouteType.Passenger)
         {
             double distance = MathHelpers.GetDistance(origin, destination);
-            bool cargo = routeType == Route.RouteType.Cargo;
             var lines = new List<string>();
             var idle = GameObject.GetInstance().HumanCarrier.DeliveredFleet
-                                 .Where(f => (cargo
-                                                  ? f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Cargo
-                                                  : f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Passenger)
+                                 .Where(f => f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Passenger
                                              && f.Routes.Count == 0 && !CoachDealService.IsLeasedOut(f));
             foreach (var g in idle.GroupBy(f => f.Coach.Type))
             {
@@ -206,15 +198,12 @@ namespace TheBusProject.Helpers
 
             if (carrier.Routes.Exists(
                 r =>
-                r.IsCargoRoute == (request.RouteType == Route.RouteType.Cargo)
-                && ((r.Destination1 == origin && r.Destination2 == destination)
+                ((r.Destination1 == origin && r.Destination2 == destination)
                     || (r.Destination1 == destination && r.Destination2 == origin))))
             {
                 message = "You already have a route between these stations.";
                 return null;
             }
-
-            bool isCargo = request.RouteType == Route.RouteType.Cargo;
 
             // every leg has to be one the coach can actually run, and one a driver may legally drive
             message = RouteStops.WhyNot(
@@ -230,10 +219,7 @@ namespace TheBusProject.Helpers
                 var calls = new List<Station> { origin };
                 if (request.Stops != null) calls.AddRange(request.Stops);
                 calls.Add(destination);
-                CarrierHelpers.IsRouteDestinationsOk(
-                    carrier,
-                    calls,
-                    isCargo ? Route.RouteType.Cargo : Route.RouteType.Passenger);
+                CarrierHelpers.IsRouteDestinationsOk(carrier, calls, Route.RouteType.Passenger);
             }
             catch (Exception ex)
             {
@@ -244,17 +230,7 @@ namespace TheBusProject.Helpers
             int year = GameObject.GetInstance().GameTime.Year;
             double baseFare = PassengerHelpers.GetPassengerPrice(origin, destination);
 
-            Route route;
-
-            if (isCargo)
-            {
-                double price = request.CargoPrice > 0 ? request.CargoPrice : PassengerHelpers.GetCargoPrice(origin, destination);
-                route = new CargoRoute(Guid.NewGuid().ToString(), origin, destination, GameObject.GetInstance().GameTime, price);
-            }
-            else
-            {
-                route = CreatePassengerRoute(carrier, origin, destination, request.Tier, year, baseFare);
-            }
+            Route route = CreatePassengerRoute(carrier, origin, destination, request.Tier, year, baseFare);
 
             // the places it calls at on the way, each leg a route of its own with its own fare
             RouteStops.Set(route, request.Stops);
