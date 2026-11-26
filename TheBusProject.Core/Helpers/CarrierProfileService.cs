@@ -172,10 +172,8 @@ namespace TheBusProject.Helpers
             p.CEO = (ceo ?? "").Trim();
             if (c != null) p.Color = c;
             p.Narrative = (narrative ?? "").Trim();
-            if (newKind) carrier.CarrierRouteFocus = focus;
 
             message = changes.Count == 0 ? "Nothing changed." : "Saved: " + string.Join(", ", changes) + ".";
-            if (kindNote != null) message += " " + kindNote;
             return true;
         }
     }

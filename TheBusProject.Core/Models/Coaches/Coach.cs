@@ -76,8 +76,7 @@ namespace TheBusProject.Models.Coaches
 
             // A helicopter or a combi saved before they were given a cabin has none, and flying it would throw, so it
             // is given the one it should have had.
-            if (Classes.Count == 0 && Type is CoachPassengerType seats
-                && Type.TypeCoach != CoachType.TypeOfCoach.Cargo)
+            if (Classes.Count == 0 && Type is CoachPassengerType seats)
             {
                 var aClass = new CoachClass(CoachClass.ClassType.EconomyClass, seats.MaxSeatingCapacity);
                 aClass.CreateBasicFacilities(Carrier);

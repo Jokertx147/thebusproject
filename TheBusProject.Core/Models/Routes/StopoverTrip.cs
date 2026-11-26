@@ -94,13 +94,6 @@ namespace TheBusProject.Models.Routes
                 }
             }
 
-            if (IsCargoTrip())
-            {
-                foreach (RouteTimeTableEntry e in AllCargo.Keys)
-                {
-                    e.Time = e.Time.Add(new TimeSpan(0, minutes, 0));
-                }
-            }
         }
 
         //sets the next entry
@@ -113,15 +106,9 @@ namespace TheBusProject.Models.Routes
                 entry = AllClasses.Keys.ElementAt(CurrentTrip);
             }
 
-            if (IsCargoTrip())
-            {
-                entry = AllCargo.Keys.ElementAt(CurrentTrip);
-            }
-
             Entry = entry;
 
-            if (entry != null && (entry.TimeTable.Route.Type == Route.RouteType.Mixed
-                                  || entry.TimeTable.Route.Type == Route.RouteType.Passenger))
+            if (entry != null && entry.TimeTable.Route.Type == Route.RouteType.Passenger)
             {
                 Classes = AllClasses[entry];
             }

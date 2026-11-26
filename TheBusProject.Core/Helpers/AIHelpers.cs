@@ -1884,29 +1884,7 @@ namespace TheBusProject.Helpers
                         }
                         */
 
-                        if (destination.GetStationFacility(carrier, StationFacility.FacilityType.Cargo).TypeLevel == 0
-                            && destination.GetStationFacility(null, StationFacility.FacilityType.Cargo).TypeLevel == 0
-                            && route.Type == Route.RouteType.Cargo)
-                        {
-                            destination.AddStationFacility(carrier, cargoTerminal, GameObject.GetInstance().GameTime);
-                            CarrierHelpers.AddCarrierInvoice(
-                                carrier,
-                                GameObject.GetInstance().GameTime,
-                                Invoice.InvoiceType.Purchases,
-                                -cargoTerminal.Price);
-                        }
 
-                        if (station.GetStationFacility(carrier, StationFacility.FacilityType.Cargo).TypeLevel == 0
-                            && station.GetStationFacility(null, StationFacility.FacilityType.Cargo).TypeLevel == 0
-                            && route.Type == Route.RouteType.Cargo)
-                        {
-                            station.AddStationFacility(carrier, cargoTerminal, GameObject.GetInstance().GameTime);
-                            CarrierHelpers.AddCarrierInvoice(
-                                carrier,
-                                GameObject.GetInstance().GameTime,
-                                Invoice.InvoiceType.Purchases,
-                                -cargoTerminal.Price);
-                        }
                     }
                 }
             }
@@ -2262,9 +2240,7 @@ namespace TheBusProject.Helpers
 
                 if (carrier.CarrierRouteFocus == Route.RouteType.Passenger)
                 {
-                    types.RemoveAll(a => a.TypeCoach == CoachType.TypeOfCoach.Cargo);
-                    types.RemoveAll(a => a.TypeCoach == CoachType.TypeOfCoach.Helicopter);
-                }
+                                }
                 types = types.OrderBy(t => t.Price).ToList();
 
                 var list = types.ToDictionary(type => type, type => (int) ((type.Range/(Convert.ToDouble(type.Price)/100000))) + (carrierCoaches.Contains(type) ? 10 : 0));

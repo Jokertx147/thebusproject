@@ -65,7 +65,7 @@ namespace TheBusProject.Models.Coaches
         {
             if (Version == 1)
             {
-                IsConvertable = TypeCoach != TypeOfCoach.Cargo;
+                IsConvertable = true;
             }
             if (Version < 3)
                 Weight = CoachHelpers.GetCalculatedWeight(this);

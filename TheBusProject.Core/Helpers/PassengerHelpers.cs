@@ -2951,112 +2951,10 @@ namespace TheBusProject.Helpers
             return near*bonus*far;
         }
 
-        public static double GetCargoPrice(Station dest1, Station dest2)
-        {
-            // the market rate per unit (see PricingService)
-            return PricingService.CargoMarketRate(dest1, dest2);
-        }
 
         // chs, 2011-13-10 added for loading of passenger happiness
 
-        //returns the cargo for a trip
-        public static double GetTripCargo(FleetCoach coach)
-        {
-            Station stationCurrent = coach.CurrentTrip.GetDepartureStation();
-            Station stationDestination = coach.CurrentTrip.Entry.Destination.Station;
 
-            return GetTripCargo(stationCurrent, stationDestination, coach);
-        }
-
-        public static double GetTripCargo(Station stationCurrent, Station stationDestination, FleetCoach coach)
-        {
-            // the flying carrier's cargo facility at the destination (the original used the player's for everyone)
-            double destinationFacilityFactor =
-                stationDestination.GetStationFacility(
-                    coach.Coach.Carrier,
-                    StationFacility.FacilityType.Cargo,
-                    true).ServiceLevel;
-
-            double distance = MathHelpers.GetDistance(stationCurrent, stationDestination);
-
-            double capacity = 0;
-
-            var type = coach.Coach.Type as CoachCargoType;
-            if (type != null)
-                capacity = type.CargoSize;
-            var combiType = coach.Coach.Type as CoachCombiType;
-            if (combiType != null)
-                capacity = combiType.CargoSize;
-
-            double demand = stationCurrent.GetDestinationCargoRate(stationDestination)
-                            *(destinationFacilityFactor/100);
-
-            double cargoDemand = demand*1000;
-
-            // with realistic costs shippers react to the rate both ways
-            double basicCargoPrice = GetCargoPrice(stationCurrent, stationDestination);
-            double cargoPrice = coach.CurrentTrip.GetCargoPrice();
-            cargoDemand *= PricingService.CargoDemandFactor(cargoPrice, basicCargoPrice);
-
-            // every carrier's flying cargo routes on this pair, nonstop or as a stopover leg
-            var routes = new List<Route>();
-            foreach (Route r in RouteIndex.Direct(stationCurrent, stationDestination))
-            {
-                if ((r.Type == Route.RouteType.Cargo) && r.HasCoach) routes.Add(r);
-            }
-            foreach (Route r in RouteIndex.WithLeg(stationCurrent, stationDestination))
-            {
-                if ((r.Type == Route.RouteType.Cargo) && r.HasCoach) routes.Add(r);
-            }
-
-            double tripsPerDay = Convert.ToDouble(routes.Sum(r => r.TimeTable.Entries.Count))/7;
-
-            cargoDemand = cargoDemand/tripsPerDay;
-
-            double totalCapacity;
-            if (routes.Count > 0 && routes.Count(r => r.HasCoach) > 0)
-            {
-                totalCapacity =
-                    routes.Where(r => r.HasCoach)
-                          .Sum(r => r.GetCoaches().Max(a => (a.Coach.Type as CoachCombiType)?.CargoSize ?? ((CoachCargoType) a.Coach.Type).CargoSize));
-                //SelectMany(r => r.Stopovers.Where(s=>s.Legs.Count >0))).Sum(s=>s.;//a => a.Routes.SelectMany(r=>r.Stopovers.SelectMany(s=>s.Legs.Where(l=>r.HasCoach && (l.Destination1 == stationCurrent || l.Destination1 == stationDestination) && (l.Destination2 == stationDestination || l.Destination2 == stationCurrent))).Sum(r=>r.getCoaches().Max(a=>a.Coach.getTotalSeatCapacity()));
-            }
-            else
-            {
-                totalCapacity = 0;
-                // routes.Where(r => r.HasCoach).Sum(r => r.getCoaches().Max(a => a.Coach.getTotalSeatCapacity()));
-            }
-
-            double capacityPercent = cargoDemand > totalCapacity ? 1 : cargoDemand/totalCapacity;
-
-            double priceDiff = basicCargoPrice/cargoPrice;
-
-            double cargoPriceDiff = priceDiff < 0.75 ? priceDiff : 1;
-
-            Route cargoRoute = coach.CurrentTrip.Entry?.TimeTable?.Route;
-            if (PricingService.Realistic)
-            {
-                // the rate already acted on demand; on a shared route the cheaper carrier gets more
-                cargoPriceDiff = cargoRoute != null ? PricingService.CargoCompetitionFactor(cargoRoute, routes) : 1;
-            }
-
-            cargoPriceDiff *= GameObject.GetInstance().Difficulty.PriceLevel;
-
-            double randomCargo = Convert.ToDouble(Rnd.Next(97, 103))/100;
-
-            var cargo = (int) Math.Min(capacity, (capacity*capacityPercent*randomCargo*cargoPriceDiff));
-
-            // the month's load of the route
-            ConnectionService.Record(cargoRoute, cargo, 0, (int) capacity);
-
-            CargoTrace?.Invoke(new CargoTripTrace
-            {
-                Carrier = coach.Coach.Carrier, Capacity = capacity, Cargo = cargo, DemandPerTrip = cargoDemand, TotalCapacity = totalCapacity,
-                MarketPrice = basicCargoPrice, Price = cargoPrice, Km = distance, Facility = destinationFacilityFactor
-            });
-
-            return cargo;
-        }
 
         public static int GetTripPassengers(
             Station stationCurrent,
@@ -3287,15 +3185,6 @@ namespace TheBusProject.Helpers
 
         public static Action<TripPaxTrace> TripTrace;
 
-        /// <summary>What went into one cargo trip's load (for the economy probe; off in normal play).</summary>
-        public class CargoTripTrace
-        {
-            public Carrier Carrier;
-            public double Capacity, Cargo, DemandPerTrip, TotalCapacity, MarketPrice, Price, Km, Facility;
-        }
-
-        public static Action<CargoTripTrace> CargoTrace;
-
         //returns the number of passengers for a trip
         public static int GetTripPassengers(FleetCoach coach, CoachClass.ClassType type)
         {
@@ -3340,35 +3229,6 @@ namespace TheBusProject.Helpers
             return value/passengers*100.0;
         }
 
-        public static double GetStopoverTripCargo(
-            FleetCoach coach,
-            Station dept,
-            Station dest,
-            List<Route> routes,
-            bool isInbound)
-        {
-            Route currentRoute =
-                routes.Find(
-                    r =>
-                    (r.Destination1 == dept && r.Destination2 == dest)
-                    || (r.Destination2 == dept && r.Destination1 == dest));
-            int index = routes.IndexOf(currentRoute);
-
-            double cargo = 0;
-            for (int i = 0; i <= index; i++)
-            {
-                if (isInbound)
-                {
-                    cargo += GetTripCargo(routes[i].Destination2, dest, coach);
-                }
-                else
-                {
-                    cargo += GetTripCargo(routes[i].Destination1, dest, coach);
-                }
-            }
-
-            return Math.Min(coach.Coach.GetCargoCapacity(), cargo);
-        }
 
         public static int GetStopoverTripPassengers(
             FleetCoach coach,

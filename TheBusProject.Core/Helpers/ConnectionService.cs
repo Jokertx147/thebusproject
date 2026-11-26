@@ -164,7 +164,7 @@ namespace TheBusProject.Helpers
             foreach (var f in feeders)
             {
                 var r = f.r;
-                if (r == null || r == route || r.IsCargoRoute) continue;
+                if (r == null || r == route) continue;
                 if (r.Destination1 != via && r.Destination2 != via) continue;
                 if (r.Destination1 == near || r.Destination2 == near) continue;
                 var far = r.Destination1 == via ? r.Destination2 : r.Destination1;
@@ -212,7 +212,7 @@ namespace TheBusProject.Helpers
                                            .Concat(Partners(carrier).SelectMany(p => atVia.Where(r => r.Carrier == p)).Select(r => new {r, partner = true})))
                     {
                         Route r = x.r;
-                        if (r == null || r.IsCargoRoute) continue;
+                        if (r == null) continue;
                         if (r.Destination1 != via && r.Destination2 != via) continue;
                         list.Add(new Feeder {Route = r, Far = r.Destination1 == via ? r.Destination2 : r.Destination1, Partner = x.partner, Distance = r.GetDistance()});
                     }
@@ -255,7 +255,7 @@ namespace TheBusProject.Helpers
         {
             var carrier = route.Carrier;
             var list = new List<ConnectionMarket>();
-            if (carrier == null || route.IsCargoRoute) return list;
+            if (carrier == null) return list;
             list.AddRange(MarketsAt(carrier, route, route.Destination1, route.Destination2, null, true));
             list.AddRange(MarketsAt(carrier, route, route.Destination2, route.Destination1, null, true));
             return list.OrderByDescending(m => m.Added).ThenByDescending(m => m.Demand).ToList();
@@ -445,7 +445,7 @@ namespace TheBusProject.Helpers
             string hubName;
             double weight = OwnWeightAt(carrier, hub, out hubName);
             var spokes = carrier.Routes.ToList()
-                                .Where(r => !r.IsCargoRoute && r.HasCoach && (r.Destination1 == hub || r.Destination2 == hub))
+                                .Where(r => r.HasCoach && (r.Destination1 == hub || r.Destination2 == hub))
                                 .Select(r => r.Destination1 == hub ? r.Destination2 : r.Destination1)
                                 .Distinct().ToList();
             var served = new HashSet<Station>(spokes);

@@ -196,7 +196,7 @@ namespace TheBusProject.Helpers
             foreach (Carrier carrier in Carriers.GetAllCarriers())
             {
                 List<double> fillDegree = (from r in carrier.Routes
-                                           where r.Type == Route.RouteType.Mixed || r.Type == Route.RouteType.Passenger
+                                           where r.Type == Route.RouteType.Passenger
                                            select r.GetFillingDegree()).ToList();
                 double uFillDegree = fillDegree.DefaultIfEmpty(0).Average();
                 fillAverage.Add(carrier, uFillDegree);

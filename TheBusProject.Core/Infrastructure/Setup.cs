@@ -812,20 +812,6 @@ namespace TheBusProject.Infrastructure
 
                         if (dest1 != null && dest2 != null)
                         {
-                            if (dest1.GetStationFacility(carrier, StationFacility.FacilityType.Cargo).TypeLevel == 0
-                                && dest1.GetStationFacility(null, StationFacility.FacilityType.Cargo).TypeLevel == 0
-                                && carrier.CarrierRouteFocus == Route.RouteType.Cargo)
-                            {
-                                dest1.AddStationFacility(carrier, cargoTerminal, GameObject.GetInstance().GameTime);
-                            }
-
-                            if (dest2.GetStationFacility(carrier, StationFacility.FacilityType.Cargo).TypeLevel == 0
-                                && dest2.GetStationFacility(null, StationFacility.FacilityType.Cargo).TypeLevel == 0
-                                && carrier.CarrierRouteFocus == Route.RouteType.Cargo)
-                            {
-                                dest2.AddStationFacility(carrier, cargoTerminal, GameObject.GetInstance().GameTime);
-                            }
-
                             if (!StationHelpers.HasFreeGates(dest1, carrier, terminaltype))
                             {
                                 StationHelpers.RentGates(dest1, carrier, StationContract.ContractType.LowService, terminaltype);
@@ -842,8 +828,7 @@ namespace TheBusProject.Infrastructure
 
                             double price = PassengerHelpers.GetPassengerPrice(dest1, dest2);
 
-                            if (startRoute.RouteType == Route.RouteType.Mixed
-                                || startRoute.RouteType == Route.RouteType.Passenger)
+                            if (startRoute.RouteType == Route.RouteType.Passenger)
                             {
                                 route = new PassengerRoute(
                                     id.ToString(),
@@ -926,8 +911,7 @@ namespace TheBusProject.Infrastructure
                                 {
                                     route.LastUpdated = GameObject.GetInstance().GameTime;
 
-                                    if (startRoute.RouteType == Route.RouteType.Mixed
-                                        || startRoute.RouteType == Route.RouteType.Passenger)
+                                    if (startRoute.RouteType == Route.RouteType.Passenger)
                                     {
                                         CoachHelpers.CreateCoachClasses(fCoach.Coach);
 
@@ -1072,8 +1056,7 @@ namespace TheBusProject.Infrastructure
 
                                 double price = PassengerHelpers.GetPassengerPrice(origin, destination);
 
-                                if (routes.RouteType == Route.RouteType.Mixed
-                                    || routes.RouteType == Route.RouteType.Passenger)
+                                if (routes.RouteType == Route.RouteType.Passenger)
                                 {
                                     route = new PassengerRoute(
                                         id.ToString(),
@@ -2070,13 +2053,6 @@ namespace TheBusProject.Infrastructure
                         }
                         else
                         {
-                            if (coachType == CoachType.TypeOfCoach.Cargo
-                                || coachType == CoachType.TypeOfCoach.Mixed
-                                || coachType == CoachType.TypeOfCoach.Helicopter)
-                            {
-                                isConvertable = false;
-                            }
-                            else
                             {
                                 isConvertable = true;
                             }

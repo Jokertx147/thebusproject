@@ -94,7 +94,6 @@ namespace TheBusProject.Models.Routes
         [Versioning("invoices")]
         public Invoices Invoices { get; set; }
 
-        public bool IsCargoRoute => Type == RouteType.Cargo;
 
         /// <summary>
         ///     What a seat on this leg is really worth, against the leg's own fare. A leg of a service carries two

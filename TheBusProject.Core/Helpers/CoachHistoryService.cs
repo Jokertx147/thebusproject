@@ -75,7 +75,7 @@ namespace TheBusProject.Helpers
                         ?? new List<int>();
             int now = GameObject.GetInstance().GameTime.Year;
             if (!years.Contains(now)) years.Add(now);
-            int seats = f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Cargo ? 0 : f.Coach.GetTotalSeatCapacity();
+            int seats = f.Coach.GetTotalSeatCapacity();
             return years.OrderByDescending(y => y).Select(y =>
                 {
                     double trips = Stat(f, y, "Arrivals");
@@ -109,7 +109,6 @@ namespace TheBusProject.Helpers
         public static int Capacity(CoachType t)
         {
             if (t is CoachPassengerType p) return p.MaxSeatingCapacity;
-            if (t is CoachCargoType c) return (int) c.CargoSize;
             return t.GetCapacity();
         }
 

@@ -1370,27 +1370,6 @@ namespace TheBusProject.Helpers
 
                                 stopoverNode.AppendChild(stopoverClassesNode);
                             }
-                            if (trip.IsCargoTrip())
-                            {
-                                XmlElement stopoverCargosNode = xmlDoc.CreateElement("cargos");
-
-                                foreach (
-                                    RouteTimeTableEntry stopEntry in
-                                        trip.AllCargo.Keys)
-                                {
-                                    XmlElement stopoverCargoNode = xmlDoc.CreateElement("cargo");
-                                    stopoverCargoNode.SetAttribute("id", stopEntry.ID);
-
-                                    stopoverCargoNode.SetAttribute(
-                                        "value",
-                                        trip.AllCargo[stopEntry].ToString(
-                                            new CultureInfo("de-DE", false)));
-
-                                    stopoverCargosNode.AppendChild(stopoverCargoNode);
-                                }
-
-                                stopoverNode.AppendChild(stopoverCargosNode);
-                            }
                             tripNode.AppendChild(stopoverNode);
                         }
 
@@ -1408,15 +1387,6 @@ namespace TheBusProject.Helpers
                             tripNode.AppendChild(tripClassesNode);
                         }
 
-                        if (coach.CurrentTrip.IsCargoTrip())
-                        {
-                            XmlElement tripCargoNode = xmlDoc.CreateElement("tripcargo");
-                            tripCargoNode.SetAttribute(
-                                "cargo",
-                                coach.CurrentTrip.Cargo.ToString(new CultureInfo("de-DE", false)));
-
-                            tripNode.AppendChild(tripCargoNode);
-                        }
 
                         tripsNode.AppendChild(tripNode);
                     }
@@ -2339,15 +2309,6 @@ namespace TheBusProject.Helpers
                                             tripPassengers));
                                 }
                             }
-                            if (currentTrip.IsCargoTrip())
-                            {
-                                var tripCargoNode = (XmlElement) tripNode.SelectSingleNode("tripcargo");
-                                double tripCargo = Convert.ToDouble(
-                                    tripCargoNode.Attributes["cargo"].Value,
-                                    new CultureInfo("de-DE", false));
-
-                                currentTrip.Cargo = tripCargo;
-                            }
                             if (isStopoverTrip)
                             {
                                 int currentStopoverTrip =
@@ -2454,14 +2415,7 @@ namespace TheBusProject.Helpers
 
             Route route;
 
-            if (routetype == Route.RouteType.Passenger)
-            {
-                route = new PassengerRoute(id, dest1, dest2, DateTime.Now, 0);
-            }
-            else
-            {
-                route = new CargoRoute(id, dest1, dest2, DateTime.Now, 0);
-            }
+            route = new PassengerRoute(id, dest1, dest2, DateTime.Now, 0);
 
             route.Banned = isBanned;
 

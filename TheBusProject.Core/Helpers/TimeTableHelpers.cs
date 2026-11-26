@@ -19,11 +19,11 @@ namespace TheBusProject.Helpers
             List<TimeSpan> occupiedSlots1 = StationHelpers.GetOccupiedSlotTimes(
                 entry.DepartureStation,
                 coach.Coach.Carrier,
-                GeneralHelpers.GetSeason(GameObject.GetInstance().GameTime), entry.TimeTable.Route.IsCargoRoute ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger);
+                GeneralHelpers.GetSeason(GameObject.GetInstance().GameTime), Terminal.TerminalType.Passenger);
             List<TimeSpan> occupiedSlots2 = StationHelpers.GetOccupiedSlotTimes(
                 entry.Destination.Station,
                 coach.Coach.Carrier,
-                GeneralHelpers.GetSeason(GameObject.GetInstance().GameTime), entry.TimeTable.Route.IsCargoRoute ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger);
+                GeneralHelpers.GetSeason(GameObject.GetInstance().GameTime), Terminal.TerminalType.Passenger);
 
             var gateTimeBefore = new TimeSpan(0, 15, 0);
             var gateTimeAfter = new TimeSpan(0, 15, 0);

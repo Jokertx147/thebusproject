@@ -57,10 +57,9 @@ namespace TheBusProject.Helpers
             return PricingService.MarketFare(km);
         }
 
-        /// <summary>Seats, or for cargo coach 1.5 "seats" per unit of cargo space (a 757 freighter is about 360).</summary>
+        /// <summary>The coach's seats.</summary>
         public static double Capacity(Coach a)
         {
-            if (a.Type is CoachCargoType c) return Math.Max(10, c.CargoSize*1.5);
             return Math.Max(4, a.GetTotalSeatCapacity());
         }
 
@@ -102,8 +101,6 @@ namespace TheBusProject.Helpers
             // offices, IT, marketing and everything else that isn't a trip
             p.Overhead = Math.Max(0, tickets)*0.09;
             double f = Factor;
-            // the game pays little for cargo: freighters (no cabin, cheaper handling per load) pay half
-            if (coach.Type is CoachCargoType) f *= 0.5;
             p.Ground *= f;
             p.Maintenance *= f;
             p.EnRoute *= f;

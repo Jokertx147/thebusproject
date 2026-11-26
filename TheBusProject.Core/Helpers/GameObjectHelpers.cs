@@ -406,13 +406,6 @@ namespace TheBusProject.Helpers
                     }
                 }
             }
-            if (coach.CurrentTrip.IsCargoTrip())
-            {
-                tax = groundTaxPerPassenger*coach.CurrentTrip.Cargo;
-                fuelExpenses = FleetCoachHelpers.GetFuelExpenses(coach, fdistance);
-
-                ticketsIncome = coach.CurrentTrip.Cargo*coach.CurrentTrip.GetCargoPrice();
-            }
 
             Station dest = coach.CurrentTrip.Entry.Destination.Station;
             Station dept = coach.CurrentTrip.Entry.DepartureStation;
@@ -3211,11 +3204,6 @@ namespace TheBusProject.Helpers
                                             .GetRouteCoachClass(aClass.Type),
                                         GetPassengers(coach, aClass.Type)));
                             }
-                        }
-                        if (coach.CurrentTrip.IsCargoTrip())
-                        {
-                            using (Profiler.Measure("trip: cargo"))
-                                coach.CurrentTrip.Cargo = PassengerHelpers.GetTripCargo(coach);
                         }
                     }
                     else

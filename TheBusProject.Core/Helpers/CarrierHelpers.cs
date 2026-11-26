@@ -956,11 +956,7 @@ namespace TheBusProject.Helpers
         //returns if two stations can have route between them and if the carrier has license for the route
         private static bool CheckRouteOk(Station station1, Station station2, Route.RouteType routeType)
         {
-            bool isCargoRouteOk = true;
-            if (routeType == Route.RouteType.Cargo)
-                isCargoRouteOk = AIHelpers.IsCargoRouteDestinationsCorrect(station1, station2, GameObject.GetInstance().HumanCarrier);
-
-            return isCargoRouteOk && HasCarrierLicens(GameObject.GetInstance().HumanCarrier, station1, station2) && AIHelpers.IsRouteInCorrectArea(station1, station2) &&
+            return HasCarrierLicens(GameObject.GetInstance().HumanCarrier, station1, station2) && AIHelpers.IsRouteInCorrectArea(station1, station2) &&
                    !TripRestrictions.HasRestriction(station1.Profile.Country, station2.Profile.Country, GameObject.GetInstance().GameTime, TripRestriction.RestrictionType.Trips) &&
                    !TripRestrictions.HasRestriction(station2.Profile.Country, station1.Profile.Country, GameObject.GetInstance().GameTime, TripRestriction.RestrictionType.Trips) &&
                    !TripRestrictions.HasRestriction(GameObject.GetInstance().HumanCarrier, station1.Profile.Country, station2.Profile.Country, GameObject.GetInstance().GameTime);
@@ -969,10 +965,6 @@ namespace TheBusProject.Helpers
         private static RouteOkStatus GetRouteStatus(Station station1, Station station2, Route.RouteType routeType)
         {
             var status = RouteOkStatus.Ok;
-
-            if (routeType == Route.RouteType.Cargo)
-                if (!AIHelpers.IsCargoRouteDestinationsCorrect(station1, station2, GameObject.GetInstance().HumanCarrier))
-                    status = RouteOkStatus.MissingCargo;
 
             if (status == RouteOkStatus.Ok)
             {

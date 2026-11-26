@@ -233,8 +233,6 @@ namespace TheBusProject.Helpers
                 if (f.DelayMinutes <= OnTimeMinutes) m.OnTime++;
                 m.Passengers += f.Passengers;
                 m.Seats += f.Seats;
-                m.Cargo += f.Cargo;
-                m.CargoCapacity += capacity;
                 // routes month by month for the player's carriers only (the computer carriers' totals are enough for the report)
                 if (route != null && carrier.IsHuman && route.Destination1 != null && route.Destination2 != null)
                 {
@@ -242,8 +240,6 @@ namespace TheBusProject.Helpers
                     r.Trips++;
                     r.Passengers += f.Passengers;
                     r.Seats += f.Seats;
-                    r.Cargo += f.Cargo;
-                    r.CargoCapacity += capacity;
                 }
             }
         }

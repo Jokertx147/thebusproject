@@ -287,16 +287,6 @@ namespace TheBusProject.Helpers
                     }
                 }
             }
-            else if (type is CoachCargoType)
-            {
-                var cargoClass = new CoachClass(CoachClass.ClassType.EconomyClass, 0);
-                classes.Add(cargoClass);
-            }
-            else if (type.TypeCoach == CoachType.TypeOfCoach.Helicopter)
-            {
-                var helicopterClass = new CoachClass(CoachClass.ClassType.EconomyClass, 0);
-                classes.Add(helicopterClass);
-            }
             return classes;
         }
 
