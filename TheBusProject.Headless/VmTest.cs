@@ -4540,6 +4540,7 @@ static class VmTest
     /// <summary>"vm pax": what fills the trips, per carrier (demand, competition, reputation, route score).</summary>
     static void PaxProbe(CarrierViewModel av)
     {
+        TheBusProject.Helpers.PassengerHelpers.CountCap = true;
         var g = TheBusProject.Models.General.GameObject.GetInstance();
         for (int d = 0; d < 45; d++) TheBusProject.Helpers.GameObjectHelpers.SimulateTurn();
         var list = new System.Collections.Concurrent.ConcurrentBag<TheBusProject.Helpers.PassengerHelpers.TripPaxTrace>();
@@ -4558,6 +4559,16 @@ static class VmTest
         Console.WriteLine("median per trip: direct " + Med(list.Select(t => t.Direct)) + ", connecting " + Med(list.Select(t => t.Connecting)) + ", nearby " + Med(list.Select(t => t.Nearby)) + " -> after score, season, price " + Med(list.Select(t => t.DailyDemand)) + " a day, / trips a day " + Med(list.Select(t => t.TripsPerDay)) + " = " + Med(list.Select(t => t.PerTrip)) + " per trip vs seats " + Med(list.Select(t => (double) t.Seats)) + " | total capacity " + Med(list.Select(t => t.TotalCapacity)));
         foreach (var t in list.Where(t => t.Carrier.Profile.IATACode == "US").Take(3).Concat(list.Where(t => t.Carrier.Profile.IATACode != "US").Take(3)))
             Console.WriteLine("  " + t.Carrier.Profile.IATACode + " " + t.Route.Destination1.Profile.IATACode + "-" + t.Route.Destination2.Profile.IATACode + ": direct " + t.Direct.ToString("N0") + " conn " + t.Connecting.ToString("N0") + " nearby " + t.Nearby.ToString("N0") + " daily " + t.DailyDemand.ToString("N0") + " trips/day " + t.TripsPerDay.ToString("0.0") + " per trip " + t.PerTrip.ToString("N0") + " seats " + t.Seats + " pax " + t.Passengers);
+        {
+            long checks = TheBusProject.Helpers.PassengerHelpers.CapChecks;
+            long binds = TheBusProject.Helpers.PassengerHelpers.CapBinds;
+            double cut = TheBusProject.Helpers.PassengerHelpers.CapCutThousandths/1000.0;
+            double kept = TheBusProject.Helpers.PassengerHelpers.CapKeptThousandths/1000.0;
+            Console.WriteLine(string.Format(
+                "connecting-and-spill cap: bound on {0:0.0}% of {1:#,0} demand sums, taking off {2:#,0} passengers against {3:#,0} left standing ({4:0.0}%)",
+                checks <= 0 ? 0 : 100.0*binds/checks, checks, cut, kept, kept + cut <= 0 ? 0 : 100.0*cut/(kept + cut)));
+        }
+
         Console.WriteLine("per-trip demand vs seats, all carriers: " + string.Join(", ", new[] { 0.5, 1, 2, 5, 10, 1e9 }.Select((hi, i) => { double lo = i == 0 ? 0 : new[] { 0.5, 1, 2, 5, 10 }[i - 1]; return "<" + (hi > 1e8 ? "inf" : hi.ToString()) + ": " + list.Count(t => t.PerTrip / Math.Max(1, t.Seats) >= lo && t.PerTrip / Math.Max(1, t.Seats) < hi); })));
     }
 

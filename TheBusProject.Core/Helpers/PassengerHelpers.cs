@@ -2878,11 +2878,33 @@ namespace TheBusProject.Helpers
         ///     already has a route of its own, so as the network shrinks each surviving route harvests more. Halving
         ///     this took the demand for a trip down only a fifth, and the spill went up.
         ///
-        ///     Over the eight years of "vm play": at 1.0 the player filled 85-94% of the seats on a fleet that drifted
-        ///     to 68-79 seats a coach, at 0.25 it was 52-59% on 62, and at this 0.35 it is 61-67% on 53 seats - which
-        ///     is about the 51 a real intercity fleet averages, the double-decker having stopped being a free lunch.
+        ///     Over the eight years of "vm play", before connecting and spill were capped: at 1.0 the player filled
+        ///     85-94% of the seats on a fleet that drifted to 68-79 seats a coach, at 0.25 it was 52-59% on 62, and
+        ///     at 0.35 it was 61-67% on 53 seats - which is about the 51 a real intercity fleet averages, the
+        ///     double-decker having stopped being a free lunch.
+        ///
+        ///     The cap on those two then took 17-22% of all demand off, so this went to 0.44 to leave the level
+        ///     where it was while the shape changed: the player now fills 67-68% of the seats. Setting it by what
+        ///     "vm play" ends up filling is the only way that works, because the route set a run happens to open
+        ///     moves the median demand for a trip by 40% either way - four runs gave 40, 46, 24 and 42 - so a
+        ///     single run of each cannot tell one setting from another.
         /// </summary>
-        public const double DemandScale = 0.35;
+        public const double DemandScale = 0.44;
+
+        /// <summary>
+        ///     How the cap on connecting and spill demand is doing: how many times the demand for a trip was worked
+        ///     out, how many of those the cap bound on, and the passengers it took off against the passengers it
+        ///     left (in thousandths, being counted from several threads). Diagnostics for the "vm pax" probe, which
+        ///     prints them; the game itself never reads them.
+        /// </summary>
+        public static long CapChecks, CapBinds, CapCutThousandths, CapKeptThousandths;
+
+        /// <summary>
+        ///     Whether to keep the counters above. Off in a game: the demand for a trip is worked out millions of
+        ///     times a year from several threads at once, and four interlocked adds on one cache line is a cost for
+        ///     nothing. The probe turns it on.
+        /// </summary>
+        public static bool CountCap;
 
         /// <summary>
         ///     How much of a city pair's travel goes by coach, by the length of the trip. The coach owns the middle
@@ -2963,6 +2985,36 @@ namespace TheBusProject.Helpers
             pf = Profiler.Start();
             double nearby = GetNearbyPassengerDemand(stationCurrent, stationDestination, coach, type);
             Profiler.Stop("pax: nearby demand", pf);
+            // Connecting riders and spill from neighbours are real, but they are what a service picks up on top of
+            // its own market, not a market of their own, and both were uncapped sums: one trip showed 735 of spill
+            // against 287 of its own demand. Worse, each skips what is already served - a market with two nonstop
+            // routes, a neighbour with a route of its own - so every surviving route harvests more as the network
+            // shrinks, which quietly backfills any attempt to set the demand level (halving the base moved the
+            // demand for a trip only a fifth, and the spill went up).
+            //   Together they may now be worth at most the pair's own demand, through riders included, so no more
+            // than half of a full coach is people who are not travelling the pair. At the median they come to 0.62
+            // of it and nothing changes; it is the tail this is for.
+            //   How often it binds, and how much it takes off, is counted below rather than argued about: the
+            // route set a run happens to open moves the median demand for a trip by 40% either way, which is far
+            // more than this changes, so an A/B of two runs says nothing. These counters are in-run and need no
+            // comparison.
+            double derived = connecting + nearby;
+            if (CountCap) System.Threading.Interlocked.Increment(ref CapChecks);
+            if (derived > demand)
+            {
+                if (CountCap)
+                {
+                    System.Threading.Interlocked.Increment(ref CapBinds);
+                    System.Threading.Interlocked.Add(ref CapCutThousandths, (long) ((derived - demand)*1000));
+                }
+
+                double keep = derived > 0 ? demand/derived : 0;
+                connecting *= keep;
+                nearby *= keep;
+            }
+
+            if (CountCap) System.Threading.Interlocked.Add(ref CapKeptThousandths, (long) ((demand + connecting + nearby)*1000));
+
             double connectingShare = demand + connecting + nearby > 0 ? connecting/(demand + connecting + nearby) : 0;
 
             double traceBase = demand + connecting + nearby;
