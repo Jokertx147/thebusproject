@@ -141,6 +141,14 @@ namespace TheBusProject.Helpers
             }
             else
             {
+                // A trip that has not landed yet must land before the coach leaves on the next one, or its
+                // arrival is never counted at all. This happens when a coach's earlier entry that day is still
+                // on the road - an overnight service - and the day's loop reaches its next entry: the old trip
+                // was simply overwritten here, and the carrier ended the year with more departures than
+                // arrivals, by one for every such trip. One year of Megabus showed 1,372 departures against
+                // 1,327 arrivals with no cancellation to explain the difference.
+                //   Landing it here is what the next day's turn would have done to an outstanding trip anyway.
+                if (coach.CurrentTrip != null) SimulateLanding(coach);
                 coach.CurrentTrip = new Trip(entry);
             }
 
