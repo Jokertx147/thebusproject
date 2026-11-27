@@ -1527,7 +1527,10 @@ static class VmTest
         }
         Console.WriteLine("  " + choices + " types with a choice of engines");
         if (gaps > 0 || slower > 0 || changed > 0) fail(gaps + " gaps, " + slower + " engines slowing their coach, " + changed + " standard engines changing their type");
-        if (choices < 40) fail("too few choices");
+        // every type has more than one engine to pick from. This was a bare "fewer than 40", which passed only
+        // because there happened to be 43 types; removing the four cargo ones broke it without anything being
+        // wrong. Counting against the types themselves says what was meant.
+        if (choices < types.Count) fail((types.Count - choices) + " of " + types.Count + " types have only one engine to choose from");
 
         // an MCI J4500: the three diesels of its generation, the thrifty one ordered
         var na = av.NewCoach;
@@ -7271,8 +7274,13 @@ static class VmTest
             }
             {
                 Console.WriteLine("SCHEDULER TEST");
-                var sf = TheBusProject.Models.General.GameObject.GetInstance().HumanCarrier.Fleet.First(x => x.Name == "N005GH");
-                var fi2 = av2.Fleet.First(x => x.Name == "N005GH");
+                // the coach bought for the move test, which has no routes of its own: the one to schedule from
+                // scratch. Named by what it is rather than by its tail number, which depends on how many coaches
+                // the tests before it happened to buy.
+                var sf = TheBusProject.Models.General.GameObject.GetInstance().HumanCarrier.Fleet
+                    .Where(x => x.Routes.Count == 0).OrderByDescending(x => x.PurchasedDate).First();
+                string schedName = sf.Name;
+                var fi2 = av2.Fleet.First(x => x.Name == schedName);
                 Console.WriteLine("  fleet row can schedule=" + fi2.CanSchedule);
                 fi2.ScheduleCommand.Execute(null);
                 var tv = av2.Timetable;
@@ -7292,7 +7300,7 @@ static class VmTest
                 tv.SelectedBlock = tv.Blocks.Last();
                 tv.RemoveSelectedCommand.Execute(null);
                 Console.WriteLine("  removed one: " + tv.Status + " | blocks now " + tv.Blocks.Count);
-                var ov = av2.Overview; ov.Selected = ov.Rows.First(r => r.Name == "N005GH");
+                var ov = av2.Overview; ov.Selected = ov.Rows.First(r => r.Name == schedName);
                 Console.WriteLine("  overview canSchedule=" + ov.CanSchedule);
                 av2.Page = 0; ov.ScheduleCommand.Execute(null);
                 Console.WriteLine("  from overview: page=" + av2.Pages[av2.Page] + " tab=" + av2.TripsTab);

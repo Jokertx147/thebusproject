@@ -26,55 +26,55 @@
   <engine manufacturer="Detroit Diesel" model="8V-92TA">
     <specs type="Diesel" noise="Medium" consumptionModifier="1.00" price="2600" />
     <performance maxspeed="120" ceiling="0" baylengthrequiredModifier="1.0" rangeModifier="1.00" />
-    <coach models="Prevost Le Mirage XL,Prevost Le Mirage XLII,Prevost H3-45,Prevost Le Normand,Eagle Model 05,Eagle Model 10,Eagle Model 15,Eagle Model 20,Setra S 215 HD,Setra S 315 HD,MCI MC-9 Crusader II,MCI 102DL3,MCI 102DL3 Courier,MCI MC-5A,MCI MC-7 Challenger,MCI MC-8,GM PD-4104,GM PD-4106,GM PD-4107 Buffalo,GM PD-4903 Buffalo,Flxible Clipper,Flxible VistaLiner,Van Hool T2145,Van Hool TD925 Astromega,Van Hool T2145 Parcel,Van Hool T815 Alizee" />
+    <coach models="Prevost Le Mirage XL,Prevost Le Mirage XLII,Prevost H3-45,Prevost Le Normand,Eagle Model 05,Eagle Model 10,Eagle Model 15,Eagle Model 20,Setra S 215 HD,Setra S 315 HD,MCI MC-9 Crusader II,MCI 102DL3,MCI MC-5A,MCI MC-7 Challenger,MCI MC-8,GM PD-4104,GM PD-4106,GM PD-4107 Buffalo,GM PD-4903 Buffalo,Flxible Clipper,Flxible VistaLiner,Van Hool T2145,Van Hool TD925 Astromega,Van Hool T815 Alizee" />
     <produced from="1977" to="1996" />
   </engine>
   <engine manufacturer="Cummins" model="L10">
     <specs type="Diesel" noise="Low" consumptionModifier="0.93" price="3500" />
     <performance maxspeed="120" ceiling="0" baylengthrequiredModifier="1.0" rangeModifier="1.07" />
-    <coach models="Prevost Le Mirage XL,Prevost Le Mirage XLII,Prevost H3-45,Prevost Le Normand,Eagle Model 05,Eagle Model 10,Eagle Model 15,Eagle Model 20,Setra S 215 HD,Setra S 315 HD,MCI MC-9 Crusader II,MCI 102DL3,MCI E4500,MCI 102DL3 Courier,MCI MC-5A,MCI MC-7 Challenger,MCI MC-8,GM PD-4104,GM PD-4106,GM PD-4107 Buffalo,GM PD-4903 Buffalo,Flxible Clipper,Flxible VistaLiner,Van Hool T2145,Van Hool T945,Van Hool TD925 Astromega,Van Hool T2145 Parcel,Van Hool T815 Alizee" />
+    <coach models="Prevost Le Mirage XL,Prevost Le Mirage XLII,Prevost H3-45,Prevost Le Normand,Eagle Model 05,Eagle Model 10,Eagle Model 15,Eagle Model 20,Setra S 215 HD,Setra S 315 HD,MCI MC-9 Crusader II,MCI 102DL3,MCI E4500,MCI MC-5A,MCI MC-7 Challenger,MCI MC-8,GM PD-4104,GM PD-4106,GM PD-4107 Buffalo,GM PD-4903 Buffalo,Flxible Clipper,Flxible VistaLiner,Van Hool T2145,Van Hool T945,Van Hool TD925 Astromega,Van Hool T815 Alizee" />
     <produced from="1982" to="1998" />
   </engine>
   <engine manufacturer="Caterpillar" model="3406B">
     <specs type="Diesel" noise="High" consumptionModifier="1.06" price="3600" />
     <performance maxspeed="128" ceiling="0" baylengthrequiredModifier="1.0" rangeModifier="0.95" />
-    <coach models="Prevost Le Mirage XL,Prevost Le Mirage XLII,Prevost H3-45,Prevost Le Normand,Eagle Model 05,Eagle Model 10,Eagle Model 15,Eagle Model 20,Setra S 215 HD,Setra S 315 HD,MCI MC-9 Crusader II,MCI 102DL3,MCI E4500,MCI 102DL3 Courier,MCI MC-5A,MCI MC-7 Challenger,MCI MC-8,GM PD-4104,GM PD-4106,GM PD-4107 Buffalo,GM PD-4903 Buffalo,Flxible Clipper,Flxible VistaLiner,Van Hool T2145,Van Hool T945,Van Hool TD925 Astromega,Van Hool T2145 Parcel,Van Hool T815 Alizee" />
+    <coach models="Prevost Le Mirage XL,Prevost Le Mirage XLII,Prevost H3-45,Prevost Le Normand,Eagle Model 05,Eagle Model 10,Eagle Model 15,Eagle Model 20,Setra S 215 HD,Setra S 315 HD,MCI MC-9 Crusader II,MCI 102DL3,MCI E4500,MCI MC-5A,MCI MC-7 Challenger,MCI MC-8,GM PD-4104,GM PD-4106,GM PD-4107 Buffalo,GM PD-4903 Buffalo,Flxible Clipper,Flxible VistaLiner,Van Hool T2145,Van Hool T945,Van Hool TD925 Astromega,Van Hool T815 Alizee" />
     <produced from="1984" to="1999" />
   </engine>
   <engine manufacturer="Detroit Diesel" model="Series 60">
     <specs type="Diesel" noise="Medium" consumptionModifier="1.00" price="3400" />
     <performance maxspeed="125" ceiling="0" baylengthrequiredModifier="1.0" rangeModifier="1.00" />
-    <coach models="Temsa TS 30,Temsa TS 35,Prevost Le Mirage XL,Prevost Le Mirage XLII,Prevost H3-45,Prevost X3-45,Prevost Le Normand,Eagle Model 05,Eagle Model 10,Eagle Model 15,Eagle Model 20,Setra S 215 HD,Setra S 315 HD,Setra S 417 HDH,Setra S 407 HDH,MCI MC-9 Crusader II,MCI 102DL3,MCI E4500,MCI J4500,MCI D4505,MCI D4500 CT,MCI 102DL3 Courier,MCI D4505 Express Parcel,MCI MC-5A,MCI MC-7 Challenger,MCI MC-8,GM PD-4104,GM PD-4106,GM PD-4107 Buffalo,GM PD-4903 Buffalo,Flxible Clipper,Flxible VistaLiner,Van Hool T2145,Van Hool T945,Van Hool TD925 Astromega,Van Hool TX45,Van Hool T2145 Parcel,Van Hool T815 Alizee" />
+    <coach models="Temsa TS 30,Temsa TS 35,Prevost Le Mirage XL,Prevost Le Mirage XLII,Prevost H3-45,Prevost X3-45,Prevost Le Normand,Eagle Model 05,Eagle Model 10,Eagle Model 15,Eagle Model 20,Setra S 215 HD,Setra S 315 HD,Setra S 417 HDH,Setra S 407 HDH,MCI MC-9 Crusader II,MCI 102DL3,MCI E4500,MCI J4500,MCI D4505,MCI D4500 CT,MCI MC-5A,MCI MC-7 Challenger,MCI MC-8,GM PD-4104,GM PD-4106,GM PD-4107 Buffalo,GM PD-4903 Buffalo,Flxible Clipper,Flxible VistaLiner,Van Hool T2145,Van Hool T945,Van Hool TD925 Astromega,Van Hool TX45,Van Hool T815 Alizee" />
     <produced from="1987" to="2012" />
   </engine>
   <engine manufacturer="Cummins" model="M11">
     <specs type="Diesel" noise="Low" consumptionModifier="0.94" price="3900" />
     <performance maxspeed="125" ceiling="0" baylengthrequiredModifier="1.0" rangeModifier="1.06" />
-    <coach models="Prevost Le Mirage XL,Prevost Le Mirage XLII,Prevost H3-45,Prevost X3-45,Prevost Le Normand,Eagle Model 05,Eagle Model 10,Eagle Model 15,Eagle Model 20,Setra S 215 HD,Setra S 315 HD,Setra S 417 HDH,Setra S 407 HDH,MCI MC-9 Crusader II,MCI 102DL3,MCI E4500,MCI J4500,MCI D4500 CT,MCI 102DL3 Courier,MCI MC-5A,MCI MC-7 Challenger,MCI MC-8,GM PD-4104,GM PD-4106,GM PD-4107 Buffalo,GM PD-4903 Buffalo,Flxible Clipper,Flxible VistaLiner,Van Hool T2145,Van Hool T945,Van Hool TD925 Astromega,Van Hool T2145 Parcel,Van Hool T815 Alizee" />
+    <coach models="Prevost Le Mirage XL,Prevost Le Mirage XLII,Prevost H3-45,Prevost X3-45,Prevost Le Normand,Eagle Model 05,Eagle Model 10,Eagle Model 15,Eagle Model 20,Setra S 215 HD,Setra S 315 HD,Setra S 417 HDH,Setra S 407 HDH,MCI MC-9 Crusader II,MCI 102DL3,MCI E4500,MCI J4500,MCI D4500 CT,MCI MC-5A,MCI MC-7 Challenger,MCI MC-8,GM PD-4104,GM PD-4106,GM PD-4107 Buffalo,GM PD-4903 Buffalo,Flxible Clipper,Flxible VistaLiner,Van Hool T2145,Van Hool T945,Van Hool TD925 Astromega,Van Hool T815 Alizee" />
     <produced from="1994" to="2007" />
   </engine>
   <engine manufacturer="Caterpillar" model="C13">
     <specs type="Diesel" noise="High" consumptionModifier="1.05" price="4400" />
     <performance maxspeed="130" ceiling="0" baylengthrequiredModifier="1.0" rangeModifier="0.96" />
-    <coach models="Temsa TS 30,Temsa TS 35,Prevost Le Mirage XL,Prevost Le Mirage XLII,Prevost H3-45,Prevost X3-45,Prevost Le Normand,Eagle Model 05,Eagle Model 10,Eagle Model 15,Eagle Model 20,Setra S 215 HD,Setra S 315 HD,Setra S 417 HDH,Setra S 407 HDH,MCI MC-9 Crusader II,MCI 102DL3,MCI E4500,MCI J4500,MCI D4505,MCI D4500 CT,MCI 102DL3 Courier,MCI D4505 Express Parcel,MCI MC-5A,MCI MC-7 Challenger,MCI MC-8,GM PD-4104,GM PD-4106,GM PD-4107 Buffalo,GM PD-4903 Buffalo,Flxible Clipper,Flxible VistaLiner,Van Hool T2145,Van Hool T945,Van Hool TD925 Astromega,Van Hool TX45,Van Hool T2145 Parcel,Van Hool T815 Alizee" />
+    <coach models="Temsa TS 30,Temsa TS 35,Prevost Le Mirage XL,Prevost Le Mirage XLII,Prevost H3-45,Prevost X3-45,Prevost Le Normand,Eagle Model 05,Eagle Model 10,Eagle Model 15,Eagle Model 20,Setra S 215 HD,Setra S 315 HD,Setra S 417 HDH,Setra S 407 HDH,MCI MC-9 Crusader II,MCI 102DL3,MCI E4500,MCI J4500,MCI D4505,MCI D4500 CT,MCI MC-5A,MCI MC-7 Challenger,MCI MC-8,GM PD-4104,GM PD-4106,GM PD-4107 Buffalo,GM PD-4903 Buffalo,Flxible Clipper,Flxible VistaLiner,Van Hool T2145,Van Hool T945,Van Hool TD925 Astromega,Van Hool TX45,Van Hool T815 Alizee" />
     <produced from="2004" to="2012" />
   </engine>
   <engine manufacturer="Cummins" model="ISM">
     <specs type="Diesel" noise="Medium" consumptionModifier="1.00" price="4200" />
     <performance maxspeed="125" ceiling="0" baylengthrequiredModifier="1.0" rangeModifier="1.00" />
-    <coach models="Temsa TS 30,Temsa TS 35,Temsa TS 45,Prevost Le Mirage XL,Prevost Le Mirage XLII,Prevost H3-45,Prevost X3-45,Prevost Le Normand,Eagle Model 05,Eagle Model 10,Eagle Model 15,Eagle Model 20,Setra S 215 HD,Setra S 315 HD,Setra S 417 HDH,Setra S 407 HDH,MCI MC-9 Crusader II,MCI 102DL3,MCI E4500,MCI J4500,MCI D4505,MCI D4500 CT,MCI 102DL3 Courier,MCI D4505 Express Parcel,MCI MC-5A,MCI MC-7 Challenger,MCI MC-8,GM PD-4104,GM PD-4106,GM PD-4107 Buffalo,GM PD-4903 Buffalo,Flxible Clipper,Flxible VistaLiner,Van Hool T2145,Van Hool T945,Van Hool TD925 Astromega,Van Hool CX35,Van Hool CX45,Van Hool TX45,Van Hool TDX25 Astromega,Van Hool T2145 Parcel,Van Hool CX45 Parcel,Van Hool T815 Alizee" />
+    <coach models="Temsa TS 30,Temsa TS 35,Temsa TS 45,Prevost Le Mirage XL,Prevost Le Mirage XLII,Prevost H3-45,Prevost X3-45,Prevost Le Normand,Eagle Model 05,Eagle Model 10,Eagle Model 15,Eagle Model 20,Setra S 215 HD,Setra S 315 HD,Setra S 417 HDH,Setra S 407 HDH,MCI MC-9 Crusader II,MCI 102DL3,MCI E4500,MCI J4500,MCI D4505,MCI D4500 CT,MCI MC-5A,MCI MC-7 Challenger,MCI MC-8,GM PD-4104,GM PD-4106,GM PD-4107 Buffalo,GM PD-4903 Buffalo,Flxible Clipper,Flxible VistaLiner,Van Hool T2145,Van Hool T945,Van Hool TD925 Astromega,Van Hool CX35,Van Hool CX45,Van Hool TX45,Van Hool TDX25 Astromega,Van Hool T815 Alizee" />
     <produced from="2002" to="2199" />
   </engine>
   <engine manufacturer="Cummins" model="ISX12">
     <specs type="Diesel" noise="Low" consumptionModifier="0.92" price="4800" />
     <performance maxspeed="125" ceiling="0" baylengthrequiredModifier="1.0" rangeModifier="1.08" />
-    <coach models="Temsa TS 30,Temsa TS 35,Temsa TS 45,Prevost Le Mirage XL,Prevost Le Mirage XLII,Prevost H3-45,Prevost X3-45,Prevost Le Normand,Eagle Model 05,Eagle Model 10,Eagle Model 15,Eagle Model 20,Setra S 215 HD,Setra S 315 HD,Setra S 417 HDH,Setra S 407 HDH,MCI MC-9 Crusader II,MCI 102DL3,MCI E4500,MCI J4500,MCI D4505,MCI D4500 CT,MCI 102DL3 Courier,MCI D4505 Express Parcel,MCI MC-5A,MCI MC-7 Challenger,MCI MC-8,GM PD-4104,GM PD-4106,GM PD-4107 Buffalo,GM PD-4903 Buffalo,Flxible Clipper,Flxible VistaLiner,Van Hool T2145,Van Hool T945,Van Hool TD925 Astromega,Van Hool CX35,Van Hool CX45,Van Hool TX45,Van Hool TDX25 Astromega,Van Hool T2145 Parcel,Van Hool CX45 Parcel,Van Hool T815 Alizee" />
+    <coach models="Temsa TS 30,Temsa TS 35,Temsa TS 45,Prevost Le Mirage XL,Prevost Le Mirage XLII,Prevost H3-45,Prevost X3-45,Prevost Le Normand,Eagle Model 05,Eagle Model 10,Eagle Model 15,Eagle Model 20,Setra S 215 HD,Setra S 315 HD,Setra S 417 HDH,Setra S 407 HDH,MCI MC-9 Crusader II,MCI 102DL3,MCI E4500,MCI J4500,MCI D4505,MCI D4500 CT,MCI MC-5A,MCI MC-7 Challenger,MCI MC-8,GM PD-4104,GM PD-4106,GM PD-4107 Buffalo,GM PD-4903 Buffalo,Flxible Clipper,Flxible VistaLiner,Van Hool T2145,Van Hool T945,Van Hool TD925 Astromega,Van Hool CX35,Van Hool CX45,Van Hool TX45,Van Hool TDX25 Astromega,Van Hool T815 Alizee" />
     <produced from="2010" to="2199" />
   </engine>
   <engine manufacturer="Detroit Diesel" model="DD13">
     <specs type="Diesel" noise="Medium" consumptionModifier="1.04" price="5400" />
     <performance maxspeed="130" ceiling="0" baylengthrequiredModifier="1.0" rangeModifier="0.97" />
-    <coach models="Temsa TS 30,Temsa TS 35,Temsa TS 45,Prevost Le Mirage XL,Prevost Le Mirage XLII,Prevost H3-45,Prevost X3-45,Prevost Le Normand,Eagle Model 05,Eagle Model 10,Eagle Model 15,Eagle Model 20,Setra S 215 HD,Setra S 315 HD,Setra S 417 HDH,Setra S 407 HDH,MCI MC-9 Crusader II,MCI 102DL3,MCI E4500,MCI J4500,MCI D4505,MCI D4500 CT,MCI 102DL3 Courier,MCI D4505 Express Parcel,MCI MC-5A,MCI MC-7 Challenger,MCI MC-8,GM PD-4104,GM PD-4106,GM PD-4107 Buffalo,GM PD-4903 Buffalo,Flxible Clipper,Flxible VistaLiner,Van Hool T2145,Van Hool T945,Van Hool TD925 Astromega,Van Hool CX35,Van Hool CX45,Van Hool TX45,Van Hool TDX25 Astromega,Van Hool T2145 Parcel,Van Hool CX45 Parcel,Van Hool T815 Alizee" />
+    <coach models="Temsa TS 30,Temsa TS 35,Temsa TS 45,Prevost Le Mirage XL,Prevost Le Mirage XLII,Prevost H3-45,Prevost X3-45,Prevost Le Normand,Eagle Model 05,Eagle Model 10,Eagle Model 15,Eagle Model 20,Setra S 215 HD,Setra S 315 HD,Setra S 417 HDH,Setra S 407 HDH,MCI MC-9 Crusader II,MCI 102DL3,MCI E4500,MCI J4500,MCI D4505,MCI D4500 CT,MCI MC-5A,MCI MC-7 Challenger,MCI MC-8,GM PD-4104,GM PD-4106,GM PD-4107 Buffalo,GM PD-4903 Buffalo,Flxible Clipper,Flxible VistaLiner,Van Hool T2145,Van Hool T945,Van Hool TD925 Astromega,Van Hool CX35,Van Hool CX45,Van Hool TX45,Van Hool TDX25 Astromega,Van Hool T815 Alizee" />
     <produced from="2012" to="2199" />
   </engine>
   <engine manufacturer="Volvo" model="D13">

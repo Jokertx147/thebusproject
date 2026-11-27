@@ -187,7 +187,24 @@ namespace TheBusProject.Helpers
                 }
             }
 
+            if (mainroute.Type == Route.RouteType.Passenger)
+            {
+                id = Guid.NewGuid();
 
+                var routeLegOne = new PassengerRoute(id.ToString(), stopover, dest2, GameObject.GetInstance().GameTime, 0);
+
+                foreach (RouteCoachClass aClass in ((PassengerRoute) mainroute).Classes)
+                {
+                    routeLegOne.GetRouteCoachClass(aClass.Type).FarePrice = PassengerHelpers.GetPassengerPrice(stopover, dest2)*GeneralHelpers.ClassToPriceFactor(aClass.Type);
+
+                    foreach (RouteFacility facility in aClass.GetFacilities())
+                        routeLegOne.GetRouteCoachClass(aClass.Type).AddFacility(facility);
+
+                    routeLegOne.GetRouteCoachClass(aClass.Type).Seating = aClass.Seating;
+                }
+
+                stopoverRoute.AddLeg(routeLegOne);
+            }
 
             return stopoverRoute;
         }

@@ -43,20 +43,6 @@
     <capacity passengers="57" drivers="1" attendants="0" maxclasses="2" />
     <produced from="2002" to="2199" rate="40" />
   </coach>
-  <coach type="Cargo" manufacturer="MCI" name="MCI 102DL3 Courier" image="MCI 102DL3 Courier" price="35482">
-    <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
-    <specs wingspan="2.6" length="13.7" range="2560" speed="100" fuelcapacity="719" consumption="0.0084"
-           baylengthrequired="14" />
-    <capacity drivers="1" cargo="36" />
-    <produced from="1992" to="2005" rate="12" />
-  </coach>
-  <coach type="Cargo" manufacturer="MCI" name="MCI D4505 Express Parcel" image="MCI D4505 Express Parcel" price="70964">
-    <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
-    <specs wingspan="2.6" length="13.7" range="2800" speed="105" fuelcapacity="719" consumption="0.0075"
-           baylengthrequired="14" />
-    <capacity drivers="1" cargo="42" />
-    <produced from="2008" to="2199" rate="12" />
-  </coach>
   <coach manufacturer="MCI" name="MCI MC-5A" image="MCI MC-5A" price="5914">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="10.7" range="1920" speed="95" fuelcapacity="520" consumption="0.0124"

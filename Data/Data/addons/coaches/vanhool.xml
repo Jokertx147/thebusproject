@@ -50,20 +50,6 @@
     <capacity passengers="81" drivers="1" attendants="0" maxclasses="2" />
     <produced from="2015" to="2199" rate="40" />
   </coach>
-  <coach type="Cargo" manufacturer="Van Hool" name="Van Hool T2145 Parcel" image="Van Hool T2145 Parcel" price="37847">
-    <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
-    <specs wingspan="2.6" length="13.7" range="2560" speed="100" fuelcapacity="700" consumption="0.0086"
-           baylengthrequired="14" />
-    <capacity drivers="1" cargo="36" />
-    <produced from="1991" to="2003" rate="12" />
-  </coach>
-  <coach type="Cargo" manufacturer="Van Hool" name="Van Hool CX45 Parcel" image="Van Hool CX45 Parcel" price="68598">
-    <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
-    <specs wingspan="2.6" length="13.7" range="2800" speed="105" fuelcapacity="700" consumption="0.0073"
-           baylengthrequired="14" />
-    <capacity drivers="1" cargo="42" />
-    <produced from="2013" to="2199" rate="12" />
-  </coach>
   <coach manufacturer="Van Hool" name="Van Hool T815 Alizee" image="Van Hool T815 Alizee" price="23654">
     <type body="NarrowBody" rangetype="MediumRange" engine="Diesel" />
     <specs wingspan="2.6" length="12.0" range="2320" speed="100" fuelcapacity="660" consumption="0.0094"
