@@ -23,10 +23,6 @@
       <TextBlock Text="Service" />
       <ComboBox ItemsSource="{Binding Tiers}" SelectedItem="{Binding Tier}" HorizontalAlignment="Stretch" />
     </StackPanel>
-    <StackPanel Spacing="8" IsVisible="{Binding ShowPrice}">
-      <TextBlock Text="Price per unit of cargo" />
-      <TextBox Text="{Binding CargoPrice}" />
-    </StackPanel>
     <TextBlock Text="{Binding CoachLabel}" />
     <ComboBox ItemsSource="{Binding Coaches}" SelectedItem="{Binding SelectedCoach}" HorizontalAlignment="Stretch" />
 

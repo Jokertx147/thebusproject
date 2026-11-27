@@ -106,7 +106,7 @@ namespace TheBusProject.Presentation
 
         public static readonly string[] Figures =
         {
-            "Passengers", "Trips", "Seats filled", "On time", "Cargo", "Income", "Costs", "Operating result", "Cash"
+            "Passengers", "Trips", "Seats filled", "On time", "Income", "Costs", "Operating result", "Cash"
         };
 
         public static readonly string[] LeagueSorts = {"Passengers", "Trips", "Seats filled", "On time", "Operating result", "Fleet"};
@@ -204,7 +204,6 @@ namespace TheBusProject.Presentation
             o.OnTime = (int) s.GetStatisticsValue(year, T("On-Time"));
             o.Passengers = (long) s.GetStatisticsValue(year, T("Passengers"));
             o.Seats = (long) s.GetStatisticsValue(year, T("Capacity"));
-            o.Cargo = s.GetStatisticsValue(year, T("Cargo"));
             return o;
         }
 
@@ -233,7 +232,6 @@ namespace TheBusProject.Presentation
                 case "Trips": return o.Trips;
                 case "Seats filled": return o.Seats > 0 ? o.Load : (double?) null;
                 case "On time": return o.Trips > 0 ? o.OnTimeShare : (double?) null;
-                case "Cargo": return o.Cargo;
                 case "Income":
                 case "Costs":
                 case "Operating result":
@@ -271,8 +269,6 @@ namespace TheBusProject.Presentation
                 case "Seats filled":
                 case "On time":
                     return v => (v*100).ToString("0") + "%";
-                case "Cargo":
-                    return v => Compact(v) + " t";
                 case "Income":
                 case "Costs":
                 case "Operating result":
@@ -294,8 +290,6 @@ namespace TheBusProject.Presentation
                 case "Seats filled":
                 case "On time":
                     return v => (v*100).ToString("0") + "%";
-                case "Cargo":
-                    return v => v.ToString("#,0") + " t";
                 case "Income":
                 case "Costs":
                 case "Operating result":

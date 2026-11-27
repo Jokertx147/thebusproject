@@ -29,8 +29,6 @@ namespace TheBusProject.Models.Stations
             TimeSpan offsetGMT,
             TimeSpan offsetDST,
             Coordinates coordinates,
-            GeneralHelpers.Size cargo,
-            double cargovolume,
             Weather.Season season)
         {
             PaxValues = new List<PaxValue>();
@@ -43,15 +41,13 @@ namespace TheBusProject.Models.Stations
             Type = type;
             Town = town;
             Coordinates = coordinates;
-            CargoVolume = cargovolume;
             MajorDestionations = new Dictionary<string, int>();
-            Cargo = cargo;
             Logo = "";
             OffsetDST = offsetDST;
             OffsetGMT = offsetGMT;
             Season = season;
             ID =
-                $"{char.ConvertToUtf32(IATACode, 0):00}-{char.ConvertToUtf32(IATACode, 1):00}-{char.ConvertToUtf32(IATACode, 2):00}-{name.Length:00}-{char.ConvertToUtf32(Name, Name.Length/2):00}-{(int) Cargo:00}";
+                $"{char.ConvertToUtf32(IATACode, 0):00}-{char.ConvertToUtf32(IATACode, 1):00}-{char.ConvertToUtf32(IATACode, 2):00}-{name.Length:00}-{char.ConvertToUtf32(Name, Name.Length/2):00}";
         }
 
         private StationProfile(SerializationInfo info, StreamingContext ctxt) : base(info, ctxt)
@@ -81,12 +77,6 @@ namespace TheBusProject.Models.Stations
 
         [Versioning("expansions")]
         public List<StationExpansion> Expansions { get; set; }
-
-        [Versioning("cargo")]
-        public GeneralHelpers.Size Cargo { get; set; }
-
-        [Versioning("cargovolume")]
-        public double CargoVolume { get; set; }
 
         [Versioning("coordinates")]
         public Coordinates Coordinates { get; set; }

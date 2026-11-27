@@ -272,7 +272,7 @@ namespace TheBusProject.Helpers
         }
 
         /// <summary>
-        ///     The types that can replace the old one: the same kind (passenger, cargo, helicopter), idle in the fleet, on the
+        ///     The types that can replace the old one: idle in the fleet, on the
         ///     market, or built new now. With how many are idle and for sale, and the price new.
         /// </summary>
         /// <summary>

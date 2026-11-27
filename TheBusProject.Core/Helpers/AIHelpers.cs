@@ -344,25 +344,6 @@ namespace TheBusProject.Helpers
             return timeTable;
         }
 
-        public static void CreateCargoRouteTimeTable(Route route, FleetCoach coach)
-        {
-            TimeSpan routeTripTime =
-                MathHelpers.GetTripTime(
-                    route.Destination1.Profile.Coordinates.ConvertToGeoCoordinate(),
-                    route.Destination2.Profile.Coordinates.ConvertToGeoCoordinate(),
-                    coach.Coach.Type);
-            TimeSpan minTripTime =
-                routeTripTime.Add(new TimeSpan(FleetCoachHelpers.GetMinTimeBetweenTrips(coach).Ticks));
-
-            const int maxHours = 20 - 8; //from 08.00 to 20.00
-
-            int tripsPerDay = Convert.ToInt16(maxHours*60/(2*minTripTime.TotalMinutes));
-
-            string tripCode1 = coach.Coach.Carrier.GetNextTripCode(0);
-            string tripCode2 = coach.Coach.Carrier.GetNextTripCode(1);
-
-            route.TimeTable = CreateCoachRouteTimeTable(route, coach, tripsPerDay, tripCode1, tripCode2);
-        }
 
         public static bool CreateRouteTimeTable(Route route, List<FleetCoach> coaches)
         {
@@ -813,12 +794,6 @@ namespace TheBusProject.Helpers
             }
 
             return null;
-        }
-
-        public static bool IsCargoRouteDestinationsCorrect(Station dest1, Station dest2, Carrier carrier)
-        {
-            return dest1.GetStationFacility(carrier, StationFacility.FacilityType.Cargo, true).TypeLevel > 0
-                   && dest2.GetStationFacility(carrier, StationFacility.FacilityType.Cargo, true).TypeLevel > 0;
         }
 
         public static bool IsRouteInCorrectArea(Station dest1, Station dest2)
@@ -1865,10 +1840,6 @@ namespace TheBusProject.Helpers
                         StationFacility checkinFacility =
                             StationFacilities.GetFacilities(StationFacility.FacilityType.CheckIn)
                                              .Find(f => f.TypeLevel == 1);
-                        StationFacility cargoTerminal =
-                            StationFacilities.GetFacilities(StationFacility.FacilityType.Cargo)
-                                             .Find(f => f.TypeLevel > 0);
-
                         /*
                         if (destination.getStationFacility(carrier, StationFacility.FacilityType.CheckIn).TypeLevel == 0)
                         {

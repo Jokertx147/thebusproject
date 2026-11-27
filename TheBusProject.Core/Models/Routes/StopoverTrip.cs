@@ -20,7 +20,6 @@ namespace TheBusProject.Models.Routes
         {
             CurrentTrip = 0;
             AllClasses = new Dictionary<RouteTimeTableEntry, List<TripCoachClass>>();
-            AllCargo = new Dictionary<RouteTimeTableEntry, double>();
 
             List<Route> legs = entry.TimeTable.Route.Stopovers.SelectMany(s => s.Legs).ToList();
 
@@ -60,8 +59,6 @@ namespace TheBusProject.Models.Routes
 
         #region Public Properties
 
-        [Versioning("allcargo")]
-        public Dictionary<RouteTimeTableEntry, double> AllCargo { get; set; }
 
         [Versioning("allclasses")]
         public Dictionary<RouteTimeTableEntry, List<TripCoachClass>> AllClasses { get; set; }
@@ -69,7 +66,7 @@ namespace TheBusProject.Models.Routes
         [Versioning("currenttrip")]
         public int CurrentTrip { get; set; }
 
-        public bool IsLastTrip => CurrentTrip == Math.Max(AllClasses.Keys.Count, AllCargo.Keys.Count);
+        public bool IsLastTrip => CurrentTrip == AllClasses.Keys.Count;
 
         #endregion
 

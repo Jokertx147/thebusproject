@@ -23,7 +23,7 @@ namespace TheBusProject.Models.Stations
             }
         }
 
-        public static void Set(Station origin, Station destination, bool cargo, int value)
+        public static void Set(Station origin, Station destination, int value)
         {
             if (origin?.Profile == null || destination?.Profile == null)
             {
@@ -32,7 +32,7 @@ namespace TheBusProject.Models.Stations
 
             lock (Lock)
             {
-                Values[Key(origin.Profile.IATACode, destination.Profile.IATACode, cargo)] = value;
+                Values[Key(origin.Profile.IATACode, destination.Profile.IATACode)] = value;
             }
         }
 
@@ -98,20 +98,20 @@ namespace TheBusProject.Models.Stations
 
                 ushort rate = (ushort) Math.Max(0, Math.Min(ushort.MaxValue, edit.Value));
 
+                // "C" was a cargo edit, from before cargo was taken out of the game: left where it is,
+                // and ignored.
                 if (parts[2] == "C")
                 {
-                    origin.Statics.SetCargoDemand(destination, rate);
+                    continue;
                 }
-                else
-                {
-                    origin.Statics.SetPassengerDemand(destination, rate);
-                }
+
+                origin.Statics.SetPassengerDemand(destination, rate);
             }
         }
 
-        private static string Key(string origin, string destination, bool cargo)
+        private static string Key(string origin, string destination)
         {
-            return origin + "|" + destination + "|" + (cargo ? "C" : "P");
+            return origin + "|" + destination + "|P";
         }
     }
 }

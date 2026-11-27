@@ -183,7 +183,7 @@ namespace TheBusProject.Helpers
 
         /// <summary>
         ///     Finds a spare for a heavy check: an coach of the same carrier that is delivered, has no routes, is not grounded or
-        ///     covering another one, is the same kind (passenger or cargo) and can fly the longest route. The closest in size wins.
+        ///     covering another one and can fly the longest route. The closest in size wins.
         /// </summary>
         public static FleetCoach FindSpare(FleetCoach f)
         {

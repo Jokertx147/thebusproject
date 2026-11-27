@@ -10,7 +10,7 @@ using TheBusProject.Models.Routes;
 namespace TheBusProject.Helpers
 {
     /// <summary>
-    ///     Every carrier's routes by station pair, so the passenger and cargo calculation for one trip doesn't have to
+    ///     Every carrier's routes by station pair, so the passenger calculation for one trip doesn't have to
     ///     look through all routes of all carriers. Rebuilt when a route is added or removed, a stopover changes, or the
     ///     day changes.
     /// </summary>

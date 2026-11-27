@@ -67,9 +67,7 @@ namespace TheBusProject.Models.Stations
 
             SelfCheck,
 
-            TicketOffice,
-
-            Cargo
+            TicketOffice
         }
 
         #endregion

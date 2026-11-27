@@ -34,7 +34,6 @@ namespace TheBusProject.Models.General
             int carrierSecurity = 0,
             int empHappiness = 0,
             double paxDemand = 1,
-            double cargoDemand = 1,
             int length = 1)
         {
             DateOccurred = GameObject.GetInstance().GameTime;
@@ -44,7 +43,6 @@ namespace TheBusProject.Models.General
             EmployeeHappinessEffect = empHappiness;
             FinancialPenalty = 0;
             PaxDemandEffect = paxDemand;
-            CargoDemandEffect = cargoDemand;
             EffectLength = length;
             CriticalEvent = critical;
             EventName = name;
@@ -105,7 +103,6 @@ namespace TheBusProject.Models.General
         [Versioning("station")]
         public Station Station { get; set; }
 
-        public double CargoDemandEffect { get; set; }
 
         [Versioning("country")]
         public Country Country { get; set; }

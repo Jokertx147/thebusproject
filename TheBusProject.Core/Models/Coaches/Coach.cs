@@ -45,18 +45,13 @@ namespace TheBusProject.Models.Coaches
 
             Classes = new List<CoachClass>();
 
-            // Everything that carries passengers gets a cabin: an coach, a helicopter, and a combi, which carries
-            // cargo as well. All three are an CoachPassengerType. Helicopters and combis used to be left with no
-            // cabin at all, and an coach with no cabin cannot be asked which cabin a passenger sits in, so flying
-            // one threw as soon as its passengers were counted.
-            if (Type.TypeCoach == CoachType.TypeOfCoach.Passenger)
-            {
-                var aClass = new CoachClass(
-                    CoachClass.ClassType.EconomyClass,
-                    ((CoachPassengerType) Type).MaxSeatingCapacity);
-                aClass.CreateBasicFacilities(Carrier);
-                Classes.Add(aClass);
-            }
+            // Every coach gets a cabin. One with no cabin cannot be asked which cabin a passenger sits in, so
+            // running it threw as soon as its passengers were counted.
+            var aClass = new CoachClass(
+                CoachClass.ClassType.EconomyClass,
+                ((CoachPassengerType) Type).MaxSeatingCapacity);
+            aClass.CreateBasicFacilities(Carrier);
+            Classes.Add(aClass);
 
         }
 
@@ -117,15 +112,8 @@ namespace TheBusProject.Models.Coaches
         {
             get
             {
-                if (Type.TypeCoach == CoachType.TypeOfCoach.Passenger)
-                {
-                    return
-                        $"{GetSeatingCapacity(CoachClass.ClassType.FirstClass)}F | {GetSeatingCapacity(CoachClass.ClassType.BusinessClass)}C | {GetSeatingCapacity(CoachClass.ClassType.EconomyClass)}Y";
-                }
-
-
                 return
-                    $"{GetSeatingCapacity(CoachClass.ClassType.FirstClass)}F | {GetSeatingCapacity(CoachClass.ClassType.BusinessClass)}C | {GetSeatingCapacity(CoachClass.ClassType.EconomyClass)}Y | {GetCargoCapacity()} t";
+                    $"{GetSeatingCapacity(CoachClass.ClassType.FirstClass)}F | {GetSeatingCapacity(CoachClass.ClassType.BusinessClass)}C | {GetSeatingCapacity(CoachClass.ClassType.EconomyClass)}Y";
             }
         }
 
@@ -254,12 +242,6 @@ namespace TheBusProject.Models.Coaches
             return Classes.Count > 0 ? Classes[0] : null;
         }
 
-        public double GetCargoCapacity()
-        {
-
-
-            return 0;
-        }
 
         public long GetLeasingPrice()
         {

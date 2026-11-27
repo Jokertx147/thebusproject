@@ -35,7 +35,6 @@ namespace TheBusProject.Desktop.Views
         // blue shows at both its edges.
         private static readonly Pen RouteCasing = new Pen(new SolidColorBrush(Color.FromArgb(105, 255, 252, 245)), 3.6);
         private static readonly Pen RoutePen = new Pen(new SolidColorBrush(Color.FromArgb(255, 170, 20, 55)), 1.5);
-        private static readonly Pen CargoPen = new Pen(new SolidColorBrush(Color.FromArgb(170, 220, 120, 0)), 1.4, new DashStyle(new double[] { 4, 3 }, 0));
         private static readonly IBrush StationBrush = new SolidColorBrush(Color.Parse("#1d3f8a"));
         private static readonly IBrush HubBrush = new SolidColorBrush(Color.Parse("#c01818"));
         private static readonly IBrush FlyBrush = new SolidColorBrush(Color.Parse("#e8a800"));
@@ -71,7 +70,7 @@ namespace TheBusProject.Desktop.Views
         private static Pen PenFor(MapLine line)
         {
             if (line.Color == null) return RoutePen;
-            string key = line.Color + line.IsCargo;
+            string key = line.Color;
             lock (RivalPens)
             {
                 Pen p;
@@ -79,7 +78,7 @@ namespace TheBusProject.Desktop.Views
                 {
                     var c = Color.Parse(line.Color);
                     var brush = new SolidColorBrush(Color.FromArgb(160, c.R, c.G, c.B));
-                    RivalPens[key] = p = line.IsCargo ? new Pen(brush, 1.2, new DashStyle(new double[] {4, 3}, 0)) : new Pen(brush, 1.2);
+                    RivalPens[key] = p = new Pen(brush, 1.2);
                 }
                 return p;
             }
@@ -328,7 +327,7 @@ namespace TheBusProject.Desktop.Views
                     {
                         Pen pen;
                         if (!_routePen.TryGetValue(geo, out pen)) continue;
-                        bool isRival = pen != RoutePen && pen != CargoPen;
+                        bool isRival = pen != RoutePen;
                         if (isRival != rivals) continue;
                         if (pen == RoutePen) ctx.DrawGeometry(null, RouteCasing, geo);
                         ctx.DrawGeometry(null, pen, geo);

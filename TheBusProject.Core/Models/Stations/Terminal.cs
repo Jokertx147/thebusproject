@@ -50,7 +50,6 @@ namespace TheBusProject.Models.Stations
 
         public enum TerminalType
         {
-            Cargo,
             Passenger
         }
 
@@ -265,7 +264,7 @@ namespace TheBusProject.Models.Stations
 
         public int GetFreeGates()
         {
-            return GetFreeGates(Terminal.TerminalType.Cargo) + GetFreeGates(Terminal.TerminalType.Passenger);
+            return GetFreeGates(Terminal.TerminalType.Passenger);
         }
 
         public int GetFreeGates(Terminal.TerminalType type)
@@ -347,7 +346,7 @@ namespace TheBusProject.Models.Stations
 
         public int GetNumberOfGates()
         {
-            return GetNumberOfGates(Terminal.TerminalType.Passenger) + GetNumberOfGates(Terminal.TerminalType.Cargo);
+            return GetNumberOfGates(Terminal.TerminalType.Passenger);
         }
 
         //returns the number of gates for an carrier

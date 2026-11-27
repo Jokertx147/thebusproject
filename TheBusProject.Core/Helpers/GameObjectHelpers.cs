@@ -717,7 +717,6 @@ namespace TheBusProject.Helpers
         private static void ClearAllUsedStats()
         {
             Stations.GetAllStations().ForEach(a => a.ClearDestinationPassengerStatistics());
-            Stations.GetAllStations().ForEach(a => a.ClearDestinationCargoStatistics());
             CarrierHelpers.ClearRoutesStatistics();
             TripStatistics.PruneStationStatistics();
         }
@@ -844,7 +843,6 @@ namespace TheBusProject.Helpers
 
             //Clearing stats as an RAM work-a-round
             Stations.GetAllStations().ForEach(a => a.ClearDestinationPassengerStatistics());
-            Stations.GetAllStations().ForEach(a => a.ClearDestinationCargoStatistics());
 
             List<Carrier> humanCarriers = Carriers.GetCarriers(a => a.IsHuman);
 

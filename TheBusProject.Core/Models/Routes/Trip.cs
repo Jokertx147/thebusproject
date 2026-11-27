@@ -54,8 +54,6 @@ namespace TheBusProject.Models.Routes
         [Versioning("coach")]
         public FleetCoach Coach { get; set; }
 
-        [Versioning("cargo")]
-        public double Cargo { get; set; }
 
         [Versioning("classes")]
         public List<TripCoachClass> Classes { get; set; }

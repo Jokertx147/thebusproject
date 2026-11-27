@@ -42,7 +42,7 @@ namespace TheBusProject.Presentation
             "Profit, last 12 months", "Profit, last month", "Loss first", "Profit per trip", "Load factor", "Fare against the market", "Name"
         };
 
-        public List<string> ShowChoices { get; } = new List<string> {"All routes", "Losing money", "Passenger routes", "Cargo routes", "No coach"};
+        public List<string> ShowChoices { get; } = new List<string> {"All routes", "Losing money", "No coach"};
 
         public string SortBy
         {

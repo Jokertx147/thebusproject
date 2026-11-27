@@ -24,7 +24,6 @@ namespace TheBusProject.Helpers
         public string CancelReason { get; set; }
         public int Passengers { get; set; }
         public int Seats { get; set; }
-        public double Cargo { get; set; }
         public double Income { get; set; }
 
         /// <summary>Income less the trip's own costs (fuel, fees, crew, handling, maintenance, sales), before ownership.</summary>
@@ -73,15 +72,8 @@ namespace TheBusProject.Helpers
                 };
                 f.DelayMinutes = Math.Max(0, (int) Math.Round((trip.TripTime - trip.ScheduledTripTime).TotalMinutes));
                 if (trip.ScheduledTripTime == default(DateTime)) f.DelayMinutes = 0;
-                if (trip.IsPassengerTrip())
-                {
-                    f.Passengers = trip.GetTotalPassengers();
-                    f.Seats = coach.Coach.GetTotalSeatCapacity();
-                }
-                else
-                {
-                    f.Cargo = trip.Cargo;
-                }
+                f.Passengers = trip.GetTotalPassengers();
+                f.Seats = coach.Coach.GetTotalSeatCapacity();
                 Add(coach, f);
                 CarrierReportService.Flown(coach, f, trip.Entry.TimeTable?.Route);
             }

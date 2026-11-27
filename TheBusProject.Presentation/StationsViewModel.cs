@@ -177,7 +177,7 @@ namespace TheBusProject.Presentation
             {
                 if (SetProperty(ref _selectedDestination, value) && value != null && _selected != null && value.Station != _selected.Station)
                 {
-                    Create = new CreateRouteViewModel(_selected.Station, value.Station, OnCreateDone, false);
+                    Create = new CreateRouteViewModel(_selected.Station, value.Station, OnCreateDone);
                 }
             }
         }
@@ -249,7 +249,7 @@ namespace TheBusProject.Presentation
             {
                 if (SetProperty(ref _selectedAdvice, value) && value != null && _selected != null)
                 {
-                    Create = new CreateRouteViewModel(_selected.Station, value.Destination, OnCreateDone, false);
+                    Create = new CreateRouteViewModel(_selected.Station, value.Destination, OnCreateDone);
                 }
             }
         }
@@ -288,7 +288,7 @@ namespace TheBusProject.Presentation
         {
             var item = Stations.FirstOrDefault(a => a.Station == from);
             if (item != null) Selected = item;
-            Create = new CreateRouteViewModel(from, to, OnCreateDone, false);
+            Create = new CreateRouteViewModel(from, to, OnCreateDone);
         }
 
         private void OnCreateDone(string message)

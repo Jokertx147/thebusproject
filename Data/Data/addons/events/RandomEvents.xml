@@ -11,7 +11,7 @@ messagebox. Important "no" should go to mail. Money is the cost of fixing the da
          frequency="8" important="false">
     <effects duration="1" customerHappiness="-5" employeeHappiness="0" carrierSecurity="0" coachDamage="-5"
              carrierSafety="0" financial="-100000" />
-    <demand passenger="0.97" cargo="1.00" />
+    <demand passenger="0.97" />
     <valid from="1/1/1960" to="1/1/2199" />
   </event>
 </events>

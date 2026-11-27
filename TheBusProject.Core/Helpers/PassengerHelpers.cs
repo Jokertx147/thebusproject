@@ -20,9 +20,6 @@ namespace TheBusProject.Helpers
     {
         #region Static Fields
 
-        private static readonly Dictionary<GeneralHelpers.Size, double> CargoFactors =
-            new Dictionary<GeneralHelpers.Size, double>();
-
         private static readonly Dictionary<Carrier, double> HappinessPercent = new Dictionary<Carrier, double>();
 
         // Random.Shared is safe to use from the parallel carrier threads (a shared new Random() is not)
@@ -119,19 +116,6 @@ namespace TheBusProject.Helpers
         public static void CreateCarrierDestinationDemand()
         {
             Stations.CountSizes();
-            //sets up the factors if they are not already setted up
-
-            if (CargoFactors.Count == 0)
-            {
-                CargoFactors.Add(GeneralHelpers.Size.Largest, 0.23);
-                CargoFactors.Add(GeneralHelpers.Size.VeryLarge, 0.23);
-                CargoFactors.Add(GeneralHelpers.Size.Large, 0.23);
-                CargoFactors.Add(GeneralHelpers.Size.Medium, 0.23);
-                CargoFactors.Add(GeneralHelpers.Size.Small, 0.23);
-                CargoFactors.Add(GeneralHelpers.Size.VerySmall, 0.23);
-                CargoFactors.Add(GeneralHelpers.Size.Smallest, 0.23);
-            }
-
             IEnumerable<Station> stations = Carriers.GetAllCarriers().SelectMany(a => a.Stations);
 
             foreach (Station station in stations)
@@ -148,7 +132,6 @@ namespace TheBusProject.Helpers
                     {
                         CreateDestinationPassengers(station, dStation);
 
-                        CreateDestinationCargo(station, dStation);
                     }
                 } //);
                 if (station.Statics.GetDestinationPassengersSum() == 0)
@@ -176,39 +159,6 @@ namespace TheBusProject.Helpers
             }
         }
 
-        public static void CreateDestinationCargo(Station station, Station dStation)
-        {
-            //origin station out
-            double originMassPerDay = GetStationCargoMass(station)/2;
-            double originDemand = (originMassPerDay*CargoFactors[dStation.Profile.Cargo])
-                                  /Stations.CargoStationsSizes[dStation.Profile.Cargo];
-            //destination station in
-            double destinationMassPerDay = GetStationCargoMass(dStation)/2;
-            double destinationDemand = (destinationMassPerDay*CargoFactors[station.Profile.Cargo])
-                                       /Stations.CargoStationsSizes[station.Profile.Cargo];
-
-            double distance = MathHelpers.GetDistance(station, dStation);
-
-            double distanceFactor = distance > 5000 ? 1 : 0.5;
-            double sameCountryFactor = station.Profile.Country == dStation.Profile.Country ? 0.75 : 1;
-            double sameRegionFactor = sameCountryFactor.Equals(1)
-                                      && station.Profile.Country.Region == dStation.Profile.Country.Region
-                                          ? 0.5
-                                          : 1;
-
-            double minMass = Math.Min(originMassPerDay, destinationMassPerDay);
-
-            double volume = minMass/distanceFactor;
-            volume = volume/sameCountryFactor;
-            volume = volume/sameRegionFactor;
-            //converts to pounds of cargo
-            volume *= 35.1;
-
-            if (volume >= 1)
-            {
-                station.AddDestinationCargoRate(new DestinationDemand(dStation.Profile.IATACode, (ushort) volume));
-            }
-        }
 
         /// <summary>
         ///     Makes every station's demand again (as loading a game does): on a new year, so the year's growth is the same
@@ -227,17 +177,6 @@ namespace TheBusProject.Helpers
         public static void CreateDestinationDemand()
         {
             Stations.CountSizes();
-            if (CargoFactors.Count == 0)
-            {
-                CargoFactors.Add(GeneralHelpers.Size.Largest, 0.23);
-                CargoFactors.Add(GeneralHelpers.Size.VeryLarge, 0.23);
-                CargoFactors.Add(GeneralHelpers.Size.Large, 0.23);
-                CargoFactors.Add(GeneralHelpers.Size.Medium, 0.23);
-                CargoFactors.Add(GeneralHelpers.Size.Small, 0.23);
-                CargoFactors.Add(GeneralHelpers.Size.VerySmall, 0.23);
-                CargoFactors.Add(GeneralHelpers.Size.Smallest, 0.23);
-            }
-
             List<Station> stations = Stations.GetAllStations(a => a.Statics.GetDestinationPassengersSum() == 0);
             int count = stations.Count;
             // the stations whose demand was made before (the carriers' stations, at the start of a game): they have
@@ -263,7 +202,6 @@ namespace TheBusProject.Helpers
                             if (km > 50)
                             {
                                 CreateDestinationPassengers(stations[i], before[k]);
-                                CreateDestinationCargo(stations[i], before[k]);
                             }
                         }
 
@@ -280,8 +218,6 @@ namespace TheBusProject.Helpers
                                         CreateDestinationPassengers(stations[j], stations[i]);
                                         CreateDestinationPassengers(stations[i], stations[j]);
 
-                                        CreateDestinationCargo(stations[j], stations[i]);
-                                        CreateDestinationCargo(stations[i], stations[j]);
                                     }
                                 }
 
@@ -3326,53 +3262,6 @@ namespace TheBusProject.Helpers
             return Math.Min(coach.Coach.GetCoachClass(type).SeatingCapacity, passengers);
         }
 
-        public static void SetCargoSize()
-        {
-            List<Station> stations = Stations.GetAllActiveStations();
-
-            foreach (Station station in stations)
-            {
-                var volume = (int) station.Profile.CargoVolume;
-                if (volume < 200)
-                {
-                    station.Profile.Cargo = GeneralHelpers.Size.Smallest;
-                    break;
-                }
-
-                if (volume < 400)
-                {
-                    station.Profile.Cargo = GeneralHelpers.Size.VerySmall;
-                    break;
-                }
-                if (volume < 750)
-                {
-                    station.Profile.Cargo = GeneralHelpers.Size.Small;
-                    break;
-                }
-                if (volume < 1500)
-                {
-                    station.Profile.Cargo = GeneralHelpers.Size.Medium;
-                    break;
-                }
-
-                if (volume < 2500)
-                {
-                    station.Profile.Cargo = GeneralHelpers.Size.Large;
-                    break;
-                }
-
-                if (volume > 2500)
-                {
-                    station.Profile.Cargo = GeneralHelpers.Size.VeryLarge;
-                    break;
-                }
-                if (volume > 4500)
-                {
-                    station.Profile.Cargo = GeneralHelpers.Size.Largest;
-                    break;
-                }
-            }
-        }
 
         public static void SetPassengerHappiness(Carrier carrier, double value)
         {
@@ -3422,32 +3311,7 @@ namespace TheBusProject.Helpers
 
         //creates the station destination passengers a destination
 
-        //returns the cargo mass per day for an station
-        private static double GetStationCargoMass(Station station)
-        {
-            //density cargo 3000 kg/cu m.
-            //1 cu m. vejer 3000 kg. eller 3.0 metric ton
 
-            /*--------------------READ THE TWO LINES BELOW --- VERY USEFUL ----------------*/
-
-            //for reference, most commercial coach have capacity of about 5.5(5.3-5.8)lb per cu ft
-            //to convert values to cu meters, multiply the cargo cu footage * 35.3 (194lb/m3 and 88kg/m3 at standard density)
-
-            //total cargo volume from/to station in tonnes
-            double totalCargoVolume = station.Profile.CargoVolume.Equals(0)
-                                          ? ((int) station.Profile.Cargo + 1)*10000
-                                          : station.Profile.CargoVolume*1000; //in metric ton
-            const double cargoDensity = 3000; //kg/cu m
-
-            //in cargo mass
-            double cargoMass = totalCargoVolume/(cargoDensity/1000);
-
-            double cargoMassPerDay = cargoMass/365;
-
-            return cargoMassPerDay;
-        }
-
-        //sets the cargo sizes based on the volume
 
         //returns the demand factor based on the year of playing
         private static double GetDemandYearFactor(int year)

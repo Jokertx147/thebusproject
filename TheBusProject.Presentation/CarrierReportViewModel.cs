@@ -195,11 +195,6 @@ namespace TheBusProject.Presentation
                 Tiles.Add(Tile("Passengers", o.Passengers.ToString("#,0"), o.Passengers, p.Passengers, r.HasPrevious, pm, r.SoFar, v => v.ToString("#,0")));
                 Tiles.Add(Tile("Seats filled", o.Seats > 0 ? (o.Load*100).ToString("0") + "%" : "-", o.Load, p.Load, r.HasPrevious && p.Seats > 0, pm, false, v => (v*100).ToString("0") + "%", true));
             }
-            if (o.CargoCapacity > 0 || p.CargoCapacity > 0)
-            {
-                Tiles.Add(Tile("Cargo", o.Cargo.ToString("#,0") + " t", o.Cargo, p.Cargo, r.HasPrevious, pm, r.SoFar, v => v.ToString("#,0") + " t"));
-                Tiles.Add(Tile("Cargo space filled", o.CargoCapacity > 0 ? (o.CargoLoad*100).ToString("0") + "%" : "-", o.CargoLoad, p.CargoLoad, r.HasPrevious && p.CargoCapacity > 0, pm, false, v => (v*100).ToString("0") + "%", true));
-            }
             Tiles.Add(Tile("On time", o.Trips > 0 ? (o.OnTimeShare*100).ToString("0") + "%" : "-", o.OnTimeShare, p.OnTimeShare, r.HasPrevious && p.Trips > 0, pm, false, v => (v*100).ToString("0") + "%", true));
             Tiles.Add(new ReportTile
             {

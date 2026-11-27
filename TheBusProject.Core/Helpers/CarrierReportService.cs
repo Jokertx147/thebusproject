@@ -17,7 +17,6 @@ namespace TheBusProject.Helpers
         public int Year, Month;
         public int Trips, Cancelled, OnTime;
         public long Passengers, Seats;
-        public double Cargo, CargoCapacity;
 
         /// <summary>Set when the month has ended (then Cash, Fleet and Idle are the month-end figures).</summary>
         public bool Closed;
@@ -28,7 +27,6 @@ namespace TheBusProject.Helpers
         public MonthOps Copy() => (MonthOps) MemberwiseClone();
 
         public double Load => Seats > 0 ? (double) Passengers/Seats : 0;
-        public double CargoLoad => CargoCapacity > 0 ? Cargo/CargoCapacity : 0;
         public double OnTimeShare => Trips > 0 ? (double) OnTime/Trips : 0;
     }
 
@@ -38,7 +36,6 @@ namespace TheBusProject.Helpers
         public string RouteId, Name;
         public int Year, Month, Trips;
         public long Passengers, Seats;
-        public double Cargo, CargoCapacity;
         public double Load => Seats > 0 ? (double) Passengers/Seats : 0;
     }
 
@@ -63,7 +60,7 @@ namespace TheBusProject.Helpers
         public string Name { get; set; }
         public double Profit { get; set; }
 
-        /// <summary>Seats (or cargo space) filled; 0 when it didn't fly.</summary>
+        /// <summary>Seats filled; 0 when it didn't fly.</summary>
         public double Load { get; set; }
 
         public int Trips { get; set; }
@@ -366,7 +363,7 @@ namespace TheBusProject.Helpers
         {
             switch (t)
             {
-                case Invoice.InvoiceType.Tickets: return "Tickets and cargo";
+                case Invoice.InvoiceType.Tickets: return "Tickets";
                 case Invoice.InvoiceType.OnTripIncome: return "In-trip sales";
                 case Invoice.InvoiceType.TripExpenses: return "Fuel, handling and overhead";
                 case Invoice.InvoiceType.Maintenances: return "Maintenance";

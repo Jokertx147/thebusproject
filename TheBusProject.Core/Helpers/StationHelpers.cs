@@ -59,18 +59,9 @@ namespace TheBusProject.Helpers
                 StationFacilities.GetFacilities(StationFacility.FacilityType.TicketOffice).First(f => f.TypeLevel == 1);
             StationFacility serviceFacility =
                 StationFacilities.GetFacilities(StationFacility.FacilityType.Service).First(f => f.TypeLevel == 1);
-            StationFacility cargoTerminal =
-                StationFacilities.GetFacilities(StationFacility.FacilityType.Cargo).Find(f => f.TypeLevel > 0);
 
             if (contract.Type == StationContract.ContractType.FullService)
             {
-                if (
-                    contract.Station.GetCarrierStationFacility(null, StationFacility.FacilityType.Cargo)
-                            .Facility.TypeLevel < cargoTerminal.TypeLevel)
-                {
-                    contract.Station.AddStationFacility(null, cargoTerminal, GameObject.GetInstance().GameTime);
-                }
-
                 if (
                     contract.Station.GetCarrierStationFacility(null, StationFacility.FacilityType.CheckIn)
                             .Facility.TypeLevel < checkinFacility.TypeLevel)

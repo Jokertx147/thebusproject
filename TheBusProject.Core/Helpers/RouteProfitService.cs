@@ -32,7 +32,7 @@ namespace TheBusProject.Helpers
         public int CarriedLastMonth { get; set; }
         public int WeeklyTrips { get; set; }
 
-        /// <summary>The route's price over the market price (economy fare, or cargo rate); 0 when unknown.</summary>
+        /// <summary>The route's price over the market price (economy fare); 0 when unknown.</summary>
         public double FareRatio { get; set; }
 
         public double ProfitPerTrip { get; set; }
@@ -95,7 +95,7 @@ namespace TheBusProject.Helpers
         {
             switch (t)
             {
-                case Invoice.InvoiceType.Tickets: return "Tickets and cargo";
+                case Invoice.InvoiceType.Tickets: return "Tickets";
                 case Invoice.InvoiceType.OnTripIncome: return "In-trip sales";
                 case Invoice.InvoiceType.TripExpenses: return "Fuel, handling and overhead";
                 case Invoice.InvoiceType.Maintenances: return "Maintenance";

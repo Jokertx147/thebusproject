@@ -51,7 +51,7 @@ namespace TheBusProject.Presentation
 
         public List<string> Labels { get; } = new List<string>
         {
-            "Maker", "Kind", "Price new", "Seats / cargo", "Range", "Speed", "Bay needed", "Crew",
+            "Maker", "Kind", "Price new", "Seats", "Range", "Speed", "Bay needed", "Crew",
             "Fuel per seat, 100 km", "In production", "Trip time", "Fuel per full trip", "Fuel per seat", "Other costs per trip", "Can run it?"
         };
 

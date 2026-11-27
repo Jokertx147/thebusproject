@@ -136,7 +136,7 @@ namespace TheBusProject.Helpers
         }
 
         /// <summary>
-        ///     Takes out the unused stations outside the area and builds the passenger and cargo demand again for the
+        ///     Takes out the unused stations outside the area and builds the passenger demand again for the
         ///     stations that are left. Returns how many were taken out. Run it with the clock stopped.
         /// </summary>
         public static int RemoveOutside(GameArea area)

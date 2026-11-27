@@ -353,9 +353,6 @@ static class VmTest
         Console.WriteLine("PART passengers x90k: " + t.ElapsedMilliseconds + " ms");
         TheBusProject.Helpers.Profiler.Enabled = false; Console.Write(TheBusProject.Helpers.Profiler.Report());
         t.Restart();
-        foreach (var a in sample) foreach (var b in sample) if (a != b) TheBusProject.Helpers.PassengerHelpers.CreateDestinationCargo(a, b);
-        Console.WriteLine("PART cargo x90k: " + t.ElapsedMilliseconds + " ms");
-        t.Restart();
         foreach (var a in sample) foreach (var b in sample) x += a.GetDestinationPassengersRate(b, TheBusProject.Models.Coaches.CoachClass.ClassType.EconomyClass);
         Console.WriteLine("PART demand lookup x90k: " + t.ElapsedMilliseconds + " ms");
     }
@@ -948,17 +945,17 @@ static class VmTest
             for (var m = new DateTime(start.Year, start.Month, 1); m <= g.GameTime; m = m.AddMonths(1))
             {
                 var o = TheBusProject.Helpers.CarrierReportService.Ops(a, m.Year, m.Month);
-                ops.Trips += o.Trips; ops.OnTime += o.OnTime; ops.Passengers += o.Passengers; ops.Seats += o.Seats; ops.Cargo += o.Cargo; ops.Cancelled += o.Cancelled;
+                ops.Trips += o.Trips; ops.OnTime += o.OnTime; ops.Passengers += o.Passengers; ops.Seats += o.Seats; ops.Cancelled += o.Cancelled;
             }
             if (ops.Trips == 0) continue;
             var st = a.Statistics;
             double arr = st.GetStatisticsValue(year, T("Arrivals")), dep = st.GetStatisticsValue(year, T("Departures")), pax = st.GetStatisticsValue(year, T("Passengers"));
-            double ontime = st.GetStatisticsValue(year, T("On-Time")), cap = st.GetStatisticsValue(year, T("Capacity")), cargo = st.GetStatisticsValue(year, T("Cargo"));
+            double ontime = st.GetStatisticsValue(year, T("On-Time")), cap = st.GetStatisticsValue(year, T("Capacity"));
             double cancelled = st.GetStatisticsValue(year, T("Cancellations"));
-            Console.WriteLine("  " + a.Profile.IATACode + ": " + arr + " arrivals (" + ops.Trips + " run), " + dep + " departures, " + pax + " passengers (" + ops.Passengers + "), " + ontime + " on time (" + ops.OnTime + "), seats " + cap + ", cargo " + cargo.ToString("0") + ", cancelled " + cancelled + " (" + ops.Cancelled + ")");
+            Console.WriteLine("  " + a.Profile.IATACode + ": " + arr + " arrivals (" + ops.Trips + " run), " + dep + " departures, " + pax + " passengers (" + ops.Passengers + "), " + ontime + " on time (" + ops.OnTime + "), seats " + cap + ", cancelled " + cancelled + " (" + ops.Cancelled + ")");
             if (arr != ops.Trips) fail(a.Profile.IATACode + " arrivals: the game counted " + arr + ", the report recorded " + ops.Trips
                                         + " (" + (ops.Trips - arr) + " lost; the month's end clearing them, or two threads counting at once?)");
-            if (pax != ops.Passengers || Math.Abs(cargo - ops.Cargo) > 1) fail(a.Profile.IATACode + " passengers or cargo");
+            if (pax != ops.Passengers) fail(a.Profile.IATACode + " passengers");
             if (ontime != ops.OnTime) fail(a.Profile.IATACode + " on time: " + ontime + " against " + ops.OnTime);
             if (cancelled != ops.Cancelled) fail(a.Profile.IATACode + " cancellations");
             // A trip counts its departure in the year it leaves and its arrival in the year it gets there, so a
@@ -975,7 +972,7 @@ static class VmTest
             // (the coach's own counts aren't compared: one bought or leased from another carrier this year brings its trips along)
             double otp = TheBusProject.Helpers.TripStatistics.OnTimePercent(a);
             if (otp < 0 || otp > 100 || Math.Abs(otp - 100 * ontime / arr) > 1e-6) fail(a.Profile.IATACode + " on-time share " + otp);
-            // the routes' recent figures (since the month's start): averages within the seats and the cargo space
+            // the routes' recent figures (since the month's start): averages within the seats
             foreach (var r in a.Routes.ToList())
             {
                 if (r is TheBusProject.Models.Routes.PassengerRoute pr)
@@ -1473,7 +1470,7 @@ static class VmTest
             for (var m = new DateTime(start.Year, start.Month, 1); m <= g.GameTime; m = m.AddMonths(1))
             {
                 var o = TheBusProject.Helpers.CarrierReportService.Ops(a, m.Year, m.Month);
-                ops.Trips += o.Trips; ops.Cancelled += o.Cancelled; ops.OnTime += o.OnTime; ops.Passengers += o.Passengers; ops.Seats += o.Seats; ops.Cargo += o.Cargo;
+                ops.Trips += o.Trips; ops.Cancelled += o.Cancelled; ops.OnTime += o.OnTime; ops.Passengers += o.Passengers; ops.Seats += o.Seats;
             }
             var st = a.Statistics;
             Console.WriteLine("  " + a.Profile.IATACode + (a.IsHuman ? " (player)" : "") + " fleet " + a.Fleet.Count + ": recorded " + ops.Trips + " trips, " + ops.Passengers + " pax, " + ops.Cancelled + " cancelled, " + ops.OnTime + " on time");
@@ -1528,7 +1525,7 @@ static class VmTest
         Console.WriteLine("  " + choices + " types with a choice of engines");
         if (gaps > 0 || slower > 0 || changed > 0) fail(gaps + " gaps, " + slower + " engines slowing their coach, " + changed + " standard engines changing their type");
         // every type has more than one engine to pick from. This was a bare "fewer than 40", which passed only
-        // because there happened to be 43 types; removing the four cargo ones broke it without anything being
+        // because there happened to be 43 types; removing the four freight ones broke it without anything being
         // wrong. Counting against the types themselves says what was meant.
         if (choices < types.Count) fail((types.Count - choices) + " of " + types.Count + " types have only one engine to choose from");
 
@@ -2005,7 +2002,7 @@ static class VmTest
         Console.WriteLine("  alerts in 30 days of play: " + rivalNews().Count + " (" + TheBusProject.Helpers.CompetitorService.AlertsSent + " sent, " + TheBusProject.Helpers.CompetitorService.AlertsHeld + " held back)");
         foreach (var n in rivalNews().Take(3)) Console.WriteLine("    " + n.Subject + " | " + n.Body);
         if (rivalNews().Any(n => !(n.ActionObject is TheBusProject.Helpers.RivalLink))) fail("an alert without its link");
-        if (g.NewsBox.GetNews().Any(n => n.Subject.Contains(" cuts fares on ") || n.Subject.Contains(" cuts cargo rates on "))) fail("the old fare cut news is still sent");
+        if (g.NewsBox.GetNews().Any(n => n.Subject.Contains(" cuts fares on "))) fail("the old fare cut news is still sent");
 
         TheBusProject.Helpers.CompetitorService.Clear();
         int before = rivalNews().Count;
@@ -6382,7 +6379,6 @@ static class VmTest
 
             // takeover as subsidiary, and a merge of another carrier
             int fleetBefore = me7.Fleet.Count, routesBefore = me7.Routes.Count;
-            // an carrier of the same kind (a cargo carrier can't merge into a passenger carrier)
             var t2 = cheap.Skip(1).Select(r => r.Carrier).First();
             sh.Selected = sh.Market.First(r => r.Carrier == t2);
             sh.MergeCommand.Execute(null); Console.WriteLine("  ask: " + sh.PendingText); sh.ConfirmCommand.Execute(null);

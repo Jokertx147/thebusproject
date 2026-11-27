@@ -57,11 +57,8 @@ namespace TheBusProject.Helpers
         /// <summary>The places the service calls at on the way, in order. Empty for a non-stop run.</summary>
         public List<Station> Stops { get; set; } = new List<Station>();
 
-        //passenger (the default) or cargo
         public Route.RouteType RouteType { get; set; }
 
-        //the price per unit of cargo (cargo routes only)
-        public double CargoPrice { get; set; }
     }
 
     /// <summary>
@@ -498,18 +495,14 @@ namespace TheBusProject.Helpers
         {
             Carrier carrier = GameObject.GetInstance().HumanCarrier;
             DateTime now = GameObject.GetInstance().GameTime;
-            bool cargo = terminalType == Terminal.TerminalType.Cargo;
-
             int gates = Math.Min(2, GetFreeGates(station, terminalType));
 
-            // a full contract includes the basic facility of the kind (check-in for passengers, cargo for cargo)
+            // a full contract includes the basic check-in facility
             if (contractType == StationContract.ContractType.Full)
             {
-                StationFacility.FacilityType facilityType = cargo
-                    ? StationFacility.FacilityType.Cargo
-                    : StationFacility.FacilityType.CheckIn;
+                StationFacility.FacilityType facilityType = StationFacility.FacilityType.CheckIn;
 
-                if (station.GetStationFacility(carrier, facilityType, cargo).TypeLevel == 0)
+                if (station.GetStationFacility(carrier, facilityType).TypeLevel == 0)
                 {
                     StationFacility basic = StationFacilities.GetFacilities(facilityType).Find(f => f.TypeLevel == 1);
 
@@ -545,8 +538,6 @@ namespace TheBusProject.Helpers
                     return "The distance is too short, or longer than any available coach can run.";
                 case "3002":
                     return "The route is not of an appropriate type for these stations.";
-                case "3003":
-                    return "Both stations need a cargo facility of yours (Stations tab > Facilities), or a Full cargo gate contract, which includes one.";
                 case "3004":
                     return "Your carrier has no license for this route. Buy a higher one under My Carrier > License.";
                 case "3005":

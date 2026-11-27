@@ -244,7 +244,7 @@ namespace TheBusProject.Presentation
         public List<MapLine> Lines { get; private set; } = new List<MapLine>();
         public List<MapCoach> Coach { get; private set; } = new List<MapCoach>();
 
-        /// <summary>Colours for rival carriers, in order (none of them the player's blue, the cargo orange or the coach yellow).</summary>
+        /// <summary>Colours for rival carriers, in order (none of them the player's blue or the coach yellow).</summary>
         public static readonly string[] RivalColors = {"#d62728", "#2ca02c", "#9467bd", "#e377c2", "#17becf", "#8c564b", "#bcbd22", "#3d3d3d"};
 
         /// <summary>The choices of rivals to show; rebuilt once a game day, keeping the choice.</summary>
@@ -555,11 +555,6 @@ namespace TheBusProject.Presentation
                 int free = station.Terminals.GetFreeGates(Terminal.TerminalType.Passenger);
                 int mine = station.GetCarrierContracts(carrier).Where(c => c.TerminalType == Terminal.TerminalType.Passenger).Sum(c => c.NumberOfGates);
                 string gates = "Gates " + total + " (" + free + " free, " + mine + " yours)";
-                int cargo = station.Terminals.GetNumberOfGates(Terminal.TerminalType.Cargo);
-                if (cargo > 0)
-                {
-                    gates += "  |  cargo gates " + cargo + " (" + station.Terminals.GetFreeGates(Terminal.TerminalType.Cargo) + " free)";
-                }
                 sb.AppendLine(gates);
 
                 int year = game.GameTime.Year;

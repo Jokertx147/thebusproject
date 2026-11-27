@@ -559,18 +559,6 @@ namespace TheBusProject.Helpers
                                     targetStation.AddDestinationPassengersRate(
                                         new DestinationDemand(destStation.Profile.IATACode, rate));
 
-                                    if (destinationElement.HasAttribute("cargo"))
-                                    {
-                                        targetStation.AddDestinationCargoRate(
-                                            new DestinationDemand(
-                                                destStation.Profile.IATACode,
-                                                ushort.Parse(destinationElement.Attributes["cargo"].Value)));
-                                        targetStation.AddCargoDestinationStatistics(
-                                            destStation,
-                                            Convert.ToDouble(
-                                                destinationElement.Attributes["cargostats"].Value,
-                                                new CultureInfo("de-DE", false)));
-                                    }
                                 }
                             });
                 }
@@ -1613,8 +1601,7 @@ namespace TheBusProject.Helpers
                 {
                     if (dest != station
                         && (station.HasDestinationPassengersRate(dest)
-                            || station.HasDestinationPassengerStatistics(dest)
-                            || station.HasDestinationCargStatistics(dest)))
+                            || station.HasDestinationPassengerStatistics(dest)))
                     {
                         XmlElement destinationNode = xmlDoc.CreateElement("destination");
                         destinationNode.SetAttribute("id", dest.Profile.IATACode);
@@ -1624,11 +1611,6 @@ namespace TheBusProject.Helpers
                         destinationNode.SetAttribute(
                             "passengers",
                             station.GetDestinationPassengerStatistics(dest).ToString(CultureInfo.InvariantCulture));
-
-                        destinationNode.SetAttribute("cargo", station.GetDestinationCargoRate(dest).ToString(CultureInfo.InvariantCulture));
-                        destinationNode.SetAttribute(
-                            "cargostats",
-                            station.GetDestinationCargoStatistics(dest).ToString(CultureInfo.InvariantCulture));
 
                         destinationsNode.AppendChild(destinationNode);
                     }
@@ -2341,27 +2323,9 @@ namespace TheBusProject.Helpers
                                     stopEntryAllClasses.Add(stopoverEntry, stopoverTripClasses);
                                 }
 
-                                XmlNodeList stopoverCargosList = stopoverNode.SelectNodes("cargos/cargo");
-
-                                var stopEntryAllCargo = new Dictionary<RouteTimeTableEntry, double>();
-
-                                foreach (XmlElement stopoverCargoNode in stopoverCargosList)
-                                {
-                                    RouteTimeTableEntry stopoverEntry =
-                                        carrier.Routes.SelectMany(r => r.TimeTable.Entries)
-                                               .ToList()
-                                               .Find(e => e.ID == stopoverCargoNode.Attributes["id"].Value);
-                                    double cargoValue = Convert.ToDouble(
-                                        stopoverCargoNode.Attributes["value"].Value,
-                                        new CultureInfo("de-DE", false));
-
-                                    stopEntryAllCargo.Add(stopoverEntry, cargoValue);
-                                }
-
                                 var stopoverTrip = new StopoverTrip(rtte)
                                     {
                                         AllClasses = stopEntryAllClasses,
-                                        AllCargo = stopEntryAllCargo,
                                         CurrentTrip = currentStopoverTrip,
                                         TripTime = currentTrip.TripTime,
                                         Classes = currentTrip.Classes

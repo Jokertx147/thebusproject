@@ -36,7 +36,6 @@ namespace TheBusProject.Models.Stations
             Profile = profile;
             Income = 0;
             DestinationPassengers = new List<DestinationDemand>();
-            DestinationCargo = new List<DestinationDemand>();
             _facilities = new List<CarrierStationFacility>();
             Cooperations = new List<Cooperation>();
             Statistics = new StationStatistics();
@@ -45,7 +44,6 @@ namespace TheBusProject.Models.Stations
             Bays = new List<Bay>();
             _hubs = new List<Hub>();
             DestinationPassengerStatistics = new Dictionary<Station, long>();
-            DestinationCargoStatistics = new Dictionary<Station, double>();
             LastExpansionDate = new DateTime(1900, 1, 1);
             Statics = new StationStatics(this);
             CarrierContracts = new List<StationContract>();
@@ -136,21 +134,7 @@ namespace TheBusProject.Models.Stations
 
         #region Properties
 
-        [Versioning("destinationcargo")]
-        private List<DestinationDemand> _destinationCargo;
-        private List<DestinationDemand> DestinationCargo
-        {
-            get { return _destinationCargo ?? (_destinationCargo = new List<DestinationDemand>()); }
-            set { _destinationCargo = value; }
-        }
 
-        [Versioning("cargostatistics")]
-        private Dictionary<Station, double> _destinationCargoStatistics;
-        private Dictionary<Station, double> DestinationCargoStatistics
-        {
-            get { return _destinationCargoStatistics ?? (_destinationCargoStatistics = new Dictionary<Station, double>()); }
-            set { _destinationCargoStatistics = value; }
-        }
 
         [Versioning("passengerstatistics")]
         private Dictionary<Station, long> _destinationPassengerStatistics;
@@ -205,47 +189,13 @@ namespace TheBusProject.Models.Stations
             lock (_facilities) { _facilities.Add(facility); }
         }
 
-        public void AddCargoDestinationStatistics(Station destination, double cargo)
-        {
-            lock (DestinationCargoStatistics)
-            {
-                if (!DestinationCargoStatistics.ContainsKey(destination))
-                {
-                    DestinationCargoStatistics.Add(destination, cargo);
-                }
-                else
-                {
-                    DestinationCargoStatistics[destination] += cargo;
-                }
-            }
-        }
 
         public void AddCooperation(Cooperation cooperation)
         {
             Cooperations.Add(cooperation);
         }
 
-        public void AddDestinationCargoRate(DestinationDemand cargo)
-        {
-            Statics.AddCargoDemand(cargo);
-        }
 
-        public void AddDestinationCargoRate(Station destination, ushort rate)
-        {
-            lock (DestinationCargo)
-            {
-                DestinationDemand destinationCargo = GetDestinationCargoObject(destination);
-
-                if (destinationCargo != null)
-                {
-                    destinationCargo.Rate += rate;
-                }
-                else
-                {
-                    DestinationCargo.Add(new DestinationDemand(destination.Profile.IATACode, rate));
-                }
-            }
-        }
 
         //sets the total (economy) passenger demand to a destination, replacing any earlier value
         public void SetDestinationPassengersDemand(Station destination, int value)
@@ -255,21 +205,10 @@ namespace TheBusProject.Models.Stations
                 DestinationPassengers.RemoveAll(d => d.Destination == destination.Profile.IATACode);
             }
 
-            DemandOverrides.Set(this, destination, false, value);
+            DemandOverrides.Set(this, destination, value);
             Statics.SetPassengerDemand(destination, (ushort) Math.Max(0, Math.Min(ushort.MaxValue, value)));
         }
 
-        //sets the total cargo demand to a destination, replacing any earlier value
-        public void SetDestinationCargoDemand(Station destination, int value)
-        {
-            lock (DestinationCargo)
-            {
-                DestinationCargo.RemoveAll(d => d.Destination == destination.Profile.IATACode);
-            }
-
-            DemandOverrides.Set(this, destination, true, value);
-            Statics.SetCargoDemand(destination, (ushort) Math.Max(0, Math.Min(ushort.MaxValue, value)));
-        }
 
         public void AddDestinationPassengersRate(DestinationDemand passengers)
         {
@@ -342,10 +281,6 @@ namespace TheBusProject.Models.Stations
             }
         }
 
-        public void ClearDestinationCargoStatistics()
-        {
-            DestinationCargoStatistics.Clear();
-        }
 
         public void ClearDestinationPassengerStatistics()
         {
@@ -379,7 +314,6 @@ namespace TheBusProject.Models.Stations
             DateTime now = GameObject.GetInstance().GameTime;
             lock (_facilities)
             {
-                // (only those that count for nothing: the data's "no cargo terminal" adds to the reputation)
                 var lone = _facilities.Where(f => f.Facility != null && f.Facility.TypeLevel == 0 && f.Facility.ServiceLevel == 0 && f.FinishedDate <= now)
                                       .Where(f => _facilities.Count(o => o.Carrier == f.Carrier && o.Facility != null && o.Facility.Type == f.Facility.Type) == 1)
                                       .ToList();
@@ -561,37 +495,10 @@ namespace TheBusProject.Models.Stations
             return facilities.FirstOrDefault();
         }
 
-        public DestinationDemand GetDestinationCargoObject(Station destination)
-        {
-            return DestinationCargo.Find(a => a.Destination == destination.Profile.IATACode);
-        }
 
         //returns the maximum value for the run ways
 
-        //returns the destination cargo for a specific destination
-        public ushort GetDestinationCargoRate(Station destination)
-        {
-            DestinationDemand cargo = DestinationCargo.Find(a => a.Destination == destination.Profile.IATACode);
 
-            if (cargo == null)
-            {
-                return Statics.GetDestinationCargoRate(destination);
-            }
-            return (ushort) (cargo.Rate + Statics.GetDestinationCargoRate(destination));
-        }
-
-        public double GetDestinationCargoStatistics(Station destination)
-        {
-            double cargo = 0;
-            lock (DestinationCargoStatistics)
-            {
-                if (DestinationCargoStatistics.ContainsKey(destination))
-                {
-                    cargo = DestinationCargoStatistics[destination];
-                }
-            }
-            return cargo;
-        }
 
         //adds a passenger rate for a destination
 
@@ -601,7 +508,6 @@ namespace TheBusProject.Models.Stations
             var destinations = new List<DestinationDemand>();
 
             destinations.AddRange(Statics.GetDemands());
-            destinations.AddRange(DestinationCargo);
             destinations.AddRange(DestinationPassengers);
 
             return destinations.Select(d => Stations.GetStation(d.Destination)).Distinct().ToList();
@@ -647,8 +553,6 @@ namespace TheBusProject.Models.Stations
                 (ushort)
                 (Statics.GetDestinationPassengersRate(destination, type) + (ushort) (pax.Rate/classFactor));
         }
-
-        //returns a destination cargo object
 
         //returns the sum of passenger demand
         public int GetDestinationPassengersSum()
@@ -767,10 +671,6 @@ namespace TheBusProject.Models.Stations
             return CarrierContracts.Exists(c => c.Carrier == carrier && c.Type == type);
         }
 
-        public Boolean HasDestinationCargStatistics(Station destination)
-        {
-            return DestinationCargoStatistics.ContainsKey(destination);
-        }
 
         public Boolean HasDestinationPassengerStatistics(Station destination)
         {
@@ -880,9 +780,6 @@ namespace TheBusProject.Models.Stations
     public class Stations
     {
         #region Static Fields
-
-        public static Dictionary<GeneralHelpers.Size, int> CargoStationsSizes =
-            new Dictionary<GeneralHelpers.Size, int>();
 
         public static double LargeStations;
 

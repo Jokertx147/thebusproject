@@ -127,7 +127,7 @@ namespace TheBusProject.Presentation
             private set { SetProperty(ref _carriers, value); }
         }
 
-        /// <summary>What the chosen carrier can fly: passenger carriers fly passenger routes, cargo carriers cargo routes.</summary>
+        /// <summary>What the chosen carrier can run.</summary>
         public string SelectedCarrierKind
         {
             get

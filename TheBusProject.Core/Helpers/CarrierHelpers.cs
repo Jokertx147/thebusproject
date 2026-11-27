@@ -944,8 +944,6 @@ namespace TheBusProject.Helpers
                 throw new Exception("3002");
             if (routeOkStatus == RouteOkStatus.WrongDistance)
                 throw new Exception("3001");
-            if (routeOkStatus == RouteOkStatus.MissingCargo)
-                throw new Exception("3003");
             if (routeOkStatus == RouteOkStatus.Restrictions)
                 throw new Exception("3005");
             if (routeOkStatus == RouteOkStatus.MissingLicense)
@@ -1020,7 +1018,6 @@ namespace TheBusProject.Helpers
         private enum RouteOkStatus
         {
             Ok,
-            MissingCargo,
             WrongDistance,
             AppropriateType,
             Restrictions,

@@ -26,7 +26,6 @@ namespace TheBusProject.Helpers
         public int Year { get; set; }
         public double Trips { get; set; }
         public double Passengers { get; set; }
-        public double Cargo { get; set; }
         public double LoadFactor { get; set; }
     }
 
@@ -85,7 +84,6 @@ namespace TheBusProject.Helpers
                         Year = y,
                         Trips = trips,
                         Passengers = pax,
-                        Cargo = Stat(f, y, "Cargo"),
                         LoadFactor = trips > 0 && seats > 0 ? pax/trips/seats : 0
                     };
                 }).ToList();
@@ -117,7 +115,7 @@ namespace TheBusProject.Helpers
             return TimeSpan.FromHours(km/Math.Max(100, t.CruisingSpeed) + 0.5);
         }
 
-        /// <summary>The fuel cost of one trip with every seat (or all cargo space) filled, at today's average fuel price.</summary>
+        /// <summary>The fuel cost of one trip with every seat filled, at today's average fuel price.</summary>
         public static double FuelPerTrip(CoachType t, double km)
         {
             double price = GameObject.GetInstance().FuelPrice;

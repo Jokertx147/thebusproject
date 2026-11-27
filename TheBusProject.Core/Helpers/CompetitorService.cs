@@ -54,7 +54,7 @@ namespace TheBusProject.Helpers
         public Route Route { get; set; }
         public Carrier Carrier => Route.Carrier;
 
-        /// <summary>Economy fare (passengers) or price per unit (cargo).</summary>
+        /// <summary>Economy fare.</summary>
         public double Fare { get; set; }
 
         /// <summary>Share of seats filled last month (or this month so far); 0 when not known yet.</summary>
@@ -222,7 +222,7 @@ namespace TheBusProject.Helpers
 
         private static readonly Dictionary<string, DateTime> LastAlert = new Dictionary<string, DateTime>();
 
-        // the player's routes on the move's station pair, of the same kind (passenger or cargo)
+        // the player's routes on the move's station pair
         private static List<Route> PlayerRoutesOn(RivalMove m, Carrier human)
         {
             return RouteIndex.Direct(m.A, m.B)
