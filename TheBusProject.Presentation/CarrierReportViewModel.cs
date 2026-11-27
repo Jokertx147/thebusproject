@@ -195,11 +195,6 @@ namespace TheBusProject.Presentation
                 Tiles.Add(Tile("Passengers", o.Passengers.ToString("#,0"), o.Passengers, p.Passengers, r.HasPrevious, pm, r.SoFar, v => v.ToString("#,0")));
                 Tiles.Add(Tile("Seats filled", o.Seats > 0 ? (o.Load*100).ToString("0") + "%" : "-", o.Load, p.Load, r.HasPrevious && p.Seats > 0, pm, false, v => (v*100).ToString("0") + "%", true));
             }
-            if (o.CargoCapacity > 0 || p.CargoCapacity > 0)
-            {
-                Tiles.Add(Tile("Cargo", o.Cargo.ToString("#,0") + " t", o.Cargo, p.Cargo, r.HasPrevious, pm, r.SoFar, v => v.ToString("#,0") + " t"));
-                Tiles.Add(Tile("Cargo space filled", o.CargoCapacity > 0 ? (o.CargoLoad*100).ToString("0") + "%" : "-", o.CargoLoad, p.CargoLoad, r.HasPrevious && p.CargoCapacity > 0, pm, false, v => (v*100).ToString("0") + "%", true));
-            }
             Tiles.Add(Tile("On time", o.Trips > 0 ? (o.OnTimeShare*100).ToString("0") + "%" : "-", o.OnTimeShare, p.OnTimeShare, r.HasPrevious && p.Trips > 0, pm, false, v => (v*100).ToString("0") + "%", true));
             Tiles.Add(new ReportTile
             {
@@ -254,10 +249,10 @@ namespace TheBusProject.Presentation
             ReportRoute rt = x;
             return new ReportLinkRow
             {
-                Title = x.Name + (x.IsCargo ? " (cargo)" : "") + "  " + Signed(x.Profit),
+                Title = x.Name + "  " + Signed(x.Profit),
                 Text = x.Trips == 0
                     ? "no trips recorded"
-                    : string.Format("{0} trips, {1}, {2:0}% full", x.Trips, x.IsCargo ? x.Carried.ToString("#,0") + " t" : x.Carried.ToString("#,0") + " passengers", x.Load*100),
+                    : string.Format("{0} trips, {1} passengers, {2:0}% full", x.Trips, x.Carried.ToString("#,0"), x.Load*100),
                 IsWarning = x.Profit < 0,
                 LinkText = "Open",
                 Command = new RelayCommand(() => _open?.Invoke(new ReportItem {Kind = ReportItemKind.Route, RouteId = rt.RouteId}))

@@ -22,7 +22,7 @@ namespace TheBusProject.Presentation
             Details = string.Format(
                 "{0}  |  {1}  |  range {2}  |  {3}",
                 type.Manufacturer?.Name,
-                type is CoachCargoType ? "cargo " + ((CoachCargoType) type).CargoSize + " units" : Seats + " seats",
+                Seats + " seats",
                 DistanceFormatter.Km(type.Range),
                 Convert.ToString(new ValueCurrencyFormatter().Convert((double) type.Price)));
             // a type not delivered yet can be ordered ahead, as carriers do (the 777 was ordered from 1990, delivered from 1995)
@@ -239,11 +239,7 @@ namespace TheBusProject.Presentation
             DateTime now = GameObject.GetInstance().GameTime;
             _all = CoachTypes.GetTypes(
                                     t => CoachOrderRules.CanOrderNew(t)
-                                         && (t.TypeCoach == CoachType.TypeOfCoach.Passenger
-                                             || t.TypeCoach == CoachType.TypeOfCoach.Mixed
-                                             || t.TypeCoach == CoachType.TypeOfCoach.Cargo)
-                                         // passenger carriers don't buy freighters, cargo carriers buy nothing else
-                                         && CarrierTypeRules.CanUseType(GameObject.GetInstance().HumanCarrier, t))
+                                         && t.TypeCoach == CoachType.TypeOfCoach.Passenger)
                                 .OrderBy(t => t.Manufacturer?.Name)
                                 .ThenBy(t => t.Name)
                                 .Select(t => new NewTypeItem(t))

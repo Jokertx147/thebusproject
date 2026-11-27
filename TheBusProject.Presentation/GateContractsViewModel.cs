@@ -20,7 +20,7 @@ namespace TheBusProject.Presentation
             Title = p.IATACode + "  " + p.Name + ", " + p.Country?.Name;
             Numbers = string.Format(
                 "{0}  |  {1} {2} gate(s)  |  {3}/year  |  {4} route(s)",
-                GateContractService.TypeName(c.Type), c.NumberOfGates, c.TerminalType == Terminal.TerminalType.Cargo ? "cargo" : "passenger",
+                GateContractService.TypeName(c.Type), c.NumberOfGates, "passenger",
                 new ValueCurrencyFormatter().Convert(c.YearlyPayment), GateContractService.RoutesUsing(c));
             Expiry = (c.Terminal != null ? "Your own terminal  |  " : "")
                      + "Ends " + c.ExpireDate.ToShortDateString() + " (" + months + " month(s))"
@@ -54,7 +54,7 @@ namespace TheBusProject.Presentation
         {
             _changed = changed;
             Rows = new ObservableCollection<GateContractRow>();
-            Filters = new List<string> { "All", "Ending within 6 months", "Not renewed", "Passenger", "Cargo" };
+            Filters = new List<string> { "All", "Ending within 6 months", "Not renewed", "Passenger" };
             SortOptions = new List<string> { "Ends first", "Station", "Most expensive", "Most gates" };
             ExtendCommand = new RelayCommand(AskExtend, () => _selected != null);
             AddGatesCommand = new RelayCommand(AskAddGates, () => _selected != null);
@@ -231,7 +231,6 @@ namespace TheBusProject.Presentation
                 case "Ending within 6 months": list = list.Where(c => GateContractService.MonthsLeft(c) <= 6); break;
                 case "Not renewed": list = list.Where(c => !c.AutoRenew); break;
                 case "Passenger": list = list.Where(c => c.TerminalType == Terminal.TerminalType.Passenger); break;
-                case "Cargo": list = list.Where(c => c.TerminalType == Terminal.TerminalType.Cargo); break;
             }
             switch (_sortBy)
             {

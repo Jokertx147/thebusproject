@@ -29,8 +29,6 @@ namespace TheBusProject.Helpers
 
         /// <summary>The fare change as a share (0.92 = 8% cheaper); 0 for routes.</summary>
         public double Factor { get; set; }
-
-        public bool IsCargo { get; set; }
     }
 
     /// <summary>A rival move as a saved game keeps it (the stations by code: they are found again on loading).</summary>
@@ -42,14 +40,12 @@ namespace TheBusProject.Helpers
         public int Kind;
         public string RouteId;
         public double Factor;
-        public bool IsCargo;
     }
 
     /// <summary>What a rival alert in the news points to: the station pair on the competitor screen.</summary>
     public class RivalLink
     {
         public string A, B, Carrier;
-        public bool IsCargo;
     }
 
     /// <summary>A rival's trips on one of the player's station pairs.</summary>
@@ -58,7 +54,7 @@ namespace TheBusProject.Helpers
         public Route Route { get; set; }
         public Carrier Carrier => Route.Carrier;
 
-        /// <summary>Economy fare (passengers) or price per unit (cargo).</summary>
+        /// <summary>Economy fare.</summary>
         public double Fare { get; set; }
 
         /// <summary>Share of seats filled last month (or this month so far); 0 when not known yet.</summary>
@@ -148,7 +144,7 @@ namespace TheBusProject.Helpers
             lock (Log)
             {
                 return Log.Where(m => m.Carrier != null && m.A != null && m.B != null)
-                          .Select(m => new SavedRivalMove {Date = m.Date, Carrier = m.Carrier, A = m.A.Profile.IATACode, B = m.B.Profile.IATACode, Kind = (int) m.Kind, RouteId = m.RouteId, Factor = m.Factor, IsCargo = m.IsCargo})
+                          .Select(m => new SavedRivalMove {Date = m.Date, Carrier = m.Carrier, A = m.A.Profile.IATACode, B = m.B.Profile.IATACode, Kind = (int) m.Kind, RouteId = m.RouteId, Factor = m.Factor})
                           .ToList();
             }
         }
@@ -164,7 +160,7 @@ namespace TheBusProject.Helpers
                 {
                     Station a = Stations.GetStation(m.A), b = Stations.GetStation(m.B);
                     if (m.Carrier == null || a == null || b == null || !Enum.IsDefined(typeof (RivalMoveKind), m.Kind)) continue;
-                    Log.Add(new RivalMove {Date = m.Date, Carrier = m.Carrier, A = a, B = b, Kind = (RivalMoveKind) m.Kind, RouteId = m.RouteId, Factor = m.Factor, IsCargo = m.IsCargo});
+                    Log.Add(new RivalMove {Date = m.Date, Carrier = m.Carrier, A = a, B = b, Kind = (RivalMoveKind) m.Kind, RouteId = m.RouteId, Factor = m.Factor});
                 }
                 if (Log.Count > MaxMoves) Log.RemoveRange(0, Log.Count - MaxMoves);
                 return Log.Count;
@@ -186,7 +182,7 @@ namespace TheBusProject.Helpers
         public static void RecordOpened(Route route)
         {
             if (route?.Carrier == null || route.Carrier.IsHuman) return;
-            var m = new RivalMove {Date = GameObject.GetInstance().GameTime, Carrier = route.Carrier, A = route.Destination1, B = route.Destination2, Kind = RivalMoveKind.Opened, RouteId = route.Id, IsCargo = route.Type == Route.RouteType.Cargo};
+            var m = new RivalMove {Date = GameObject.GetInstance().GameTime, Carrier = route.Carrier, A = route.Destination1, B = route.Destination2, Kind = RivalMoveKind.Opened, RouteId = route.Id};
             Add(m);
             Alert(m, route, 0);
         }
@@ -195,7 +191,7 @@ namespace TheBusProject.Helpers
         public static void RecordDropped(Carrier carrier, Route route)
         {
             if (carrier == null || carrier.IsHuman || route == null) return;
-            var m = new RivalMove {Date = GameObject.GetInstance().GameTime, Carrier = carrier, A = route.Destination1, B = route.Destination2, Kind = RivalMoveKind.Dropped, RouteId = route.Id, IsCargo = route.Type == Route.RouteType.Cargo};
+            var m = new RivalMove {Date = GameObject.GetInstance().GameTime, Carrier = carrier, A = route.Destination1, B = route.Destination2, Kind = RivalMoveKind.Dropped, RouteId = route.Id};
             Add(m);
             Alert(m, route, 0);
         }
@@ -207,7 +203,7 @@ namespace TheBusProject.Helpers
             var m = new RivalMove
             {
                 Date = GameObject.GetInstance().GameTime, Carrier = carrier, A = route.Destination1, B = route.Destination2,
-                Kind = factor < 1 ? RivalMoveKind.FareCut : RivalMoveKind.FareRise, RouteId = route.Id, Factor = factor, IsCargo = route.Type == Route.RouteType.Cargo
+                Kind = factor < 1 ? RivalMoveKind.FareCut : RivalMoveKind.FareRise, RouteId = route.Id, Factor = factor
             };
             Add(m);
             if (m.Kind == RivalMoveKind.FareCut) Alert(m, route, load);
@@ -226,11 +222,11 @@ namespace TheBusProject.Helpers
 
         private static readonly Dictionary<string, DateTime> LastAlert = new Dictionary<string, DateTime>();
 
-        // the player's routes on the move's station pair, of the same kind (passenger or cargo)
+        // the player's routes on the move's station pair
         private static List<Route> PlayerRoutesOn(RivalMove m, Carrier human)
         {
             return RouteIndex.Direct(m.A, m.B)
-                             .Where(r => r.Carrier != null && SameCompany(r.Carrier, human) && (r.Type == Route.RouteType.Cargo) == m.IsCargo && r.Carrier.Routes.Contains(r))
+                             .Where(r => r.Carrier != null && SameCompany(r.Carrier, human) && r.Carrier.Routes.Contains(r))
                              .Distinct().ToList();
         }
 
@@ -249,13 +245,13 @@ namespace TheBusProject.Helpers
                 string body;
                 var f = new ValueCurrencyFormatter();
                 string pair = m.A.Profile.IATACode + "-" + m.B.Profile.IATACode;
-                string what = m.IsCargo ? "cargo rate" : "economy fare";
+                string what = "economy fare";
                 string name = m.Carrier.Profile.Name;
                 switch (m.Kind)
                 {
                     case RivalMoveKind.Opened:
                         body = string.Format("{0} opened a {1} route between {2} and {3}: {4} trips a week with {5}, at {6}. {7}",
-                                             name, m.IsCargo ? "cargo" : "passenger", m.A.Profile.Name, m.B.Profile.Name, route.TimeTable.Entries.Count, CoachOf(route),
+                                             name, "passenger", m.A.Profile.Name, m.B.Profile.Name, route.TimeTable.Entries.Count, CoachOf(route),
                                              Price(f, Fare(route)),
                                              my.TimeTable.Entries.Count == 0 ? "Your route there has no trips yet; your " + what + " is " + Price(f, Fare(my)) + "."
                                                  : "You run it " + my.TimeTable.Entries.Count + " times a week at " + Price(f, Fare(my)) + ".");
@@ -265,11 +261,11 @@ namespace TheBusProject.Helpers
                         if (m.Factor > AlertCut || theirs <= 0 || yours <= 0 || theirs >= yours) return;
                         body = string.Format("{0} cut its {1} on {2} by {3:0}% to {4}, below your {5}.{6}",
                                              name, what, pair, (1 - m.Factor)*100, f.Convert(theirs), f.Convert(yours),
-                                             load > 0 ? string.Format(" Their {0} were {1:0}% full.", m.IsCargo ? "freighters" : "trips", load*100) : "");
+                                             load > 0 ? string.Format(" Their {0} were {1:0}% full.", "trips", load*100) : "");
                         break;
                     case RivalMoveKind.Dropped:
                         int left = RivalRoutes(my).Count;
-                        body = string.Format("{0} gave up its {1} route on {2}. {3}", name, m.IsCargo ? "cargo" : "passenger", pair,
+                        body = string.Format("{0} gave up its {1} route on {2}. {3}", name, "passenger", pair,
                                              left == 0 ? "You run it alone now." : left == 1 ? "One rival still runs it." : left + " rivals still run it.");
                         break;
                     default:
@@ -279,7 +275,7 @@ namespace TheBusProject.Helpers
                 // one alert per rival, station pair and kind of move in a month
                 string a = string.CompareOrdinal(m.A.Profile.IATACode, m.B.Profile.IATACode) <= 0 ? m.A.Profile.IATACode : m.B.Profile.IATACode;
                 string b = a == m.A.Profile.IATACode ? m.B.Profile.IATACode : m.A.Profile.IATACode;
-                string key = m.Carrier.Profile.IATACode + "|" + a + "|" + b + "|" + m.Kind + "|" + m.IsCargo;
+                string key = m.Carrier.Profile.IATACode + "|" + a + "|" + b + "|" + m.Kind;
                 lock (LastAlert)
                 {
                     DateTime last;
@@ -297,7 +293,7 @@ namespace TheBusProject.Helpers
                     : name + " leaves " + pair;
                 var news = new News(News.NewsType.RivalNews, m.Date, subject, body)
                 {
-                    ActionObject = new RivalLink {A = m.A.Profile.IATACode, B = m.B.Profile.IATACode, IsCargo = m.IsCargo, Carrier = name}
+                    ActionObject = new RivalLink {A = m.A.Profile.IATACode, B = m.B.Profile.IATACode, Carrier = name}
                 };
                 lock (game.NewsBox) game.NewsBox.AddNews(news);
             }
@@ -324,7 +320,6 @@ namespace TheBusProject.Helpers
         private static double Fare(Route r)
         {
             if (r is PassengerRoute p) return AIPricingService.EconomyFare(p);
-            if (r is CargoRoute c) return c.PricePerUnit;
             return 0;
         }
 
@@ -352,12 +347,11 @@ namespace TheBusProject.Helpers
             return r.Carrier != null && r.HasCoach && r.Carrier.Routes.Contains(r);
         }
 
-        /// <summary>The other carriers' flying routes on a route's station pair (passenger with passenger, cargo with cargo).</summary>
+        /// <summary>The other carriers' flying routes on a route's station pair.</summary>
         public static List<Route> RivalRoutes(Route mine)
         {
-            bool cargo = mine.Type == Route.RouteType.Cargo;
             return RouteIndex.Direct(mine.Destination1, mine.Destination2)
-                             .Where(r => r != mine && (r.Type == Route.RouteType.Cargo) == cargo && !SameCompany(r.Carrier, mine.Carrier) && Flying(r))
+                             .Where(r => r != mine && !SameCompany(r.Carrier, mine.Carrier) && Flying(r))
                              .Distinct().ToList();
         }
 
@@ -493,7 +487,7 @@ namespace TheBusProject.Helpers
                 {
                     if (r.Carrier == null || SameCompany(r.Carrier, me) || r.StartDate < from || r.StartDate > now || logged.Contains(r.Id)) continue;
                     logged.Add(r.Id);
-                    moves.Add(new RivalMove {Date = r.StartDate, Carrier = r.Carrier, A = r.Destination1, B = r.Destination2, Kind = RivalMoveKind.Opened, RouteId = r.Id, IsCargo = r.Type == Route.RouteType.Cargo});
+                    moves.Add(new RivalMove {Date = r.StartDate, Carrier = r.Carrier, A = r.Destination1, B = r.Destination2, Kind = RivalMoveKind.Opened, RouteId = r.Id});
                 }
             }
             return moves.OrderByDescending(m => m.Date).ToList();

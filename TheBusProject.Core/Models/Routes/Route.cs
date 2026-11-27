@@ -53,15 +53,16 @@ namespace TheBusProject.Models.Routes
 
         #region Enums
 
+        /// <summary>
+        ///     What a route carries. Only passengers, now: the Cargo and Mixed kinds, and the Helicopter kind left
+        ///     over from the airline this was forked from, are gone. Carrying freight is a different game, and the
+        ///     dimension cost something everywhere it was threaded - every switch on this enum, a route class and a
+        ///     coach class of its own, a second demand model on every station, its own terminals, statistics and
+        ///     screens - for a side of the game nothing in a bus simulator needed.
+        /// </summary>
         public enum RouteType
         {
-            Cargo,
-
-            Mixed,
-
-            Passenger,
-
-            Helicopter
+            Passenger
         }
 
         #endregion
@@ -93,7 +94,6 @@ namespace TheBusProject.Models.Routes
         [Versioning("invoices")]
         public Invoices Invoices { get; set; }
 
-        public bool IsCargoRoute => Type == RouteType.Cargo;
 
         /// <summary>
         ///     What a seat on this leg is really worth, against the leg's own fare. A leg of a service carries two

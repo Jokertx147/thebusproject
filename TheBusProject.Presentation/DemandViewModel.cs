@@ -10,20 +10,17 @@ using TheBusProject.Models.General;
 
 namespace TheBusProject.Presentation
 {
-    /// <summary>One destination on the demand page: how many passengers and how much cargo want to go there.</summary>
+    /// <summary>One destination on the demand page: how many passengers want to go there.</summary>
     public class DemandRow : ObservableObject
     {
         private int _passengers;
-        private int _cargo;
 
-        public DemandRow(Station origin, Station destination, int passengers, int cargo, bool domestic)
+        public DemandRow(Station origin, Station destination, int passengers, bool domestic)
         {
             Origin = origin;
             Destination = destination;
             _passengers = passengers;
-            _cargo = cargo;
             OriginalPassengers = passengers;
-            OriginalCargo = cargo;
             IsDomestic = domestic;
             Distance = MathHelpers.GetDistance(origin, destination);
 
@@ -47,9 +44,8 @@ namespace TheBusProject.Presentation
         public bool HasRoute { get; }
         public int FreeGates { get; }
         public int OriginalPassengers { get; }
-        public int OriginalCargo { get; }
 
-        public bool IsChanged => _passengers != OriginalPassengers || _cargo != OriginalCargo;
+        public bool IsChanged => _passengers != OriginalPassengers;
 
         public int Passengers
         {
@@ -65,27 +61,13 @@ namespace TheBusProject.Presentation
             }
         }
 
-        public int Cargo
-        {
-            get { return _cargo; }
-            set
-            {
-                value = Math.Max(0, Math.Min(ushort.MaxValue, value));
-                if (SetProperty(ref _cargo, value))
-                {
-                    Origin.SetDestinationCargoDemand(Destination, value);
-                    Changed();
-                }
-            }
-        }
-
         public string Numbers
         {
             get
             {
                 return string.Format(
-                    "{0} passengers  |  {1} cargo  |  {2}{3}",
-                    _passengers.ToString("N0"), _cargo.ToString("N0"), DistanceFormatter.Km(Distance),
+                    "{0} passengers  |  {1}{2}",
+                    _passengers.ToString("N0"), DistanceFormatter.Km(Distance),
                     IsChanged ? "  |  edited" : "");
             }
         }
@@ -108,7 +90,7 @@ namespace TheBusProject.Presentation
         }
     }
 
-    /// <summary>The station demand page: where people and cargo from one station want to go.</summary>
+    /// <summary>The station demand page: where people from one station want to go.</summary>
     public class DemandViewModel : ObservableObject
     {
         private readonly Action _changed;
@@ -132,7 +114,7 @@ namespace TheBusProject.Presentation
             Stations = new ObservableCollection<StationItem>();
             Rows = new ObservableCollection<DemandRow>();
             Filters = new List<string> { "All", "Domestic", "International" };
-            SortOptions = new List<string> { "Passengers", "Cargo", "Distance", "Name" };
+            SortOptions = new List<string> { "Passengers", "Distance", "Name" };
             ScaleSelectedCommand = new RelayCommand(() => Scale(_selectedRow == null ? new List<DemandRow>() : new List<DemandRow> { _selectedRow }));
             ScaleShownCommand = new RelayCommand(() => Scale(Rows.ToList()));
             UndoCommand = new RelayCommand(Undo);
@@ -364,10 +346,9 @@ namespace TheBusProject.Presentation
             {
                 if (d == null || d == origin || !GeneralHelpers.IsStationActive(d)) continue;
                 int pax = origin.GetDestinationPassengersRate(d, CoachClass.ClassType.EconomyClass);
-                int cargo = origin.GetDestinationCargoRate(d);
-                if (pax == 0 && cargo == 0) continue;
+                if (pax == 0) continue;
                 bool domestic = Equals(resolver.Convert(d.Profile.Country), home);
-                _rows.Add(new DemandRow(origin, d, pax, cargo, domestic));
+                _rows.Add(new DemandRow(origin, d, pax, domestic));
             }
 
             UpdateSummary();
@@ -386,12 +367,12 @@ namespace TheBusProject.Presentation
             var intl = _rows.Where(r => !r.IsDomestic).ToList();
             Summary = string.Format(
                 "{0} {1}  |  {2}, {3}{4}" + Environment.NewLine +
-                "Domestic: {5} destinations, {6} passengers, {7} cargo" + Environment.NewLine +
-                "International: {8} destinations, {9} passengers, {10} cargo",
+                "Domestic: {5} destinations, {6} passengers" + Environment.NewLine +
+                "International: {7} destinations, {8} passengers",
                 p.IATACode, p.Name, TypeName(p.Type), SizeName(p.Size),
                 _rows.Count == 0 ? "" : "",
-                dom.Count, dom.Sum(r => r.Passengers).ToString("N0"), dom.Sum(r => r.Cargo).ToString("N0"),
-                intl.Count, intl.Sum(r => r.Passengers).ToString("N0"), intl.Sum(r => r.Cargo).ToString("N0"));
+                dom.Count, dom.Sum(r => r.Passengers).ToString("N0"),
+                intl.Count, intl.Sum(r => r.Passengers).ToString("N0"));
         }
 
         private void ApplyRows()
@@ -412,10 +393,9 @@ namespace TheBusProject.Presentation
 
             switch (_sortBy)
             {
-                case "Cargo": list = list.OrderByDescending(r => r.Cargo).ThenByDescending(r => r.Passengers); break;
                 case "Distance": list = list.OrderBy(r => r.Distance); break;
                 case "Name": list = list.OrderBy(r => r.Destination.Profile.Name); break;
-                default: list = list.OrderByDescending(r => r.Passengers).ThenByDescending(r => r.Cargo); break;
+                default: list = list.OrderByDescending(r => r.Passengers).ThenBy(r => r.Distance); break;
             }
 
             var keep = _selectedRow;
@@ -439,7 +419,6 @@ namespace TheBusProject.Presentation
             foreach (var r in rows)
             {
                 r.Passengers = (int) Math.Round(r.Passengers * factor);
-                r.Cargo = (int) Math.Round(r.Cargo * factor);
             }
             UpdateSummary();
             Status = string.Format("Changed the demand to {0} destination(s) to {1}%. It is kept in your save.", rows.Count, _scale);
@@ -451,7 +430,6 @@ namespace TheBusProject.Presentation
             foreach (var r in _rows.Where(r => r.IsChanged))
             {
                 r.Passengers = r.OriginalPassengers;
-                r.Cargo = r.OriginalCargo;
                 changed++;
             }
             UpdateSummary();
@@ -461,8 +439,7 @@ namespace TheBusProject.Presentation
         private void OpenCreate()
         {
             if (_selected == null || _selectedRow == null) return;
-            bool cargo = _selectedRow.Passengers == 0 && _selectedRow.Cargo > 0;
-            Create = new CreateRouteViewModel(_selected.Station, _selectedRow.Destination, OnCreateDone, cargo);
+            Create = new CreateRouteViewModel(_selected.Station, _selectedRow.Destination, OnCreateDone);
         }
 
         private void OnCreateDone(string message)

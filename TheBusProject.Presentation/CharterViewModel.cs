@@ -97,7 +97,7 @@ namespace TheBusProject.Presentation
                     Name = o.Title,
                     Terms = string.Format(
                         "{0} {1} for {2}  |  {3} to {4}, {5}  |  pays {6}  |  answer by {7}",
-                        o.Amount, o.IsCargo ? "cargo units" : "passengers", o.Customer, o.From.Profile.Name, o.To.Profile.Name,
+                        o.Amount, "passengers", o.Customer, o.From.Profile.Name, o.To.Profile.Name,
                         DistanceFormatter.Km(o.Distance), Money(o.Fee), DateFormatter.Date(o.Deadline)),
                     Coach = new List<CharterCoachItem>(),
                     DeclineCommand = new RelayCommand(() => { CharterService.Decline(o); Status = "You turned down " + o.Title + "."; Reload(); })
@@ -117,7 +117,7 @@ namespace TheBusProject.Presentation
                 }
                 if (quotes.Count == 0)
                 {
-                    item.NoCoach = "None of your coach can do this: it needs " + (o.IsCargo ? "a cargo coach" : "a passenger coach")
+                    item.NoCoach = "None of your coach can do this: it needs " + ("a passenger coach")
                                       + " without routes, with a full crew, enough room and range.";
                 }
                 Offers.Add(item);

@@ -213,9 +213,7 @@ namespace TheBusProject.Helpers
         private static bool RightKind(CoachType type, Route route)
         {
             CoachType.TypeOfCoach kind = type.TypeCoach;
-            if (route.Type == Route.RouteType.Cargo) return kind == CoachType.TypeOfCoach.Cargo;
-            if (route.Type == Route.RouteType.Helicopter) return kind == CoachType.TypeOfCoach.Helicopter;
-            return kind == CoachType.TypeOfCoach.Passenger || kind == CoachType.TypeOfCoach.Mixed;
+            return kind == CoachType.TypeOfCoach.Passenger;
         }
 
         /// <summary>The coach types in the player's fleet, with how many of each.</summary>
@@ -234,9 +232,7 @@ namespace TheBusProject.Helpers
 
         private static bool KindMatches(CoachType oldType, CoachType t)
         {
-            if (oldType.TypeCoach == CoachType.TypeOfCoach.Cargo) return t.TypeCoach == CoachType.TypeOfCoach.Cargo;
-            if (oldType.TypeCoach == CoachType.TypeOfCoach.Helicopter) return t.TypeCoach == CoachType.TypeOfCoach.Helicopter;
-            return t.TypeCoach == CoachType.TypeOfCoach.Passenger || t.TypeCoach == CoachType.TypeOfCoach.Mixed;
+            return t.TypeCoach == CoachType.TypeOfCoach.Passenger;
         }
 
         /// <summary>Whether the type is built now (can be ordered new), within a manufacturer contract.</summary>
@@ -276,7 +272,7 @@ namespace TheBusProject.Helpers
         }
 
         /// <summary>
-        ///     The types that can replace the old one: the same kind (passenger, cargo, helicopter), idle in the fleet, on the
+        ///     The types that can replace the old one: idle in the fleet, on the
         ///     market, or built new now. With how many are idle and for sale, and the price new.
         /// </summary>
         /// <summary>

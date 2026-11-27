@@ -30,9 +30,7 @@ namespace TheBusProject.Presentation
             Logos = new ObservableCollection<LogoChoice>();
             Focuses = new List<NamedChoice<Route.RouteType>>
             {
-                // an carrier is one or the other; a subsidiary flies the other kind
-                new NamedChoice<Route.RouteType> { Name = "Passenger carrier", Value = Route.RouteType.Passenger },
-                new NamedChoice<Route.RouteType> { Name = "Cargo carrier", Value = Route.RouteType.Cargo }
+                new NamedChoice<Route.RouteType> { Name = "Passenger carrier", Value = Route.RouteType.Passenger }
             };
             SaveCommand = new RelayCommand(Save);
             UndoCommand = new RelayCommand(Reload);
@@ -125,7 +123,7 @@ namespace TheBusProject.Presentation
             CEO = p.CEO;
             Color = p.Color;
             Narrative = p.Narrative;
-            Focus = CarrierTypeRules.IsCargoCarrier(carrier) ? Focuses[1] : Focuses[0];
+            Focus = Focuses[0];
             Info = string.Format(
                 "Code {0}  |  {1}  |  founded {2}  |  the code cannot be changed, the game uses it to find your carrier",
                 p.IATACode, p.Country?.Name, p.Founded);

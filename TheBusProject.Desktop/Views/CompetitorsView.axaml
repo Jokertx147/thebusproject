@@ -11,7 +11,7 @@
         <Button Content="Refresh" Command="{Binding RefreshCommand}" />
       </StackPanel>
       <TextBlock Text="{Binding Summary}" FontWeight="SemiBold" TextWrapping="Wrap" />
-      <TextBlock Text="Fares are economy fares (cargo: the rate per unit). Full is the share of seats filled last month, or this month so far." Opacity="0.6" TextWrapping="Wrap" />
+      <TextBlock Text="Fares are economy fares. Full is the share of seats filled last month, or this month so far." Opacity="0.6" TextWrapping="Wrap" />
     </StackPanel>
 
     <ListBox Grid.Row="1" ItemsSource="{Binding Rows}" SelectedItem="{Binding Selected}">

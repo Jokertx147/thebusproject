@@ -38,7 +38,6 @@ namespace TheBusProject.Presentation
             _station = station;
             _signed = signed;
             _terminalType = terminalType;
-            string kind = terminalType == Terminal.TerminalType.Cargo ? "cargo " : "";
             var f = new ValueCurrencyFormatter();
             int gates = Math.Min(2, RouteCreator.GetFreeGates(station, terminalType));
             CanLease = gates > 0;
@@ -56,10 +55,8 @@ namespace TheBusProject.Presentation
 
             Title = station.Profile.IATACode + " " + station.Profile.Name;
             Text = CanLease
-                ? "You have no free " + kind + "gate at " + Title + ". Lease gates there to create the route."
-                : terminalType == Terminal.TerminalType.Cargo
-                    ? "There are no free cargo gates at " + Title + " to lease. Build a cargo terminal there first (Stations tab > Build a terminal)."
-                    : "There are no free gates at " + Title + " to lease.";
+                ? "You have no free gate at " + Title + ". Lease gates there to create the route."
+                : "There are no free gates at " + Title + " to lease.";
             LeaseCommand = new RelayCommand(Lease, () => CanLease);
         }
 
@@ -87,17 +84,15 @@ namespace TheBusProject.Presentation
         }
     }
 
-    /// <summary>Create a passenger or cargo route between two stations, with an optional schedule for one coach.</summary>
+    /// <summary>Create a route between two stations, with an optional schedule for one coach.</summary>
     public class CreateRouteViewModel : ObservableObject
     {
         private readonly Station _origin, _destination;
         private readonly Action<string> _done;
-        private readonly bool _cargo;
         private Station _chosenStop;
         private Station _chosenCall;
         private readonly Route _existing;
         private readonly bool _move;
-        private string _cargoPrice;
         private bool _updating;
         private ServiceTier _tier = ServiceTier.Standard;
         private CoachChoice _coach;
@@ -111,23 +106,21 @@ namespace TheBusProject.Presentation
 
         /// <summary>Assign an coach (and a schedule) to a route that was created without one.</summary>
         public CreateRouteViewModel(Route existing, Action<string> done, bool move = false)
-            : this(existing.Destination1, existing.Destination2, done, existing.IsCargoRoute, existing, move)
+            : this(existing.Destination1, existing.Destination2, done, existing, move)
         {
         }
 
-        public CreateRouteViewModel(Station origin, Station destination, Action<string> done, bool cargo = false, Route existing = null, bool move = false)
+        public CreateRouteViewModel(Station origin, Station destination, Action<string> done, Route existing = null, bool move = false)
         {
             _existing = existing;
             _move = move;
             _origin = origin;
             _destination = destination;
             _done = done;
-            _cargo = cargo;
-            _cargoPrice = PassengerHelpers.GetCargoPrice(origin, destination).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
 
             Title = existing != null
                 ? string.Format(move ? "Move {0} - {1} to another coach" : "Assign a coach to {0} - {1}", origin.Profile.IATACode, destination.Profile.IATACode)
-                : string.Format("New {0}route {1} - {2}", cargo ? "cargo " : "", origin.Profile.IATACode, destination.Profile.IATACode);
+                : string.Format("New route {0} - {1}", origin.Profile.IATACode, destination.Profile.IATACode);
             Tiers = Enum.GetValues(typeof(ServiceTier)).Cast<ServiceTier>().ToList();
             Operations = new List<OpsType> { OpsType.Regular, OpsType.Whole_Day };
             Turnarounds = RouteCreator.TurnaroundOptions;
@@ -142,7 +135,7 @@ namespace TheBusProject.Presentation
             }
 
             Coaches.AddRange(
-                RouteCreator.GetCandidateCoaches(origin, destination, cargo ? Route.RouteType.Cargo : Route.RouteType.Passenger)
+                RouteCreator.GetCandidateCoaches(origin, destination, Route.RouteType.Passenger)
                             .Select(f => new CoachChoice { Name = f.Name + " - " + f.Coach.Type.Name, Coach = f }));
             _coach = existing == null
                 ? (Coaches.Count > 1 ? Coaches[1] : Coaches[0])
@@ -150,7 +143,7 @@ namespace TheBusProject.Presentation
 
             try
             {
-                var why = RouteCreator.WhyNot(origin, destination, cargo ? Route.RouteType.Cargo : Route.RouteType.Passenger);
+                var why = RouteCreator.WhyNot(origin, destination, Route.RouteType.Passenger);
                 CantFly = why.Count == 0 ? null : "Can't run it: " + string.Join(" ", why);
             }
             catch (Exception ex)
@@ -373,7 +366,7 @@ namespace TheBusProject.Presentation
             FleetCoach had = Coach;
             var list = new List<CoachChoice> { new CoachChoice { Name = "(assign a coach later)" } };
             list.AddRange(
-                RouteCreator.GetCandidateCoaches(calls, _cargo ? Route.RouteType.Cargo : Route.RouteType.Passenger)
+                RouteCreator.GetCandidateCoaches(calls, Route.RouteType.Passenger)
                             .Select(f => new CoachChoice { Name = f.Name + " - " + f.Coach.Type.Name, Coach = f }));
             Coaches = list;
             _coach = list.FirstOrDefault(c => c.Coach == had) ?? (list.Count > 1 ? list[1] : list[0]);
@@ -414,16 +407,6 @@ namespace TheBusProject.Presentation
         public ICommand CreateCommand { get; }
         public ICommand CancelCommand { get; }
 
-        public bool IsCargo
-        {
-            get { return _cargo; }
-        }
-
-        public bool IsPassenger
-        {
-            get { return !_cargo; }
-        }
-
         public bool IsNewRoute
         {
             get { return _existing == null; }
@@ -431,12 +414,7 @@ namespace TheBusProject.Presentation
 
         public bool ShowTier
         {
-            get { return !_cargo && _existing == null; }
-        }
-
-        public bool ShowPrice
-        {
-            get { return _cargo && _existing == null; }
+            get { return _existing == null; }
         }
 
         public string CreateLabel
@@ -444,21 +422,14 @@ namespace TheBusProject.Presentation
             get { return _existing == null ? "Create route" : _move ? "Move route" : "Assign coach"; }
         }
 
-        /// <summary>The price per unit of cargo the route starts with.</summary>
-        public string CargoPrice
-        {
-            get { return _cargoPrice; }
-            set { SetProperty(ref _cargoPrice, value); }
-        }
-
         public string CoachLabel
         {
-            get { return _cargo ? "Cargo coach (only coach without routes)" : "Coach (only coach without routes)"; }
+            get { return "Coach (only coach without routes)"; }
         }
 
         private Terminal.TerminalType TerminalKind
         {
-            get { return _cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger; }
+            get { return Terminal.TerminalType.Passenger; }
         }
 
         public ServiceTier Tier
@@ -586,12 +557,12 @@ namespace TheBusProject.Presentation
                 DetailEnabled = false;
                 if (_existing != null)
                 {
-                    Info = "None of your " + (_cargo ? "cargo " : "") + "coach without a route can run this route (range or bay). Buy one under Coaches.";
+                    Info = "None of your coach without a route can run this route (range or bay). Buy one under Coaches.";
                     return;
                 }
 
                 Info = Coaches.Count == 1
-                    ? "None of your " + (_cargo ? "cargo " : "") + "coach can run this route (range, bay, or already on a route). The route is created without a schedule; assign a coach later."
+                    ? "None of your coach can run this route (range, bay, or already on a route). The route is created without a schedule; assign a coach later."
                     : "The route is created without a schedule; assign a coach later.";
                 return;
             }
@@ -615,7 +586,7 @@ namespace TheBusProject.Presentation
             // not the most the coach can fly
             _suggested = null;
             int pick = max;
-            if (!_cargo && GameObject.GetInstance()?.HumanCarrier != null)
+            if (GameObject.GetInstance()?.HumanCarrier != null)
             {
                 try
                 {
@@ -642,7 +613,7 @@ namespace TheBusProject.Presentation
         private RouteForecast _suggested;
         private string _forecast;
 
-        /// <summary>The forecast at the chosen number of round trips (null for cargo, long-haul or no coach).</summary>
+        /// <summary>The forecast at the chosen number of round trips (null for a long-haul route or no coach).</summary>
         public RouteForecast CurrentForecast { get; private set; }
 
         /// <summary>The forecast at the suggested number of round trips.</summary>
@@ -668,7 +639,7 @@ namespace TheBusProject.Presentation
         private void RefreshForecast()
         {
             CurrentForecast = null;
-            if (_cargo || Coach == null || _suggested == null || !DetailEnabled || GameObject.GetInstance()?.HumanCarrier == null)
+            if (Coach == null || _suggested == null || !DetailEnabled || GameObject.GetInstance()?.HumanCarrier == null)
             {
                 Forecast = null;
                 return;
@@ -798,23 +769,9 @@ namespace TheBusProject.Presentation
                 return;
             }
 
-            double cargoPrice = 0;
-            if (_cargo
-                && (!double.TryParse(
-                        (_cargoPrice ?? "").Replace(',', '.'),
-                        System.Globalization.NumberStyles.Float,
-                        System.Globalization.CultureInfo.InvariantCulture,
-                        out cargoPrice)
-                    || cargoPrice <= 0))
-            {
-                Info = "The price per unit must be a number above 0 (for example 8.50).";
-                return;
-            }
-
             var request = new NewRouteRequest
             {
-                RouteType = _cargo ? Route.RouteType.Cargo : Route.RouteType.Passenger,
-                CargoPrice = cargoPrice,
+                RouteType = Route.RouteType.Passenger,
                 Origin = _origin,
                 Destination = _destination,
                 Tier = _tier,

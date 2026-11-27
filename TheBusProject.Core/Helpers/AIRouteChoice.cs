@@ -108,11 +108,11 @@ namespace TheBusProject.Helpers
                 List<FleetCoach> fleet;
                 lock (carrier.Fleet)
                 {
-                    fleet = carrier.Fleet.Where(f => f.Coach.Type.TypeCoach != CoachType.TypeOfCoach.Cargo && f.Coach.GetTotalSeatCapacity() > 0).ToList();
+                    fleet = carrier.Fleet.Where(f => f.Coach.GetTotalSeatCapacity() > 0).ToList();
                 }
                 DateTime now = GameObject.GetInstance().GameTime;
                 _bySeats = fleet.OrderBy(f => f.Coach.GetTotalSeatCapacity()).ToList();
-                _idleByRange = fleet.Where(f => !f.HasRoute && f.Coach.BuiltDate <= now && f.UsableBy(carrier) && CarrierTypeRules.CanUseType(carrier, f.Coach.Type))
+                _idleByRange = fleet.Where(f => !f.HasRoute && f.Coach.BuiltDate <= now && f.UsableBy(carrier))
                                     .OrderBy(f => f.Coach.Range).ToList();
             }
 

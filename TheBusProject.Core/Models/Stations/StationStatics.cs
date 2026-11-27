@@ -14,7 +14,6 @@ namespace TheBusProject.Models.Stations
 
         private readonly Dictionary<Station, double> _stationDistances;
 
-        private readonly List<DestinationDemand> _cargoDemand;
 
         private readonly List<DestinationDemand> _passengerDemand;
 
@@ -22,7 +21,6 @@ namespace TheBusProject.Models.Stations
         // looking a destination up in the list took a pass over thousands of entries. Built on the first look-up,
         // so only stations that are actually asked about (the ones in use) pay the memory for it.
         private Dictionary<string, DestinationDemand> _passengerIndex;
-        private Dictionary<string, DestinationDemand> _cargoIndex;
 
         private static Dictionary<string, DestinationDemand> BuildIndex(List<DestinationDemand> list)
         {
@@ -55,7 +53,6 @@ namespace TheBusProject.Models.Stations
         {
             _stationDistances = new Dictionary<Station, double>();
             _passengerDemand = new List<DestinationDemand>();
-            _cargoDemand = new List<DestinationDemand>();
             Station = station;
         }
 
@@ -69,14 +66,6 @@ namespace TheBusProject.Models.Stations
 
         #region Public Methods and Operators
 
-        public void AddCargoDemand(DestinationDemand demand)
-        {
-            lock (_cargoDemand)
-            {
-                _cargoDemand.Add(demand);
-                AddToIndex(_cargoIndex, demand);
-            }
-        }
 
         //adds a distance to the station
         public void AddDistance(Models.Stations.Station station, double distance)
@@ -90,26 +79,6 @@ namespace TheBusProject.Models.Stations
             }
         }
 
-        //sets (replaces) the base cargo demand to a destination
-        public void SetCargoDemand(Models.Stations.Station destination, ushort rate)
-        {
-            lock (_cargoDemand)
-            {
-                if (_cargoIndex == null) _cargoIndex = BuildIndex(_cargoDemand);
-                DestinationDemand demand;
-                _cargoIndex.TryGetValue(destination.Profile.IATACode, out demand);
-                if (demand == null)
-                {
-                    demand = new DestinationDemand(destination.Profile.IATACode, rate);
-                    _cargoDemand.Add(demand);
-                    AddToIndex(_cargoIndex, demand);
-                }
-                else
-                {
-                    demand.Rate = rate;
-                }
-            }
-        }
 
         //sets (replaces) the base passenger demand to a destination
         public void SetPassengerDemand(Models.Stations.Station destination, ushort rate)
@@ -180,7 +149,6 @@ namespace TheBusProject.Models.Stations
         {
             var demands = new List<DestinationDemand>();
 
-            demands.AddRange(_cargoDemand);
             demands.AddRange(_passengerDemand);
 
             return demands;
@@ -188,22 +156,6 @@ namespace TheBusProject.Models.Stations
 
         //returns if the station have passenger demand to another station
 
-        //returns the destination cargo for a specific destination
-        public ushort GetDestinationCargoRate(Models.Stations.Station destination)
-        {
-            DestinationDemand cargo;
-            lock (_cargoDemand)
-            {
-                if (_cargoIndex == null) _cargoIndex = BuildIndex(_cargoDemand);
-                _cargoIndex.TryGetValue(destination.Profile.IATACode ?? "", out cargo);
-            }
-
-            if (cargo == null)
-            {
-                return 0;
-            }
-            return cargo.Rate;
-        }
 
         //returns the destination passengers for a specific destination for a class
         public ushort GetDestinationPassengersRate(Models.Stations.Station destination, CoachClass.ClassType type)
@@ -249,14 +201,6 @@ namespace TheBusProject.Models.Stations
             return distance;
         }
 
-        public bool HasDestinationCargoRate(Models.Stations.Station destination)
-        {
-            lock (_cargoDemand)
-            {
-                if (_cargoIndex == null) _cargoIndex = BuildIndex(_cargoDemand);
-                return _cargoIndex.ContainsKey(destination.Profile.IATACode ?? "");
-            }
-        }
 
         public bool HasDestinationPassengersRate(Models.Stations.Station destination)
         {
@@ -271,7 +215,6 @@ namespace TheBusProject.Models.Stations
 
         //adds passenger demand to the station
 
-        //adds cargo demand to the station
 
         //returns all stations within a range
     }

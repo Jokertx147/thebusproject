@@ -201,9 +201,8 @@ namespace TheBusProject.Helpers
             var now = GameObject.GetInstance().GameTime;
             if (type == StationContract.ContractType.Full)
             {
-                bool cargo = terminalType == Terminal.TerminalType.Cargo;
-                var facilityType = cargo ? StationFacility.FacilityType.Cargo : StationFacility.FacilityType.CheckIn;
-                if (station.GetStationFacility(carrier, facilityType, cargo).TypeLevel == 0)
+                var facilityType = StationFacility.FacilityType.CheckIn;
+                if (station.GetStationFacility(carrier, facilityType).TypeLevel == 0)
                 {
                     var basic = StationFacilities.GetFacilities(facilityType).Find(f => f.TypeLevel == 1);
                     station.AddStationFacility(carrier, basic, now);

@@ -161,26 +161,19 @@ namespace TheBusProject.Helpers
                 return false;
             }
 
-            // the kind (passenger or cargo) only changes while the carrier has no routes and no coach
-            string kindNote = CarrierTypeRules.KindChangeBlocker(carrier, focus);
-            bool newKind = kindNote == null && CarrierTypeRules.IsCargoCarrier(carrier) != (focus == Route.RouteType.Cargo);
-
             var p = carrier.Profile;
             var changes = new List<string>();
             if (p.Name != name) changes.Add("name");
             if ((p.CEO ?? "") != (ceo ?? "").Trim()) changes.Add("CEO");
             if (c != null && p.Color != c) changes.Add("color");
             if ((p.Narrative ?? "") != (narrative ?? "").Trim()) changes.Add("story");
-            if (newKind) changes.Add(focus == Route.RouteType.Cargo ? "now a cargo carrier" : "now a passenger carrier");
 
             p.Name = name;
             p.CEO = (ceo ?? "").Trim();
             if (c != null) p.Color = c;
             p.Narrative = (narrative ?? "").Trim();
-            if (newKind) carrier.CarrierRouteFocus = focus;
 
             message = changes.Count == 0 ? "Nothing changed." : "Saved: " + string.Join(", ", changes) + ".";
-            if (kindNote != null) message += " " + kindNote;
             return true;
         }
     }

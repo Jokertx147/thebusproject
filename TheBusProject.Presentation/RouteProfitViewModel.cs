@@ -42,7 +42,7 @@ namespace TheBusProject.Presentation
             "Profit, last 12 months", "Profit, last month", "Loss first", "Profit per trip", "Load factor", "Fare against the market", "Name"
         };
 
-        public List<string> ShowChoices { get; } = new List<string> {"All routes", "Losing money", "Passenger routes", "Cargo routes", "No coach"};
+        public List<string> ShowChoices { get; } = new List<string> {"All routes", "Losing money", "No coach"};
 
         public string SortBy
         {
@@ -99,8 +99,7 @@ namespace TheBusProject.Presentation
             switch (_show)
             {
                 case "Losing money": shown = all.Where(f => f.Losing); break;
-                case "Passenger routes": shown = all.Where(f => !f.IsCargo); break;
-                case "Cargo routes": shown = all.Where(f => f.IsCargo); break;
+                case "Passenger routes": shown = all; break;
                 case "No coach": shown = all.Where(f => f.Route.GetCoaches().Count == 0); break;
             }
 
@@ -119,11 +118,11 @@ namespace TheBusProject.Presentation
             Rows.Clear();
             foreach (RouteFigures f in shown)
             {
-                string fare = f.FareRatio > 0 ? string.Format("{0} {1:0}% of the market", f.IsCargo ? "rate" : "fare", f.FareRatio*100) : "";
+                string fare = f.FareRatio > 0 ? string.Format("{0} {1:0}% of the market", "fare", f.FareRatio*100) : "";
                 Rows.Add(new RouteProfitRow
                 {
                     Figures = f,
-                    Name = Code(f.Route) + (f.IsCargo ? "  (cargo)" : ""),
+                    Name = Code(f.Route) + (""),
                     Profit = f.Months > 0 ? Money(f.Last12) + " in " + (f.Months == 12 ? "12 months" : f.Months + (f.Months == 1 ? " month" : " months")) : Money(f.ThisMonth) + " this month",
                     Numbers = string.Join("  |  ", new[]
                     {

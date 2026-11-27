@@ -96,7 +96,7 @@ namespace TheBusProject.Presentation
         }
 
         /// <summary>Shows "My routes" with the player's route on that station pair selected (from a rival alert in the news). False when the player no longer flies it.</summary>
-        public bool ShowRoute(string a, string b, bool cargo)
+        public bool ShowRoute(string a, string b)
         {
             if (_show != ByRoute)
             {
@@ -110,7 +110,7 @@ namespace TheBusProject.Presentation
                 OnPropertyChanged(nameof(Filter));
             }
             Reload();
-            CompetitorRow row = Rows.FirstOrDefault(r => r.MyRoute != null && (r.MyRoute.Type == Route.RouteType.Cargo) == cargo && OnPair(r.MyRoute, a, b))
+            CompetitorRow row = Rows.FirstOrDefault(r => r.MyRoute != null && OnPair(r.MyRoute, a, b))
                                 ?? Rows.FirstOrDefault(r => r.MyRoute != null && OnPair(r.MyRoute, a, b));
             Selected = row;
             return row != null;
@@ -206,7 +206,7 @@ namespace TheBusProject.Presentation
 
         private static string FareWord(Route r)
         {
-            return r.Type == Route.RouteType.Cargo ? "rate" : "fare";
+            return "fare";
         }
 
         public void Reload()
@@ -316,7 +316,7 @@ namespace TheBusProject.Presentation
                 string word = FareWord(r.Mine);
                 Rows.Add(new CompetitorRow
                 {
-                    Title = Pair(r.Mine) + (r.Mine.Type == Route.RouteType.Cargo ? "  (cargo)" : ""),
+                    Title = Pair(r.Mine),
                     Line1 = r.Rivals.Count == 0
                         ? "No rival runs it"
                         : r.Rivals.Count + (r.Rivals.Count == 1 ? " rival: " : " rivals: ") + string.Join(", ", r.Rivals.Take(4).Select(x => x.Carrier.Profile.IATACode + " " + Money(x.Fare) + " (" + (x.Load > 0 ? Pct(x.Load) : "?") + ")")) + (r.Rivals.Count > 4 ? " ..." : ""),
@@ -430,7 +430,7 @@ namespace TheBusProject.Presentation
                     Line1 = onMine ? "You run " + Pair(m.A, m.B) + " too" : "At your station " + string.Join(" and ", new[] {m.A, m.B}.Where(myStations.Contains).Select(Code)),
                     Badge = onMine ? "YOUR ROUTE" : null,
                     IsWarning = onMine && (m.Kind == RivalMoveKind.Opened || m.Kind == RivalMoveKind.FareCut),
-                    MyRoute = onMine ? me.Routes.ToList().FirstOrDefault(r => Key(r.Destination1, r.Destination2) == Key(m.A, m.B) && r.IsCargoRoute == m.IsCargo) : null,
+                    MyRoute = onMine ? me.Routes.ToList().FirstOrDefault(r => Key(r.Destination1, r.Destination2) == Key(m.A, m.B)) : null,
                     Detail = () => MoveDetail(me, move)
                 });
             }
@@ -448,14 +448,14 @@ namespace TheBusProject.Presentation
         private string MoveText(RivalMove m, Carrier me, bool withDate = true)
         {
             string who = m.Carrier?.Profile.IATACode ?? "?";
-            string pair = Pair(m.A, m.B) + (m.IsCargo ? " (cargo)" : "");
+            string pair = Pair(m.A, m.B) + ("");
             string what;
             switch (m.Kind)
             {
                 case RivalMoveKind.Opened: what = who + " opened " + pair; break;
                 case RivalMoveKind.Dropped: what = who + " gave up " + pair; break;
-                case RivalMoveKind.FareCut: what = who + " cut " + (m.IsCargo ? "its rate" : "its fares") + " on " + pair + " by " + Pct(1 - m.Factor); break;
-                default: what = who + " raised " + (m.IsCargo ? "its rate" : "its fares") + " on " + pair + " by " + Pct(m.Factor - 1); break;
+                case RivalMoveKind.FareCut: what = who + " cut " + ("its fares") + " on " + pair + " by " + Pct(1 - m.Factor); break;
+                default: what = who + " raised " + ("its fares") + " on " + pair + " by " + Pct(m.Factor - 1); break;
             }
             return withDate ? DateFormatter.Date(m.Date) + ": " + what : what;
         }
@@ -463,7 +463,7 @@ namespace TheBusProject.Presentation
         private List<string> MoveDetail(Carrier me, RivalMove m)
         {
             var lines = new List<string> {MoveText(m, me), Name(m.Carrier)};
-            Route mine = me.Routes.ToList().FirstOrDefault(r => Key(r.Destination1, r.Destination2) == Key(m.A, m.B) && r.IsCargoRoute == m.IsCargo);
+            Route mine = me.Routes.ToList().FirstOrDefault(r => Key(r.Destination1, r.Destination2) == Key(m.A, m.B));
             if (mine != null)
             {
                 var rr = CompetitorService.ForRoutes(me).FirstOrDefault(x => x.Mine == mine);
@@ -474,7 +474,7 @@ namespace TheBusProject.Presentation
                 Route theirs = RouteIndex.Direct(m.A, m.B).FirstOrDefault(r => r.Carrier == m.Carrier);
                 if (theirs != null)
                 {
-                    lines.Add(string.Format("They run it {0} times a week ({1}) at {2}.", theirs.TimeTable.Entries.Count, string.Join(", ", theirs.GetCoaches().Select(a => a.Coach.Type.Name).Distinct()), Money(theirs is CargoRoute c ? c.PricePerUnit : theirs is PassengerRoute p ? AIPricingService.EconomyFare(p) : 0)));
+                    lines.Add(string.Format("They run it {0} times a week ({1}) at {2}.", theirs.TimeTable.Entries.Count, string.Join(", ", theirs.GetCoaches().Select(a => a.Coach.Type.Name).Distinct()), Money(theirs is PassengerRoute p ? AIPricingService.EconomyFare(p) : 0)));
                 }
                 lines.Add("You don't run this pair.");
             }

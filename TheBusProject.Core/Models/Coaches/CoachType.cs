@@ -65,7 +65,7 @@ namespace TheBusProject.Models.Coaches
         {
             if (Version == 1)
             {
-                IsConvertable = TypeCoach != TypeOfCoach.Cargo;
+                IsConvertable = true;
             }
             if (Version < 3)
                 Weight = CoachHelpers.GetCalculatedWeight(this);
@@ -86,15 +86,12 @@ namespace TheBusProject.Models.Coaches
             Helicopter
         }
 
+        /// <summary>
+        ///     What a coach carries. Only passengers, now: see <see cref="Routes.Route.RouteType" />.
+        /// </summary>
         public enum TypeOfCoach
         {
-            Passenger,
-
-            Cargo,
-
-            Mixed,
-
-            Helicopter
+            Passenger
         }
 
         public enum TypeOfEngine
@@ -326,177 +323,6 @@ namespace TheBusProject.Models.Coaches
         #endregion
     }
 
-    // TODO - Derive from CoachType directly or possibly create a type field in parent class.
-    //the class for a combi coach type
-    [Serializable]
-    public class CoachCombiType : CoachPassengerType
-    {
-        #region Constructors and Destructors
-
-        public CoachCombiType(
-            Manufacturer manufacturer,
-            string name,
-            string family,
-            int seating,
-            int drivers,
-            int attendants,
-            double speed,
-            long range,
-            double wingspan,
-            double length,
-            double weight,
-            double consumption,
-            long price,
-            int maxCoachClasses,
-            long minBayLength,
-            long fuelcapacity,
-            BodyType body,
-            TypeRange rangeType,
-            TypeOfEngine engine,
-            Period<DateTime> produced,
-            int prodRate,
-            double cargo,
-            bool isConvertable,
-            bool standardType = true)
-            : base(
-                manufacturer,
-                name,
-                family,
-                seating,
-                drivers,
-                attendants,
-                speed,
-                range,
-                wingspan,
-                length,
-                weight,
-                consumption,
-                price,
-                maxCoachClasses,
-                minBayLength,
-                fuelcapacity,
-                body,
-                rangeType,
-                engine,
-                produced,
-                prodRate,
-                isConvertable,
-                standardType)
-        {
-            CargoSize = cargo;
-            TypeCoach = TypeOfCoach.Mixed;
-        }
-
-        private CoachCombiType(SerializationInfo info, StreamingContext ctxt)
-            : base(info, ctxt)
-        {
-        }
-
-        #endregion
-
-        #region Public Properties
-
-        [Versioning("cargo")]
-        public double CargoSize { get; set; }
-
-        #endregion
-
-        #region Public Methods and Operators
-
-        public override void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            AddVersion(info, 1);
-
-            base.GetObjectData(info, context);
-        }
-
-        #endregion
-    }
-
-    //the class for a cargo coach type
-    [Serializable]
-    public class CoachCargoType : CoachType
-    {
-        #region Constructors and Destructors
-
-        public CoachCargoType(
-            Manufacturer manufacturer,
-            string name,
-            string family,
-            int drivers,
-            double cargoSize,
-            double speed,
-            long range,
-            double wingspan,
-            double length,
-            double weight,
-            double consumption,
-            long price,
-            long minBayLength,
-            long fuelcapacity,
-            BodyType body,
-            TypeRange rangeType,
-            TypeOfEngine engine,
-            Period<DateTime> produced,
-            int prodRate,
-            bool isConvertable,
-            bool standardType = true)
-            : base(
-                manufacturer,
-                TypeOfCoach.Cargo,
-                name,
-                family,
-                drivers,
-                speed,
-                range,
-                wingspan,
-                length,
-                weight,
-                consumption,
-                price,
-                minBayLength,
-                fuelcapacity,
-                body,
-                rangeType,
-                engine,
-                produced,
-                prodRate,
-                isConvertable,
-                standardType)
-        {
-            CargoSize = cargoSize;
-        }
-
-        private CoachCargoType(SerializationInfo info, StreamingContext ctxt)
-            : base(info, ctxt)
-        {
-        }
-
-        #endregion
-
-        #region Public Properties
-
-        [Versioning("cargo")]
-        public double CargoSize { get; set; }
-
-        #endregion
-
-        #region Public Methods and Operators
-
-        public override void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            AddVersion(info, 2);
-
-            base.GetObjectData(info, context);
-        }
-
-        public override int GetCapacity()
-        {
-            return (int) CargoSize;
-        }
-
-        #endregion
-    }
 
     //the collection of coach types
     public class CoachTypes

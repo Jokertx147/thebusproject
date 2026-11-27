@@ -99,7 +99,7 @@
     </Grid>
     <StackPanel Grid.Row="3" Margin="0,6,0,0" Spacing="2">
       <TextBlock Text="{Binding SelectedText}" TextWrapping="Wrap" />
-      <TextBlock Text="Drag to move (arrow keys work too; either stops following), scroll or double-click to zoom, + and - keys or the buttons also zoom, Home fits the network. Yellow arrows are coach on the road (they slide along with a trail while the game runs, and white dashes flow along their routes the way they run; click one to see its whole trip), grey dots are coach in the yard, red dots are hubs. Orange dashed lines are cargo routes. Rivals you choose to show are drawn in their own colours (their stations as small white dots)." Opacity="0.55" FontSize="12" TextWrapping="Wrap" />
+      <TextBlock Text="Drag to move (arrow keys work too; either stops following), scroll or double-click to zoom, + and - keys or the buttons also zoom, Home fits the network. Yellow arrows are coach on the road (they slide along with a trail while the game runs, and white dashes flow along their routes the way they run; click one to see its whole trip), grey dots are coach in the yard, red dots are hubs. Rivals you choose to show are drawn in their own colours (their stations as small white dots)." Opacity="0.55" FontSize="12" TextWrapping="Wrap" />
     </StackPanel>
   </Grid>
 </UserControl>

@@ -42,7 +42,6 @@ namespace TheBusProject.Helpers
                     if (rac != null) route.Statistics.AddStatisticsValue(rac, departures, 1);
                 }
             }
-            if (trip.IsCargoTrip()) route.Statistics.AddStatisticsValue(departures, 1);
         }
 
         /// <summary>

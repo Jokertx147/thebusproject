@@ -43,18 +43,6 @@ namespace TheBusProject.Presentation
 
     public class AdviceItem
     {
-        public AdviceItem(CargoAdvice a)
-        {
-            Destination = a.Destination;
-            var f = new ValueCurrencyFormatter();
-            Name = a.Destination.Profile.IATACode + "  " + a.Destination.Profile.Name + ", " + a.Destination.Profile.Country?.Name;
-            Numbers = string.Format(
-                "{0}  |  cargo demand {1}  |  {2} competitor(s)  |  ~{3}/day{4}",
-                DistanceFormatter.Km(a.Distance), a.Demand, a.Competitors, f.Convert(a.RevenuePerDay),
-                a.FleetCanFly ? "" : "  |  no cargo coach of yours can run it");
-            Notes = a.Advice;
-        }
-
         public AdviceItem(RouteAdvice a)
         {
             Advice = a;
@@ -106,7 +94,6 @@ namespace TheBusProject.Presentation
         private string _status;
         private bool _busy;
         private List<Station> _all;
-        private bool _cargo;
         private string _near = "";
         private Station _nearStation;
 
@@ -116,8 +103,6 @@ namespace TheBusProject.Presentation
             Stations = new ObservableCollection<StationItem>();
             Advice = new ObservableCollection<AdviceItem>();
             Destinations = new ObservableCollection<DestinationItem>();
-            // a cargo carrier plans cargo routes, a passenger carrier passenger routes
-            _cargo = CarrierTypeRules.IsCargoCarrier(GameObject.GetInstance()?.HumanCarrier);
             ApplySearch();
             Selected = Stations.FirstOrDefault();
         }
@@ -192,7 +177,7 @@ namespace TheBusProject.Presentation
             {
                 if (SetProperty(ref _selectedDestination, value) && value != null && _selected != null && value.Station != _selected.Station)
                 {
-                    Create = new CreateRouteViewModel(_selected.Station, value.Station, OnCreateDone, _cargo);
+                    Create = new CreateRouteViewModel(_selected.Station, value.Station, OnCreateDone);
                 }
             }
         }
@@ -252,40 +237,9 @@ namespace TheBusProject.Presentation
             }
         }
 
-        /// <summary>True when the suggestions and the new route are for cargo instead of passengers.</summary>
-        public bool CargoMode
-        {
-            get { return _cargo; }
-            set
-            {
-                var me = GameObject.GetInstance()?.HumanCarrier;
-                string blocker = me == null ? null : CarrierTypeRules.RouteBlocker(me, value ? Route.RouteType.Cargo : Route.RouteType.Passenger);
-                if (blocker != null)
-                {
-                    Status = blocker;
-                    OnPropertyChanged(nameof(CargoMode));
-                    OnPropertyChanged(nameof(PassengerMode));
-                    return;
-                }
-                if (SetProperty(ref _cargo, value))
-                {
-                    OnPropertyChanged(nameof(PassengerMode));
-                    OnPropertyChanged(nameof(AdviceTitle));
-                    Create = null;
-                    LoadAdvice();
-                }
-            }
-        }
-
-        public bool PassengerMode
-        {
-            get { return !_cargo; }
-            set { CargoMode = !value; }
-        }
-
         public string AdviceTitle
         {
-            get { return _cargo ? "Suggested cargo routes" : "Suggested routes"; }
+            get { return "Suggested routes"; }
         }
 
         public AdviceItem SelectedAdvice
@@ -295,7 +249,7 @@ namespace TheBusProject.Presentation
             {
                 if (SetProperty(ref _selectedAdvice, value) && value != null && _selected != null)
                 {
-                    Create = new CreateRouteViewModel(_selected.Station, value.Destination, OnCreateDone, _cargo);
+                    Create = new CreateRouteViewModel(_selected.Station, value.Destination, OnCreateDone);
                 }
             }
         }
@@ -332,10 +286,9 @@ namespace TheBusProject.Presentation
         /// <summary>Opens the new route form for two stations (used by the connections page).</summary>
         public void PlanRoute(Station from, Station to)
         {
-            if (CarrierTypeRules.CanFlyRoute(GameObject.GetInstance().HumanCarrier, Route.RouteType.Passenger)) CargoMode = false;
             var item = Stations.FirstOrDefault(a => a.Station == from);
             if (item != null) Selected = item;
-            Create = new CreateRouteViewModel(from, to, OnCreateDone, false);
+            Create = new CreateRouteViewModel(from, to, OnCreateDone);
         }
 
         private void OnCreateDone(string message)
@@ -387,36 +340,7 @@ namespace TheBusProject.Presentation
         {
             // the carrier's kind decides the kind of route (it can change on the profile page while there are no routes)
             var me = GameObject.GetInstance()?.HumanCarrier;
-            if (me != null && !CarrierTypeRules.CanFlyRoute(me, _cargo ? Route.RouteType.Cargo : Route.RouteType.Passenger))
-            {
-                _cargo = !_cargo;
-                OnPropertyChanged(nameof(CargoMode));
-                OnPropertyChanged(nameof(PassengerMode));
-                OnPropertyChanged(nameof(AdviceTitle));
-            }
-            OnPropertyChanged(nameof(CanChooseKind));
-            OnPropertyChanged(nameof(KindText));
             LoadAdvice(false);
-        }
-
-        /// <summary>Only an carrier that flies both kinds picks passenger or cargo routes here.</summary>
-        public bool CanChooseKind
-        {
-            get
-            {
-                var me = GameObject.GetInstance()?.HumanCarrier;
-                return me != null && CarrierTypeRules.CanFlyRoute(me, Route.RouteType.Cargo) && CarrierTypeRules.CanFlyRoute(me, Route.RouteType.Passenger);
-            }
-        }
-
-        public string KindText
-        {
-            get
-            {
-                var me = GameObject.GetInstance()?.HumanCarrier;
-                if (me == null || CanChooseKind) return null;
-                return CarrierTypeRules.IsCargoCarrier(me) ? "Cargo routes (a cargo carrier)" : "Passenger routes (a passenger carrier)";
-            }
         }
 
         private int _loadId;
@@ -438,13 +362,10 @@ namespace TheBusProject.Presentation
             }
 
             List<AdviceItem> advice;
-            bool cargo = _cargo;
             try
             {
                 advice = await Task.Run(
-                    () => cargo
-                        ? CargoAdvisor.GetAdvice(station).Select(a => new AdviceItem(a)).ToList()
-                        : RouteAdvisor.GetAdvice(station).Select(a => new AdviceItem(a)).ToList());
+                    () => RouteAdvisor.GetAdvice(station).Select(a => new AdviceItem(a)).ToList());
             }
             catch (Exception e)
             {
@@ -453,7 +374,7 @@ namespace TheBusProject.Presentation
                 return;
             }
 
-            if (id != _loadId || cargo != _cargo)
+            if (id != _loadId)
             {
                 return; // a newer request replaced this one
             }
@@ -472,7 +393,7 @@ namespace TheBusProject.Presentation
             if (announce || advice.Count == 0)
             {
                 Status = advice.Count == 0
-                    ? "No " + (cargo ? "cargo " : "") + "routes to suggest from " + station.Profile.IATACode + "."
+                    ? "No routes to suggest from " + station.Profile.IATACode + "."
                     : null;
             }
         }

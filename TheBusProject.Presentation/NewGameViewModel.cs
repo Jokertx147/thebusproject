@@ -127,16 +127,14 @@ namespace TheBusProject.Presentation
             private set { SetProperty(ref _carriers, value); }
         }
 
-        /// <summary>What the chosen carrier can fly: passenger carriers fly passenger routes, cargo carriers cargo routes.</summary>
+        /// <summary>What the chosen carrier can run.</summary>
         public string SelectedCarrierKind
         {
             get
             {
                 var a = _selectedCarrier;
                 if (a == null) return null;
-                bool cargo = Helpers.CarrierTypeRules.IsCargoCarrier(a);
-                return a.Profile.Name + " is a " + Helpers.CarrierTypeRules.Kind(a) + ": it runs " + (cargo ? "cargo" : "passenger") +
-                       " routes only. You can start a " + (cargo ? "passenger" : "cargo") + " subsidiary later to run the other kind.";
+                return null;
             }
         }
 

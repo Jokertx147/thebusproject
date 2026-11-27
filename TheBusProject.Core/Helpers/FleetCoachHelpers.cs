@@ -167,7 +167,7 @@ namespace TheBusProject.Helpers
 
             if (!oneLegged)
             {
-                if (mainroute.Type == Route.RouteType.Passenger || mainroute.Type == Route.RouteType.Mixed)
+                if (mainroute.Type == Route.RouteType.Passenger)
                 {
                     var routeLegTwo = new PassengerRoute(id.ToString(), dest1, stopover, GameObject.GetInstance().GameTime, 0);
 
@@ -185,15 +185,9 @@ namespace TheBusProject.Helpers
 
                     stopoverRoute.AddLeg(routeLegTwo);
                 }
-                if (mainroute.Type == Route.RouteType.Cargo || mainroute.Type == Route.RouteType.Mixed)
-                {
-                    var routeLegTwo = new CargoRoute(id.ToString(), dest1, stopover, GameObject.GetInstance().GameTime, ((CargoRoute) mainroute).PricePerUnit);
-
-                    stopoverRoute.AddLeg(routeLegTwo);
-                }
             }
 
-            if (mainroute.Type == Route.RouteType.Mixed || mainroute.Type == Route.RouteType.Passenger)
+            if (mainroute.Type == Route.RouteType.Passenger)
             {
                 id = Guid.NewGuid();
 
@@ -201,10 +195,7 @@ namespace TheBusProject.Helpers
 
                 foreach (RouteCoachClass aClass in ((PassengerRoute) mainroute).Classes)
                 {
-                    //routeLegOne.getRouteCoachClass(aClass.Type).FarePrice = aClass.FarePrice;
-
                     routeLegOne.GetRouteCoachClass(aClass.Type).FarePrice = PassengerHelpers.GetPassengerPrice(stopover, dest2)*GeneralHelpers.ClassToPriceFactor(aClass.Type);
-
 
                     foreach (RouteFacility facility in aClass.GetFacilities())
                         routeLegOne.GetRouteCoachClass(aClass.Type).AddFacility(facility);
@@ -214,13 +205,6 @@ namespace TheBusProject.Helpers
 
                 stopoverRoute.AddLeg(routeLegOne);
             }
-            if (mainroute.Type == Route.RouteType.Cargo || mainroute.Type == Route.RouteType.Mixed)
-            {
-                var routeLegOne = new CargoRoute(id.ToString(), stopover, dest2, GameObject.GetInstance().GameTime, ((CargoRoute) mainroute).PricePerUnit);
-
-                stopoverRoute.AddLeg(routeLegOne);
-            }
-
 
             return stopoverRoute;
         }
@@ -271,7 +255,7 @@ namespace TheBusProject.Helpers
 
         public static TimeSpan GetMinTimeBetweenTrips(CoachType type)
         {
-            if (type == null || type is CoachCargoType)
+            if (type == null)
                 return GetMinTimeBetweenTrips(0);
 
             return GetMinTimeBetweenTrips(((CoachPassengerType) type).MaxSeatingCapacity);
@@ -325,9 +309,6 @@ namespace TheBusProject.Helpers
 
             coach.Coach.Carrier.Statistics.AddStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Arrivals"), 1);
             dest.Statistics.AddStatisticsValue(GameObject.GetInstance().GameTime.Year, coach.Coach.Carrier, StatisticsTypes.GetStatisticsType("Arrivals"), 1);
-            // the route's arrivals (each landing used to be added to its cargo instead): by cabin class for passengers, below
-            if (coach.CurrentTrip.IsCargoTrip())
-                coach.CurrentTrip.Entry.TimeTable.Route.Statistics.AddStatisticsValue(StatisticsTypes.GetStatisticsType("Arrivals"), 1);
             coach.Statistics.AddStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Arrivals"), 1);
 
             double onTimePercent = coach.Coach.Carrier.Statistics.GetStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("On-Time"))/
@@ -335,46 +316,6 @@ namespace TheBusProject.Helpers
             coach.Coach.Carrier.Statistics.SetStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("On-Time%"), onTimePercent*100);
 
 
-            if (coach.CurrentTrip.IsCargoTrip())
-            {
-                coach.CurrentTrip.Entry.TimeTable.Route.Statistics.AddStatisticsValue(StatisticsTypes.GetStatisticsType("Cargo"), (int) coach.CurrentTrip.Cargo);
-                double routePassengers = coach.CurrentTrip.Entry.TimeTable.Route.Statistics.GetStatisticsValue(StatisticsTypes.GetStatisticsType("Cargo"));
-                double routeDepartures = coach.CurrentTrip.Entry.TimeTable.Route.Statistics.GetStatisticsValue(StatisticsTypes.GetStatisticsType("Arrivals"));
-                coach.CurrentTrip.Entry.TimeTable.Route.Statistics.SetStatisticsValue(StatisticsTypes.GetStatisticsType("Cargo%"), (int) (routePassengers/routeDepartures));
-
-                double cargocapacity = 0;
-
-                var type = coach.Coach.Type as CoachCargoType;
-                if (type != null)
-                    cargocapacity = type.CargoSize;
-
-                var combiType = coach.Coach.Type as CoachCombiType;
-                if (combiType != null)
-                    cargocapacity = combiType.CargoSize;
-
-                coach.CurrentTrip.Entry.TimeTable.Route.Statistics.AddStatisticsValue(StatisticsTypes.GetStatisticsType("Capacity"), (int) cargocapacity);
-
-                double coachCargo = coach.Statistics.GetStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Cargo"));
-                double coachDepartures = coach.Statistics.GetStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Arrivals"));
-                coach.Statistics.SetStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Cargo%"), (int) (coachCargo/coachDepartures));
-
-                coach.Coach.Carrier.Statistics.AddStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Cargo"), coach.CurrentTrip.Cargo);
-                coach.Statistics.AddStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Cargo"), coach.CurrentTrip.Cargo);
-                // the coach's cargo per trip with this trip in it
-                coach.Statistics.SetStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Cargo%"),
-                                                       (int) (coach.Statistics.GetStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Cargo"))/coachDepartures));
-                dest.Statistics.AddStatisticsValue(GameObject.GetInstance().GameTime.Year, coach.Coach.Carrier, StatisticsTypes.GetStatisticsType("Cargo"), (int) coach.CurrentTrip.Cargo);
-
-                double destCargo = dest.Statistics.GetStatisticsValue(GameObject.GetInstance().GameTime.Year, coach.Coach.Carrier, StatisticsTypes.GetStatisticsType("Cargo"));
-                double destDepartures = dest.Statistics.GetStatisticsValue(GameObject.GetInstance().GameTime.Year, coach.Coach.Carrier, StatisticsTypes.GetStatisticsType("Arrivals"));
-                dest.Statistics.SetStatisticsValue(GameObject.GetInstance().GameTime.Year, coach.Coach.Carrier, StatisticsTypes.GetStatisticsType("Cargo%"), (int) (destCargo/destDepartures));
-
-                double carrierCargo = coach.Coach.Carrier.Statistics.GetStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Cargo"));
-                double carrierDepartures = coach.Coach.Carrier.Statistics.GetStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Arrivals"));
-                coach.Coach.Carrier.Statistics.SetStatisticsValue(GameObject.GetInstance().GameTime.Year, StatisticsTypes.GetStatisticsType("Cargo%"), (int) (carrierCargo/carrierDepartures));
-
-                dept.AddCargoDestinationStatistics(dest, coach.CurrentTrip.Cargo);
-            }
             if (coach.CurrentTrip.IsPassengerTrip())
             {
                 foreach (TripCoachClass fac in coach.CurrentTrip.Classes)
@@ -479,48 +420,21 @@ namespace TheBusProject.Helpers
 
             double fuelPrice = StationHelpers.GetFuelPrice(departureStation);
 
-            if (coach.CurrentTrip.IsPassengerTrip())
-            {
-                int pax = coach.CurrentTrip.GetTotalPassengers();
-
-                double basePrice = fuelPrice*distance*((CoachPassengerType) coach.Coach.Type).MaxSeatingCapacity*coach.Coach.FuelConsumption*0.55;
-                double paxPrice = fuelPrice*distance*coach.Coach.FuelConsumption*coach.CurrentTrip.GetTotalPassengers()*0.45;
-                // the weight of the seats themselves. A trip can be carrying a class the coach no longer has a
-                // cabin of -- it was refitted, or the trip was set up against another coach -- and a missing
-                // cabin is no seats to carry, not a crash
-                double seatsPrice = coach.CurrentTrip.Classes.Sum(
-                    c =>
-                    {
-                        var cabin = coach.Coach.GetCoachClass(c.CoachClass.Type);
-                        var seat = cabin?.GetFacility(CoachFacility.FacilityType.Seat);
-                        return seat == null ? 0 : (seat.SeatUses - 1)*c.Passengers;
-                    });
-                return basePrice + paxPrice + seatsPrice;
-            }
-            else
-            {
-                double basePrice = fuelPrice*distance*((CoachCargoType) coach.Coach.Type).CargoSize*coach.Coach.FuelConsumption*0.55;
-                double cargoPrice = fuelPrice*coach.Coach.FuelConsumption*coach.CurrentTrip.Cargo*distance*0.45;
-
-                return basePrice + cargoPrice;
-            }
+            double basePrice = fuelPrice*distance*((CoachPassengerType) coach.Coach.Type).MaxSeatingCapacity*coach.Coach.FuelConsumption*0.55;
+            double paxPrice = fuelPrice*distance*coach.Coach.FuelConsumption*coach.CurrentTrip.GetTotalPassengers()*0.45;
+            // the weight of the seats themselves. A trip can be carrying a class the coach no longer has a
+            // cabin of -- it was refitted, or the trip was set up against another coach -- and a missing
+            // cabin is no seats to carry, not a crash
+            double seatsPrice = coach.CurrentTrip.Classes.Sum(
+                c =>
+                {
+                    var cabin = coach.Coach.GetCoachClass(c.CoachClass.Type);
+                    var seat = cabin?.GetFacility(CoachFacility.FacilityType.Seat);
+                    return seat == null ? 0 : (seat.SeatUses - 1)*c.Passengers;
+                });
+            return basePrice + paxPrice + seatsPrice;
         }
 
-        //converts a passenger coach to a cargo coach
-        public static void ConvertPassengerToCargoCoach(FleetCoach coach)
-        {
-            var oldType = (CoachPassengerType) coach.Coach.Type;
-
-            double cargoSize = CoachHelpers.GetPassengerCargoSize(oldType);
-            DateTime builtDate = GameObject.GetInstance().GameTime.AddDays(CoachHelpers.GetCargoConvertingDays(oldType));
-
-            var newType = new CoachCargoType(oldType.Manufacturer, oldType.Name + "F", oldType.CoachFamily, oldType.DriverCrew, cargoSize, oldType.CruisingSpeed, oldType.Range, oldType.Wingspan,
-                                                oldType.Length, oldType.Weight, oldType.FuelConsumption, oldType.Price, oldType.MinBayLength, oldType.FuelCapacity, oldType.Body, oldType.RangeType,
-                                                oldType.Engine, oldType.Produced, oldType.ProductionRate, false, false);
-
-            coach.Coach.Type = newType;
-            coach.Coach.BuiltDate = builtDate;
-        }
 
         /// <summary>
         ///     What the carrier's own garage at the coach's home station takes off a service bill, and off the days it

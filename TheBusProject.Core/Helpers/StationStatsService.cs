@@ -32,7 +32,6 @@ namespace TheBusProject.Helpers
         public double PassengersLastYear { get; set; }
         public double ArrivalsThisYear { get; set; }
         public int PassengerGates { get; set; }
-        public int CargoGates { get; set; }
     }
 
     /// <summary>Traffic, carrier shares and the weekly schedule of an station.</summary>
@@ -79,8 +78,7 @@ namespace TheBusProject.Helpers
                     PassengersThisYear = pax == null ? 0 : station.Statistics.GetStatisticsValue(year, a, pax),
                     PassengersLastYear = pax == null ? 0 : station.Statistics.GetStatisticsValue(year - 1, a, pax),
                     ArrivalsThisYear = arr == null ? 0 : station.Statistics.GetStatisticsValue(year, a, arr),
-                    PassengerGates = station.CarrierContracts.Where(c => c.Carrier == a && c.TerminalType == Terminal.TerminalType.Passenger).Sum(c => c.NumberOfGates),
-                    CargoGates = station.CarrierContracts.Where(c => c.Carrier == a && c.TerminalType == Terminal.TerminalType.Cargo).Sum(c => c.NumberOfGates)
+                    PassengerGates = station.CarrierContracts.Where(c => c.Carrier == a && c.TerminalType == Terminal.TerminalType.Passenger).Sum(c => c.NumberOfGates)
                 });
             }
             return list.OrderByDescending(s => s.PassengersThisYear).ThenByDescending(s => s.DeparturesPerWeek).ToList();
@@ -155,7 +153,7 @@ namespace TheBusProject.Helpers
             var now = GameObject.GetInstance().GameTime;
             foreach (var t in station.Terminals.StationTerminals.OrderBy(t => t.DeliveryDate))
             {
-                string kind = t.Type == Terminal.TerminalType.Cargo ? "cargo" : "passenger";
+                const string kind = "passenger";
                 if (t.DeliveryDate > now)
                 {
                     lines.Add(string.Format("{0} ({1}): {2} {3} gates, opens {4}", t.Name, kind, t.Gates.NumberOfGates, kind, t.DeliveryDate.ToShortDateString()));
@@ -164,7 +162,7 @@ namespace TheBusProject.Helpers
                 string owner = t.Carrier != null ? "owned by " + t.Carrier.Profile.Name : "station terminal";
                 lines.Add(string.Format("{0} ({1}, {2}): {3} gates", t.Name, kind, owner, t.Gates.NumberOfDeliveredGates));
             }
-            foreach (Terminal.TerminalType type in new[] { Terminal.TerminalType.Passenger, Terminal.TerminalType.Cargo })
+            foreach (Terminal.TerminalType type in new[] { Terminal.TerminalType.Passenger })
             {
                 int total = station.Terminals.GetNumberOfGates(type);
                 if (total == 0) continue;
@@ -176,7 +174,7 @@ namespace TheBusProject.Helpers
                 int free = station.Terminals.GetFreeGates(type);
                 lines.Add(string.Format(
                     "{0} gates: {1} in all, {2} free{3}",
-                    type == Terminal.TerminalType.Cargo ? "Cargo" : "Passenger", total, free,
+                    "Passenger", total, free,
                     users.Count == 0 ? "" : "  |  " + string.Join(", ", users.Select(u => u.Carrier.Profile.IATACode + " " + u.Gates))));
             }
             return lines;

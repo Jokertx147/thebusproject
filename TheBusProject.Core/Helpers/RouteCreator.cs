@@ -57,11 +57,8 @@ namespace TheBusProject.Helpers
         /// <summary>The places the service calls at on the way, in order. Empty for a non-stop run.</summary>
         public List<Station> Stops { get; set; } = new List<Station>();
 
-        //passenger (the default) or cargo
         public Route.RouteType RouteType { get; set; }
 
-        //the price per unit of cargo (cargo routes only)
-        public double CargoPrice { get; set; }
     }
 
     /// <summary>
@@ -96,15 +93,9 @@ namespace TheBusProject.Helpers
                 if (i < calls.Count - 1) distance = Math.Max(distance, MathHelpers.GetDistance(calls[i], calls[i + 1]));
             }
 
-            bool cargo = routeType == Route.RouteType.Cargo;
-
             return GameObject.GetInstance()
                              .HumanCarrier.DeliveredFleet.Where(
-                                 f =>
-                                 cargo
-                                     ? f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Cargo
-                                     : (f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Passenger
-                                        || f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Mixed))
+                                 f => f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Passenger)
                              .Where(f => f.Routes.Count == 0 && !CoachDealService.IsLeasedOut(f))
                              .Where(f => f.Coach.Range >= distance && f.Coach.MinBayLength <= bay)
                              .OrderBy(f => f.Name)
@@ -118,12 +109,9 @@ namespace TheBusProject.Helpers
         public static List<string> WhyNot(Station origin, Station destination, Route.RouteType routeType = Route.RouteType.Passenger)
         {
             double distance = MathHelpers.GetDistance(origin, destination);
-            bool cargo = routeType == Route.RouteType.Cargo;
             var lines = new List<string>();
             var idle = GameObject.GetInstance().HumanCarrier.DeliveredFleet
-                                 .Where(f => (cargo
-                                                  ? f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Cargo
-                                                  : f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Passenger || f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Mixed)
+                                 .Where(f => f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Passenger
                                              && f.Routes.Count == 0 && !CoachDealService.IsLeasedOut(f));
             foreach (var g in idle.GroupBy(f => f.Coach.Type))
             {
@@ -198,24 +186,14 @@ namespace TheBusProject.Helpers
             Station origin = request.Origin;
             Station destination = request.Destination;
 
-            // a passenger carrier flies passenger routes, a cargo carrier cargo routes
-            message = CarrierTypeRules.RouteBlocker(carrier, request.RouteType == Route.RouteType.Cargo ? Route.RouteType.Cargo : Route.RouteType.Passenger);
-            if (message != null)
-            {
-                return null;
-            }
-
             if (carrier.Routes.Exists(
                 r =>
-                r.IsCargoRoute == (request.RouteType == Route.RouteType.Cargo)
-                && ((r.Destination1 == origin && r.Destination2 == destination)
+                ((r.Destination1 == origin && r.Destination2 == destination)
                     || (r.Destination1 == destination && r.Destination2 == origin))))
             {
                 message = "You already have a route between these stations.";
                 return null;
             }
-
-            bool isCargo = request.RouteType == Route.RouteType.Cargo;
 
             // every leg has to be one the coach can actually run, and one a driver may legally drive
             message = RouteStops.WhyNot(
@@ -231,10 +209,7 @@ namespace TheBusProject.Helpers
                 var calls = new List<Station> { origin };
                 if (request.Stops != null) calls.AddRange(request.Stops);
                 calls.Add(destination);
-                CarrierHelpers.IsRouteDestinationsOk(
-                    carrier,
-                    calls,
-                    isCargo ? Route.RouteType.Cargo : Route.RouteType.Passenger);
+                CarrierHelpers.IsRouteDestinationsOk(carrier, calls, Route.RouteType.Passenger);
             }
             catch (Exception ex)
             {
@@ -245,17 +220,7 @@ namespace TheBusProject.Helpers
             int year = GameObject.GetInstance().GameTime.Year;
             double baseFare = PassengerHelpers.GetPassengerPrice(origin, destination);
 
-            Route route;
-
-            if (isCargo)
-            {
-                double price = request.CargoPrice > 0 ? request.CargoPrice : PassengerHelpers.GetCargoPrice(origin, destination);
-                route = new CargoRoute(Guid.NewGuid().ToString(), origin, destination, GameObject.GetInstance().GameTime, price);
-            }
-            else
-            {
-                route = CreatePassengerRoute(carrier, origin, destination, request.Tier, year, baseFare);
-            }
+            Route route = CreatePassengerRoute(carrier, origin, destination, request.Tier, year, baseFare);
 
             // the places it calls at on the way, each leg a route of its own with its own fare
             RouteStops.Set(route, request.Stops);
@@ -530,18 +495,14 @@ namespace TheBusProject.Helpers
         {
             Carrier carrier = GameObject.GetInstance().HumanCarrier;
             DateTime now = GameObject.GetInstance().GameTime;
-            bool cargo = terminalType == Terminal.TerminalType.Cargo;
-
             int gates = Math.Min(2, GetFreeGates(station, terminalType));
 
-            // a full contract includes the basic facility of the kind (check-in for passengers, cargo for cargo)
+            // a full contract includes the basic check-in facility
             if (contractType == StationContract.ContractType.Full)
             {
-                StationFacility.FacilityType facilityType = cargo
-                    ? StationFacility.FacilityType.Cargo
-                    : StationFacility.FacilityType.CheckIn;
+                StationFacility.FacilityType facilityType = StationFacility.FacilityType.CheckIn;
 
-                if (station.GetStationFacility(carrier, facilityType, cargo).TypeLevel == 0)
+                if (station.GetStationFacility(carrier, facilityType).TypeLevel == 0)
                 {
                     StationFacility basic = StationFacilities.GetFacilities(facilityType).Find(f => f.TypeLevel == 1);
 
@@ -577,8 +538,6 @@ namespace TheBusProject.Helpers
                     return "The distance is too short, or longer than any available coach can run.";
                 case "3002":
                     return "The route is not of an appropriate type for these stations.";
-                case "3003":
-                    return "Both stations need a cargo facility of yours (Stations tab > Facilities), or a Full cargo gate contract, which includes one.";
                 case "3004":
                     return "Your carrier has no license for this route. Buy a higher one under My Carrier > License.";
                 case "3005":

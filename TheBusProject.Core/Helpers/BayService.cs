@@ -142,10 +142,10 @@ namespace TheBusProject.Helpers
         ///     The player's coach (of a kind, delivered and not on a route) whose bay need is above the length: one
         ///     entry per type with what it needs, longest first.
         /// </summary>
-        public static List<string> TooShortFor(long length, bool cargo)
+        public static List<string> TooShortFor(long length)
         {
             var carrier = GameObject.GetInstance().HumanCarrier;
-            return carrier.DeliveredFleet.Where(f => (f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Cargo) == cargo && f.Coach.MinBayLength > length)
+            return carrier.DeliveredFleet.Where(f => f.Coach.MinBayLength > length)
                           .GroupBy(f => f.Coach.Type.Name).Select(g => Tuple.Create(g.Key, g.Max(f => f.Coach.MinBayLength)))
                           .OrderByDescending(t => t.Item2).Select(t => t.Item1 + " (needs " + t.Item2.ToString("N0") + " m)").ToList();
         }

@@ -22,10 +22,8 @@ namespace TheBusProject.Helpers
 
         public bool Cancelled { get; set; }
         public string CancelReason { get; set; }
-        public bool IsCargo { get; set; }
         public int Passengers { get; set; }
         public int Seats { get; set; }
-        public double Cargo { get; set; }
         public double Income { get; set; }
 
         /// <summary>Income less the trip's own costs (fuel, fees, crew, handling, maintenance, sales), before ownership.</summary>
@@ -70,19 +68,12 @@ namespace TheBusProject.Helpers
                 {
                     Entry = trip.Entry, TripCode = trip.Entry.Destination.TripCode,
                     From = trip.GetDepartureStation()?.Profile.IATACode, To = trip.Entry.Destination.Station?.Profile.IATACode,
-                    Takeoff = trip.TripTime, Landing = landing, Income = income, Profit = profit, IsCargo = trip.IsCargoTrip() && !trip.IsPassengerTrip()
+                    Takeoff = trip.TripTime, Landing = landing, Income = income, Profit = profit
                 };
                 f.DelayMinutes = Math.Max(0, (int) Math.Round((trip.TripTime - trip.ScheduledTripTime).TotalMinutes));
                 if (trip.ScheduledTripTime == default(DateTime)) f.DelayMinutes = 0;
-                if (trip.IsPassengerTrip())
-                {
-                    f.Passengers = trip.GetTotalPassengers();
-                    f.Seats = coach.Coach.GetTotalSeatCapacity();
-                }
-                else
-                {
-                    f.Cargo = trip.Cargo;
-                }
+                f.Passengers = trip.GetTotalPassengers();
+                f.Seats = coach.Coach.GetTotalSeatCapacity();
                 Add(coach, f);
                 CarrierReportService.Flown(coach, f, trip.Entry.TimeTable?.Route);
             }

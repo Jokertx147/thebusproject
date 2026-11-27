@@ -344,25 +344,6 @@ namespace TheBusProject.Helpers
             return timeTable;
         }
 
-        public static void CreateCargoRouteTimeTable(Route route, FleetCoach coach)
-        {
-            TimeSpan routeTripTime =
-                MathHelpers.GetTripTime(
-                    route.Destination1.Profile.Coordinates.ConvertToGeoCoordinate(),
-                    route.Destination2.Profile.Coordinates.ConvertToGeoCoordinate(),
-                    coach.Coach.Type);
-            TimeSpan minTripTime =
-                routeTripTime.Add(new TimeSpan(FleetCoachHelpers.GetMinTimeBetweenTrips(coach).Ticks));
-
-            const int maxHours = 20 - 8; //from 08.00 to 20.00
-
-            int tripsPerDay = Convert.ToInt16(maxHours*60/(2*minTripTime.TotalMinutes));
-
-            string tripCode1 = coach.Coach.Carrier.GetNextTripCode(0);
-            string tripCode2 = coach.Coach.Carrier.GetNextTripCode(1);
-
-            route.TimeTable = CreateCoachRouteTimeTable(route, coach, tripsPerDay, tripCode1, tripCode2);
-        }
 
         public static bool CreateRouteTimeTable(Route route, List<FleetCoach> coaches)
         {
@@ -506,154 +487,58 @@ namespace TheBusProject.Helpers
 
             if (carrierCoaches.Count > 0)
             {
-                if (focus == Route.RouteType.Cargo)
+                if (doLeasing)
                 {
-                    if (doLeasing)
-                    {
-                        coaches = Coaches.GetCoachesForLeasing().FindAll(a => a.Type is CoachCargoType
-                                                                                    && a.GetAge() < 10 && distance < a.Range && carrierCoaches.Contains(a.Type) && a.LeasingPrice*2 < carrier.Money);
+                    coaches =
+                        Coaches.GetCoachesForLeasing()
+                                 .FindAll(
+                                     a => a.Type is CoachPassengerType
+                                          && a.GetAge() < 10 && distance < a.Range && carrierCoaches.Contains(a.Type) && a.LeasingPrice*2 < carrier.Money);
 
-                        if (coaches.Count == 0)
-                        {
-                            coaches =
-                                Coaches.GetCoachesForSale(a => a.Type is CoachCargoType)
-                                         .FindAll(
-                                             a =>
-                                             a.GetAge() < 10 && distance < a.Range && carrierCoaches.Contains(a.Type) && a.LeasingPrice*2 < carrier.Money);
-                        }
-                    }
-                    else
+                    if (coaches.Count == 0)
                     {
                         coaches =
-                            Coaches.GetCoachesForSale(a => a.Type is CoachCargoType)
-                                     .FindAll(
-                                         a =>
-                                         a.GetAge() < 10 && distance < a.Range && carrierCoaches.Contains(a.Type) && a.GetPrice() < carrier.Money - 1000000);
-                    }
-                }
-                else if (focus == Route.RouteType.Helicopter)
-                {
-                    if (doLeasing)
-                    {
-                        coaches =
-                            Coaches.GetCoachesForSale(a => a.Type is CoachPassengerType && a.Type.TypeCoach == CoachType.TypeOfCoach.Helicopter)
+                            Coaches.GetCoachesForSale(a => a.Type is CoachPassengerType)
                                      .FindAll(
                                          a =>
                                          a.GetAge() < 10 && distance < a.Range && carrierCoaches.Contains(a.Type) && a.LeasingPrice*2 < carrier.Money);
                     }
-                    else
-                    {
-                        coaches =
-                            Coaches.GetCoachesForSale(a => a.Type is CoachPassengerType && a.Type.TypeCoach == CoachType.TypeOfCoach.Helicopter)
-                                     .FindAll(
-                                         a =>
-                                         a.GetAge() < 10 && distance < a.Range && carrierCoaches.Contains(a.Type) && a.GetPrice() < carrier.Money - 1000000);
-                    }
                 }
                 else
                 {
-                    if (doLeasing)
-                    {
-                        coaches =
-                            Coaches.GetCoachesForLeasing()
-                                     .FindAll(
-                                         a => a.Type is CoachPassengerType
-                                              && a.GetAge() < 10 && distance < a.Range && carrierCoaches.Contains(a.Type) && a.LeasingPrice*2 < carrier.Money);
-
-                        if (coaches.Count == 0)
-                        {
-                            coaches =
-                                Coaches.GetCoachesForSale(a => a.Type is CoachPassengerType)
-                                         .FindAll(
-                                             a =>
-                                             a.GetAge() < 10 && distance < a.Range && carrierCoaches.Contains(a.Type) && a.LeasingPrice*2 < carrier.Money);
-                        }
-                    }
-                    else
-                    {
-                        coaches =
-                            Coaches.GetCoachesForSale(a => a.Type is CoachPassengerType)
-                                     .FindAll(
-                                         a =>
-                                         a.GetAge() < 10 && distance < a.Range && carrierCoaches.Contains(a.Type) && a.GetPrice() < carrier.Money - 1000000);
-                    }
+                    coaches =
+                        Coaches.GetCoachesForSale(a => a.Type is CoachPassengerType)
+                                 .FindAll(
+                                     a =>
+                                     a.GetAge() < 10 && distance < a.Range && carrierCoaches.Contains(a.Type) && a.GetPrice() < carrier.Money - 1000000);
                 }
             }
             else
             {
-                if (focus == Route.RouteType.Cargo)
+                if (doLeasing)
                 {
-                    if (doLeasing)
-                    {
-                        coaches = Coaches.GetCoachesForLeasing()
-                                             .FindAll(
-                                                 a => a.Type is CoachCargoType
-                                                      && a.GetAge() < 10 && distance < a.Range && a.LeasingPrice*2 < carrier.Money);
+                    coaches =
+                        Coaches.GetCoachesForSale()
+                                 .FindAll(
+                                     a => a.Type is CoachPassengerType
+                                          && a.GetAge() < 10 && distance < a.Range && a.LeasingPrice*2 < carrier.Money);
 
-                        if (coaches.Count == 0)
-                        {
-                            coaches =
-                                Coaches.GetCoachesForSale(a => a.Type is CoachCargoType)
-                                         .FindAll(
-                                             a =>
-                                             a.GetAge() < 10 && distance < a.Range && a.LeasingPrice*2 < carrier.Money);
-                        }
-                    }
-                    else
-                    {
-                        coaches =
-                            Coaches.GetCoachesForSale(a => a.Type is CoachCargoType)
-                                     .FindAll(
-                                         a =>
-                                         a.GetAge() < 10 && distance < a.Range && a.GetPrice() < carrier.Money - 1000000);
-                    }
-                }
-                else if (focus == Route.RouteType.Helicopter)
-                {
-                    if (doLeasing)
-                    {
-                        coaches =
-                            Coaches.GetCoachesForSale(a => a.Type is CoachPassengerType && a.Type.TypeCoach == CoachType.TypeOfCoach.Helicopter)
-                                     .FindAll(
-                                         a =>
-                                         a.GetAge() < 10 && distance < a.Range && a.LeasingPrice*2 < carrier.Money);
-                    }
-                    else
-                    {
-                        coaches =
-                            Coaches.GetCoachesForSale(a => a.Type is CoachPassengerType && a.Type.TypeCoach == CoachType.TypeOfCoach.Helicopter)
-                                     .FindAll(
-                                         a =>
-                                         a.GetAge() < 10 && distance < a.Range && a.GetPrice() < carrier.Money - 1000000);
-                    }
-                }
-                else
-                {
-                    if (doLeasing)
-                    {
-                        coaches =
-                            Coaches.GetCoachesForSale()
-                                     .FindAll(
-                                         a => a.Type is CoachPassengerType
-                                              && a.GetAge() < 10 && distance < a.Range && a.LeasingPrice*2 < carrier.Money);
-
-                        if (coaches.Count == 0)
-                        {
-                            coaches =
-                                Coaches.GetCoachesForSale(a => a.Type is CoachPassengerType)
-                                         .FindAll(
-                                             a =>
-                                             a.GetAge() < 10 && distance < a.Range && a.LeasingPrice*2 < carrier.Money);
-                        }
-                    }
-                    else
+                    if (coaches.Count == 0)
                     {
                         coaches =
                             Coaches.GetCoachesForSale(a => a.Type is CoachPassengerType)
                                      .FindAll(
                                          a =>
-                                         a.GetAge() < 10 && distance < a.Range && a.GetPrice() < carrier.Money - 1000000);
+                                         a.GetAge() < 10 && distance < a.Range && a.LeasingPrice*2 < carrier.Money);
                     }
+                }
+                else
+                {
+                    coaches =
+                        Coaches.GetCoachesForSale(a => a.Type is CoachPassengerType)
+                                 .FindAll(
+                                     a =>
+                                     a.GetAge() < 10 && distance < a.Range && a.GetPrice() < carrier.Money - 1000000);
                 }
             }
             if (coaches.Count > 0)
@@ -670,57 +555,19 @@ namespace TheBusProject.Helpers
 
                     if (carrierCoaches.Count > 0)
                     {
-                        if (focus == Route.RouteType.Cargo)
-                        {
-                            loanCoaches =
-                                Coaches.GetCoachesForSale(a => a.Type is CoachCargoType)
-                                         .FindAll(
-                                             a =>
-                                             distance < a.Range && carrierCoaches.Contains(a.Type) && a.GetPrice() < carrier.Money + maxLoanTotal - carrierLoanTotal);
-                        }
-                        else if (focus == Route.RouteType.Helicopter)
-                        {
-                            loanCoaches =
-                                Coaches.GetCoachesForSale(a => a.Type is CoachPassengerType && a.Type.TypeCoach == CoachType.TypeOfCoach.Helicopter)
-                                         .FindAll(
-                                             a =>
-                                             distance < a.Range && carrierCoaches.Contains(a.Type) && a.GetPrice() < carrier.Money + maxLoanTotal - carrierLoanTotal);
-                        }
-                        else
-                        {
-                            loanCoaches =
-                                Coaches.GetCoachesForSale(a => a.Type is CoachPassengerType)
-                                         .FindAll(
-                                             a =>
-                                             distance < a.Range && carrierCoaches.Contains(a.Type) && a.GetPrice() < carrier.Money + maxLoanTotal - carrierLoanTotal);
-                        }
+                        loanCoaches =
+                            Coaches.GetCoachesForSale(a => a.Type is CoachPassengerType)
+                                     .FindAll(
+                                         a =>
+                                         distance < a.Range && carrierCoaches.Contains(a.Type) && a.GetPrice() < carrier.Money + maxLoanTotal - carrierLoanTotal);
                     }
                     else
                     {
-                        if (focus == Route.RouteType.Cargo)
-                        {
-                            loanCoaches =
-                                Coaches.GetCoachesForSale(a => a.Type is CoachCargoType)
-                                         .FindAll(
-                                             a =>
-                                             distance < a.Range && a.GetPrice() < carrier.Money + maxLoanTotal - carrierLoanTotal);
-                        }
-                        else if (focus == Route.RouteType.Helicopter)
-                        {
-                            loanCoaches =
-                                Coaches.GetCoachesForSale(a => a.Type is CoachPassengerType && a.Type.TypeCoach == CoachType.TypeOfCoach.Helicopter)
-                                         .FindAll(
-                                             a =>
-                                             distance < a.Range && a.GetPrice() < carrier.Money + maxLoanTotal - carrierLoanTotal);
-                        }
-                        else
-                        {
-                            loanCoaches =
-                                Coaches.GetCoachesForSale(a => a.Type is CoachPassengerType)
-                                         .FindAll(
-                                             a =>
-                                             distance < a.Range && a.GetPrice() < carrier.Money + maxLoanTotal - carrierLoanTotal);
-                        }
+                        loanCoaches =
+                            Coaches.GetCoachesForSale(a => a.Type is CoachPassengerType)
+                                     .FindAll(
+                                         a =>
+                                         distance < a.Range && a.GetPrice() < carrier.Money + maxLoanTotal - carrierLoanTotal);
                     }
                     if (loanCoaches.Count > 0)
                     {
@@ -820,7 +667,7 @@ namespace TheBusProject.Helpers
 
             CarrierFocus marketFocus = carrier.MarketFocus;
 
-            Terminal.TerminalType terminaltype = carrier.CarrierRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger;
+            Terminal.TerminalType terminaltype = Terminal.TerminalType.Passenger;
 
             if (carrier.Stations.Count < 4)
             {
@@ -949,12 +796,6 @@ namespace TheBusProject.Helpers
             return null;
         }
 
-        public static bool IsCargoRouteDestinationsCorrect(Station dest1, Station dest2, Carrier carrier)
-        {
-            return dest1.GetStationFacility(carrier, StationFacility.FacilityType.Cargo, true).TypeLevel > 0
-                   && dest2.GetStationFacility(carrier, StationFacility.FacilityType.Cargo, true).TypeLevel > 0;
-        }
-
         public static bool IsRouteInCorrectArea(Station dest1, Station dest2)
         {
             double distance = MathHelpers.GetDistance(
@@ -980,7 +821,7 @@ namespace TheBusProject.Helpers
             if (homebase.Terminals.GetNumberOfGates(coach.Coach.Carrier) == 0)
             {
                 StationHelpers.RentGates(homebase, coach.Coach.Carrier, StationContract.ContractType.Full,
-                                         coach.Coach.Carrier.CarrierRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger);
+                                         Terminal.TerminalType.Passenger);
                 StationFacility checkinFacility =
                     StationFacilities.GetFacilities(StationFacility.FacilityType.CheckIn).Find(f => f.TypeLevel == 1);
 
@@ -1053,7 +894,7 @@ namespace TheBusProject.Helpers
             IEnumerable<Route> sameRoutes =
                 oRoutes.Where(
                     r =>
-                    (r.Type == Route.RouteType.Mixed || r.Type == Route.RouteType.Passenger || r.Type == Route.RouteType.Helicopter)
+                    (r.Type == Route.RouteType.Passenger)
                     && ((r.Destination1 == route.Destination1 && r.Destination2 == route.Destination2)
                         || (r.Destination2 == route.Destination1 && r.Destination1 == route.Destination2)));
 
@@ -1514,15 +1355,8 @@ namespace TheBusProject.Helpers
                             route.LastUpdated = GameObject.GetInstance().GameTime;
                         }
                     }
-                    else if (PricingService.Realistic && route is CargoRoute cargoPriced)
-                    {
-                        if (AIPricingService.ReviewCargo(carrier, cargoPriced) != null)
-                        {
-                            route.LastUpdated = GameObject.GetInstance().GameTime;
-                        }
-                    }
 
-                    if (routeType == Route.RouteType.Mixed || routeType == Route.RouteType.Passenger || routeType == Route.RouteType.Helicopter)
+                    if (routeType == Route.RouteType.Passenger)
                     {
                         // a route that loses money with half its seats empty is given up when the route forecast says
                         // it won't pay for its own trips either (its coach is then free for a better one)
@@ -1563,40 +1397,6 @@ namespace TheBusProject.Helpers
                             if (route.FillingDegree < 0.2 && (GameObject.GetInstance().GameTime - route.StartDate).TotalDays >= 30)
                             {
                                 System.Threading.Interlocked.Increment(ref AIRouteChoice.EmptyDropped);
-                                carrier.RemoveRoute(route);
-                    CompetitorService.RecordDropped(carrier, route);
-
-                                if (route.HasCoach)
-                                {
-                                    route.GetCoaches().ForEach(a => a.RemoveRoute(route));
-                                }
-
-                                if (carrier.Routes.Count == 0)
-                                {
-                                    CreateNewRoute(carrier);
-                                }
-
-                                NewsFeeds.AddNewsFeed(
-                                    new NewsFeed(
-                                        GameObject.GetInstance().GameTime,
-                                        string.Format(
-                                            Translator.GetInstance().GetString("NewsFeed", "1002"),
-                                            carrier.Profile.Name,
-                                            new StationCodeFormatter().Convert(route.Destination1),
-                                            new StationCodeFormatter().Convert(route.Destination2))));
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (balance < -1000)
-                        {
-                            if (route.FillingDegree > 0.45)
-                            {
-                                ((CargoRoute) route).PricePerUnit += 10;
-                            }
-                            if (route.FillingDegree <= 0.45)
-                            {
                                 carrier.RemoveRoute(route);
                     CompetitorService.RecordDropped(carrier, route);
 
@@ -1849,44 +1649,6 @@ namespace TheBusProject.Helpers
                                 }
                             }
                         }
-                        if (carrier.CarrierRouteFocus == Route.RouteType.Helicopter)
-                        {
-                            double price = PassengerHelpers.GetPassengerPrice(station, destination);
-
-                            route = new HelicopterRoute(
-                                id.ToString(),
-                                station,
-                                destination,
-                                GameObject.GetInstance().GameTime,
-                                price);
-
-                            RouteClassesConfiguration configuration = GetRouteConfiguration((PassengerRoute) route);
-
-                            foreach (RouteClassConfiguration classConfiguration in configuration.GetClasses())
-                            {
-                                ((HelicopterRoute) route).GetRouteCoachClass(classConfiguration.Type).FarePrice = price
-                                                                                                                     *GeneralHelpers
-                                                                                                                          .ClassToPriceFactor
-                                                                                                                          (
-                                                                                                                              classConfiguration
-                                                                                                                                  .Type);
-
-                                foreach (RouteFacility facility in classConfiguration.GetFacilities())
-                                {
-                                    ((HelicopterRoute) route).GetRouteCoachClass(classConfiguration.Type)
-                                                             .AddFacility(facility);
-                                }
-                            }
-                        }
-                        if (carrier.CarrierRouteFocus == Route.RouteType.Cargo)
-                        {
-                            route = new CargoRoute(
-                                id.ToString(),
-                                station,
-                                destination,
-                                GameObject.GetInstance().GameTime,
-                                PassengerHelpers.GetCargoPrice(station, destination));
-                        }
 
                         bool isDeptOk = true;
                         bool isDestOk = true;
@@ -2052,7 +1814,7 @@ namespace TheBusProject.Helpers
 
                             //NewsFeeds.AddNewsFeed(new NewsFeed(GameObject.GetInstance().GameTime, string.Format(Translator.GetInstance().GetString("NewsFeed", "1001"), carrier.Profile.Name, new StationCodeFormatter().Convert(route.Destination1), new StationCodeFormatter().Convert(route.Destination2))));
 
-                            if (route.Type == Route.RouteType.Passenger || route.Type == Route.RouteType.Mixed || route.Type == Route.RouteType.Helicopter)
+                            if (route.Type == Route.RouteType.Passenger)
                             {
                                 //creates a business route
                                 if (IsBusinessRoute(route, fCoach))
@@ -2063,10 +1825,6 @@ namespace TheBusProject.Helpers
                                 {
                                     CreateRouteTimeTable(route, fCoach);
                                 }
-                            }
-                            if (route.Type == Route.RouteType.Cargo)
-                            {
-                                CreateCargoRouteTimeTable(route, fCoach);
                             }
 
                             fCoach.Status = FleetCoach.CoachStatus.ToRouteStart;
@@ -2082,10 +1840,6 @@ namespace TheBusProject.Helpers
                         StationFacility checkinFacility =
                             StationFacilities.GetFacilities(StationFacility.FacilityType.CheckIn)
                                              .Find(f => f.TypeLevel == 1);
-                        StationFacility cargoTerminal =
-                            StationFacilities.GetFacilities(StationFacility.FacilityType.Cargo)
-                                             .Find(f => f.TypeLevel > 0);
-
                         /*
                         if (destination.getStationFacility(carrier, StationFacility.FacilityType.CheckIn).TypeLevel == 0)
                         {
@@ -2101,29 +1855,7 @@ namespace TheBusProject.Helpers
                         }
                         */
 
-                        if (destination.GetStationFacility(carrier, StationFacility.FacilityType.Cargo).TypeLevel == 0
-                            && destination.GetStationFacility(null, StationFacility.FacilityType.Cargo).TypeLevel == 0
-                            && route.Type == Route.RouteType.Cargo)
-                        {
-                            destination.AddStationFacility(carrier, cargoTerminal, GameObject.GetInstance().GameTime);
-                            CarrierHelpers.AddCarrierInvoice(
-                                carrier,
-                                GameObject.GetInstance().GameTime,
-                                Invoice.InvoiceType.Purchases,
-                                -cargoTerminal.Price);
-                        }
 
-                        if (station.GetStationFacility(carrier, StationFacility.FacilityType.Cargo).TypeLevel == 0
-                            && station.GetStationFacility(null, StationFacility.FacilityType.Cargo).TypeLevel == 0
-                            && route.Type == Route.RouteType.Cargo)
-                        {
-                            station.AddStationFacility(carrier, cargoTerminal, GameObject.GetInstance().GameTime);
-                            CarrierHelpers.AddCarrierInvoice(
-                                carrier,
-                                GameObject.GetInstance().GameTime,
-                                Invoice.InvoiceType.Purchases,
-                                -cargoTerminal.Price);
-                        }
                     }
                 }
             }
@@ -2239,7 +1971,6 @@ namespace TheBusProject.Helpers
                 carrier.Fleet.FindAll(
                     f =>
                     !f.HasRoute && f.Coach.BuiltDate <= GameObject.GetInstance().GameTime && f.UsableBy(carrier)
-                    && CarrierTypeRules.CanUseType(carrier, f.Coach.Type)
                     && f.Coach.Range
                     > MathHelpers.GetDistance(
                         destination1.Profile.Coordinates.ConvertToGeoCoordinate(),
@@ -2272,7 +2003,7 @@ namespace TheBusProject.Helpers
             }
             homeStations.AddRange(carrier.GetHubs());
 
-            Terminal.TerminalType terminaltype = carrier.CarrierRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger;
+            Terminal.TerminalType terminaltype = Terminal.TerminalType.Passenger;
 
             Station station = homeStations.Find(a => StationHelpers.HasFreeGates(a, carrier, terminaltype));
 
@@ -2303,7 +2034,7 @@ namespace TheBusProject.Helpers
 
             IOrderedEnumerable<Station> stations =
                 from a in
-                    carrier.Stations.FindAll(aa => aa.Terminals.GetFreeGates(carrier.CarrierRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger) > 0)
+                    carrier.Stations.FindAll(aa => aa.Terminals.GetFreeGates(Terminal.TerminalType.Passenger) > 0)
                 orderby a.Profile.Size descending
                 select a;
 
@@ -2477,22 +2208,10 @@ namespace TheBusProject.Helpers
                         t.Produced.From <= GameObject.GetInstance().GameTime
                         && t.Produced.To >= GameObject.GetInstance().GameTime && t.Price*numberToOrder < carrier.Money);
 
-                if (carrier.CarrierRouteFocus == Route.RouteType.Cargo)
-                {
-                    types.RemoveAll(a => a.TypeCoach == CoachType.TypeOfCoach.Passenger);
-                    types.RemoveAll(a => a.TypeCoach == CoachType.TypeOfCoach.Helicopter);
-                }
 
                 if (carrier.CarrierRouteFocus == Route.RouteType.Passenger)
                 {
-                    types.RemoveAll(a => a.TypeCoach == CoachType.TypeOfCoach.Cargo);
-                    types.RemoveAll(a => a.TypeCoach == CoachType.TypeOfCoach.Helicopter);
-                }
-                if (carrier.CarrierRouteFocus == Route.RouteType.Helicopter)
-                {
-                    types.RemoveAll(a => a.TypeCoach == CoachType.TypeOfCoach.Cargo);
-                    types.RemoveAll(a => a.TypeCoach == CoachType.TypeOfCoach.Passenger);
-                }
+                                }
                 types = types.OrderBy(t => t.Price).ToList();
 
                 var list = types.ToDictionary(type => type, type => (int) ((type.Range/(Convert.ToDouble(type.Price)/100000))) + (carrierCoaches.Contains(type) ? 10 : 0));

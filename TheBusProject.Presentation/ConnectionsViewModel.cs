@@ -103,7 +103,7 @@ namespace TheBusProject.Presentation
             var keep = _selected?.Route;
             Rows.Clear();
             int allConn = 0, allPax = 0;
-            foreach (var r in me.Routes.ToList().Where(r => !r.IsCargoRoute)
+            foreach (var r in me.Routes.ToList()
                                 .OrderBy(r => Code(r.Destination1)).ThenBy(r => Code(r.Destination2)))
             {
                 int conn, pax, conn2, pax2;
@@ -191,7 +191,7 @@ namespace TheBusProject.Presentation
             if (!double.TryParse(_maxDistance.Replace(",", ""), out max) || max <= 0) max = 5000;
             string hubName;
             double w = ConnectionService.OwnWeightAt(me, hub, out hubName);
-            int spokes = me.Routes.ToList().Count(r => !r.IsCargoRoute && r.HasCoach && (r.Destination1 == hub || r.Destination2 == hub));
+            int spokes = me.Routes.ToList().Count(r => r.HasCoach && (r.Destination1 == hub || r.Destination2 == hub));
             foreach (var i in ConnectionService.HubIdeas(me, hub, 15, max))
             {
                 var dest = i.Destination;

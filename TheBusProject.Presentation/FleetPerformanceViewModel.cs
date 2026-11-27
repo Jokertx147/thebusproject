@@ -174,7 +174,7 @@ namespace TheBusProject.Presentation
                     "{0}:  {1:N0} trips  |  {2:N0} passengers{3}{4}",
                     y.Year, y.Trips, y.Passengers,
                     y.LoadFactor > 0 ? string.Format("  |  {0:0}% full on average", y.LoadFactor*100) : "",
-                    y.Cargo > 0 ? string.Format("  |  {0:N0} cargo", y.Cargo) : ""));
+                    ""));
             }
         }
     }

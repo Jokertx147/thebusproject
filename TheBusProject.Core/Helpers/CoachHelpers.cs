@@ -287,51 +287,11 @@ namespace TheBusProject.Helpers
                     }
                 }
             }
-            else if (type is CoachCargoType)
-            {
-                var cargoClass = new CoachClass(CoachClass.ClassType.EconomyClass, 0);
-                classes.Add(cargoClass);
-            }
-            else if (type.TypeCoach == CoachType.TypeOfCoach.Helicopter)
-            {
-                var helicopterClass = new CoachClass(CoachClass.ClassType.EconomyClass, 0);
-                classes.Add(helicopterClass);
-            }
             return classes;
         }
 
-        //returns the cargo size for a passenger coach if needed to converted
 
-        //return the days for converting a passenger coach to a cargo coach
-        public static int GetCargoConvertingDays(CoachPassengerType type)
-        {
-            return (int) (Convert.ToDouble(type.MaxSeatingCapacity)/1.15);
-        }
 
-        //returns the price for converting a passenger coach to a cargo coach
-        public static double GetCargoConvertingPrice(CoachPassengerType type)
-        {
-            double basePrice = 650000;
-
-            if (type.Body == CoachType.BodyType.SingleAisle)
-            {
-                basePrice = basePrice*1.2;
-            }
-
-            if (type.Body == CoachType.BodyType.NarrowBody)
-            {
-                basePrice = basePrice*2.4;
-            }
-
-            if (type.Body == CoachType.BodyType.WideBody)
-            {
-                basePrice = basePrice*3.6;
-            }
-
-            double paxRate = type.MaxSeatingCapacity*800;
-
-            return GeneralHelpers.GetInflationPrice(basePrice + paxRate);
-        }
 
         public static DateTime GetOrderDeliveryDate(List<CoachOrder> orders)
         {
@@ -367,10 +327,6 @@ namespace TheBusProject.Helpers
             return latestDate;
         }
 
-        public static double GetPassengerCargoSize(CoachPassengerType type)
-        {
-            return Convert.ToDouble(type.MaxSeatingCapacity)*1.25;
-        }
 
         public static FleetCoach GetRandomCoach(Carrier carrier)
         {

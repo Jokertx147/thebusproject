@@ -134,8 +134,6 @@ namespace TheBusProject.Presentation
         private ContractItem _selectedContract;
         private string _terminalName = "Terminal";
         private int _terminalGates = 10;
-        private bool _terminalCargo;
-        private bool _leaseCargo;
         private Action _pending;
         private string _pendingText;
 
@@ -266,7 +264,7 @@ namespace TheBusProject.Presentation
                 string blocker = BayService.GetExtendBlocker(_selected.Station, r, to);
                 if (blocker != null) return blocker;
                 // which of the player's coach the new length is still too short for
-                var stillShort = BayService.TooShortFor(to, false).Concat(BayService.TooShortFor(to, true)).ToList();
+                var stillShort = BayService.TooShortFor(to).ToList();
                 return string.Format(
                     "{0:N0} m to {1:N0} m: {2}, about {3} days. The bay stays in use meanwhile.",
                     r.Length, to, Money(BayService.ExtensionPrice(_selected.Station, r, to)), BayService.ExtensionDays(to - r.Length))
@@ -411,32 +409,14 @@ namespace TheBusProject.Presentation
             set { SetProperty(ref _terminalGates, value); OnPropertyChanged(nameof(TerminalPriceText)); }
         }
 
-        /// <summary>Lease cargo gates instead of passenger gates.</summary>
-        public bool LeaseCargo
-        {
-            get { return _leaseCargo; }
-            set
-            {
-                if (SetProperty(ref _leaseCargo, value))
-                {
-                    if (_selected != null)
-                    {
-                        RefreshGateChoices(_selected.Station);
-                    }
-
-                    OnPropertyChanged(nameof(LeaseHeader));
-                }
-            }
-        }
-
         public string LeaseHeader
         {
-            get { return _leaseCargo ? "Lease cargo gates" : "Lease passenger gates"; }
+            get { return "Lease passenger gates"; }
         }
 
         private Terminal.TerminalType LeaseKind
         {
-            get { return _leaseCargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger; }
+            get { return Terminal.TerminalType.Passenger; }
         }
 
         private void RefreshGateChoices(Station station)
@@ -451,13 +431,6 @@ namespace TheBusProject.Presentation
             _gates = GateChoices.Count > 0 ? GateChoices[0] : 0;
             OnPropertyChanged(nameof(Gates));
             OnPropertyChanged(nameof(PriceText));
-        }
-
-        /// <summary>Build a cargo terminal instead of a passenger terminal.</summary>
-        public bool TerminalCargo
-        {
-            get { return _terminalCargo; }
-            set { SetProperty(ref _terminalCargo, value); }
         }
 
         public string TerminalPriceText
@@ -864,23 +837,6 @@ namespace TheBusProject.Presentation
                               .Sum(c => c.NumberOfGates);
             GateSummary = string.Format("Passenger gates: {0} in total, {1} free, {2} leased by you", total, free, mine);
 
-            int cargoTotal = station.Terminals.GetNumberOfGates(Terminal.TerminalType.Cargo);
-            if (cargoTotal > 0 || station.GetCarrierContracts(carrier).Any(c => c.TerminalType == Terminal.TerminalType.Cargo))
-            {
-                GateSummary += string.Format(
-                    "{0}Cargo gates: {1} in total, {2} free, {3} leased by you",
-                    Environment.NewLine,
-                    cargoTotal,
-                    station.Terminals.GetFreeGates(Terminal.TerminalType.Cargo),
-                    station.GetCarrierContracts(carrier)
-                           .Where(c => c.TerminalType == Terminal.TerminalType.Cargo)
-                           .Sum(c => c.NumberOfGates));
-            }
-            else
-            {
-                GateSummary += Environment.NewLine + "No cargo terminal here. Build one under Terminals to run cargo.";
-            }
-
             foreach (var c in station.GetCarrierContracts(carrier))
             {
                 Contracts.Add(
@@ -905,13 +861,6 @@ namespace TheBusProject.Presentation
             bool hasContract = Contracts.Count > 0;
             foreach (StationFacility.FacilityType type in Enum.GetValues(typeof(StationFacility.FacilityType)))
             {
-                // cargo facilities only make sense where there is a cargo terminal
-                if (type == StationFacility.FacilityType.Cargo
-                    && !station.Terminals.StationTerminals.Exists(t => t.Type == Terminal.TerminalType.Cargo))
-                {
-                    continue;
-                }
-
                 var current = station.GetCurrentStationFacility(carrier, type);
                 var building = station.GetCarrierBuildingFacility(carrier, type);
                 var next = StationFacilities.GetFacilities(type)
@@ -972,7 +921,7 @@ namespace TheBusProject.Presentation
                 return "You need more than " + Money(price) + ".";
             }
 
-            var terminalType = carrier.CarrierRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger;
+            var terminalType = Terminal.TerminalType.Passenger;
             double allGates = station.Terminals.GetNumberOfGates(terminalType);
             double percent = allGates > 0 ? 100.0 * station.Terminals.GetNumberOfGates(carrier) / allGates : 0;
             int limit = (int) carrier.GetCarrierValue() + 1;
@@ -1205,7 +1154,7 @@ namespace TheBusProject.Presentation
             }
 
             string name = string.IsNullOrWhiteSpace(_terminalName) ? "Terminal" : _terminalName.Trim();
-            var type = _terminalCargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger;
+            var type = Terminal.TerminalType.Passenger;
             int gates = _terminalGates;
             _pending = () => BuildTerminal(station, name, gates, type, price);
             PendingText = string.Format("Build {0} ({1} gates, {2}) at {3} for {4}?", name, gates, type, station.Profile.IATACode, Money(price));
@@ -1334,7 +1283,7 @@ namespace TheBusProject.Presentation
             var kind = LeaseKind;
             if (_gates < 1 || station.Terminals.GetFreeGates(kind) < _gates)
             {
-                Status = "There are no free " + (_leaseCargo ? "cargo " : "") + "gates to lease at " + station.Profile.IATACode + ".";
+                Status = "There are no free gates to lease at " + station.Profile.IATACode + ".";
                 return;
             }
 

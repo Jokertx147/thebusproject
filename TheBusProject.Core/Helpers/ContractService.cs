@@ -48,10 +48,6 @@ namespace TheBusProject.Helpers
 
         public static bool Matches(SpecialContractRoute scr, Route route)
         {
-            if (route.Type != scr.RouteType && !(scr.RouteType == Route.RouteType.Passenger && route.Type == Route.RouteType.Mixed))
-            {
-                return false;
-            }
 
             return (route.Destination1 == scr.Departure && route.Destination2 == scr.Destination)
                    || (scr.BothWays && route.Destination2 == scr.Departure && route.Destination1 == scr.Destination);

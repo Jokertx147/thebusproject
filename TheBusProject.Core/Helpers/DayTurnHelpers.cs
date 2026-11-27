@@ -232,10 +232,6 @@ namespace TheBusProject.Helpers
                             //coach.CurrentTrip.Classes.Add(new TripCoachClass(((PassengerRoute)coach.CurrentTrip.Entry.TimeTable.Route).getRouteCoachClass(aClass.Type),0));
                         }
                     }
-                    if (coach.CurrentTrip.IsCargoTrip())
-                    {
-                        coach.CurrentTrip.Cargo = PassengerHelpers.GetTripCargo(coach);
-                    }
                 }
                 // departures: the carrier, the coach, the station it leaves and the route
                 TripStatistics.TakeOff(coach);
@@ -325,13 +321,6 @@ namespace TheBusProject.Helpers
                         }
                     }
                 }
-            }
-            if (coach.CurrentTrip.IsCargoTrip())
-            {
-                tax = groundTaxPerPassenger*coach.CurrentTrip.Cargo;
-                fuelExpenses = FleetCoachHelpers.GetFuelExpenses(coach, fdistance);
-
-                ticketsIncome = coach.CurrentTrip.Cargo*coach.CurrentTrip.GetCargoPrice();
             }
 
             pfL = Profiler.Lap("landing: income and costs", pfL);

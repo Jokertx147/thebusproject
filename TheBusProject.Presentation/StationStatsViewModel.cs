@@ -176,7 +176,7 @@ namespace TheBusProject.Presentation
                     Numbers = string.Format(
                         "{0:N0} passengers this year ({1:0.#}%)  |  last year {2:N0}  |  {3} route(s), {4} departures a week  |  gates {5}{6}",
                         s.PassengersThisYear, share, s.PassengersLastYear, s.Routes, s.DeparturesPerWeek, s.PassengerGates,
-                        s.CargoGates > 0 ? " + " + s.CargoGates + " cargo" : ""),
+                        ""),
                     IsMine = s.Carrier == me
                 });
             }

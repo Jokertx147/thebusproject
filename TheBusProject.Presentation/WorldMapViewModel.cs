@@ -28,7 +28,6 @@ namespace TheBusProject.Presentation
     public class MapLine
     {
         public List<List<double[]>> Pieces { get; set; } = new List<List<double[]>>();
-        public bool IsCargo { get; set; }
 
         /// <summary>A rival's colour ("#rrggbb"); null for the player's own routes.</summary>
         public string Color { get; set; }
@@ -169,7 +168,7 @@ namespace TheBusProject.Presentation
         }
 
         /// <summary>The whole trip, from departure to destination.</summary>
-        public MapLine Path => HasTrip ? _path ?? (_path = WorldMapViewModel.MakeLine(Lat1, Lon1, Lat2, Lon2, false)) : null;
+        public MapLine Path => HasTrip ? _path ?? (_path = WorldMapViewModel.MakeLine(Lat1, Lon1, Lat2, Lon2)) : null;
     }
 
     /// <summary>
@@ -245,7 +244,7 @@ namespace TheBusProject.Presentation
         public List<MapLine> Lines { get; private set; } = new List<MapLine>();
         public List<MapCoach> Coach { get; private set; } = new List<MapCoach>();
 
-        /// <summary>Colours for rival carriers, in order (none of them the player's blue, the cargo orange or the coach yellow).</summary>
+        /// <summary>Colours for rival carriers, in order (none of them the player's blue or the coach yellow).</summary>
         public static readonly string[] RivalColors = {"#d62728", "#2ca02c", "#9467bd", "#e377c2", "#17becf", "#8c564b", "#bcbd22", "#3d3d3d"};
 
         /// <summary>The choices of rivals to show; rebuilt once a game day, keeping the choice.</summary>
@@ -398,7 +397,7 @@ namespace TheBusProject.Presentation
                     {
                         Departs = HourOf(day + e.Time, day), Trip = e.Destination.TripCode, Route = from.Profile.IATACode + " - " + to.Profile.IATACode, Arrives = HourOf(arr, day)
                     };
-                    string carried = rec == null ? null : rec.IsCargo ? Math.Round(rec.Cargo) + " cargo" : rec.Passengers + "/" + rec.Seats + " passengers";
+                    string carried = rec == null ? null : rec.Passengers + "/" + rec.Seats + " passengers";
                     if (rec != null && rec.Cancelled)
                     {
                         row.Status = "Cancelled" + (rec.CancelReason != null ? " (" + rec.CancelReason + ")" : "");
@@ -438,7 +437,7 @@ namespace TheBusProject.Presentation
                 if (today.Count > 0) parts.Add(string.Format("today so far {0} trip{1}, {2}", today.Count, today.Count == 1 ? "" : "s", Money(today.Sum(x => x.Profit))));
                 if (week.Count > 0)
                 {
-                    var pax = week.Where(x => !x.IsCargo && x.Seats > 0).ToList();
+                    var pax = week.Where(x => x.Seats > 0).ToList();
                     string load = pax.Count > 0 ? ", " + (100.0*pax.Sum(x => x.Passengers)/pax.Sum(x => x.Seats)).ToString("0") + "% full" : "";
                     parts.Add(string.Format("last 7 days {0} trips{1}, {2}", week.Count, load, Money(week.Sum(x => x.Profit))));
                 }
@@ -556,11 +555,6 @@ namespace TheBusProject.Presentation
                 int free = station.Terminals.GetFreeGates(Terminal.TerminalType.Passenger);
                 int mine = station.GetCarrierContracts(carrier).Where(c => c.TerminalType == Terminal.TerminalType.Passenger).Sum(c => c.NumberOfGates);
                 string gates = "Gates " + total + " (" + free + " free, " + mine + " yours)";
-                int cargo = station.Terminals.GetNumberOfGates(Terminal.TerminalType.Cargo);
-                if (cargo > 0)
-                {
-                    gates += "  |  cargo gates " + cargo + " (" + station.Terminals.GetFreeGates(Terminal.TerminalType.Cargo) + " free)";
-                }
                 sb.AppendLine(gates);
 
                 int year = game.GameTime.Year;
@@ -675,17 +669,17 @@ namespace TheBusProject.Presentation
             return Project(lat, lon);
         }
 
-        private static MapLine MakeLine(Station a, Station b, bool cargo)
+        private static MapLine MakeLine(Station a, Station b)
         {
             double la1, lo1, la2, lo2;
             Coords(a, out la1, out lo1);
             Coords(b, out la2, out lo2);
-            return MakeLine(la1, lo1, la2, lo2, cargo);
+            return MakeLine(la1, lo1, la2, lo2);
         }
 
-        public static MapLine MakeLine(double la1, double lo1, double la2, double lo2, bool cargo)
+        public static MapLine MakeLine(double la1, double lo1, double la2, double lo2)
         {
-            var line = new MapLine { IsCargo = cargo };
+            var line = new MapLine();
 
             // a coach goes by road: down the interstate where there is one, and only straight across country when
             // the highways can't join the two places
@@ -823,7 +817,6 @@ namespace TheBusProject.Presentation
                     int pax = trip.GetTotalPassengers();
                     return pax > 0 ? ", " + pax + " passengers" : "";
                 }
-                if (trip.IsCargoTrip() && trip.Cargo > 0) return ", " + Math.Round(trip.Cargo) + " units of cargo";
             }
             catch (Exception)
             {
@@ -930,7 +923,7 @@ namespace TheBusProject.Presentation
         private static string PairKey(Route r)
         {
             string x = r.Destination1.Profile.IATACode, y = r.Destination2.Profile.IATACode;
-            return (string.CompareOrdinal(x, y) < 0 ? x + y : y + x) + r.IsCargoRoute;
+            return string.CompareOrdinal(x, y) < 0 ? x + y : y + x;
         }
 
         // the rivals' routes, stations and coach for the choice, one colour per carrier
@@ -968,7 +961,7 @@ namespace TheBusProject.Presentation
                 string color = colors[r.Carrier];
                 if (seen.Add(color + PairKey(r)))
                 {
-                    var line = MakeLine(r.Destination1, r.Destination2, r.IsCargoRoute);
+                    var line = MakeLine(r.Destination1, r.Destination2);
                     line.Color = color;
                     lines.Add(line);
                 }
@@ -1080,9 +1073,9 @@ namespace TheBusProject.Presentation
             {
                 if (r.Destination1?.Profile?.Coordinates == null || r.Destination2?.Profile?.Coordinates == null) continue;
                 string key = string.CompareOrdinal(r.Destination1.Profile.IATACode, r.Destination2.Profile.IATACode) < 0
-                    ? r.Destination1.Profile.IATACode + r.Destination2.Profile.IATACode + r.IsCargoRoute
-                    : r.Destination2.Profile.IATACode + r.Destination1.Profile.IATACode + r.IsCargoRoute;
-                if (seen.Add(key)) lines.Add(MakeLine(r.Destination1, r.Destination2, r.IsCargoRoute));
+                    ? r.Destination1.Profile.IATACode + r.Destination2.Profile.IATACode
+                    : r.Destination2.Profile.IATACode + r.Destination1.Profile.IATACode;
+                if (seen.Add(key)) lines.Add(MakeLine(r.Destination1, r.Destination2));
             }
 
             var coach = fleet.Where(f => f.Coach.BuiltDate <= now).Select(f => Place(f, now)).Where(a => a != null).ToList();

@@ -93,7 +93,7 @@ namespace TheBusProject.Helpers
             Station station = startData.Station;
 
             StationHelpers.RentGates(station, carrier, StationContract.ContractType.Full,
-                                     carrier.CarrierRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger, 2);
+                                     Terminal.TerminalType.Passenger, 2);
 
             StationFacility checkinFacility =
                 StationFacilities.GetFacilities(StationFacility.FacilityType.CheckIn).Find(f => f.TypeLevel == 1);
@@ -406,13 +406,6 @@ namespace TheBusProject.Helpers
                     }
                 }
             }
-            if (coach.CurrentTrip.IsCargoTrip())
-            {
-                tax = groundTaxPerPassenger*coach.CurrentTrip.Cargo;
-                fuelExpenses = FleetCoachHelpers.GetFuelExpenses(coach, fdistance);
-
-                ticketsIncome = coach.CurrentTrip.Cargo*coach.CurrentTrip.GetCargoPrice();
-            }
 
             Station dest = coach.CurrentTrip.Entry.Destination.Station;
             Station dept = coach.CurrentTrip.Entry.DepartureStation;
@@ -724,7 +717,6 @@ namespace TheBusProject.Helpers
         private static void ClearAllUsedStats()
         {
             Stations.GetAllStations().ForEach(a => a.ClearDestinationPassengerStatistics());
-            Stations.GetAllStations().ForEach(a => a.ClearDestinationCargoStatistics());
             CarrierHelpers.ClearRoutesStatistics();
             TripStatistics.PruneStationStatistics();
         }
@@ -763,35 +755,18 @@ namespace TheBusProject.Helpers
 
             Station largestDestination;
 
-            if (carrier.CarrierRouteFocus == Route.RouteType.Cargo)
-            {
-                largestDestination =
-                    homeStation.GetDestinationDemands()
-                               .Where(
-                                   a =>
-                                   a != null && GeneralHelpers.IsStationActive(a)
-                                   && !carrier.Routes.Exists(
-                                       r =>
-                                       (r.Destination1 == homeStation && r.Destination2 == a)
-                                       || (r.Destination2 == homeStation && r.Destination1 == a)))
-                               .OrderByDescending(homeStation.GetDestinationCargoRate)
-                               .FirstOrDefault();
-            }
-            else
-            {
-                largestDestination =
-                    homeStation.GetDestinationDemands()
-                               .Where(
-                                   a =>
-                                   a != null && GeneralHelpers.IsStationActive(a)
-                                   && !carrier.Routes.Exists(
-                                       r =>
-                                       (r.Destination1 == homeStation && r.Destination2 == a)
-                                       || (r.Destination2 == homeStation && r.Destination1 == a)))
-                               .OrderByDescending(
-                                   a => homeStation.GetDestinationPassengersRate(a, CoachClass.ClassType.EconomyClass))
-                               .FirstOrDefault();
-            }
+            largestDestination =
+                homeStation.GetDestinationDemands()
+                           .Where(
+                               a =>
+                               a != null && GeneralHelpers.IsStationActive(a)
+                               && !carrier.Routes.Exists(
+                                   r =>
+                                   (r.Destination1 == homeStation && r.Destination2 == a)
+                                   || (r.Destination2 == homeStation && r.Destination1 == a)))
+                           .OrderByDescending(
+                               a => homeStation.GetDestinationPassengersRate(a, CoachClass.ClassType.EconomyClass))
+                           .FirstOrDefault();
 
             if (largestDestination != null)
             {
@@ -868,7 +843,6 @@ namespace TheBusProject.Helpers
 
             //Clearing stats as an RAM work-a-round
             Stations.GetAllStations().ForEach(a => a.ClearDestinationPassengerStatistics());
-            Stations.GetAllStations().ForEach(a => a.ClearDestinationCargoStatistics());
 
             List<Carrier> humanCarriers = Carriers.GetCarriers(a => a.IsHuman);
 
@@ -3228,11 +3202,6 @@ namespace TheBusProject.Helpers
                                             .GetRouteCoachClass(aClass.Type),
                                         GetPassengers(coach, aClass.Type)));
                             }
-                        }
-                        if (coach.CurrentTrip.IsCargoTrip())
-                        {
-                            using (Profiler.Measure("trip: cargo"))
-                                coach.CurrentTrip.Cargo = PassengerHelpers.GetTripCargo(coach);
                         }
                     }
                     else

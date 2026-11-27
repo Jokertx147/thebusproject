@@ -431,7 +431,7 @@ namespace TheBusProject.Helpers
         //adds a subsidiary carrier to an carrier
         public static void AddSubsidiaryCarrier(Carrier carrier, SubsidiaryCarrier sCarrier, double money, Station stationHomeBase)
         {
-            Terminal.TerminalType terminaltype = sCarrier.CarrierRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger;
+            Terminal.TerminalType terminaltype = Terminal.TerminalType.Passenger;
             AddCarrierInvoice(carrier, GameObject.GetInstance().GameTime, Invoice.InvoiceType.CarrierExpenses, -money);
             sCarrier.Money = money;
             sCarrier.StartMoney = money;
@@ -584,7 +584,7 @@ namespace TheBusProject.Helpers
         //returns if an carrier can create a hub at an station
         public static bool CanCreateHub(Carrier carrier, Station station, HubType type)
         {
-            Terminal.TerminalType terminaltype = carrier.CarrierRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger;
+            Terminal.TerminalType terminaltype = Terminal.TerminalType.Passenger;
 
             bool carrierHub = station.GetHubs().Exists(h => h.Carrier == carrier);
 
@@ -914,17 +914,10 @@ namespace TheBusProject.Helpers
         /// </summary>
         public static bool IsRouteDestinationsOk(Carrier carrier, IList<Station> calls, Route.RouteType routeType)
         {
-            Terminal.TerminalType type = routeType == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger;
+            Terminal.TerminalType type = Terminal.TerminalType.Passenger;
 
             if (calls == null || calls.Count < 2) throw new Exception("3000");
 
-            if (routeType != Route.RouteType.Cargo)
-            {
-                foreach (Station call in calls)
-                {
-                    if (!StationHelpers.HasFreeGates(call, carrier, type)) throw new Exception("3000");
-                }
-            }
 
             var routeOkStatus = RouteOkStatus.Ok;
             var distances = new List<double>();
@@ -951,8 +944,6 @@ namespace TheBusProject.Helpers
                 throw new Exception("3002");
             if (routeOkStatus == RouteOkStatus.WrongDistance)
                 throw new Exception("3001");
-            if (routeOkStatus == RouteOkStatus.MissingCargo)
-                throw new Exception("3003");
             if (routeOkStatus == RouteOkStatus.Restrictions)
                 throw new Exception("3005");
             if (routeOkStatus == RouteOkStatus.MissingLicense)
@@ -963,11 +954,7 @@ namespace TheBusProject.Helpers
         //returns if two stations can have route between them and if the carrier has license for the route
         private static bool CheckRouteOk(Station station1, Station station2, Route.RouteType routeType)
         {
-            bool isCargoRouteOk = true;
-            if (routeType == Route.RouteType.Cargo)
-                isCargoRouteOk = AIHelpers.IsCargoRouteDestinationsCorrect(station1, station2, GameObject.GetInstance().HumanCarrier);
-
-            return isCargoRouteOk && HasCarrierLicens(GameObject.GetInstance().HumanCarrier, station1, station2) && AIHelpers.IsRouteInCorrectArea(station1, station2) &&
+            return HasCarrierLicens(GameObject.GetInstance().HumanCarrier, station1, station2) && AIHelpers.IsRouteInCorrectArea(station1, station2) &&
                    !TripRestrictions.HasRestriction(station1.Profile.Country, station2.Profile.Country, GameObject.GetInstance().GameTime, TripRestriction.RestrictionType.Trips) &&
                    !TripRestrictions.HasRestriction(station2.Profile.Country, station1.Profile.Country, GameObject.GetInstance().GameTime, TripRestriction.RestrictionType.Trips) &&
                    !TripRestrictions.HasRestriction(GameObject.GetInstance().HumanCarrier, station1.Profile.Country, station2.Profile.Country, GameObject.GetInstance().GameTime);
@@ -976,10 +963,6 @@ namespace TheBusProject.Helpers
         private static RouteOkStatus GetRouteStatus(Station station1, Station station2, Route.RouteType routeType)
         {
             var status = RouteOkStatus.Ok;
-
-            if (routeType == Route.RouteType.Cargo || routeType == Route.RouteType.Mixed)
-                if (!AIHelpers.IsCargoRouteDestinationsCorrect(station1, station2, GameObject.GetInstance().HumanCarrier))
-                    status = RouteOkStatus.MissingCargo;
 
             if (status == RouteOkStatus.Ok)
             {
@@ -1035,7 +1018,6 @@ namespace TheBusProject.Helpers
         private enum RouteOkStatus
         {
             Ok,
-            MissingCargo,
             WrongDistance,
             AppropriateType,
             Restrictions,

@@ -182,41 +182,6 @@
       <en-GB name="Regional workshop" />
     </translations>
   </stationfacility>
-  <stationfacility uid="200" shortname="Cargo None" type="Cargo" typelevel="0" price="0" buildingdays="0">
-    <level service="50" luxury="15">
-    </level>
-    <employees type="Support" numberofemployees="0">
-    </employees>
-    <translations>
-      <en-US name="None" />
-      <de-DE name="Keiner" />
-      <en-GB name="None" />
-      <nl-NL name="Geen" />
-      <zh-CN name="无" />
-      <da-DK name="Ingen" />
-      <es-ES name="Ninguna" />
-    </translations>
-  </stationfacility>
-  <stationfacility uid="201" shortname="Parcel room" type="Cargo" typelevel="1" price="18000" buildingdays="30">
-    <level service="75" luxury="15">
-    </level>
-    <employees type="Support" numberofemployees="2">
-    </employees>
-    <translations>
-      <en-US name="Parcel room" />
-      <en-GB name="Parcel room" />
-    </translations>
-  </stationfacility>
-  <stationfacility uid="202" shortname="Parcel depot" type="Cargo" typelevel="2" price="40000" buildingdays="45">
-    <level service="100" luxury="15">
-    </level>
-    <employees type="Support" numberofemployees="4">
-    </employees>
-    <translations>
-      <en-US name="Large parcel depot" />
-      <en-GB name="Large parcel depot" />
-    </translations>
-  </stationfacility>
 
   <!-- <stationfacility uid="113" shortname="International Departures" type="IntlService" typelevel="1" price="260000" buildingdays="10">
     <level service="0" luxury="5"></level>

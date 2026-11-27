@@ -23,23 +23,10 @@ namespace TheBusProject.Models.Routes
         {
             Entry = entry;
 
-            if (Entry.TimeTable.Route.Type == Route.RouteType.Passenger
-                || Entry.TimeTable.Route.Type == Route.RouteType.Mixed || Entry.TimeTable.Route.Type == Route.RouteType.Helicopter)
+            if (Entry.TimeTable.Route.Type == Route.RouteType.Passenger)
             {
                 Classes = new List<TripCoachClass>();
 
-                if (Entry != null)
-                {
-                    Coach = Entry.Coach;
-                    TripTime = MathHelpers.ConvertEntryToDate(Entry);
-                    ScheduledTripTime = TripTime;
-                }
-
-                IsOnTime = true;
-            }
-            if (Entry.TimeTable.Route.Type == Route.RouteType.Cargo
-                || Entry.TimeTable.Route.Type == Route.RouteType.Mixed)
-            {
                 if (Entry != null)
                 {
                     Coach = Entry.Coach;
@@ -67,8 +54,6 @@ namespace TheBusProject.Models.Routes
         [Versioning("coach")]
         public FleetCoach Coach { get; set; }
 
-        [Versioning("cargo")]
-        public double Cargo { get; set; }
 
         [Versioning("classes")]
         public List<TripCoachClass> Classes { get; set; }
@@ -108,15 +93,6 @@ namespace TheBusProject.Models.Routes
         }
 
         //returns the scheduled expected landing time
-
-        //returns the cargo price
-        public double GetCargoPrice()
-        {
-            var route = Entry.TimeTable.Route as CargoRoute;
-            if (route != null)
-                return route.PricePerUnit;
-            return ((CombiRoute) Entry.TimeTable.Route).PricePerUnit;
-        }
 
         public Station GetDepartureStation()
         {
@@ -173,18 +149,9 @@ namespace TheBusProject.Models.Routes
 
         //returns the departure location
 
-        //returns if it is a cargo trip
-        public bool IsCargoTrip()
-        {
-            return Entry.TimeTable.Route.Type == Route.RouteType.Mixed
-                   || Entry.TimeTable.Route.Type == Route.RouteType.Cargo;
-        }
-
         public bool IsPassengerTrip()
         {
-            return Entry.TimeTable.Route.Type == Route.RouteType.Mixed
-                   || Entry.TimeTable.Route.Type == Route.RouteType.Passenger
-                   || Entry.TimeTable.Route.Type == Route.RouteType.Helicopter;
+            return Entry.TimeTable.Route.Type == Route.RouteType.Passenger;
         }
 
         #endregion

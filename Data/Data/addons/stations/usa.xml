@@ -8,7 +8,7 @@
       <latitude value="040°45'25''N" />
       <longitude value="073°59'25''W" />
     </coordinates>
-    <size value="Largest" pax="12000" cargo="Medium" cargovolume="900" />
+    <size value="Largest" pax="12000" />
     <terminals>
       <terminal name="Main concourse" gates="60" />
     </terminals>
@@ -23,7 +23,7 @@
       <latitude value="041°52'44''N" />
       <longitude value="087°38'21''W" />
     </coordinates>
-    <size value="Largest" pax="12000" cargo="Medium" cargovolume="900" />
+    <size value="Largest" pax="12000" />
     <terminals>
       <terminal name="Main concourse" gates="60" />
     </terminals>
@@ -38,7 +38,7 @@
       <latitude value="034°03'22''N" />
       <longitude value="118°14'11''W" />
     </coordinates>
-    <size value="Largest" pax="12000" cargo="Medium" cargovolume="900" />
+    <size value="Largest" pax="12000" />
     <terminals>
       <terminal name="Main concourse" gates="60" />
     </terminals>
@@ -53,7 +53,7 @@
       <latitude value="039°57'18''N" />
       <longitude value="075°09'36''W" />
     </coordinates>
-    <size value="VeryLarge" pax="6000" cargo="Small" cargovolume="500" />
+    <size value="VeryLarge" pax="6000" />
     <terminals>
       <terminal name="Main concourse" gates="30" />
     </terminals>
@@ -68,7 +68,7 @@
       <latitude value="038°53'52''N" />
       <longitude value="077°00'23''W" />
     </coordinates>
-    <size value="VeryLarge" pax="6000" cargo="Small" cargovolume="500" />
+    <size value="VeryLarge" pax="6000" />
     <terminals>
       <terminal name="Main concourse" gates="30" />
     </terminals>
@@ -83,7 +83,7 @@
       <latitude value="042°21'07''N" />
       <longitude value="071°03'19''W" />
     </coordinates>
-    <size value="VeryLarge" pax="6000" cargo="Small" cargovolume="500" />
+    <size value="VeryLarge" pax="6000" />
     <terminals>
       <terminal name="Main concourse" gates="30" />
     </terminals>
@@ -98,7 +98,7 @@
       <latitude value="033°45'18''N" />
       <longitude value="084°23'24''W" />
     </coordinates>
-    <size value="VeryLarge" pax="6000" cargo="Small" cargovolume="500" />
+    <size value="VeryLarge" pax="6000" />
     <terminals>
       <terminal name="Main concourse" gates="30" />
     </terminals>
@@ -113,7 +113,7 @@
       <latitude value="025°47'42''N" />
       <longitude value="080°16'48''W" />
     </coordinates>
-    <size value="VeryLarge" pax="6000" cargo="Small" cargovolume="500" />
+    <size value="VeryLarge" pax="6000" />
     <terminals>
       <terminal name="Main concourse" gates="30" />
     </terminals>
@@ -128,7 +128,7 @@
       <latitude value="032°46'44''N" />
       <longitude value="096°48'11''W" />
     </coordinates>
-    <size value="VeryLarge" pax="6000" cargo="Small" cargovolume="500" />
+    <size value="VeryLarge" pax="6000" />
     <terminals>
       <terminal name="Main concourse" gates="30" />
     </terminals>
@@ -143,7 +143,7 @@
       <latitude value="029°44'56''N" />
       <longitude value="095°22'34''W" />
     </coordinates>
-    <size value="VeryLarge" pax="6000" cargo="Small" cargovolume="500" />
+    <size value="VeryLarge" pax="6000" />
     <terminals>
       <terminal name="Main concourse" gates="30" />
     </terminals>
@@ -158,7 +158,7 @@
       <latitude value="033°26'42''N" />
       <longitude value="112°04'37''W" />
     </coordinates>
-    <size value="VeryLarge" pax="6000" cargo="Small" cargovolume="500" />
+    <size value="VeryLarge" pax="6000" />
     <terminals>
       <terminal name="Main concourse" gates="30" />
     </terminals>
@@ -173,7 +173,7 @@
       <latitude value="037°47'23''N" />
       <longitude value="122°23'46''W" />
     </coordinates>
-    <size value="Large" pax="2500" cargo="VerySmall" cargovolume="250" />
+    <size value="Large" pax="2500" />
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
@@ -187,7 +187,7 @@
       <latitude value="042°19'59''N" />
       <longitude value="083°03'04''W" />
     </coordinates>
-    <size value="Large" pax="2500" cargo="VerySmall" cargovolume="250" />
+    <size value="Large" pax="2500" />
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
@@ -201,7 +201,7 @@
       <latitude value="047°35'56''N" />
       <longitude value="122°19'48''W" />
     </coordinates>
-    <size value="Large" pax="2500" cargo="VerySmall" cargovolume="250" />
+    <size value="Large" pax="2500" />
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
@@ -215,7 +215,7 @@
       <latitude value="044°58'44''N" />
       <longitude value="093°16'12''W" />
     </coordinates>
-    <size value="Large" pax="2500" cargo="VerySmall" cargovolume="250" />
+    <size value="Large" pax="2500" />
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
@@ -229,7 +229,7 @@
       <latitude value="032°43'05''N" />
       <longitude value="117°09'54''W" />
     </coordinates>
-    <size value="Large" pax="2500" cargo="VerySmall" cargovolume="250" />
+    <size value="Large" pax="2500" />
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
@@ -243,7 +243,7 @@
       <latitude value="027°57'07''N" />
       <longitude value="082°27'32''W" />
     </coordinates>
-    <size value="Large" pax="2500" cargo="VerySmall" cargovolume="250" />
+    <size value="Large" pax="2500" />
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
@@ -257,7 +257,7 @@
       <latitude value="039°45'11''N" />
       <longitude value="105°00'00''W" />
     </coordinates>
-    <size value="Large" pax="2500" cargo="VerySmall" cargovolume="250" />
+    <size value="Large" pax="2500" />
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
@@ -271,7 +271,7 @@
       <latitude value="038°37'44''N" />
       <longitude value="090°12'14''W" />
     </coordinates>
-    <size value="Large" pax="2500" cargo="VerySmall" cargovolume="250" />
+    <size value="Large" pax="2500" />
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
@@ -285,7 +285,7 @@
       <latitude value="039°17'31''N" />
       <longitude value="076°37'05''W" />
     </coordinates>
-    <size value="Large" pax="2500" cargo="VerySmall" cargovolume="250" />
+    <size value="Large" pax="2500" />
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
@@ -299,7 +299,7 @@
       <latitude value="035°13'23''N" />
       <longitude value="080°50'20''W" />
     </coordinates>
-    <size value="Large" pax="2500" cargo="VerySmall" cargovolume="250" />
+    <size value="Large" pax="2500" />
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
@@ -313,7 +313,7 @@
       <latitude value="028°32'31''N" />
       <longitude value="081°23'10''W" />
     </coordinates>
-    <size value="Large" pax="2500" cargo="VerySmall" cargovolume="250" />
+    <size value="Large" pax="2500" />
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
@@ -327,7 +327,7 @@
       <latitude value="029°25'37''N" />
       <longitude value="098°29'13''W" />
     </coordinates>
-    <size value="Large" pax="2500" cargo="VerySmall" cargovolume="250" />
+    <size value="Large" pax="2500" />
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
@@ -341,7 +341,7 @@
       <latitude value="045°31'44''N" />
       <longitude value="122°40'37''W" />
     </coordinates>
-    <size value="Large" pax="2500" cargo="VerySmall" cargovolume="250" />
+    <size value="Large" pax="2500" />
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
@@ -355,7 +355,7 @@
       <latitude value="038°35'06''N" />
       <longitude value="121°30'04''W" />
     </coordinates>
-    <size value="Large" pax="2500" cargo="VerySmall" cargovolume="250" />
+    <size value="Large" pax="2500" />
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
@@ -369,7 +369,7 @@
       <latitude value="040°26'42''N" />
       <longitude value="079°59'42''W" />
     </coordinates>
-    <size value="Large" pax="2500" cargo="VerySmall" cargovolume="250" />
+    <size value="Large" pax="2500" />
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
@@ -383,7 +383,7 @@
       <latitude value="036°09'58''N" />
       <longitude value="115°08'42''W" />
     </coordinates>
-    <size value="Large" pax="2500" cargo="VerySmall" cargovolume="250" />
+    <size value="Large" pax="2500" />
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
@@ -397,7 +397,7 @@
       <latitude value="039°06'25''N" />
       <longitude value="084°30'58''W" />
     </coordinates>
-    <size value="Large" pax="2500" cargo="VerySmall" cargovolume="250" />
+    <size value="Large" pax="2500" />
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
@@ -411,7 +411,7 @@
       <latitude value="039°05'06''N" />
       <longitude value="094°35'06''W" />
     </coordinates>
-    <size value="Large" pax="2500" cargo="VerySmall" cargovolume="250" />
+    <size value="Large" pax="2500" />
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
@@ -425,7 +425,7 @@
       <latitude value="041°29'56''N" />
       <longitude value="081°41'24''W" />
     </coordinates>
-    <size value="Large" pax="2500" cargo="VerySmall" cargovolume="250" />
+    <size value="Large" pax="2500" />
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
@@ -439,7 +439,7 @@
       <latitude value="039°57'43''N" />
       <longitude value="083°00'14''W" />
     </coordinates>
-    <size value="Large" pax="2500" cargo="VerySmall" cargovolume="250" />
+    <size value="Large" pax="2500" />
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
@@ -453,7 +453,7 @@
       <latitude value="039°46'12''N" />
       <longitude value="086°09'43''W" />
     </coordinates>
-    <size value="Large" pax="2500" cargo="VerySmall" cargovolume="250" />
+    <size value="Large" pax="2500" />
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
@@ -467,7 +467,7 @@
       <latitude value="037°19'48''N" />
       <longitude value="121°54'07''W" />
     </coordinates>
-    <size value="Large" pax="2500" cargo="VerySmall" cargovolume="250" />
+    <size value="Large" pax="2500" />
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
@@ -481,7 +481,7 @@
       <latitude value="036°09'36''N" />
       <longitude value="086°47'02''W" />
     </coordinates>
-    <size value="Large" pax="2500" cargo="VerySmall" cargovolume="250" />
+    <size value="Large" pax="2500" />
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
@@ -495,7 +495,7 @@
       <latitude value="030°16'05''N" />
       <longitude value="097°44'24''W" />
     </coordinates>
-    <size value="Large" pax="2500" cargo="VerySmall" cargovolume="250" />
+    <size value="Large" pax="2500" />
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
@@ -509,7 +509,7 @@
       <latitude value="032°45'00''N" />
       <longitude value="097°19'44''W" />
     </coordinates>
-    <size value="Large" pax="2500" cargo="VerySmall" cargovolume="250" />
+    <size value="Large" pax="2500" />
     <terminals>
       <terminal name="Main concourse" gates="16" />
     </terminals>
@@ -523,7 +523,7 @@
       <latitude value="035°46'37''N" />
       <longitude value="078°38'35''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -537,7 +537,7 @@
       <latitude value="043°02'02''N" />
       <longitude value="087°54'58''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -551,7 +551,7 @@
       <latitude value="030°19'48''N" />
       <longitude value="081°39'36''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -565,7 +565,7 @@
       <latitude value="035°08'35''N" />
       <longitude value="090°03'11''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -579,7 +579,7 @@
       <latitude value="035°28'12''N" />
       <longitude value="097°31'05''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -593,7 +593,7 @@
       <latitude value="038°15'00''N" />
       <longitude value="085°45'22''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -607,7 +607,7 @@
       <latitude value="037°32'24''N" />
       <longitude value="077°26'24''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -621,7 +621,7 @@
       <latitude value="029°56'02''N" />
       <longitude value="090°04'44''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -635,7 +635,7 @@
       <latitude value="040°45'50''N" />
       <longitude value="111°54'25''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -649,7 +649,7 @@
       <latitude value="036°09'14''N" />
       <longitude value="095°59'20''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -663,7 +663,7 @@
       <latitude value="036°44'20''N" />
       <longitude value="119°47'17''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -677,7 +677,7 @@
       <latitude value="032°13'26''N" />
       <longitude value="110°58'12''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -691,7 +691,7 @@
       <latitude value="041°15'29''N" />
       <longitude value="095°56'02''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -705,7 +705,7 @@
       <latitude value="035°04'59''N" />
       <longitude value="106°38'53''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -719,7 +719,7 @@
       <latitude value="031°45'29''N" />
       <longitude value="106°29'13''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -733,7 +733,7 @@
       <latitude value="035°22'23''N" />
       <longitude value="119°01'08''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -747,7 +747,7 @@
       <latitude value="042°39'09''N" />
       <longitude value="073°45'22''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -761,7 +761,7 @@
       <latitude value="040°36'30''N" />
       <longitude value="075°29'25''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -775,7 +775,7 @@
       <latitude value="035°13'19''N" />
       <longitude value="101°49'53''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -789,7 +789,7 @@
       <latitude value="035°35'42''N" />
       <longitude value="082°33'05''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -803,7 +803,7 @@
       <latitude value="039°21'51''N" />
       <longitude value="074°25'22''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -817,7 +817,7 @@
       <latitude value="033°28'25''N" />
       <longitude value="081°58'29''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -831,7 +831,7 @@
       <latitude value="030°27'05''N" />
       <longitude value="091°11'14''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -845,7 +845,7 @@
       <latitude value="045°47'00''N" />
       <longitude value="108°30'03''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -859,7 +859,7 @@
       <latitude value="033°31'07''N" />
       <longitude value="086°48'37''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -873,7 +873,7 @@
       <latitude value="043°36'54''N" />
       <longitude value="116°12'08''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -887,7 +887,7 @@
       <latitude value="041°11'11''N" />
       <longitude value="073°11'43''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -901,7 +901,7 @@
       <latitude value="042°53'11''N" />
       <longitude value="078°52'42''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -915,7 +915,7 @@
       <latitude value="044°28'33''N" />
       <longitude value="073°12'44''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -929,7 +929,7 @@
       <latitude value="041°58'40''N" />
       <longitude value="091°39'56''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -943,7 +943,7 @@
       <latitude value="040°06'59''N" />
       <longitude value="088°14'36''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -957,7 +957,7 @@
       <latitude value="032°46'35''N" />
       <longitude value="079°55'52''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -971,7 +971,7 @@
       <latitude value="038°20'59''N" />
       <longitude value="081°37'57''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -985,7 +985,7 @@
       <latitude value="035°02'44''N" />
       <longitude value="085°18'35''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -999,7 +999,7 @@
       <latitude value="041°08'24''N" />
       <longitude value="104°49'13''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1013,7 +1013,7 @@
       <latitude value="038°50'02''N" />
       <longitude value="104°49'17''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -1027,7 +1027,7 @@
       <latitude value="034°00'03''N" />
       <longitude value="081°02'05''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1041,7 +1041,7 @@
       <latitude value="032°27'40''N" />
       <longitude value="084°59'16''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1055,7 +1055,7 @@
       <latitude value="027°48'02''N" />
       <longitude value="097°23'47''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1069,7 +1069,7 @@
       <latitude value="039°45'32''N" />
       <longitude value="084°11'30''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -1083,7 +1083,7 @@
       <latitude value="041°35'12''N" />
       <longitude value="093°37'30''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -1097,7 +1097,7 @@
       <latitude value="046°47'12''N" />
       <longitude value="092°06'02''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1111,7 +1111,7 @@
       <latitude value="042°07'45''N" />
       <longitude value="080°05'06''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1125,7 +1125,7 @@
       <latitude value="044°03'08''N" />
       <longitude value="123°05'12''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1139,7 +1139,7 @@
       <latitude value="037°58'18''N" />
       <longitude value="087°34'16''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1153,7 +1153,7 @@
       <latitude value="046°52'38''N" />
       <longitude value="096°47'23''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1167,7 +1167,7 @@
       <latitude value="036°03'45''N" />
       <longitude value="094°09'27''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1181,7 +1181,7 @@
       <latitude value="035°03'10''N" />
       <longitude value="078°52'42''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1195,7 +1195,7 @@
       <latitude value="035°11'54''N" />
       <longitude value="111°39'05''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1209,7 +1209,7 @@
       <latitude value="043°00'45''N" />
       <longitude value="083°41'15''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1223,7 +1223,7 @@
       <latitude value="040°35'07''N" />
       <longitude value="105°05'04''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1237,7 +1237,7 @@
       <latitude value="026°38'26''N" />
       <longitude value="081°52'20''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1251,7 +1251,7 @@
       <latitude value="035°23'09''N" />
       <longitude value="094°23'55''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1265,7 +1265,7 @@
       <latitude value="029°39'06''N" />
       <longitude value="082°19'29''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1279,7 +1279,7 @@
       <latitude value="039°03'50''N" />
       <longitude value="108°33'02''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1293,7 +1293,7 @@
       <latitude value="042°57'48''N" />
       <longitude value="085°40'05''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -1307,7 +1307,7 @@
       <latitude value="047°30'01''N" />
       <longitude value="111°18'03''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1321,7 +1321,7 @@
       <latitude value="044°30'48''N" />
       <longitude value="088°00'48''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1335,7 +1335,7 @@
       <latitude value="036°04'21''N" />
       <longitude value="079°47'31''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -1349,7 +1349,7 @@
       <latitude value="034°51'09''N" />
       <longitude value="082°23'38''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1363,7 +1363,7 @@
       <latitude value="040°16'24''N" />
       <longitude value="076°53'12''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1377,7 +1377,7 @@
       <latitude value="041°45'57''N" />
       <longitude value="072°40'24''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -1391,7 +1391,7 @@
       <latitude value="034°43'49''N" />
       <longitude value="086°35'10''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1405,7 +1405,7 @@
       <latitude value="032°17'56''N" />
       <longitude value="090°11'05''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1419,7 +1419,7 @@
       <latitude value="036°18'48''N" />
       <longitude value="082°21'13''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1433,7 +1433,7 @@
       <latitude value="037°05'03''N" />
       <longitude value="094°30'48''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1447,7 +1447,7 @@
       <latitude value="042°17'30''N" />
       <longitude value="085°35'14''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1461,7 +1461,7 @@
       <latitude value="035°57'38''N" />
       <longitude value="083°55'15''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1475,7 +1475,7 @@
       <latitude value="030°13'27''N" />
       <longitude value="092°01'11''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1489,7 +1489,7 @@
       <latitude value="040°02'16''N" />
       <longitude value="076°18'20''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1503,7 +1503,7 @@
       <latitude value="042°43'57''N" />
       <longitude value="084°33'20''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1517,7 +1517,7 @@
       <latitude value="027°31'50''N" />
       <longitude value="099°28'49''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1531,7 +1531,7 @@
       <latitude value="032°19'12''N" />
       <longitude value="106°45'49''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1545,7 +1545,7 @@
       <latitude value="038°02'26''N" />
       <longitude value="084°30'13''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1559,7 +1559,7 @@
       <latitude value="040°48'49''N" />
       <longitude value="096°42'09''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1573,7 +1573,7 @@
       <latitude value="034°44'47''N" />
       <longitude value="092°17'23''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -1587,7 +1587,7 @@
       <latitude value="033°34'40''N" />
       <longitude value="101°51'19''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1601,7 +1601,7 @@
       <latitude value="032°50'27''N" />
       <longitude value="083°37'57''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1615,7 +1615,7 @@
       <latitude value="043°04'23''N" />
       <longitude value="089°24'04''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1629,7 +1629,7 @@
       <latitude value="042°59'44''N" />
       <longitude value="071°27'17''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1643,7 +1643,7 @@
       <latitude value="026°12'12''N" />
       <longitude value="098°13'48''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1657,7 +1657,7 @@
       <latitude value="042°19'35''N" />
       <longitude value="122°52'32''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1671,7 +1671,7 @@
       <latitude value="030°41'43''N" />
       <longitude value="088°02'24''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1685,7 +1685,7 @@
       <latitude value="037°38'21''N" />
       <longitude value="120°59'49''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1699,7 +1699,7 @@
       <latitude value="036°36'01''N" />
       <longitude value="121°53'41''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1713,7 +1713,7 @@
       <latitude value="032°22'00''N" />
       <longitude value="086°18'00''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1727,7 +1727,7 @@
       <latitude value="033°41'21''N" />
       <longitude value="078°53'12''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1741,7 +1741,7 @@
       <latitude value="026°08'31''N" />
       <longitude value="081°47'41''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1755,7 +1755,7 @@
       <latitude value="041°18'30''N" />
       <longitude value="072°55'40''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1769,7 +1769,7 @@
       <latitude value="036°51'03''N" />
       <longitude value="076°17'09''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -1783,7 +1783,7 @@
       <latitude value="041°13'23''N" />
       <longitude value="111°58'26''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1797,7 +1797,7 @@
       <latitude value="034°11'51''N" />
       <longitude value="119°10'38''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1811,7 +1811,7 @@
       <latitude value="033°49'49''N" />
       <longitude value="116°32'43''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1825,7 +1825,7 @@
       <latitude value="030°25'17''N" />
       <longitude value="087°13'01''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1839,7 +1839,7 @@
       <latitude value="040°41'37''N" />
       <longitude value="089°35'20''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1853,7 +1853,7 @@
       <latitude value="042°52'17''N" />
       <longitude value="112°26'44''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1867,7 +1867,7 @@
       <latitude value="043°39'33''N" />
       <longitude value="070°15'24''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1881,7 +1881,7 @@
       <latitude value="041°49'26''N" />
       <longitude value="071°24'46''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -1895,7 +1895,7 @@
       <latitude value="038°15'16''N" />
       <longitude value="104°36'33''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1909,7 +1909,7 @@
       <latitude value="044°04'50''N" />
       <longitude value="103°13'52''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1923,7 +1923,7 @@
       <latitude value="040°20'08''N" />
       <longitude value="075°55'37''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1937,7 +1937,7 @@
       <latitude value="040°35'11''N" />
       <longitude value="122°23'30''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1951,7 +1951,7 @@
       <latitude value="039°31'47''N" />
       <longitude value="119°48'50''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -1965,7 +1965,7 @@
       <latitude value="037°16'16''N" />
       <longitude value="079°56'29''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -1979,7 +1979,7 @@
       <latitude value="043°09'24''N" />
       <longitude value="077°36'32''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -1993,7 +1993,7 @@
       <latitude value="042°16'16''N" />
       <longitude value="089°05'38''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2007,7 +2007,7 @@
       <latitude value="033°23'39''N" />
       <longitude value="104°31'23''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2021,7 +2021,7 @@
       <latitude value="043°25'10''N" />
       <longitude value="083°57'03''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2035,7 +2035,7 @@
       <latitude value="044°56'34''N" />
       <longitude value="123°02'06''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -2049,7 +2049,7 @@
       <latitude value="036°40'40''N" />
       <longitude value="121°39'20''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2063,7 +2063,7 @@
       <latitude value="034°06'30''N" />
       <longitude value="117°17'23''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -2077,7 +2077,7 @@
       <latitude value="035°16'58''N" />
       <longitude value="120°39'35''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2091,7 +2091,7 @@
       <latitude value="034°25'15''N" />
       <longitude value="119°41'54''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -2105,7 +2105,7 @@
       <latitude value="035°41'13''N" />
       <longitude value="105°56'16''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2119,7 +2119,7 @@
       <latitude value="032°04'51''N" />
       <longitude value="081°05'28''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -2133,7 +2133,7 @@
       <latitude value="041°24'32''N" />
       <longitude value="075°39'45''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -2147,7 +2147,7 @@
       <latitude value="032°31'31''N" />
       <longitude value="093°45'01''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -2161,7 +2161,7 @@
       <latitude value="043°32'46''N" />
       <longitude value="096°43'53''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2175,7 +2175,7 @@
       <latitude value="041°40'35''N" />
       <longitude value="086°15'07''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2189,7 +2189,7 @@
       <latitude value="047°39'32''N" />
       <longitude value="117°25'34''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -2203,7 +2203,7 @@
       <latitude value="039°46'54''N" />
       <longitude value="089°39'00''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2217,7 +2217,7 @@
       <latitude value="042°06'05''N" />
       <longitude value="072°35'23''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -2231,7 +2231,7 @@
       <latitude value="037°12'32''N" />
       <longitude value="093°17'32''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -2245,7 +2245,7 @@
       <latitude value="037°57'28''N" />
       <longitude value="121°17'27''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -2259,7 +2259,7 @@
       <latitude value="043°02'53''N" />
       <longitude value="076°08'51''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -2273,7 +2273,7 @@
       <latitude value="030°26'18''N" />
       <longitude value="084°16'51''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2287,7 +2287,7 @@
       <latitude value="041°39'10''N" />
       <longitude value="083°32'16''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -2301,7 +2301,7 @@
       <latitude value="039°02'50''N" />
       <longitude value="095°40'31''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2315,7 +2315,7 @@
       <latitude value="040°13'02''N" />
       <longitude value="074°44'34''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -2329,7 +2329,7 @@
       <latitude value="033°12'35''N" />
       <longitude value="087°34'09''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2343,7 +2343,7 @@
       <latitude value="032°21'05''N" />
       <longitude value="095°18'04''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2357,7 +2357,7 @@
       <latitude value="043°06'03''N" />
       <longitude value="075°13'58''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2371,7 +2371,7 @@
       <latitude value="028°48'19''N" />
       <longitude value="097°00'13''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2385,7 +2385,7 @@
       <latitude value="031°32'57''N" />
       <longitude value="097°08'48''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -2399,7 +2399,7 @@
       <latitude value="037°41'14''N" />
       <longitude value="097°19'48''W" />
     </coordinates>
-    <size value="Medium" pax="900" cargo="Smallest" cargovolume="120" />
+    <size value="Medium" pax="900" />
     <terminals>
       <terminal name="Main concourse" gates="8" />
     </terminals>
@@ -2413,7 +2413,7 @@
       <latitude value="039°44'21''N" />
       <longitude value="075°32'23''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -2427,7 +2427,7 @@
       <latitude value="034°13'33''N" />
       <longitude value="077°56'41''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2441,7 +2441,7 @@
       <latitude value="036°06'00''N" />
       <longitude value="080°14'39''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -2455,7 +2455,7 @@
       <latitude value="042°15'45''N" />
       <longitude value="071°48'08''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -2469,7 +2469,7 @@
       <latitude value="046°36'08''N" />
       <longitude value="120°30'21''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2483,7 +2483,7 @@
       <latitude value="041°05'59''N" />
       <longitude value="080°38'58''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2497,7 +2497,7 @@
       <latitude value="032°41'34''N" />
       <longitude value="114°37'40''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2511,7 +2511,7 @@
       <latitude value="042°16'51''N" />
       <longitude value="083°44'35''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -2525,7 +2525,7 @@
       <latitude value="044°48'04''N" />
       <longitude value="068°46'40''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2539,7 +2539,7 @@
       <latitude value="046°48'30''N" />
       <longitude value="100°47'01''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2553,7 +2553,7 @@
       <latitude value="038°57'06''N" />
       <longitude value="092°20'03''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2567,7 +2567,7 @@
       <latitude value="047°19'03''N" />
       <longitude value="119°33'13''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2581,7 +2581,7 @@
       <latitude value="035°31'41''N" />
       <longitude value="108°44'33''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2595,7 +2595,7 @@
       <latitude value="043°29'30''N" />
       <longitude value="112°02'02''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2609,7 +2609,7 @@
       <latitude value="046°52'20''N" />
       <longitude value="113°59'38''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2623,7 +2623,7 @@
       <latitude value="034°03'48''N" />
       <longitude value="117°39'03''W" />
     </coordinates>
-    <size value="Small" pax="400" cargo="Smallest" cargovolume="60" />
+    <size value="Small" pax="400" />
     <terminals>
       <terminal name="Main concourse" gates="5" />
     </terminals>
@@ -2637,7 +2637,7 @@
       <latitude value="031°27'50''N" />
       <longitude value="100°26'13''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2651,7 +2651,7 @@
       <latitude value="040°58'23''N" />
       <longitude value="117°44'09''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>
@@ -2665,7 +2665,7 @@
       <latitude value="033°54'49''N" />
       <longitude value="098°29'36''W" />
     </coordinates>
-    <size value="VerySmall" pax="150" cargo="Smallest" cargovolume="25" />
+    <size value="VerySmall" pax="150" />
     <terminals>
       <terminal name="Main concourse" gates="3" />
     </terminals>

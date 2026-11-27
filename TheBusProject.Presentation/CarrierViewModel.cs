@@ -211,7 +211,7 @@ namespace TheBusProject.Presentation
                 }
                 // a rival alert: Carriers > Competitors, "My routes", that station pair
                 if (!(link is RivalLink rl)) return false;
-                bool found = Competitors.ShowRoute(rl.A, rl.B, rl.IsCargo);
+                bool found = Competitors.ShowRoute(rl.A, rl.B);
                 if (found)
                 {
                     Page = Array.IndexOf(PageNames, "Carriers");
@@ -391,7 +391,7 @@ namespace TheBusProject.Presentation
                     SelectedRoute = row;
                     break;
                 case ReportItemKind.Competitors:
-                    if (item.A != null) Competitors.ShowRoute(item.A, item.B, item.IsCargo);
+                    if (item.A != null) Competitors.ShowRoute(item.A, item.B);
                     else if (item.Carrier != null) Competitors.ShowCarrier(item.Carrier);
                     Page = Array.IndexOf(PageNames, "Carriers");
                     CarriersTab = 1;
@@ -898,7 +898,7 @@ namespace TheBusProject.Presentation
                         new RouteItem
                         {
                             Route = r,
-                            Name = r.Destination1.Profile.IATACode + " - " + r.Destination2.Profile.IATACode + (r.IsCargoRoute ? " (cargo)" : ""),
+                            Name = r.Destination1.Profile.IATACode + " - " + r.Destination2.Profile.IATACode,
                             Distance = DistanceFormatter.Km(MathHelpers.GetDistance(r.Destination1, r.Destination2))
                         });
                 }

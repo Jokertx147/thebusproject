@@ -64,7 +64,7 @@ namespace TheBusProject.Helpers
         {
             if (carrier == null) return new List<FleetCoach>();
             return carrier.DeliveredFleet
-                          .Where(f => (f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Passenger || f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Mixed)
+                          .Where(f => (f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Passenger)
                                       && f.Routes.Count == 0 && !CoachDealService.IsLeasedOut(f) && f.UsableBy(carrier) && f.Coach.GetTotalSeatCapacity() > 0)
                           .OrderBy(f => f.Name).ToList();
         }

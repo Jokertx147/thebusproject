@@ -45,27 +45,14 @@ namespace TheBusProject.Models.Coaches
 
             Classes = new List<CoachClass>();
 
-            // Everything that carries passengers gets a cabin: an coach, a helicopter, and a combi, which carries
-            // cargo as well. All three are an CoachPassengerType. Helicopters and combis used to be left with no
-            // cabin at all, and an coach with no cabin cannot be asked which cabin a passenger sits in, so flying
-            // one threw as soon as its passengers were counted.
-            if (Type.TypeCoach == CoachType.TypeOfCoach.Passenger
-                || Type.TypeCoach == CoachType.TypeOfCoach.Helicopter
-                || Type.TypeCoach == CoachType.TypeOfCoach.Mixed)
-            {
-                var aClass = new CoachClass(
-                    CoachClass.ClassType.EconomyClass,
-                    ((CoachPassengerType) Type).MaxSeatingCapacity);
-                aClass.CreateBasicFacilities(Carrier);
-                Classes.Add(aClass);
-            }
+            // Every coach gets a cabin. One with no cabin cannot be asked which cabin a passenger sits in, so
+            // running it threw as soon as its passengers were counted.
+            var aClass = new CoachClass(
+                CoachClass.ClassType.EconomyClass,
+                ((CoachPassengerType) Type).MaxSeatingCapacity);
+            aClass.CreateBasicFacilities(Carrier);
+            Classes.Add(aClass);
 
-            if (Type.TypeCoach == CoachType.TypeOfCoach.Cargo)
-            {
-                var aClass = new CoachClass(CoachClass.ClassType.EconomyClass, 0);
-                aClass.CreateBasicFacilities(Carrier);
-                Classes.Add(aClass);
-            }
         }
 
         private Coach(SerializationInfo info, StreamingContext ctxt) : base(info, ctxt)
@@ -84,8 +71,7 @@ namespace TheBusProject.Models.Coaches
 
             // A helicopter or a combi saved before they were given a cabin has none, and flying it would throw, so it
             // is given the one it should have had.
-            if (Classes.Count == 0 && Type is CoachPassengerType seats
-                && Type.TypeCoach != CoachType.TypeOfCoach.Cargo)
+            if (Classes.Count == 0 && Type is CoachPassengerType seats)
             {
                 var aClass = new CoachClass(CoachClass.ClassType.EconomyClass, seats.MaxSeatingCapacity);
                 aClass.CreateBasicFacilities(Carrier);
@@ -126,19 +112,8 @@ namespace TheBusProject.Models.Coaches
         {
             get
             {
-                if (Type.TypeCoach == CoachType.TypeOfCoach.Passenger)
-                {
-                    return
-                        $"{GetSeatingCapacity(CoachClass.ClassType.FirstClass)}F | {GetSeatingCapacity(CoachClass.ClassType.BusinessClass)}C | {GetSeatingCapacity(CoachClass.ClassType.EconomyClass)}Y";
-                }
-
-                if (Type.TypeCoach == CoachType.TypeOfCoach.Cargo)
-                {
-                    return $"{GetCargoCapacity()} t";
-                }
-
                 return
-                    $"{GetSeatingCapacity(CoachClass.ClassType.FirstClass)}F | {GetSeatingCapacity(CoachClass.ClassType.BusinessClass)}C | {GetSeatingCapacity(CoachClass.ClassType.EconomyClass)}Y | {GetCargoCapacity()} t";
+                    $"{GetSeatingCapacity(CoachClass.ClassType.FirstClass)}F | {GetSeatingCapacity(CoachClass.ClassType.BusinessClass)}C | {GetSeatingCapacity(CoachClass.ClassType.EconomyClass)}Y";
             }
         }
 
@@ -267,20 +242,6 @@ namespace TheBusProject.Models.Coaches
             return Classes.Count > 0 ? Classes[0] : null;
         }
 
-        public double GetCargoCapacity()
-        {
-            if (Type is CoachCargoType)
-            {
-                return ((CoachCargoType) Type).CargoSize;
-            }
-
-            if (Type is CoachCombiType)
-            {
-                return ((CoachCombiType) Type).CargoSize;
-            }
-
-            return 0;
-        }
 
         public long GetLeasingPrice()
         {

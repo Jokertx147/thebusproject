@@ -59,18 +59,9 @@ namespace TheBusProject.Helpers
                 StationFacilities.GetFacilities(StationFacility.FacilityType.TicketOffice).First(f => f.TypeLevel == 1);
             StationFacility serviceFacility =
                 StationFacilities.GetFacilities(StationFacility.FacilityType.Service).First(f => f.TypeLevel == 1);
-            StationFacility cargoTerminal =
-                StationFacilities.GetFacilities(StationFacility.FacilityType.Cargo).Find(f => f.TypeLevel > 0);
 
             if (contract.Type == StationContract.ContractType.FullService)
             {
-                if (
-                    contract.Station.GetCarrierStationFacility(null, StationFacility.FacilityType.Cargo)
-                            .Facility.TypeLevel < cargoTerminal.TypeLevel)
-                {
-                    contract.Station.AddStationFacility(null, cargoTerminal, GameObject.GetInstance().GameTime);
-                }
-
                 if (
                     contract.Station.GetCarrierStationFacility(null, StationFacility.FacilityType.CheckIn)
                             .Facility.TypeLevel < checkinFacility.TypeLevel)
@@ -863,7 +854,7 @@ namespace TheBusProject.Helpers
 
         public static bool HasFreeGates(Station station, Carrier carrier)
         {
-            Terminal.TerminalType type = carrier.CarrierRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger;
+            Terminal.TerminalType type = Terminal.TerminalType.Passenger;
 
             return HasFreeGates(station, carrier, type);
         }
@@ -898,7 +889,7 @@ namespace TheBusProject.Helpers
 
         public static bool RentGates(Station station, Carrier carrier, StationContract.ContractType type)
         {
-            Terminal.TerminalType terminaltype = carrier.CarrierRouteFocus == Route.RouteType.Cargo ? Terminal.TerminalType.Cargo : Terminal.TerminalType.Passenger;
+            Terminal.TerminalType terminaltype = Terminal.TerminalType.Passenger;
 
             return RentGates(station, carrier, type, terminaltype);
         }

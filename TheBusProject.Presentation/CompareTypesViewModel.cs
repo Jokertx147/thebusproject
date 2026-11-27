@@ -51,7 +51,7 @@ namespace TheBusProject.Presentation
 
         public List<string> Labels { get; } = new List<string>
         {
-            "Maker", "Kind", "Price new", "Seats / cargo", "Range", "Speed", "Bay needed", "Crew",
+            "Maker", "Kind", "Price new", "Seats", "Range", "Speed", "Bay needed", "Crew",
             "Fuel per seat, 100 km", "In production", "Trip time", "Fuel per full trip", "Fuel per seat", "Other costs per trip", "Can run it?"
         };
 
@@ -138,7 +138,7 @@ namespace TheBusProject.Presentation
                 Choices.Add(new TypeChoice
                 {
                     Type = t,
-                    Text = t.Name + "  |  " + CoachHistoryService.Capacity(t) + (t.TypeCoach == CoachType.TypeOfCoach.Cargo ? " t cargo" : " seats") + ", " + t.Range.ToString("N0") + " km"
+                    Text = t.Name + "  |  " + CoachHistoryService.Capacity(t) + (" seats") + ", " + t.Range.ToString("N0") + " km"
                 });
             }
         }
@@ -164,7 +164,6 @@ namespace TheBusProject.Presentation
             {
                 var type = t;
                 int cap = CoachHistoryService.Capacity(t);
-                bool cargo = t.TypeCoach == CoachType.TypeOfCoach.Cargo;
                 double fuel = CoachHistoryService.FuelPerTrip(t, km);
                 string cannot = CoachHistoryService.CanFly(t, km, a, b);
                 int crew = t.DriverCrew + (t is CoachPassengerType p ? p.Attendants : 0);
@@ -175,9 +174,9 @@ namespace TheBusProject.Presentation
                     Values = new List<string>
                     {
                         t.Manufacturer?.Name ?? "",
-                        cargo ? "Cargo" : t.TypeCoach == CoachType.TypeOfCoach.Helicopter ? "Helicopter" : "Passenger",
+                        "Passenger",
                         Money(t.Price),
-                        cap.ToString("N0") + (cargo ? " t" : " seats"),
+                        cap.ToString("N0") + " seats",
                         t.Range.ToString("N0") + " km",
                         t.CruisingSpeed.ToString("N0") + " km/h",
                         t.MinBayLength.ToString("N0") + " m",

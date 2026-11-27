@@ -79,9 +79,7 @@ namespace TheBusProject.Helpers
         private static bool RightKind(FleetCoach f, Route route)
         {
             CoachType.TypeOfCoach kind = f.Coach.Type.TypeCoach;
-            if (route.Type == Route.RouteType.Cargo) return kind == CoachType.TypeOfCoach.Cargo;
-            if (route.Type == Route.RouteType.Helicopter) return kind == CoachType.TypeOfCoach.Helicopter;
-            return kind == CoachType.TypeOfCoach.Passenger || kind == CoachType.TypeOfCoach.Mixed;
+            return kind == CoachType.TypeOfCoach.Passenger;
         }
 
         private static string Code(Route r)

@@ -904,9 +904,7 @@ namespace TheBusProject.Presentation
             var keep = _coach?.Coach;
             var list = Human.DeliveredFleet
                             .Where(
-                                f => f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Passenger
-                                     || f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Mixed
-                                     || f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Cargo)
+                                f => f.Coach.Type.TypeCoach == CoachType.TypeOfCoach.Passenger)
                             .OrderBy(f => f.Name)
                             .ToList();
 
@@ -937,8 +935,7 @@ namespace TheBusProject.Presentation
             if (_coach != null)
             {
                 var type = _coach.Coach.Coach.Type;
-                bool cargoCoach = type.TypeCoach == CoachType.TypeOfCoach.Cargo;
-                foreach (var r in Human.Routes.Where(r => r.IsCargoRoute == cargoCoach).OrderBy(r => r.Destination1.Profile.IATACode))
+                    foreach (var r in Human.Routes.OrderBy(r => r.Destination1.Profile.IATACode))
                 {
                     double distance = r.GetDistance();
                     long bay = Math.Min(r.Destination1.GetMaxBayLength(), r.Destination2.GetMaxBayLength());
