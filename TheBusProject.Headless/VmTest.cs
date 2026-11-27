@@ -4747,6 +4747,7 @@ static class VmTest
         double worstCash = me.Money;
         int boughtAll = 0, openedAll = 0, noSuggestion = 0, emptyButWorked = 0;
 
+        double lastLoad = 0;
         for (int y = 0; y < years; y++)
         {
             // spend what can be spared on another coach and another route, the way a player would
@@ -4789,6 +4790,7 @@ static class VmTest
 
             var routes = me.Routes.Where(r => r is TheBusProject.Models.Routes.PassengerRoute).ToList();
             double load = routes.Count == 0 ? 0 : routes.Average(r => TheBusProject.Helpers.ConnectionService.MonthLoad(r));
+            lastLoad = load;
             var last = g.GameTime.AddMonths(-1);
             double revenue = me.GetInvoicesAmountMonth(last.Year, last.Month, TheBusProject.Models.General.Finances.Invoice.InvoiceType.Tickets);
             int alive = TheBusProject.Models.Carriers.Carriers.GetAllCarriers().Count(c => c != me);
@@ -4860,11 +4862,18 @@ static class VmTest
                 for (int mm = 1; mm <= 12; mm++) tickets += me.GetInvoicesAmountMonth(last.Year, mm, TheBusProject.Models.General.Finances.Invoice.InvoiceType.Tickets);
 
                 double milesPerCoach = me.Fleet.Count == 0 ? 0 : kmYear*0.621371/me.Fleet.Count;
-                Console.WriteLine(string.Format("      ${0:#,0} a year per coach against the $348,000 a real one took; {1:0}% of the seats filled against about 55% in the trade; {2:#,0} miles a coach against about 105,000; ${3:0.00} a bus mile against $3.32",
+                Console.WriteLine(string.Format("      ${0:#,0} a year per coach against the $348,000 a real one took; {1:0}% of the seats filled against Greyhound's 51.2%; {2:#,0} miles a coach against its 104,964; ${3:0.00} a bus mile against $3.32",
                                                 perCoach, load*100, milesPerCoach, milesPerCoach <= 0 ? 0 : perCoach/milesPerCoach));
-                // The one revenue figure Greyhound's accounts really give is $811.5m of passenger services over
-                // 288.4m bus miles, which is $2.81 a bus mile. Its passenger count, average fare and average
-                // journey are not in the filing, so they are not benchmarks here however tempting the arithmetic.
+                // Greyhound's FY2004 10-K gives a full operating-statistics table, so these are all real
+                // benchmarks and not arithmetic of ours: 21,211,000 passengers carried over 7,298,028,000
+                // passenger miles, a 344 mile average trip, an average ticket of $38.26, a yield of $0.1112 a
+                // passenger mile, a load factor of 51.2%, 26.1 passengers per regular service mile, 288,442,000
+                // total bus miles over 2,748 buses (104,964 each) and $3.32 of total revenue a bus mile, of which
+                // $811.5m of passenger services over those bus miles is $2.81.
+                //   An earlier note here said the filing gave no passenger count, average fare or average journey
+                // and warned the reader off "tempting arithmetic". That was wrong, and it talked this test out of
+                // the benchmarks that matter most: the yield a passenger mile and the average journey are what
+                // tell a fare fault from a network one.
                 // what the bays actually cost: every station contract the carrier holds
                 double bays = 0; int bayCount = 0;
                 foreach (var st in TheBusProject.Models.Stations.Stations.GetAllStations())
@@ -4883,9 +4892,11 @@ static class VmTest
                                                 ownership, inAll <= 0 ? 0 : ownership/inAll*100));
 
                 double fleetMiles = kmYear*0.621371;
-                Console.WriteLine(string.Format("      ${0:0.00} of tickets a bus mile against Greyhound's $2.81; {1:#,0} journeys at ${2:0} each, {3:0} miles the average journey",
+                double journey = carriedAll <= 0 ? 0 : paxMiles/carriedAll;
+                double yield = paxMiles <= 0 ? 0 : tickets/paxMiles;
+                Console.WriteLine(string.Format("      ${0:0.00} of tickets a bus mile against Greyhound's $2.81; {1:#,0} journeys at ${2:0} each against its $38.26, {3:0} miles the average journey against its 344; ${4:0.000} a passenger mile against its $0.1112",
                                                 fleetMiles <= 0 ? 0 : tickets/fleetMiles, carriedAll,
-                                                carriedAll <= 0 ? 0 : tickets/carriedAll, carriedAll <= 0 ? 0 : paxMiles/carriedAll));
+                                                carriedAll <= 0 ? 0 : tickets/carriedAll, journey, yield));
                 Console.WriteLine(string.Format("      ({0:0} seats a coach, {1:0} of them taken; the fleet drove {2:#,0} miles)",
                                                 me.Fleet.Count == 0 ? 0 : seatsAll/me.Fleet.Count, aboard, fleetMiles));
             }
@@ -5265,6 +5276,14 @@ static class VmTest
         if (me.Fleet.Count == 0) fail("the carrier ended with no coaches at all");
         if (rivalsLeft < rivalsAtStart*0.4) fail("the world emptied out: " + rivalsLeft + " of " + rivalsAtStart + " rivals left");
         if (me.Money < -50000000) fail("the carrier ended " + M(me.Money) + " in the hole, which no amount of bad luck explains");
+        // Filling a coach has to be work. Greyhound filled 51.2% of its seats in 2004 and the trade runs near
+        // that; this game aims a little above it, and the last year of a run settled at 61-67% while the figure
+        // was being set (see PassengerHelpers.DemandScale). The band is wide on purpose: the exact figure moves
+        // with the corridors the planner happens to pick, and what it is guarding against is the old behaviour,
+        // where demand ran past every coach's seats and the player filled 85-94% whatever they did.
+        Console.WriteLine("  the last year filled " + (lastLoad*100).ToString("0") + "% of the seats (Greyhound 51.2%)");
+        if (lastLoad > 0.80) fail("the last year filled " + (lastLoad*100).ToString("0") + "% of the seats: demand is outrunning the coaches again, so no fleet or fare choice can be got wrong");
+        if (me.Routes.Count > 0 && lastLoad < 0.40) fail("the last year filled only " + (lastLoad*100).ToString("0") + "% of the seats, which no coach line survives");
         Console.WriteLine("PLAY TEST OK");
     }
 

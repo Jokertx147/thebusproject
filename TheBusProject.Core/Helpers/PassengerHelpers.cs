@@ -2848,7 +2848,8 @@ namespace TheBusProject.Helpers
 
             #endregion
 
-            double value = estimatedPassengerLevel*GetDemandYearFactor(GameObject.GetInstance().GameTime.Year)
+            double value = estimatedPassengerLevel*DemandScale
+                           *GetDemandYearFactor(GameObject.GetInstance().GameTime.Year)
                            *BusDistanceFactor(dist);
 
             var rate = (ushort) value;
@@ -2859,6 +2860,29 @@ namespace TheBusProject.Helpers
                 //DatabaseObject.GetInstance().addToTransaction(station, dStation, classType, rate);
             }
         }
+
+        /// <summary>
+        ///     What every city pair's coach demand is multiplied by. The table above came from the airline sim this
+        ///     was forked from, where a city pair feeds jets rather than coaches, and it left more people wanting a
+        ///     ride than the coaches had seats: demand per departure ran at about 1.6 times the seats, and four
+        ///     trips in ten saw twice the seats or more. A coach line never sees that. Greyhound filled 51.2% of its
+        ///     seats in 2004 (FY2004 10-K), and the whole trade runs near that.
+        ///
+        ///     Every seat selling is not just a wrong load factor, it decides the game: the biggest coach always
+        ///     wins, another departure is always worth running, and no fare or fleet choice can be got wrong. This
+        ///     puts demand where filling a coach is work.
+        ///
+        ///     The figure was measured, not reasoned out, because two parts of the demand for a trip backfill a cut
+        ///     to this one. Connecting demand (ConnectionService.AddedAt) passes over a market already served by two
+        ///     nonstop routes, and spill from neighbours (GetNearbyPassengerDemand) passes over a neighbour that
+        ///     already has a route of its own, so as the network shrinks each surviving route harvests more. Halving
+        ///     this took the demand for a trip down only a fifth, and the spill went up.
+        ///
+        ///     Over the eight years of "vm play": at 1.0 the player filled 85-94% of the seats on a fleet that drifted
+        ///     to 68-79 seats a coach, at 0.25 it was 52-59% on 62, and at this 0.35 it is 61-67% on 53 seats - which
+        ///     is about the 51 a real intercity fleet averages, the double-decker having stopped being a free lunch.
+        /// </summary>
+        public const double DemandScale = 0.35;
 
         /// <summary>
         ///     How much of a city pair's travel goes by coach, by the length of the trip. The coach owns the middle
