@@ -4349,6 +4349,9 @@ namespace TheBusProject.Infrastructure
             Coach coach = Coaches.GetCoachesForSale(a => a.Type.Name == "Boeing 737-900ER").First();
             CarrierHelpers.BuyCoach(GameObject.GetInstance().HumanCarrier, coach, GameObject.GetInstance().HumanCarrier.Stations[0]);
             */
+            // a new game needs coaches on the market from its first day, not from its first month's end
+            Helpers.GameObjectHelpers.StockUsedMarket();
+            StartupLog.Write("SetupMainGame: used market stocked with " + Coaches.GetCoachesForSale().Count + " coaches");
             StartupLog.Write("SetupMainGame: carriers done, setting up alliances");
             SetupAlliances();
             SetupMergers();

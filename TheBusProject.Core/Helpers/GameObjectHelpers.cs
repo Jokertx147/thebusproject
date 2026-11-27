@@ -2033,6 +2033,27 @@ namespace TheBusProject.Helpers
             return removed;
         }
 
+        /// <summary>
+        ///     Brings the second-hand market up to its target of <see cref="CoachHelpers.ForSalePerCarrier" /> coaches
+        ///     a carrier. Called once when a game is set up and again every month.
+        ///
+        ///     It used to run only monthly, which left a new game with whatever coaches the setup happened not to
+        ///     give to a carrier. That was luck, and it ranged from 76 coaches on offer to none at all: a player
+        ///     could start a game with an empty market and nothing to buy, and the screenshot run, which buys four
+        ///     coaches at a new game, failed outright when it drew a game with none.
+        /// </summary>
+        public static void StockUsedMarket()
+        {
+            int numberOfCoaches = Math.Max(0,
+                                           CoachHelpers.ForSalePerCarrier*Carriers.GetNumberOfCarriers()
+                                           - Coaches.GetCoachesForSale().Count);
+
+            for (int i = 0; i < numberOfCoaches; i++)
+            {
+                Coaches.AddCoach(CoachHelpers.CreateUsedCoach());
+            }
+        }
+
         private static void DoMonthlyUpdate()
         {
             // the month just ended: month-end figures and the player's report (before its invoices are put together)
@@ -2080,14 +2101,7 @@ namespace TheBusProject.Helpers
                 Coaches.RemoveCoach(coach);
             }
 
-            int numberOfCoaches = Math.Max(0,
-                                           CoachHelpers.ForSalePerCarrier*Carriers.GetNumberOfCarriers()
-                                           - Coaches.GetCoachesForSale().Count);
-
-            for (int i = 0; i < numberOfCoaches; i++)
-            {
-                Coaches.AddCoach(CoachHelpers.CreateUsedCoach());
-            }
+            StockUsedMarket();
             //checks for new stations which are opening
             List<Station> openedStations =
                 Stations.GetAllStations(
