@@ -106,6 +106,11 @@ jobs:
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm rivalmap 2>&1 | tee rivalmaptest.log
           grep -q "RIVAL MAP TEST OK" rivalmaptest.log || { grep -m8 -iE "FAILED|timeout|exception|   at " rivalmaptest.log | sed 's/^/::error::/'; exit 1; }
 
+      - name: Demand field probe (what distances the demand is for, before any carrier picks a route)
+        run: |
+          timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm demandfield 2>&1 | tee demandfieldtest.log
+          grep -q "DEMAND FIELD OK" demandfieldtest.log || { grep -m8 -iE "FAILED|timeout|exception|   at " demandfieldtest.log | sed 's/^/::error::/'; exit 1; }
+
       - name: Connecting passengers test (the trip engine's quick sum equals the markets)
         run: |
           timeout 900 dotnet run --no-build -c Release --project TheBusProject.Headless -- vm fastdemand 2>&1 | tee fastdemandtest.log

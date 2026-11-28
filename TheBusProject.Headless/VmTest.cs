@@ -891,6 +891,50 @@ static class VmTest
     }
 
     // "vm idle": the computer carriers' idle coach month by month, and why their route searches fail
+
+    /// <summary>
+    ///     What distances the demand itself is for, before any carrier chooses a route. The rates are seeded per
+    ///     pair, so this is the same every run: it is the one measurement of BusDistanceFactor that does not move
+    ///     with whichever corridors a planner happened to open. Miles a departure in "vm play" came out at 164-186
+    ///     on one run and 228-232 on the next from identical code, which is no basis for tuning a curve.
+    /// </summary>
+    static void DemandFieldProbe()
+    {
+        var stations = TheBusProject.Models.Stations.Stations.GetAllStations();
+        var bands = new[] {80, 160, 320, 480, 640, 960, 1600, int.MaxValue};
+        var bandDemand = new double[bands.Length];
+        double total = 0, weighted = 0;
+        var type = TheBusProject.Models.Coaches.CoachClass.ClassType.EconomyClass;
+
+        foreach (var a in stations)
+        {
+            foreach (var b in stations)
+            {
+                if (a == b) continue;
+                double rate = a.GetDestinationPassengersRate(b, type);
+                if (rate <= 0) continue;
+                double miles = TheBusProject.Helpers.MathHelpers.GetDistance(a, b)*0.621371;
+                total += rate;
+                weighted += rate*miles;
+                for (int i = 0; i < bands.Length; i++)
+                {
+                    if (miles < bands[i]) { bandDemand[i] += rate; break; }
+                }
+            }
+        }
+
+        Console.WriteLine("DEMAND FIELD over " + stations.Count + " stations");
+        Console.WriteLine(string.Format("  demand-weighted mean distance: {0:0} miles, against the 344 Greyhound's average ticket carried someone",
+                                        total <= 0 ? 0 : weighted/total));
+        string[] labels = {"<80", "80-160", "160-320", "320-480", "480-640", "640-960", "960-1600", "1600+"};
+        for (int i = 0; i < bands.Length; i++)
+        {
+            Console.WriteLine(string.Format("  {0,-9} {1,6:0.0}% of the demand", labels[i], total <= 0 ? 0 : 100.0*bandDemand[i]/total));
+        }
+
+        Console.WriteLine("DEMAND FIELD OK");
+    }
+
     static void IdleProbe()
     {
         var g = TheBusProject.Models.General.GameObject.GetInstance();
@@ -6828,6 +6872,7 @@ static class VmTest
             if (Environment.GetCommandLineArgs().Contains("reputation")) { await ReputationTest(av); return; }
             if (Environment.GetCommandLineArgs().Contains("statistics")) { await StatisticsTest(av); return; }
             if (Environment.GetCommandLineArgs().Contains("stats")) { await StatsTest(av); return; }
+            if (Environment.GetCommandLineArgs().Contains("demandfield")) { DemandFieldProbe(); return; }
             if (Environment.GetCommandLineArgs().Contains("idle")) { IdleProbe(); return; }
             if (Environment.GetCommandLineArgs().Contains("mapanim")) { MapAnimTest(av); return; }
             if (Environment.GetCommandLineArgs().Contains("aicheck")) { AiCheckProbe(); return; }
