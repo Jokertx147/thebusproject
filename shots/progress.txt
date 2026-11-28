@@ -1,0 +1,36 @@
+04:21:30 started; window 1100x720 at scale 1
+04:21:32 saved 00-new-game.png (1440x900)
+04:21:33 game created: Barons Bus, 2007-01-01
+04:21:33 bought 4 coaches out of 95 on offer
+04:21:33 route CLE-PHL with N001BB  MCI 102DL3: opened
+04:21:33 route PHL-HFD with N004BB  Van Hool T2145: opened
+04:21:33 route HFD-WAS with N003BB  Prevost X3-45: opened
+04:21:35 played to 2007-03-14; routes 3, fleet 4, idle 1
+04:21:36 saved 00b-map-network.png (1440x900)
+04:21:36 map: 4 coaches, 3 lines drawn
+04:21:36 saved 00c-map-closer.png (1440x900)
+04:21:37 saved 01-statistics-passengers.png (1440x900)
+04:21:37 saved 02-statistics-result.png (1440x900)
+04:21:37 statistics: log scale False
+04:21:38 saved 02b-statistics-result-other-scale.png (1440x900)
+04:21:38 saved 03-statistics-seats-filled.png (1440x900)
+04:21:39 saved 04-statistics-cash-by-year.png (1440x900)
+04:21:39 saved 05-monthly-report.png (1440x900)
+04:21:40 saved 06-route-suggestions.png (1440x900)
+04:21:40 saved 06-route-suggestions-2.png (1440x900)
+04:21:41 saved 06b-stations-near.png (1440x900)
+04:21:41 saved 07-competitors.png (1440x900)
+04:21:42 saved 08-news-report-link.png (1440x900)
+04:21:42 saved 11-timetable-gate-time.png (1440x900)
+04:21:43 saved 11-timetable-gate-time-2.png (1440x900)
+04:21:43 saved 11-timetable-gate-time-3.png (1440x900)
+04:21:43 timetable: N001BB: 14 trips a week, about 88 hours on the road. The faint band after each trip is the 25 minutes it needs at the gate before it can leave again.
+04:21:44 saved 10-best-and-worst-routes.png (1440x900)
+04:21:44 saved 10b-best-and-worst-coach.png (1440x900)
+04:21:44 best and worst: 4 coach, 1 losing money. Together $227,135.02 in the month. All of them are shown, the best at the top.
+04:21:44 best and worst scrolling: extent 1198x134, viewport 1198x647, the chart wants 1198x134; scrolls not needed, it fits
+04:21:45 saved 10c-best-and-worst-squeezed.png (1440x900)
+04:21:45 best and worst squeezed to 90: extent 164, a vertical bar is showing
+04:21:45 saved 09-new-coach-engines.png (1440x900)
+04:21:46 saved 09-new-coach-engines-2.png (1440x900)
+04:21:46 done
