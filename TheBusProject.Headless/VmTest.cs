@@ -4903,9 +4903,18 @@ static class VmTest
                                                 ownership, inAll <= 0 ? 0 : ownership/inAll*100));
 
                 double fleetMiles = kmYear*0.621371;
-                double journey = carriedAll <= 0 ? 0 : paxMiles/carriedAll;
+                // How far a ticket carries someone. This was computed as paxMiles/carriedAll and called the
+                // average journey, which it is not: substitute paxMiles and aboard and carriedAll cancels out,
+                // leaving fleetMiles*seatsPerCoach/seatsFlown, the length of a service. Measured both ways over
+                // six years it came to 190.4 miles against 188.5, so that is what it was.
+                //   Miles a departure is the honest form of it, and it is still the figure to set beside
+                //   Greyhound's 344, because one ticket here is one ride on one service: 823,427 carried over
+                // 20,328 departures is 40.5 a departure against 53 seats. What a ticket buys is the comparison;
+                // a passenger's whole journey, over connections, is not something the game counts.
+                double departs = me.Statistics.GetStatisticsValue(last.Year, TheBusProject.Models.General.Statistics.StatisticsTypes.GetStatisticsType("Departures"));
+                double journey = departs <= 0 ? 0 : fleetMiles/departs;
                 double yield = paxMiles <= 0 ? 0 : tickets/paxMiles;
-                Console.WriteLine(string.Format("      ${0:0.00} of tickets a bus mile against Greyhound's $2.81; {1:#,0} journeys at ${2:0} each against its $38.26, {3:0} miles the average journey against its 344; ${4:0.000} a passenger mile against its $0.1112",
+                Console.WriteLine(string.Format("      ${0:0.00} of tickets a bus mile against Greyhound's $2.81; {1:#,0} journeys at ${2:0} each against its $38.26, {3:0} miles a departure against the 344 its average ticket carried someone; ${4:0.000} a passenger mile against its $0.1112",
                                                 fleetMiles <= 0 ? 0 : tickets/fleetMiles, carriedAll,
                                                 carriedAll <= 0 ? 0 : tickets/carriedAll, journey, yield));
                 Console.WriteLine(string.Format("      ({0:0} seats a coach, {1:0} of them taken; the fleet drove {2:#,0} miles)",
